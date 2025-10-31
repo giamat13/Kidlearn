@@ -1,219 +1,294 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Search, BookOpen, Palette, Calculator } from 'lucide-react';
-
-export default function GoogaleKids() {
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [childName, setChildName] = useState('');
-  const [childGrade, setChildGrade] = useState('');
-  const [tempName, setTempName] = useState('');
-  const [tempGrade, setTempGrade] = useState('');
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const nameResult = await window.storage.get('child_name');
-        const gradeResult = await window.storage.get('child_grade');
-        
-        if (nameResult && gradeResult) {
-          setChildName(nameResult.value);
-          setChildGrade(gradeResult.value);
-          setShowWelcome(false);
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>גוגלה - סביבה חינוכית לילדים</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      } catch (error) {
-        console.log('No stored data found');
-      }
-    };
-    loadData();
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (tempName && tempGrade) {
-      try {
-        await window.storage.set('child_name', tempName);
-        await window.storage.set('child_grade', tempGrade);
-        setChildName(tempName);
-        setChildGrade(tempGrade);
-        setShowWelcome(false);
-      } catch (error) {
-        console.error('Failed to save data:', error);
-      }
-    }
-  };
-
-  const handleReset = async () => {
-    try {
-      await window.storage.delete('child_name');
-      await window.storage.delete('child_grade');
-      setChildName('');
-      setChildGrade('');
-      setTempName('');
-      setTempGrade('');
-      setShowWelcome(true);
-    } catch (error) {
-      console.error('Failed to reset:', error);
-    }
-  };
-
-  const grades = [
-    { value: 'preschool', label: 'טרום חובה' },
-    { value: 'kindergarten', label: 'גן חובה' },
-    { value: 'grade1', label: 'כיתה א׳' },
-    { value: 'grade2', label: 'כיתה ב׳' }
-  ];
-
-  const showTimesGame = childGrade === 'grade2';
-
-  if (showWelcome) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 flex items-center justify-center p-4" dir="rtl">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
-          <div className="text-center mb-6">
-            <div className="inline-block bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-4 mb-4">
-              <Sparkles className="w-12 h-12 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">ברוכים הבאים לגוגלה!</h1>
-            <p className="text-gray-600">בוא נכיר - מה שמך?</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-right text-gray-700 font-semibold mb-2 text-lg">
-                מה השם שלך?
-              </label>
-              <input
-                type="text"
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                className="w-full px-4 py-3 text-right border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
-                placeholder="הכנס את שמך כאן"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-right text-gray-700 font-semibold mb-2 text-lg">
-                באיזה כיתה את/ה?
-              </label>
-              <select
-                value={tempGrade}
-                onChange={(e) => setTempGrade(e.target.value)}
-                className="w-full px-4 py-3 text-right border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none text-lg appearance-none bg-white"
-                required
-              >
-                <option value="">בחר כיתה</option>
-                {grades.map(grade => (
-                  <option key={grade.value} value={grade.value}>
-                    {grade.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold text-xl hover:from-blue-600 hover:to-purple-600 transition-all transform hover:scale-105 shadow-lg"
-            >
-              בואו נתחיל!
-            </button>
-          </form>
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            font-size: 3em;
+            color: #667eea;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logo p {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+        
+        .welcome-screen, .main-screen {
+            text-align: center;
+        }
+        
+        .welcome-screen h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: right;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1.1em;
+            transition: border-color 0.3s;
+            text-align: right;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .greeting {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .greeting h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .activities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .activity-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .activity-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        
+        .activity-card p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .activity-card.facts {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .activity-card.colors {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .activity-card.math {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        .logout-btn {
+            background: #e0e0e0;
+            color: #666;
+            margin-top: 20px;
+            font-size: 1em;
+            padding: 10px 30px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🎓 גוגלה</h1>
+            <p>סביבה חינוכית לילדים</p>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-300 via-purple-300 to-pink-300 p-4" dir="rtl">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-3">
-                <Sparkles className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">שלום {childName}! 👋</h1>
-                <p className="text-gray-600">
-                  {grades.find(g => g.value === childGrade)?.label}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm transition-colors"
-            >
-              החלף משתמש
-            </button>
-          </div>
+        
+        <div class="welcome-screen" id="welcomeScreen">
+            <h2>ברוכים הבאים! 👋</h2>
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="childName">מה שמך?</label>
+                    <input type="text" id="childName" required placeholder="הכנס/י את שמך">
+                </div>
+                
+                <div class="form-group">
+                    <label for="childGrade">באיזו כיתה את/ה?</label>
+                    <select id="childGrade" required>
+                        <option value="">בחר/י כיתה</option>
+                        <option value="preschool">טרום חובה</option>
+                        <option value="kindergarten">גן חובה</option>
+                        <option value="grade1">כיתה א'</option>
+                        <option value="grade2">כיתה ב'</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">בואו נתחיל! 🚀</button>
+            </form>
         </div>
-
-        {/* Games Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Facts Game */}
-          <a
-            href="https://giamat13.github.io/Kidlearn-Facts/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white rounded-3xl shadow-lg p-8 hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer group"
-          >
-            <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl p-6 mb-4 group-hover:from-green-500 group-hover:to-emerald-600 transition-all">
-              <BookOpen className="w-16 h-16 text-white mx-auto" />
+        
+        <div class="main-screen hidden" id="mainScreen">
+            <div class="greeting" id="greeting"></div>
+            
+            <div class="activities" id="activities">
+                <a href="https://giamat13.github.io/Kidlearn-Facts" target="_blank" class="activity-card facts">
+                    <h3>🌍 עובדות מעניינות</h3>
+                    <p>למד דברים חדשים ומרתקים!</p>
+                </a>
+                
+                <a href="https://giamat13.github.io/Learn-Color-Numburs/" target="_blank" class="activity-card colors">
+                    <h3>🎨 צבעים ומספרים</h3>
+                    <p>תלמד צבעים ולספור!</p>
+                </a>
+                
+                <a href="https://giamat13.github.io/homework-easy-times/" target="_blank" class="activity-card math hidden" id="mathCard">
+                    <h3>ניהול שיעורי בית</h3>
+                    <p>לא נשכח לעולם ש.ב!</p>
+                </a>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">
-              עובדות מגניבות
-            </h2>
-            <p className="text-gray-600 text-center">
-              למד דברים חדשים ומעניינים!
-            </p>
-          </a>
-
-          {/* Colors Game */}
-          <a
-            href="https://giamat13.github.io/Learn-Color-Numburs/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white rounded-3xl shadow-lg p-8 hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer group"
-          >
-            <div className="bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl p-6 mb-4 group-hover:from-pink-500 group-hover:to-rose-600 transition-all">
-              <Palette className="w-16 h-16 text-white mx-auto" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">
-              צבעים ומספרים
-            </h2>
-            <p className="text-gray-600 text-center">
-              תלמד צבעים ומספרים בכיף!
-            </p>
-          </a>
-
-          {/* Times Tables Game - Only for Grade 2 */}
-          {showTimesGame && (
-            <a
-              href="https://giamat13.github.io/homework-easy-times/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white rounded-3xl shadow-lg p-8 hover:shadow-2xl transition-all transform hover:scale-105 cursor-pointer group"
-            >
-              <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl p-6 mb-4 group-hover:from-orange-500 group-hover:to-red-600 transition-all">
-                <Calculator className="w-16 h-16 text-white mx-auto" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">
-                לוח הכפל
-              </h2>
-              <p className="text-gray-600 text-center">
-                תתרגל כפל בצורה קלה!
-              </p>
-            </a>
-          )}
+            
+            <button class="btn logout-btn" id="logoutBtn">יציאה</button>
         </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-white text-lg font-semibold">
-            בחר משחק והתחל ללמוד! 🌟
-          </p>
-        </div>
-      </div>
     </div>
-  );
-}
+    
+    <script>
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const mainScreen = document.getElementById('mainScreen');
+        const registrationForm = document.getElementById('registrationForm');
+        const greeting = document.getElementById('greeting');
+        const mathCard = document.getElementById('mathCard');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // בדיקה אם יש משתמש שמור
+        const savedUser = {
+            name: '',
+            grade: ''
+        };
+        
+        registrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('childName').value;
+            const grade = document.getElementById('childGrade').value;
+            
+            savedUser.name = name;
+            savedUser.grade = grade;
+            
+            showMainScreen(name, grade);
+        });
+        
+        logoutBtn.addEventListener('click', function() {
+            savedUser.name = '';
+            savedUser.grade = '';
+            welcomeScreen.classList.remove('hidden');
+            mainScreen.classList.add('hidden');
+            registrationForm.reset();
+        });
+        
+        function showMainScreen(name, grade) {
+            const gradeNames = {
+                'preschool': 'טרום חובה',
+                'kindergarten': 'גן חובה',
+                'grade1': 'כיתה א\'',
+                'grade2': 'כיתה ב\''
+            };
+            
+            greeting.innerHTML = `
+                <h2>שלום ${name}! 🌟</h2>
+                <p>את/ה ב${gradeNames[grade]}</p>
+                <p>בחר/י פעילות ללמידה מהנה!</p>
+            `;
+            
+            // הצגת לוח הכפל רק למי שעבר כיתה א'
+            if (grade === 'grade2') {
+                mathCard.classList.remove('hidden');
+            } else {
+                mathCard.classList.add('hidden');
+            }
+            
+            welcomeScreen.classList.add('hidden');
+            mainScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
