@@ -1,0 +1,76 @@
+.font-arial { font-family: 'Arial', Helvetica, sans-serif; }
+.font-times { font-family: 'Times New Roman', Times, serif; }
+.font-georgia { font-family: Georgia, serif; }
+.font-garamond { font-family: Garamond, serif; }
+.font-baskerville { font-family: Baskerville, serif; }
+.font-bookman { font-family: 'Bookman Old Style', serif; }
+.font-palantino { font-family: 'Palatino Linotype', Palatino, serif; }
+.font-constantia { font-family: Constantia, serif; }
+.font-cambria { font-family: Cambria, serif; }
+.font-playfair { font-family: 'Playfair Display', serif; }
+.font-merriweather { font-family: Merriweather, serif; }
+.font-libre-baskerville { font-family: 'Libre Baskerville', serif; }
+.font-roboto-slab { font-family: 'Roboto Slab', serif; }
+.font-goudy { font-family: 'Goudy Old Style', serif; }
+.font-american-typewriter { font-family: 'American Typewriter', serif; }
+.font-helvetica { font-family: 'Helvetica Neue', Helvetica, sans-serif; }
+.font-verdana { font-family: Verdana, sans-serif; }
+.font-trebuchet { font-family: 'Trebuchet MS', sans-serif; }
+.font-tahoma { font-family: Tahoma, sans-serif; }
+.font-century { font-family: 'Century Gothic', sans-serif; }
+.font-calibri { font-family: Calibri, sans-serif; }
+.font-franklin { font-family: 'Franklin Gothic Medium', sans-serif; }
+.font-lucida-sans { font-family: 'Lucida Sans Unicode', sans-serif; }
+.font-segoe { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; }
+.font-optima { font-family: Optima, sans-serif; }
+.font-candara { font-family: Candara, sans-serif; }
+.font-corbel { font-family: Corbel, sans-serif; }
+.font-roboto { font-family: Roboto, sans-serif; }
+.font-open-sans { font-family: 'Open Sans', sans-serif; }
+.font-lato { font-family: Lato, sans-serif; }
+.font-montserrat { font-family: Montserrat, sans-serif; }
+.font-source-sans { font-family: 'Source Sans Pro', sans-serif; }
+.font-nunito { font-family: Nunito, sans-serif; }
+.font-raleway { font-family: Raleway, sans-serif; }
+.font-ubuntu { font-family: Ubuntu, sans-serif; }
+.font-poppins { font-family: Poppins, sans-serif; }
+.font-futura { font-family: Futura, sans-serif; }
+.font-avenir { font-family: Avenir, sans-serif; }
+.font-proxima-nova { font-family: 'Proxima Nova', sans-serif; }
+.font-quicksand { font-family: Quicksand, sans-serif; }
+.font-karla { font-family: Karla, sans-serif; }
+.font-oxygen { font-family: Oxygen, sans-serif; }
+.font-pt-sans { font-family: 'PT Sans', sans-serif; }
+.font-ibm-plex-sans { font-family: 'IBM Plex Sans', sans-serif; }
+.font-courier { font-family: 'Courier New', Courier, monospace; }
+.font-lucida { font-family: 'Lucida Console', monospace; }
+.font-consolas { font-family: Consolas, monospace; }
+.font-monaco { font-family: Monaco, monospace; }
+.font-menlo { font-family: Menlo, monospace; }
+.font-source-code { font-family: 'Source Code Pro', monospace; }
+.font-fira { font-family: 'Fira Code', monospace; }
+.font-inconsolata { font-family: Inconsolata, monospace; }
+.font-pt-mono { font-family: 'PT Mono', monospace; }
+.font-dejavu-mono { font-family: 'DejaVu Sans Mono', monospace; }
+.font-ubuntu-mono { font-family: 'Ubuntu Mono', monospace; }
+.font-comic { font-family: 'Comic Sans MS', cursive; }
+.font-brush { font-family: 'Brush Script MT', cursive; }
+.font-dancing-script { font-family: 'Dancing Script', cursive; }
+.font-sacramento { font-family: Sacramento, cursive; }
+.font-great-vibes { font-family: 'Great Vibes', cursive; }
+.font-pacifico { font-family: Pacifico, cursive; }
+.font-lobster { font-family: Lobster, cursive; }
+.font-kaushan { font-family: 'Kaushan Script', cursive; }
+.font-satisfy { font-family: Satisfy, cursive; }
+.font-spectral { font-family: Spectral, serif; }
+.font-cormorant { font-family: Cormorant, serif; }
+.font-eb-garamond { font-family: 'EB Garamond', serif; }
+.font-josefin-sans { font-family: 'Josefin Sans', sans-serif; }
+.font-abril-fatface { font-family: 'Abril Fatface', serif; }
+.font-arvo { font-family: Arvo, serif; }
+.font-bitter { font-family: Bitter, serif; }
+.font-montserrat-alt { font-family: 'Montserrat Alternates', sans-serif; }
+.font-raleway-sans { font-family: 'Raleway', sans-serif; }
+.font-noto-sans { font-fa
+mily: 'Noto Sans', sans-serif; }
+.font-noto-serif { font-family: 'Noto Serif', serif; }
