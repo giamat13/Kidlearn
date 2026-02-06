@@ -3,292 +3,1094 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kidlearn - סביבה חינוכית לילדים</title>
+    <title>KidLearn - כלי למידה לילדים</title>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #FEC163;
+            --accent: #67D5B5;
+            --purple: #A78BFA;
+            --blue: #60A5FA;
+            --bg: #FFF8F0;
+            --card-bg: #FFFFFF;
+            --shadow: rgba(255, 107, 157, 0.15);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Varela Round', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(103, 213, 181, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 90%, rgba(254, 193, 99, 0.08) 0%, transparent 50%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
+            overflow-x: hidden;
         }
-        
+
         .container {
-            background: white;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .logo span {
+            display: inline-block;
+            animation: bounce 1.5s ease-in-out infinite;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent), var(--purple));
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: bounce 1.5s ease-in-out infinite, gradient 3s ease infinite;
+        }
+
+        .logo span:nth-child(1) { animation-delay: 0s; }
+        .logo span:nth-child(2) { animation-delay: 0.1s; }
+        .logo span:nth-child(3) { animation-delay: 0.2s; }
+        .logo span:nth-child(4) { animation-delay: 0.3s; }
+        .logo span:nth-child(5) { animation-delay: 0.4s; }
+        .logo span:nth-child(6) { animation-delay: 0.5s; }
+        .logo span:nth-child(7) { animation-delay: 0.6s; }
+        .logo span:nth-child(8) { animation-delay: 0.7s; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .grade-selector {
+            background: var(--card-bg);
+            padding: 30px;
             border-radius: 30px;
-            padding: 40px;
+            box-shadow: 0 10px 40px var(--shadow);
+            margin-bottom: 50px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .grade-selector h2 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .grade-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .grade-btn {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 15px 35px;
+            border: 3px solid transparent;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--blue));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grade-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .grade-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .grade-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .grade-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            border-color: var(--primary);
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(255, 107, 157, 0.4);
+        }
+
+        .tools-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 30px var(--shadow);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInScale 0.6s ease-out both;
+        }
+
+        .tool-card:nth-child(1) { animation-delay: 0.1s; }
+        .tool-card:nth-child(2) { animation-delay: 0.2s; }
+        .tool-card:nth-child(3) { animation-delay: 0.3s; }
+        .tool-card:nth-child(4) { animation-delay: 0.4s; }
+        .tool-card:nth-child(5) { animation-delay: 0.5s; }
+        .tool-card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+
+        .tool-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px) rotate(1deg);
+            box-shadow: 0 15px 50px rgba(255, 107, 157, 0.25);
+        }
+
+        .tool-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+            position: relative;
+            z-index: 1;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .tool-card:nth-child(1) .tool-icon { animation-delay: 0s; }
+        .tool-card:nth-child(2) .tool-icon { animation-delay: 0.5s; }
+        .tool-card:nth-child(3) .tool-icon { animation-delay: 1s; }
+
+        .tool-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tool-description {
+            font-size: 1rem;
+            color: #666;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--secondary);
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .tools-container {
+                grid-template-columns: 1fr;
+            }
+
+            .grade-buttons {
+                flex-direction: column;
+            }
+
+            .grade-btn {
+                width: 100%;
+            }
+        }
+
+        .no-tools-message {
+            text-align: center;
+            padding: 60px 20px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            color: #999;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Setup Screen Styles */
+        .setup-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(103, 213, 181, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 90%, rgba(254, 193, 99, 0.08) 0%, transparent 50%);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .setup-card {
+            background: var(--card-bg);
+            padding: 50px 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px var(--shadow);
             max-width: 600px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .logo {
             text-align: center;
-            margin-bottom: 30px;
+            animation: scaleIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        
-        .logo h1 {
-            font-size: 3em;
-            color: #667eea;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
-        
-        .logo p {
+
+        .setup-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .setup-subtitle {
+            font-size: 1.2rem;
             color: #666;
-            font-size: 1.1em;
-            margin-top: 10px;
+            margin-bottom: 40px;
         }
-        
-        .welcome-screen, .main-screen {
-            text-align: center;
+
+        .setup-section {
+            margin-bottom: 35px;
         }
-        
-        .welcome-screen h2 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 1.8em;
+
+        .setup-section-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 15px;
         }
-        
-        .form-group {
-            margin-bottom: 25px;
-            text-align: right;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            color: #555;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        
-        .form-group input, .form-group select {
+
+        .name-input {
+            font-family: 'Varela Round', sans-serif;
+            font-size: 1.2rem;
+            padding: 15px 25px;
+            border: 3px solid var(--accent);
+            border-radius: 50px;
             width: 100%;
-            padding: 15px;
-            border: 3px solid #e0e0e0;
-            border-radius: 15px;
-            font-size: 1.1em;
-            transition: border-color 0.3s;
-            text-align: right;
+            max-width: 400px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #FFFEF9;
         }
-        
-        .form-group input:focus, .form-group select:focus {
+
+        .name-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+            transform: scale(1.02);
         }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.3em;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            font-weight: bold;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .greeting {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .greeting h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        
-        .activities {
+
+        .grade-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .activity-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            text-decoration: none;
-            display: block;
-        }
-        
-        .activity-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-        }
-        
-        .activity-card h3 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-        
-        .activity-card p {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-        
-        .activity-card.facts {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        .activity-card.colors {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        
-        .activity-card.math {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-        
-        .logout-btn {
-            background: #e0e0e0;
-            color: #666;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
             margin-top: 20px;
-            font-size: 1em;
-            padding: 10px 30px;
         }
-        
-        .hidden {
-            display: none;
+
+        .grade-option {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 20px 15px;
+            border: 3px solid transparent;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grade-option::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .grade-option:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .grade-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .grade-option.selected {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+        }
+
+        .setup-button {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 18px 60px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--blue));
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .setup-button::after {
+            content: '🚀';
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            transition: transform 0.4s ease;
+        }
+
+        .setup-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(96, 165, 250, 0.4);
+        }
+
+        .setup-button:hover::after {
+            transform: translateY(-50%) translateX(10px);
+        }
+
+        .setup-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .setup-button:disabled:hover {
+            transform: none;
+        }
+
+        .setup-button:disabled::after {
+            content: '';
+        }
+
+        .change-settings-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .change-settings-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(254, 193, 99, 0.4);
+        }
+
+        .greeting {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            animation: fadeInDown 0.8s ease-out 0.3s both;
+        }
+
+        /* Grade Progression Modal */
+        .progression-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .progression-card {
+            background: var(--card-bg);
+            padding: 50px 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .progression-confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            top: -10px;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(500px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .progression-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progression-message {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progression-grades {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .old-grade, .new-grade {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            padding: 15px 30px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .old-grade {
+            background: #e0e0e0;
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .new-grade {
+            background: linear-gradient(135deg, var(--accent), var(--blue));
+            color: white;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .grade-arrow {
+            font-size: 2.5rem;
+            color: var(--primary);
+            animation: slideRight 1s ease-in-out infinite;
+        }
+
+        @keyframes slideRight {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(10px);
+            }
+        }
+
+        .progression-button {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.3);
+            margin-top: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progression-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <h1>🎓 Kidlearn</h1>
-            <p>סביבה חינוכית לילדים</p>
-        </div>
-        
-        <div class="welcome-screen" id="welcomeScreen">
-            <h2>ברוכים הבאים! 👋</h2>
-            <form id="registrationForm">
-                <div class="form-group">
-                    <label for="childName">מה שמך?</label>
-                    <input type="text" id="childName" required placeholder="הכנס/י את שמך">
-                </div>
-                
-                <div class="form-group">
-                    <label for="childGrade">באיזו כיתה את/ה?</label>
-                    <select id="childGrade" required>
-                        <option value="">בחר/י כיתה</option>
-                        <option value="preschool">טרום חובה</option>
-                        <option value="kindergarten">גן חובה</option>
-                        <option value="grade1">כיתה א'</option>
-                        <option value="grade2">כיתה ב'</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn">בואו נתחיל! 🚀</button>
-            </form>
-        </div>
-        
-        <div class="main-screen hidden" id="mainScreen">
-            <div class="greeting" id="greeting"></div>
+    <div class="stars" id="stars"></div>
+
+    <!-- Setup Screen -->
+    <div class="setup-screen" id="setupScreen">
+        <div class="setup-card">
+            <div class="setup-title">🌟 ברוכים הבאים! 🌟</div>
+            <div class="setup-subtitle">בוא נכיר - מה שמך ובאיזו כיתה/גן את/ה?</div>
             
-            <div class="activities" id="activities">
-                <a href="https://giamat13.github.io/Kidlearn/Facts" target="_blank" class="activity-card facts">
-                    <h3>🌍 עובדות מעניינות</h3>
-                    <p>למד דברים חדשים ומרתקים!</p>
-                </a>
-                
-                <a href="https://giamat13.github.io/Kidlearn/Learn-Color-Numburs/" target="_blank" class="activity-card colors">
-                    <h3>🎨 צבעים ומספרים</h3>
-                    <p>תלמד צבעים ולספור!</p>
-                </a>
-                
-                <a href="https://giamat13.github.io/homework-easy-times/" target="_blank" class="activity-card math hidden" id="mathCard">
-                    <h3>ניהול שיעורי בית</h3>
-                    <p>לא נשכח לעולם ש.ב!</p>
-                </a>
+            <div class="setup-section">
+                <div class="setup-section-title">📝 השם שלי:</div>
+                <input type="text" id="studentName" class="name-input" placeholder="הכנס/י את שמך כאן..." maxlength="20">
             </div>
-            
-            <button class="btn logout-btn" id="logoutBtn">יציאה</button>
+
+            <div class="setup-section">
+                <div class="setup-section-title">🎒 הכיתה/גן שלי:</div>
+                <div class="grade-grid">
+                    <div class="grade-option" data-grade="preschool">🧸 טרום חובה</div>
+                    <div class="grade-option" data-grade="kindergarten">🎨 גן חובה</div>
+                    <div class="grade-option" data-grade="first">📖 כיתה א׳</div>
+                    <div class="grade-option" data-grade="second">✏️ כיתה ב׳</div>
+                </div>
+            </div>
+
+            <button class="setup-button" id="startButton" disabled>בואו נתחיל!</button>
         </div>
     </div>
-    
+
+    <!-- Main App -->
+    <div class="container" id="mainApp" style="display: none;">
+        <div class="header">
+            <div class="logo">
+                <span>n</span><span>r</span><span>a</span><span>e</span><span>l</span><span>d</span><span>i</span><span>K</span>
+            </div>
+            <div class="greeting" id="greeting"></div>
+            <div class="subtitle">🌟 כלי למידה מהנים וחינוכיים 🌟</div>
+        </div>
+
+        <div id="toolsContainer" class="tools-container"></div>
+    </div>
+
+    <button class="change-settings-btn hidden" id="changeSettingsBtn">⚙️ שנה הגדרות</button>
+
+    <!-- Grade Progression Modal -->
+    <div class="progression-modal hidden" id="progressionModal">
+        <div class="progression-card">
+            <div class="progression-confetti" id="confettiContainer"></div>
+            <div class="progression-title">🎉 מזל טוב! 🎉</div>
+            <div class="progression-message" id="progressionMessage"></div>
+            <div class="progression-grades">
+                <div class="old-grade" id="oldGrade"></div>
+                <div class="grade-arrow">←</div>
+                <div class="new-grade" id="newGrade"></div>
+            </div>
+            <button class="progression-button" id="confirmProgressionBtn">יאללה, בואו נתחיל!</button>
+        </div>
+    </div>
+
     <script>
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        const mainScreen = document.getElementById('mainScreen');
-        const registrationForm = document.getElementById('registrationForm');
-        const greeting = document.getElementById('greeting');
-        const mathCard = document.getElementById('mathCard');
-        const logoutBtn = document.getElementById('logoutBtn');
-        
-        // בדיקה אם יש משתמש שמור
-        const savedUser = {
-            name: '',
-            grade: ''
-        };
-        
-        registrationForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('childName').value;
-            const grade = document.getElementById('childGrade').value;
-            
-            savedUser.name = name;
-            savedUser.grade = grade;
-            
-            showMainScreen(name, grade);
-        });
-        
-        logoutBtn.addEventListener('click', function() {
-            savedUser.name = '';
-            savedUser.grade = '';
-            welcomeScreen.classList.remove('hidden');
-            mainScreen.classList.add('hidden');
-            registrationForm.reset();
-        });
-        
-        function showMainScreen(name, grade) {
-            const gradeNames = {
-                'preschool': 'טרום חובה',
-                'kindergarten': 'גן חובה',
-                'grade1': 'כיתה א\'',
-                'grade2': 'כיתה ב\''
-            };
-            
-            greeting.innerHTML = `
-                <h2>שלום ${name}! 🌟</h2>
-                <p>את/ה ב${gradeNames[grade]}</p>
-                <p>בחר/י פעילות ללמידה מהנה!</p>
-            `;
-            
-            // הצגת לוח הכפל רק למי שעבר כיתה א'
-            if (grade === 'grade2') {
-                mathCard.classList.remove('hidden');
-            } else {
-                mathCard.classList.add('hidden');
-            }
-            
-            welcomeScreen.classList.add('hidden');
-            mainScreen.classList.remove('hidden');
+        // Cookie functions
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = name + '=' + value + ';expires=' + expires.toUTCString() + ';path=/';
         }
+
+        function getCookie(name) {
+            const nameEQ = name + '=';
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
+        }
+
+        // Tools data mapped by specific grades
+        const tools = {
+            'preschool': [
+                {
+                    icon: '🧲',
+                    title: 'המקרר הקסום',
+                    description: 'משחק מגנטים מהנה עם אותיות ומספרים על המקרר!',
+                    url: 'the-magical-fridge/index.html'
+                },
+                {
+                    icon: '🎨',
+                    title: 'למד צבעים ומספרים',
+                    description: 'גלה צבעים ומספרים בדרך מהנה ואינטראקטיבית!',
+                    url: 'Learn-Color-Numburs/index.html'
+                },
+                {
+                    icon: '🧮',
+                    title: 'עובדות מתמטיות',
+                    description: 'תרגול כיפי של חיבור וחיסור בסיסי!',
+                    url: 'Facts/index.html'
+                }
+            ],
+            'kindergarten': [
+                {
+                    icon: '🧲',
+                    title: 'המקרר הקסום',
+                    description: 'משחק מגנטים מהנה עם אותיות ומספרים על המקרר!',
+                    url: 'the-magical-fridge/index.html'
+                },
+                {
+                    icon: '🎨',
+                    title: 'למד צבעים ומספרים',
+                    description: 'גלה צבעים ומספרים בדרך מהנה ואינטראקטיבית!',
+                    url: 'Learn-Color-Numburs/index.html'
+                },
+                {
+                    icon: '🧮',
+                    title: 'עובדות מתמטיות',
+                    description: 'תרגול כיפי של חיבור וחיסור בסיסי!',
+                    url: 'Facts/index.html'
+                }
+            ],
+            'first': [
+                {
+                    icon: '⏰',
+                    title: 'שעות קלות',
+                    description: 'תרגול קריאת שעון בצורה מהנה ומתגמלת!',
+                    url: 'https://giamat13.github.io/homework-easy-times'
+                },
+                {
+                    icon: '🧲',
+                    title: 'המקרר הקסום',
+                    description: 'משחק מגנטים מהנה עם אותיות ומספרים על המקרר!',
+                    url: 'the-magical-fridge/index.html'
+                },
+                {
+                    icon: '🎨',
+                    title: 'למד צבעים ומספרים',
+                    description: 'גלה צבעים ומספרים בדרך מהנה ואינטראקטיבית!',
+                    url: 'Learn-Color-Numburs/index.html'
+                }
+            ],
+            'second': [
+                {
+                    icon: '⏰',
+                    title: 'שעות קלות',
+                    description: 'תרגול קריאת שעון בצורה מהנה ומתגמלת!',
+                    url: 'https://giamat13.github.io/homework-easy-times'
+                },
+                {
+                    icon: '🧲',
+                    title: 'המקרר הקסום',
+                    description: 'משחק מגנטים מהנה עם אותיות ומספרים על המקרר!',
+                    url: 'the-magical-fridge/index.html'
+                },
+                {
+                    icon: '🎨',
+                    title: 'למד צבעים ומספרים',
+                    description: 'גלה צבעים ומספרים בדרך מהנה ואינטראקטיבית!',
+                    url: 'Learn-Color-Numburs/index.html'
+                }
+            ]
+        };
+
+        const gradeNames = {
+            'preschool': 'טרום חובה',
+            'kindergarten': 'גן חובה',
+            'first': 'כיתה א׳',
+            'second': 'כיתה ב׳'
+        };
+
+        const gradeProgression = {
+            'preschool': 'kindergarten',
+            'kindergarten': 'first',
+            'first': 'second',
+            'second': 'second' // stays in second grade
+        };
+
+        // DOM elements
+        const setupScreen = document.getElementById('setupScreen');
+        const mainApp = document.getElementById('mainApp');
+        const studentNameInput = document.getElementById('studentName');
+        const gradeOptions = document.querySelectorAll('.grade-option');
+        const startButton = document.getElementById('startButton');
+        const changeSettingsBtn = document.getElementById('changeSettingsBtn');
+        const toolsContainer = document.getElementById('toolsContainer');
+        const greeting = document.getElementById('greeting');
+        const progressionModal = document.getElementById('progressionModal');
+        const progressionMessage = document.getElementById('progressionMessage');
+        const oldGrade = document.getElementById('oldGrade');
+        const newGrade = document.getElementById('newGrade');
+        const confirmProgressionBtn = document.getElementById('confirmProgressionBtn');
+        const confettiContainer = document.getElementById('confettiContainer');
+
+        let selectedGrade = null;
+
+        // Setup screen logic
+        gradeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                gradeOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedGrade = option.dataset.grade;
+                updateStartButton();
+            });
+        });
+
+        studentNameInput.addEventListener('input', updateStartButton);
+
+        function updateStartButton() {
+            const hasName = studentNameInput.value.trim().length > 0;
+            const hasGrade = selectedGrade !== null;
+            startButton.disabled = !(hasName && hasGrade);
+        }
+
+        startButton.addEventListener('click', () => {
+            const studentName = studentNameInput.value.trim();
+            if (studentName && selectedGrade) {
+                setCookie('studentName', studentName, 365);
+                setCookie('studentGrade', selectedGrade, 365);
+                showMainApp(studentName, selectedGrade);
+            }
+        });
+
+        changeSettingsBtn.addEventListener('click', () => {
+            deleteCookie('studentName');
+            deleteCookie('studentGrade');
+            location.reload();
+        });
+
+        function showMainApp(name, grade) {
+            setupScreen.style.display = 'none';
+            mainApp.style.display = 'block';
+            changeSettingsBtn.classList.remove('hidden');
+            
+            greeting.textContent = `שלום ${name}! 👋`;
+            displayTools(grade);
+        }
+
+        function displayTools(grade) {
+            toolsContainer.innerHTML = '';
+            const gradeTools = tools[grade];
+
+            if (gradeTools && gradeTools.length > 0) {
+                gradeTools.forEach((tool, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'tool-card';
+                    card.style.animationDelay = (index * 0.1) + 's';
+                    card.innerHTML = `
+                        <div class="tool-icon">${tool.icon}</div>
+                        <div class="tool-title">${tool.title}</div>
+                        <div class="tool-description">${tool.description}</div>
+                    `;
+                    card.addEventListener('click', () => {
+                        window.location.href = tool.url;
+                    });
+                    toolsContainer.appendChild(card);
+                });
+            } else {
+                toolsContainer.innerHTML = '<div class="no-tools-message">🎈 בקרוב יתווספו כלים נוספים! 🎈</div>';
+            }
+        }
+
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function createConfetti() {
+            confettiContainer.innerHTML = '';
+            const colors = ['#FF6B9D', '#FEC163', '#67D5B5', '#A78BFA', '#60A5FA'];
+            
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                confettiContainer.appendChild(confetti);
+            }
+        }
+
+        function checkAndProgressGrade(studentName, currentGrade) {
+            const today = new Date();
+            const lastCheckDate = getCookie('lastGradeCheck');
+            const currentYear = today.getFullYear();
+            
+            // Check if it's September 1st or later this year
+            const sept1 = new Date(currentYear, 8, 1); // September is month 8 (0-indexed)
+            
+            // If we haven't checked this year and it's past Sept 1
+            if (today >= sept1) {
+                const lastCheckYear = lastCheckDate ? new Date(lastCheckDate).getFullYear() : 0;
+                
+                // Only progress if we haven't done it this year
+                if (lastCheckYear < currentYear) {
+                    const nextGrade = gradeProgression[currentGrade];
+                    
+                    // Only show modal if there's actually a progression
+                    if (nextGrade && nextGrade !== currentGrade) {
+                        showProgressionModal(studentName, currentGrade, nextGrade);
+                        return true;
+                    } else {
+                        // Update check date even if no progression
+                        setCookie('lastGradeCheck', today.toISOString(), 365);
+                    }
+                }
+            }
+            return false;
+        }
+
+        function showProgressionModal(studentName, oldGradeValue, newGradeValue) {
+            createConfetti();
+            progressionMessage.textContent = `${studentName} היקר/ה, עברת שנה נוספת!`;
+            oldGrade.textContent = gradeNames[oldGradeValue];
+            newGrade.textContent = gradeNames[newGradeValue];
+            
+            progressionModal.classList.remove('hidden');
+            
+            confirmProgressionBtn.onclick = () => {
+                // Update the grade
+                setCookie('studentGrade', newGradeValue, 365);
+                setCookie('lastGradeCheck', new Date().toISOString(), 365);
+                
+                // Hide modal and refresh app
+                progressionModal.classList.add('hidden');
+                showMainApp(studentName, newGradeValue);
+            };
+        }
+
+        // Check if user has already set up
+        function init() {
+            const savedName = getCookie('studentName');
+            const savedGrade = getCookie('studentGrade');
+
+            if (savedName && savedGrade) {
+                // Check for grade progression first
+                const hasProgressed = checkAndProgressGrade(savedName, savedGrade);
+                
+                // Only show main app if no progression modal is shown
+                if (!hasProgressed) {
+                    showMainApp(savedName, savedGrade);
+                }
+            }
+        }
+
+        createStars();
+        init();
     </script>
 </body>
 </html>
