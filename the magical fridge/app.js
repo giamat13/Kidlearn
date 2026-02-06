@@ -1,124 +1,57 @@
-// נתוני המדפים - קבצי JSON מוטמעים בקוד לפתרון בעיית CORS
-const fridgeData = {
+// הגדרת המבנה של המקרר - רק מטא-דאטה על המדפים
+const fridgeStructure = {
   shelves: [
     {
       id: "vegetables",
       label: "🥗 מדף ירקות וסלטים",
-      jsonFile: "vegetables.json",
-      items: [
-        {
-          icon: "🥦",
-          name: "ברוקולי",
-          type: "positive",
-          title: "✓ למה ברוקולי טוב לי?",
-          description: "גורם לך להיות חזק! עוזר למערכת החיסון שלך להילחם בחיידקים, שומר על העצמות שלך חזקות ועוזר לך לגדול גבוה! 🦸‍♂️"
-        },
-        {
-          icon: "🥕",
-          name: "גזר",
-          type: "positive",
-          title: "✓ למה גזר טוב לי?",
-          description: "עוזר לשמור על עיניים בריאות! גם עושה את העור שלך יפה ועוזר לגוף שלך להילחם במחלות. גזר זה כמו סופר-פאוור לגוף! ✨"
-        },
-        {
-          icon: "🥗",
-          name: "סלט ירקות",
-          type: "positive",
-          title: "✓ למה סלט טוב לי?",
-          description: "מלא בחומרים טובים שעושים אותך בריא! עוזר לבטן שלך לעבוד טוב, נותן לך הרבה אנרגיה ועוזר לשמור על משקל בריא. כמו דלק לגוף! 🚀"
-        }
-      ]
+      jsonFile: "vegetables.json"
     },
     {
       id: "fruits",
       label: "🍎 מדף פירות",
-      jsonFile: "fruits.json",
-      items: [
-        {
-          icon: "🍎",
-          name: "תפוח",
-          type: "positive",
-          title: "✓ למה תפוח טוב לי?",
-          description: "תפוח עוזר לך להרגיש שבע ומלא אנרגיה! טוב ללב שלך, לשיניים שלך ועוזר לך להישאר בריא. תפוח ביום מרחיק את הרופא! 🍎❤️"
-        }
-      ]
+      jsonFile: "fruits.json"
     },
     {
       id: "proteins",
       label: "🥛 מדף חלבונים ומוצרי חלב",
-      jsonFile: "proteins.json",
-      items: [
-        {
-          icon: "🥛",
-          name: "חלב",
-          type: "positive",
-          title: "✓ למה חלב טוב לי?",
-          description: "עושה את העצמות והשיניים שלך חזקות מאוד! עוזר לשרירים שלך לגדול ונותן לך כוח. כמו דבק חזק לעצמות! 🦴💪"
-        },
-        {
-          icon: "🥚",
-          name: "בצים",
-          type: "positive",
-          title: "✓ למה ביצים טובות לי?",
-          description: "ביצים מלאות בחומרים שעוזרים לך לגדול! עושות אותך חזק, עוזרות לעיניים שלך ונותנות לך הרבה אנרגיה. סופר-מזון! 🌟"
-        },
-        {
-          icon: "🐟",
-          name: "דג סלמון",
-          type: "positive",
-          title: "✓ למה דג טוב לי?",
-          description: "דג עושה את המוח שלך חכם יותר! עוזר ללב שלך להיות חזק ועושה את העור שלך יפה. מזון-על למוח! 🧠💙"
-        }
-      ]
+      jsonFile: "proteins.json"
     },
     {
       id: "fast-food",
       label: "🍔 מדף מזון מהיר (לצריכה מתונה)",
-      jsonFile: "fast-food.json",
-      items: [
-        {
-          icon: "🍕",
-          name: "פיצה",
-          type: "negative",
-          title: "⚠ שים לב",
-          description: "פיצה טעימה מאוד אבל יש בה הרבה מלח ושומן. אם אוכלים הרבה פיצה, זה לא כל כך טוב לגוף. אפשר לאכול מדי פעם בתור פינוק! 🍕"
-        },
-        {
-          icon: "🍔",
-          name: "המבורגר",
-          type: "negative",
-          title: "⚠ שים לב",
-          description: "המבורגר יש בו הרבה שומן ומלח. אם אוכלים הרבה המבורגרים, הגוף לא מרגיש טוב ואפשר להשמין. טוב לאכול רק מדי פעם! 🍔"
-        },
-        {
-          icon: "🍟",
-          name: "צ'יפס",
-          type: "negative",
-          title: "⚠ שים לב",
-          description: "צ'יפס מטוגן בשמן ויש בו הרבה מלח. זה טעים אבל לא כל כך בריא. אם אוכלים הרבה צ'יפס, זה לא טוב ללב ולגוף. רק לפעמים! 🍟"
-        }
-      ]
+      jsonFile: "fast-food.json"
     },
     {
       id: "snacks",
       label: "🍫 מדף חטיפים ומשקאות",
-      jsonFile: "snacks.json",
-      items: [
-        {
-          icon: "🍫",
-          name: "שוקולד",
-          type: "negative",
-          title: "⚠ שים לב",
-          description: "שוקולד מתוק וטעים אבל יש בו הרבה סוכר. אם אוכלים יותר מדי, זה יכול לגרום לכאב שיניים ולא טוב לגוף. אבל קצת שוקולד יכול לשפר את מצב הרוח ולגרום לחיוך! 🍫😊"
-        }
-      ]
+      jsonFile: "snacks.json"
     }
   ]
 };
 
-// טעינת המקרר מהנתונים המוטמעים
-function loadFridge() {
-    renderFridge(fridgeData.shelves);
+// טעינת המקרר - טוען את כל הנתונים מקבצי JSON
+async function loadFridge() {
+    try {
+        const shelvesWithData = await Promise.all(
+            fridgeStructure.shelves.map(async (shelf) => {
+                const response = await fetch(`food/${shelf.jsonFile}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to load ${shelf.jsonFile}`);
+                }
+                const items = await response.json();
+                return {
+                    ...shelf,
+                    items: items
+                };
+            })
+        );
+        
+        renderFridge(shelvesWithData);
+    } catch (error) {
+        console.error('Error loading fridge data:', error);
+        const fridgeElement = document.querySelector('.fridge');
+        fridgeElement.innerHTML = '<div style="color: red; text-align: center; padding: 20px;">שגיאה בטעינת נתוני המקרר. אנא בדוק את קבצי ה-JSON בתיקיית food/</div>';
+    }
 }
 
 function renderFridge(shelves) {
