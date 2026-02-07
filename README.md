@@ -3,7 +3,7 @@
 
 פרויקט זה הוא תוצר של שיתוף פעולה בין אדם למכונה:
 
-* **giamat13**
+* **Giamat13**
 * **Tsipkat16**
 * **Gemini (Google)**
 * **ChatGPT (OpenAI)**
