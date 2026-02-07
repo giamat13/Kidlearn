@@ -1,1 +1,55 @@
-
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק המיון הבריא</title>
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🎮 משחק המיון הבריא</h1>
+            <a href="../index.html" class="back-button">🏠 חזרה למקרר</a>
+        </div>
+        
+        <div class="score-board">
+            <div class="score">נקודות: <span id="score">0</span></div>
+            <div class="lives">❤️ חיים: <span id="lives">3</span></div>
+        </div>
+        
+        <div class="game-info">
+            <p>גרור את המזון לארגז המתאים!</p>
+        </div>
+        
+        <div class="food-to-sort" id="foodItem">
+            <div class="food-icon" id="foodIcon">🍎</div>
+            <div class="food-name" id="foodName">תפוח</div>
+        </div>
+        
+        <div class="boxes-container">
+            <div class="box healthy-box" id="healthyBox">
+                <div class="box-icon">✅</div>
+                <div class="box-title">אוכל בריא</div>
+                <div class="box-description">ירקות, פירות, חלבונים</div>
+            </div>
+            
+            <div class="box unhealthy-box" id="unhealthyBox">
+                <div class="box-icon">⚠️</div>
+                <div class="box-title">אוכל לא בריא</div>
+                <div class="box-description">מזון מהיר, חטיפים</div>
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>המשחק הסתיים!</h2>
+            <p>הניקוד שלך: <span id="finalScore">0</span></p>
+            <button class="restart-button" onclick="restartGame()">שחק שוב</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
