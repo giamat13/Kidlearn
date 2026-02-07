@@ -17,6 +17,11 @@ const fridgeStructure = {
       jsonFile: "proteins.json"
     },
     {
+      id: "grains",
+      label: "🍞 מדף דגנים ולחם",
+      jsonFile: "grains.json"
+    },
+    {
       id: "fast-food",
       label: "🍔 מדף מזון מהיר (לצריכה מתונה)",
       jsonFile: "fast-food.json"
