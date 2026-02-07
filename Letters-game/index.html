@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משחק אותיות נופלות - הגדרות הורים</title>
+    <title>משחק אותיות נופלות - הגדרות מתקדמות</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap');
@@ -61,7 +61,7 @@
 </head>
 <body class="bg-blue-50">
 
-    <!-- ממשק משתמש עליון -->
+    <!-- Top UI -->
     <div class="fixed top-0 left-0 right-0 p-4 z-40 flex justify-between items-start pointer-events-none">
         <div class="bg-white/80 backdrop-blur p-4 rounded-2xl shadow-lg pointer-events-auto border-2 border-blue-400">
             <div class="text-xl font-bold text-blue-800">ניקוד: <span id="score-display">0</span></div>
@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <!-- מסך פתיחה -->
+    <!-- Start Screen -->
     <div id="start-screen" class="fixed inset-0 z-[100] bg-blue-600/95 flex items-center justify-center p-6 text-center">
         <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full">
             <h1 class="text-4xl font-black text-blue-600 mb-4">אותיות נופלות</h1>
@@ -101,7 +101,7 @@
         </div>
     </div>
 
-    <!-- פאנל הגדרות -->
+    <!-- Settings Panel -->
     <div id="settings-panel" class="fixed inset-0 z-[110] settings-overlay hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -113,25 +113,41 @@
                 </button>
             </div>
             
-            <div class="p-6 overflow-y-auto flex-1 space-y-8 text-right">
-                <!-- הגדרת הסתרה -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-6 text-right">
+                <!-- Volume Slider -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-gray-800">עוצמת קול</span>
+                        <span id="volume-val" class="text-blue-600 font-bold">100%</span>
+                    </div>
+                    <input type="range" id="volume-range" min="0" max="1" step="0.1" value="1" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
+                </div>
+
+                <!-- Game Speed Slider -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-gray-800">מהירות משחק התחלתית</span>
+                        <span id="speed-val" class="text-blue-600 font-bold">רגילה</span>
+                    </div>
+                    <input type="range" id="speed-range" min="0.5" max="3" step="0.25" value="1.2" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
+                </div>
+
+                <!-- Listening Mode Toggle -->
                 <div class="flex items-center justify-between bg-blue-50 p-4 rounded-2xl">
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="hide-letter-toggle" class="sr-only peer" onchange="updateVisualMode()">
+                        <input type="checkbox" id="hide-letter-toggle" class="sr-only peer">
                         <div class="w-14 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
-                    <div class="mr-3">
+                    <div class="mr-3 text-right">
                         <span class="block text-lg font-bold text-gray-800">מצב "הקשבה"</span>
                         <span class="text-sm text-gray-600 italic">הסתרת האות מלמעלה (רק קריינות)</span>
                     </div>
                 </div>
 
-                <!-- בחירת אותיות -->
+                <!-- Letter Selection -->
                 <div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-r-4 border-blue-500 pr-3">אילו אותיות יופיעו במשחק?</h3>
-                    <div class="grid grid-cols-6 gap-2" id="letters-selector-grid">
-                        <!-- יוזרק ע"י JS -->
-                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-r-4 border-blue-500 pr-3">בחירת אותיות למשחק</h3>
+                    <div class="grid grid-cols-6 gap-2" id="letters-selector-grid"></div>
                     <div class="flex gap-2 mt-4">
                         <button onclick="selectAllLetters(true)" class="flex-1 bg-gray-100 py-2 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-200">בחר הכל</button>
                         <button onclick="selectAllLetters(false)" class="flex-1 bg-gray-100 py-2 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-200">נקה הכל</button>
@@ -147,17 +163,18 @@
         </div>
     </div>
 
-    <!-- קנבס המשחק -->
+    <!-- Game Container -->
     <div id="game-container"></div>
 
     <script>
         const allHebrewLetters = "אבגדהוזחטיכלמנסעפצקרשת".split("");
         const colors = ['text-red-500', 'text-blue-500', 'text-green-500', 'text-yellow-500', 'text-purple-500', 'text-pink-500', 'text-orange-500'];
         
-        // הגדרות ברירת מחדל
         let settings = {
             enabledLetters: [...allHebrewLetters],
-            hideTargetLetter: false
+            hideTargetLetter: false,
+            baseSpeed: 1.2,
+            volume: 1.0
         };
 
         let score = 0;
@@ -166,34 +183,43 @@
         let targetGoal = 5;
         let gameActive = false;
         let spawnInterval;
-        let gameContainer = document.getElementById('game-container');
         const synth = window.speechSynthesis;
+        const gameContainer = document.getElementById('game-container');
 
-        // טעינת הגדרות מה-LocalStorage
         function loadSettings() {
-            const saved = localStorage.getItem('falling_letters_config');
+            const saved = localStorage.getItem('falling_letters_v2_config');
             if (saved) {
                 try {
-                    const parsed = JSON.parse(saved);
-                    // מוודא שהאובייקט תקין
-                    if (parsed.enabledLetters && Array.isArray(parsed.enabledLetters)) {
-                        settings = parsed;
-                    }
-                } catch (e) {
-                    console.error("Error loading settings", e);
-                }
+                    settings = {...settings, ...JSON.parse(saved)};
+                } catch (e) { console.error(e); }
             }
             applySettingsToUI();
         }
 
         function saveSettings() {
-            localStorage.setItem('falling_letters_config', JSON.stringify(settings));
+            localStorage.setItem('falling_letters_v2_config', JSON.stringify(settings));
         }
 
         function applySettingsToUI() {
             document.getElementById('hide-letter-toggle').checked = settings.hideTargetLetter;
-            updateVisualMode();
+            document.getElementById('speed-range').value = settings.baseSpeed;
+            document.getElementById('volume-range').value = settings.volume;
+            updateSettingsPreview();
             renderLettersSelector();
+            updateVisualMode();
+        }
+
+        function updateSettingsPreview() {
+            const vol = document.getElementById('volume-range').value;
+            const speed = document.getElementById('speed-range').value;
+            
+            document.getElementById('volume-val').innerText = Math.round(vol * 100) + "%";
+            
+            let speedText = "רגילה";
+            if (speed < 1) speedText = "איטית";
+            if (speed > 1.5) speedText = "מהירה";
+            if (speed > 2.2) speedText = "מהירה מאוד";
+            document.getElementById('speed-val').innerText = speedText;
         }
 
         function renderLettersSelector() {
@@ -204,7 +230,7 @@
                 const div = document.createElement('div');
                 div.innerHTML = `
                     <input type="checkbox" id="check-${char}" class="checkbox-letter sr-only" ${isChecked ? 'checked' : ''} onchange="toggleLetter('${char}')">
-                    <label for="check-${char}" class="flex items-center justify-center h-12 rounded-xl border-2 border-gray-200 font-bold text-xl cursor-pointer transition-all hover:bg-blue-50">
+                    <label for="check-${char}" class="flex items-center justify-center h-10 rounded-xl border-2 border-gray-200 font-bold text-lg cursor-pointer transition-all">
                         ${char}
                     </label>
                 `;
@@ -214,11 +240,8 @@
 
         function toggleLetter(char) {
             const index = settings.enabledLetters.indexOf(char);
-            if (index > -1) {
-                settings.enabledLetters.splice(index, 1);
-            } else {
-                settings.enabledLetters.push(char);
-            }
+            if (index > -1) settings.enabledLetters.splice(index, 1);
+            else settings.enabledLetters.push(char);
         }
 
         function selectAllLetters(select) {
@@ -227,50 +250,35 @@
         }
 
         function toggleSettings(show) {
-            const panel = document.getElementById('settings-panel');
-            if (show) {
-                panel.classList.remove('hidden');
-                panel.classList.add('flex');
-            } else {
-                panel.classList.add('hidden');
-                panel.classList.remove('flex');
-            }
+            document.getElementById('settings-panel').classList.toggle('hidden', !show);
+            document.getElementById('settings-panel').classList.toggle('flex', show);
         }
 
         function saveAndCloseSettings() {
             if (settings.enabledLetters.length === 0) {
-                alert("חובה לבחור לפחות אות אחת למשחק!");
+                alert("יש לבחור לפחות אות אחת!");
                 return;
             }
+            settings.hideTargetLetter = document.getElementById('hide-letter-toggle').checked;
+            settings.baseSpeed = parseFloat(document.getElementById('speed-range').value);
+            settings.volume = parseFloat(document.getElementById('volume-range').value);
+            
             saveSettings();
             toggleSettings(false);
-            if (gameActive) {
-                // אם המשחק רץ, נתחיל שלב חדש עם ההגדרות החדשות
-                nextLevel();
-            }
-        }
-
-        function updateVisualMode() {
-            settings.hideTargetLetter = document.getElementById('hide-letter-toggle').checked;
-            const displayEl = document.getElementById('target-letter-display');
-            if (settings.hideTargetLetter) {
-                displayEl.innerHTML = `<span class="text-3xl text-gray-300">?</span>`;
-            } else if (currentTarget) {
-                displayEl.innerText = currentTarget;
-            }
+            updateVisualMode();
+            if (gameActive) nextLevel();
         }
 
         function speak(text) {
             synth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'he-IL';
-            utterance.rate = 0.85;
+            utterance.volume = settings.volume;
+            utterance.rate = 0.9;
             synth.speak(utterance);
         }
 
-        function speakTarget() {
-            if (currentTarget) speak(currentTarget);
-        }
+        function speakTarget() { if (currentTarget) speak(currentTarget); }
 
         function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
@@ -283,116 +291,94 @@
 
         function nextLevel() {
             targetCollected = 0;
-            targetGoal = Math.min(3 + Math.floor(score / 50), 10);
-            
-            // בוחר רק אות מהרשימה המאושרת
+            targetGoal = Math.min(3 + Math.floor(score / 50), 12);
             const allowed = settings.enabledLetters;
             currentTarget = allowed[Math.floor(Math.random() * allowed.length)];
             
             updateVisualMode();
             document.getElementById('target-count-display').innerText = "0";
             document.getElementById('goal-display').innerText = targetGoal;
-            
-            setTimeout(() => {
-                speak("מצא את האות " + currentTarget);
-            }, 300);
+            speak("מצא את האות " + currentTarget);
+        }
+
+        function updateVisualMode() {
+            const displayEl = document.getElementById('target-letter-display');
+            if (settings.hideTargetLetter) {
+                displayEl.innerHTML = `<span class="text-3xl text-gray-300">?</span>`;
+            } else if (currentTarget) {
+                displayEl.innerText = currentTarget;
+            }
         }
 
         function startSpawning() {
             if (spawnInterval) clearInterval(spawnInterval);
             spawnInterval = setInterval(() => {
                 if (gameActive) createLetter();
-            }, 900);
+            }, 1000 - Math.min(score, 500)); // קצב ייצור מהיר יותר ככל שהניקוד עולה
         }
 
         function createLetter() {
             const allowed = settings.enabledLetters;
-            if (allowed.length === 0) return;
-
             const letterEl = document.createElement('div');
-            // סיכוי של 40% שתצא האות המבוקשת
-            const isTarget = Math.random() > 0.6; 
+            const isTarget = Math.random() > 0.65; 
             const char = isTarget ? currentTarget : allowed[Math.floor(Math.random() * allowed.length)];
             
             const colorClass = colors[Math.floor(Math.random() * colors.length)];
             const size = Math.floor(Math.random() * 20) + 45;
-            const startX = Math.random() * (window.innerWidth - size - 20) + 10;
+            const startX = Math.random() * (window.innerWidth - size - 40) + 20;
             
             letterEl.className = `letter font-black ${colorClass}`;
             letterEl.style.fontSize = `${size}px`;
             letterEl.style.left = `${startX}px`;
-            letterEl.style.top = `-100px`;
+            letterEl.style.top = `-80px`;
             letterEl.innerText = char;
 
             letterEl.onclick = (e) => {
                 if (!gameActive) return;
-                
                 if (char === currentTarget) {
-                    handleCorrectHit(e.clientX, e.clientY);
+                    score += 10;
+                    targetCollected++;
+                    document.getElementById('score-display').innerText = score;
+                    document.getElementById('target-count-display').innerText = targetCollected;
+                    createPopText(e.clientX, e.clientY, "+10", "text-green-600");
                     letterEl.remove();
+                    if (targetCollected >= targetGoal) {
+                        gameActive = false;
+                        setTimeout(() => { speak("יופי!"); gameActive = true; nextLevel(); }, 500);
+                    }
                 } else {
-                    handleWrongHit(e.clientX, e.clientY);
+                    score = Math.max(0, score - 5);
+                    document.getElementById('score-display').innerText = score;
+                    createPopText(e.clientX, e.clientY, "X", "text-red-600");
                 }
             };
 
             gameContainer.appendChild(letterEl);
 
-            let top = -100;
-            const speed = 1.2 + (score / 150);
+            let top = -80;
+            // מהירות = בסיס הגדרות + תוספת לפי ניקוד
+            const speed = settings.baseSpeed + (score / 200);
             
             function fall() {
-                if (!gameActive) {
-                    letterEl.remove();
-                    return;
-                }
+                if (!gameActive) { letterEl.remove(); return; }
                 top += speed;
                 letterEl.style.top = top + 'px';
-
-                if (top < window.innerHeight) {
-                    requestAnimationFrame(fall);
-                } else {
-                    letterEl.remove();
-                }
+                if (top < window.innerHeight) requestAnimationFrame(fall);
+                else letterEl.remove();
             }
             requestAnimationFrame(fall);
-        }
-
-        function handleCorrectHit(x, y) {
-            score += 10;
-            targetCollected++;
-            
-            document.getElementById('score-display').innerText = score;
-            document.getElementById('target-count-display').innerText = targetCollected;
-            createPopText(x, y, "+10", "text-green-600");
-            
-            if (targetCollected >= targetGoal) {
-                gameActive = false;
-                setTimeout(() => {
-                    speak("כל הכבוד! עוברים לאות הבאה");
-                    gameActive = true;
-                    nextLevel();
-                }, 600);
-            }
-        }
-
-        function handleWrongHit(x, y) {
-            score = Math.max(0, score - 2);
-            document.getElementById('score-display').innerText = score;
-            createPopText(x, y, "X", "text-red-600");
-            if (window.navigator.vibrate) window.navigator.vibrate(30);
         }
 
         function createPopText(x, y, text, color) {
             const pop = document.createElement('div');
             pop.className = `score-pop ${color} text-3xl`;
-            pop.style.left = (x - 20) + 'px';
-            pop.style.top = (y - 40) + 'px';
+            pop.style.left = x + 'px';
+            pop.style.top = y + 'px';
             pop.innerText = text;
             document.body.appendChild(pop);
             setTimeout(() => pop.remove(), 1000);
         }
 
-        // אתחול
         window.onload = loadSettings;
     </script>
 </body>
