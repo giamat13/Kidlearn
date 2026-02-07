@@ -15,6 +15,8 @@
             background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
             width: 100vw;
             height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         .letter {
@@ -26,6 +28,7 @@
             z-index: 10;
             white-space: nowrap;
             will-change: transform;
+            display: block;
         }
 
         .letter:active {
@@ -207,7 +210,13 @@
             const saved = localStorage.getItem('falling_letters_v3_config');
             if (saved) {
                 try {
-                    settings = {...settings, ...JSON.parse(saved)};
+                    const parsed = JSON.parse(saved);
+                    // וודא שהאותיות המופעלות לא ריקות
+                    if (parsed.enabledLetters && parsed.enabledLetters.length > 0) {
+                        settings = {...settings, ...parsed};
+                    } else {
+                        settings = {...settings, volume: parsed.volume, baseSpeed: parsed.baseSpeed, hideTargetLetter: parsed.hideTargetLetter};
+                    }
                 } catch (e) { console.error(e); }
             }
             applySettingsToUI();
@@ -271,8 +280,9 @@
 
         function saveAndCloseSettings() {
             if (settings.enabledLetters.length === 0) {
-                alert("יש לבחור לפחות אות אחת!");
-                return;
+                // אל תאפשר לסגור בלי אותיות
+                settings.enabledLetters = [...allHebrewLetters];
+                renderLettersSelector();
             }
             settings.hideTargetLetter = document.getElementById('hide-letter-toggle').checked;
             settings.baseSpeed = parseFloat(document.getElementById('speed-range').value);
@@ -311,7 +321,7 @@
         function nextLevel() {
             targetCollected = 0;
             targetGoal = Math.min(3 + Math.floor(score / 50), 12);
-            const allowed = settings.enabledLetters;
+            const allowed = settings.enabledLetters.length > 0 ? settings.enabledLetters : allHebrewLetters;
             currentTarget = allowed[Math.floor(Math.random() * allowed.length)];
             updateVisualMode();
             document.getElementById('target-count-display').innerText = "0";
@@ -336,26 +346,23 @@
         }
 
         function createLetter() {
-            const allowed = settings.enabledLetters;
+            const allowed = settings.enabledLetters.length > 0 ? settings.enabledLetters : allHebrewLetters;
             const letterEl = document.createElement('div');
             const isTarget = Math.random() > 0.65; 
             const char = isTarget ? currentTarget : allowed[Math.floor(Math.random() * allowed.length)];
             const colorClass = colors[Math.floor(Math.random() * colors.length)];
             
-            // גודל מבוסס רוחב מסך
-            const minSize = window.innerWidth < 640 ? 45 : 60;
+            const minSize = window.innerWidth < 640 ? 55 : 70; // גודל קצת גדול יותר לטלפונים
             const size = Math.floor(Math.random() * 15) + minSize;
             
-            // הגבלת מיקום X כדי שלא יצא מגבולות המסך
-            const startX = Math.random() * (window.innerWidth - size - 20) + 10;
+            const startX = Math.random() * (window.innerWidth - size - 40) + 20;
             
             letterEl.className = `letter font-black ${colorClass}`;
             letterEl.style.fontSize = `${size}px`;
             letterEl.style.left = `${startX}px`;
-            letterEl.style.top = `-80px`;
+            letterEl.style.top = `-100px`;
             letterEl.innerText = char;
 
-            // תמיכה בטאץ' ישיר
             const handleInteraction = (e) => {
                 e.preventDefault();
                 if (!gameActive) return;
@@ -396,17 +403,21 @@
 
             gameContainer.appendChild(letterEl);
 
-            let top = -80;
-            const speed = settings.baseSpeed + (score / 250); // האטה קלה של העלייה במהירות
+            let currentTop = -100;
+            const speed = settings.baseSpeed + (score / 300);
             
-            function fall() {
-                if (!gameActive) { letterEl.remove(); return; }
-                top += speed;
-                letterEl.style.top = top + 'px';
-                if (top < window.innerHeight) requestAnimationFrame(fall);
-                else letterEl.remove();
+            function step() {
+                if (!gameActive || !letterEl.parentNode) return;
+                currentTop += speed;
+                letterEl.style.transform = `translateY(${currentTop + 100}px)`;
+                
+                if (currentTop < window.innerHeight + 100) {
+                    requestAnimationFrame(step);
+                } else {
+                    letterEl.remove();
+                }
             }
-            requestAnimationFrame(fall);
+            requestAnimationFrame(step);
         }
 
         function createPopText(x, y, text, color) {
