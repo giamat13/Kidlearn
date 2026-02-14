@@ -71,6 +71,12 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
+
+        /* מסך משחק נגמר */
+        .game-over-overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+        }
     </style>
 </head>
 <body class="bg-blue-50">
@@ -80,6 +86,10 @@
         <div class="bg-white/80 backdrop-blur p-2 md:p-4 rounded-2xl shadow-lg pointer-events-auto border-2 border-blue-400">
             <div class="text-lg md:text-xl font-bold text-blue-800">ניקוד: <span id="score-display">0</span></div>
             <div class="text-xs md:text-sm text-blue-600">יעד: <span id="target-count-display">0</span>/<span id="goal-display">5</span></div>
+            <div class="flex items-center gap-1 mt-2">
+                <span class="text-xs md:text-sm text-red-600 font-bold">חיים:</span>
+                <div id="lives-display" class="flex gap-1"></div>
+            </div>
         </div>
         
         <div class="flex flex-col items-center gap-2">
@@ -115,6 +125,23 @@
         </div>
     </div>
 
+    <!-- מסך Game Over -->
+    <div id="game-over-screen" class="fixed inset-0 z-[100] game-over-overlay hidden items-center justify-center p-6 text-center">
+        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full">
+            <h1 class="text-3xl md:text-4xl font-black text-red-600 mb-4">המשחק נגמר!</h1>
+            <p class="text-gray-600 mb-4 text-base md:text-lg">הניקוד שלך:</p>
+            <div class="text-5xl md:text-6xl font-black text-blue-600 mb-8" id="final-score-display">0</div>
+            <div class="flex flex-col gap-3">
+                <button onclick="restartGame()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 md:py-4 rounded-2xl text-xl md:text-2xl shadow-xl transform transition active:scale-95">
+                    שחק שוב
+                </button>
+                <button onclick="backToMenu()" class="w-full bg-blue-100 text-blue-700 font-bold py-3 rounded-2xl hover:bg-blue-200 transition">
+                    חזרה לתפריט
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- פאנל הגדרות -->
     <div id="settings-panel" class="fixed inset-0 z-[110] settings-overlay hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
@@ -144,6 +171,15 @@
                         <span id="speed-val" class="text-blue-600 font-bold">רגילה</span>
                     </div>
                     <input type="range" id="speed-range" min="0.5" max="3" step="0.25" value="1.2" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
+                </div>
+
+                <!-- בורר חיים -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-base md:text-lg font-bold text-gray-800">מספר חיים</span>
+                        <span id="lives-val" class="text-blue-600 font-bold">3</span>
+                    </div>
+                    <input type="range" id="lives-range" min="1" max="10" step="1" value="3" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
                 </div>
 
                 <!-- מצב הקשבה -->
@@ -194,15 +230,18 @@
             enabledLetters: [...allHebrewLetters],
             hideTargetLetter: false,
             baseSpeed: 1.2,
-            volume: 1.0
+            volume: 1.0,
+            maxLives: 3
         };
 
         let score = 0;
+        let lives = 3;
         let currentTarget = '';
         let targetCollected = 0;
         let targetGoal = 5;
         let gameActive = false;
         let spawnInterval;
+        let levelTransitioning = false; // דגל חדש למניעת בעיות במעבר רמות
         const synth = window.speechSynthesis;
         const gameContainer = document.getElementById('game-container');
 
@@ -215,7 +254,7 @@
                     if (parsed.enabledLetters && parsed.enabledLetters.length > 0) {
                         settings = {...settings, ...parsed};
                     } else {
-                        settings = {...settings, volume: parsed.volume, baseSpeed: parsed.baseSpeed, hideTargetLetter: parsed.hideTargetLetter};
+                        settings = {...settings, volume: parsed.volume, baseSpeed: parsed.baseSpeed, hideTargetLetter: parsed.hideTargetLetter, maxLives: parsed.maxLives || 3};
                     }
                 } catch (e) { console.error(e); }
             }
@@ -230,6 +269,7 @@
             document.getElementById('hide-letter-toggle').checked = settings.hideTargetLetter;
             document.getElementById('speed-range').value = settings.baseSpeed;
             document.getElementById('volume-range').value = settings.volume;
+            document.getElementById('lives-range').value = settings.maxLives;
             updateSettingsPreview();
             renderLettersSelector();
             updateVisualMode();
@@ -238,7 +278,11 @@
         function updateSettingsPreview() {
             const vol = document.getElementById('volume-range').value;
             const speed = document.getElementById('speed-range').value;
+            const livesCount = document.getElementById('lives-range').value;
+            
             document.getElementById('volume-val').innerText = Math.round(vol * 100) + "%";
+            document.getElementById('lives-val').innerText = livesCount;
+            
             let speedText = "רגילה";
             if (speed < 1) speedText = "איטית";
             if (speed > 1.5) speedText = "מהירה";
@@ -287,10 +331,15 @@
             settings.hideTargetLetter = document.getElementById('hide-letter-toggle').checked;
             settings.baseSpeed = parseFloat(document.getElementById('speed-range').value);
             settings.volume = parseFloat(document.getElementById('volume-range').value);
+            settings.maxLives = parseInt(document.getElementById('lives-range').value);
             saveSettings();
             toggleSettings(false);
             updateVisualMode();
-            if (gameActive) nextLevel();
+            if (gameActive) {
+                lives = settings.maxLives;
+                updateLivesDisplay();
+                nextLevel();
+            }
         }
 
         function speak(text) {
@@ -309,16 +358,31 @@
 
         function speakTarget() { if (currentTarget) speakLetterName(currentTarget); }
 
+        function updateLivesDisplay() {
+            const livesEl = document.getElementById('lives-display');
+            livesEl.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                livesEl.innerHTML += '<span class="text-lg md:text-xl">❤️</span>';
+            }
+            for (let i = lives; i < settings.maxLives; i++) {
+                livesEl.innerHTML += '<span class="text-lg md:text-xl opacity-30">🖤</span>';
+            }
+        }
+
         function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
             gameActive = true;
+            levelTransitioning = false;
             score = 0;
+            lives = settings.maxLives;
             document.getElementById('score-display').innerText = "0";
+            updateLivesDisplay();
             nextLevel();
             startSpawning();
         }
 
         function nextLevel() {
+            levelTransitioning = false; // אפס את הדגל
             targetCollected = 0;
             targetGoal = Math.min(3 + Math.floor(score / 50), 12);
             const allowed = settings.enabledLetters.length > 0 ? settings.enabledLetters : allHebrewLetters;
@@ -341,7 +405,9 @@
         function startSpawning() {
             if (spawnInterval) clearInterval(spawnInterval);
             spawnInterval = setInterval(() => {
-                if (gameActive) createLetter();
+                if (gameActive && !levelTransitioning) {
+                    createLetter();
+                }
             }, 1000 - Math.min(score, 500)); 
         }
 
@@ -352,7 +418,7 @@
             const char = isTarget ? currentTarget : allowed[Math.floor(Math.random() * allowed.length)];
             const colorClass = colors[Math.floor(Math.random() * colors.length)];
             
-            const minSize = window.innerWidth < 640 ? 55 : 70; // גודל קצת גדול יותר לטלפונים
+            const minSize = window.innerWidth < 640 ? 55 : 70;
             const size = Math.floor(Math.random() * 15) + minSize;
             
             const startX = Math.random() * (window.innerWidth - size - 40) + 20;
@@ -362,10 +428,11 @@
             letterEl.style.left = `${startX}px`;
             letterEl.style.top = `-100px`;
             letterEl.innerText = char;
+            letterEl.dataset.char = char; // שמירת התו למעקב
 
             const handleInteraction = (e) => {
                 e.preventDefault();
-                if (!gameActive) return;
+                if (!gameActive || levelTransitioning) return;
                 
                 if (char === currentTarget) {
                     speakLetterName(char, "נכון! זאת האות ");
@@ -379,22 +446,29 @@
                     createPopText(clientX, clientY, "+10", "text-green-600");
                     
                     letterEl.remove();
+                    
                     if (targetCollected >= targetGoal) {
-                        gameActive = false;
+                        levelTransitioning = true; // הפעל את הדגל
                         setTimeout(() => { 
                             speak("כל הכבוד!"); 
-                            gameActive = true; 
                             nextLevel(); 
                         }, 1200);
                     }
                 } else {
                     speakLetterName(char, "זאת האות ");
                     score = Math.max(0, score - 5);
+                    lives--;
+                    
                     document.getElementById('score-display').innerText = score;
+                    updateLivesDisplay();
                     
                     const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
                     const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
                     createPopText(clientX, clientY, "X", "text-red-600");
+                    
+                    if (lives <= 0) {
+                        endGame();
+                    }
                 }
             };
 
@@ -407,7 +481,9 @@
             const speed = settings.baseSpeed + (score / 300);
             
             function step() {
+                // המשך לנוע גם במעבר רמות
                 if (!gameActive || !letterEl.parentNode) return;
+                
                 currentTop += speed;
                 letterEl.style.transform = `translateY(${currentTop + 100}px)`;
                 
@@ -428,6 +504,37 @@
             pop.innerText = text;
             document.body.appendChild(pop);
             setTimeout(() => pop.remove(), 1000);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(spawnInterval);
+            
+            // נקה את כל האותיות הנופלות
+            const letters = document.querySelectorAll('.letter');
+            letters.forEach(letter => letter.remove());
+            
+            // הצג את מסך המשחק נגמר
+            document.getElementById('final-score-display').innerText = score;
+            document.getElementById('game-over-screen').style.display = 'flex';
+            
+            speak("המשחק נגמר. הניקוד שלך " + score);
+        }
+
+        function restartGame() {
+            document.getElementById('game-over-screen').style.display = 'none';
+            startGame();
+        }
+
+        function backToMenu() {
+            document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('start-screen').classList.remove('hidden');
+            gameActive = false;
+            clearInterval(spawnInterval);
+            
+            // נקה את כל האותיות הנופלות
+            const letters = document.querySelectorAll('.letter');
+            letters.forEach(letter => letter.remove());
         }
 
         window.onload = loadSettings;
