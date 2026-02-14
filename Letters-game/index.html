@@ -490,6 +490,17 @@
                 if (currentTop < window.innerHeight + 100) {
                     requestAnimationFrame(step);
                 } else {
+                    // אות נפלה למטה בלי ללחוץ עליה
+                    if (char === currentTarget && gameActive && !levelTransitioning) {
+                        // אם זו אות המטרה ולא לחצו עליה - מורידים חיה
+                        lives--;
+                        updateLivesDisplay();
+                        createPopText(window.innerWidth / 2, window.innerHeight - 100, "-1 חיה", "text-red-600");
+                        
+                        if (lives <= 0) {
+                            endGame();
+                        }
+                    }
                     letterEl.remove();
                 }
             }
