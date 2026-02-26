@@ -66,29 +66,33 @@
             border-color: #2563eb;
         }
 
-        /* מניעת בחירת טקסט בטעות */
         * {
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
 
-        /* מסך משחק נגמר */
         .game-over-overlay {
             background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
+        }
+
+        /* עיצוב שורות הלבבות */
+        .lives-row {
+            display: flex;
+            gap: 2px;
+            margin-bottom: -4px;
         }
     </style>
 </head>
 <body class="bg-blue-50">
 
-    <!-- ממשק עליון -->
     <div class="fixed top-0 left-0 right-0 p-2 md:p-4 z-40 flex justify-between items-start pointer-events-none">
-        <div class="bg-white/80 backdrop-blur p-2 md:p-4 rounded-2xl shadow-lg pointer-events-auto border-2 border-blue-400">
+        <div class="bg-white/80 backdrop-blur p-2 md:p-4 rounded-2xl shadow-lg pointer-events-auto border-2 border-blue-400 max-w-[150px] md:max-w-[200px]">
             <div class="text-lg md:text-xl font-bold text-blue-800">ניקוד: <span id="score-display">0</span></div>
             <div class="text-xs md:text-sm text-blue-600">יעד: <span id="target-count-display">0</span>/<span id="goal-display">5</span></div>
-            <div class="flex items-center gap-1 mt-2">
-                <span class="text-xs md:text-sm text-red-600 font-bold">חיים:</span>
-                <div id="lives-display" class="flex gap-1"></div>
+            <div class="mt-2">
+                <span class="text-xs md:text-sm text-red-600 font-bold block mb-1">חיים:</span>
+                <div id="lives-display" class="flex flex-col"></div>
             </div>
         </div>
         
@@ -109,7 +113,6 @@
         </div>
     </div>
 
-    <!-- מסך פתיחה -->
     <div id="start-screen" class="fixed inset-0 z-[100] bg-blue-600/95 flex items-center justify-center p-6 text-center">
         <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full">
             <h1 class="text-3xl md:text-4xl font-black text-blue-600 mb-4">אותיות נופלות</h1>
@@ -125,7 +128,6 @@
         </div>
     </div>
 
-    <!-- מסך Game Over -->
     <div id="game-over-screen" class="fixed inset-0 z-[100] game-over-overlay hidden items-center justify-center p-6 text-center">
         <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full">
             <h1 class="text-3xl md:text-4xl font-black text-red-600 mb-4">המשחק נגמר!</h1>
@@ -142,7 +144,6 @@
         </div>
     </div>
 
-    <!-- פאנל הגדרות -->
     <div id="settings-panel" class="fixed inset-0 z-[110] settings-overlay hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
             <div class="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -155,7 +156,6 @@
             </div>
             
             <div class="p-4 md:p-6 overflow-y-auto flex-1 space-y-6 text-right">
-                <!-- בורר עוצמה -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
                         <span class="text-base md:text-lg font-bold text-gray-800">עוצמת קול</span>
@@ -164,7 +164,6 @@
                     <input type="range" id="volume-range" min="0" max="1" step="0.1" value="1" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
                 </div>
 
-                <!-- בורר מהירות -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
                         <span class="text-base md:text-lg font-bold text-gray-800">מהירות התחלתית</span>
@@ -173,16 +172,18 @@
                     <input type="range" id="speed-range" min="0.5" max="3" step="0.25" value="1.2" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
                 </div>
 
-                <!-- בורר חיים -->
-                <div class="space-y-2">
+                <div class="space-y-3 bg-red-50 p-4 rounded-2xl">
                     <div class="flex justify-between items-center">
-                        <span class="text-base md:text-lg font-bold text-gray-800">מספר חיים</span>
-                        <span id="lives-val" class="text-blue-600 font-bold">3</span>
+                        <span class="text-base md:text-lg font-bold text-red-800">מספר חיים</span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="lives-manual-input" min="1" max="999" class="w-16 p-1 text-center border-2 border-red-300 rounded-lg font-bold text-red-600" oninput="syncLivesFromInput(this.value)">
+                            <span id="lives-val" class="text-red-600 font-bold hidden">3</span>
+                        </div>
                     </div>
-                    <input type="range" id="lives-range" min="1" max="10" step="1" value="3" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
+                    <input type="range" id="lives-range" min="1" max="25" step="1" value="3" class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-500" oninput="syncLivesFromRange(this.value)">
+                    <p class="text-[10px] text-red-400 italic">* ניתן להזין כל מספר בתיבה או להשתמש בסרגל עד 25</p>
                 </div>
 
-                <!-- מצב הקשבה -->
                 <div class="flex items-center justify-between bg-blue-50 p-4 rounded-2xl">
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="hide-letter-toggle" class="sr-only peer">
@@ -194,7 +195,6 @@
                     </div>
                 </div>
 
-                <!-- בחירת אותיות -->
                 <div>
                     <h3 class="text-base md:text-lg font-bold text-gray-800 mb-4 border-r-4 border-blue-500 pr-3">בחירת אותיות</h3>
                     <div class="grid grid-cols-5 md:grid-cols-6 gap-2" id="letters-selector-grid"></div>
@@ -213,7 +213,6 @@
         </div>
     </div>
 
-    <!-- מכל המשחק -->
     <div id="game-container"></div>
 
     <script>
@@ -241,16 +240,31 @@
         let targetGoal = 5;
         let gameActive = false;
         let spawnInterval;
-        let levelTransitioning = false; // דגל חדש למניעת בעיות במעבר רמות
+        let levelTransitioning = false;
         const synth = window.speechSynthesis;
         const gameContainer = document.getElementById('game-container');
+
+        // פונקציות סנכרון לחיים
+        function syncLivesFromRange(val) {
+            document.getElementById('lives-manual-input').value = val;
+            updateSettingsPreview();
+        }
+
+        function syncLivesFromInput(val) {
+            let num = parseInt(val);
+            if (num > 0) {
+                if (num <= 25) {
+                    document.getElementById('lives-range').value = num;
+                }
+                updateSettingsPreview();
+            }
+        }
 
         function loadSettings() {
             const saved = localStorage.getItem('falling_letters_v3_config');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    // וודא שהאותיות המופעלות לא ריקות
                     if (parsed.enabledLetters && parsed.enabledLetters.length > 0) {
                         settings = {...settings, ...parsed};
                     } else {
@@ -269,7 +283,8 @@
             document.getElementById('hide-letter-toggle').checked = settings.hideTargetLetter;
             document.getElementById('speed-range').value = settings.baseSpeed;
             document.getElementById('volume-range').value = settings.volume;
-            document.getElementById('lives-range').value = settings.maxLives;
+            document.getElementById('lives-range').value = Math.min(settings.maxLives, 25);
+            document.getElementById('lives-manual-input').value = settings.maxLives;
             updateSettingsPreview();
             renderLettersSelector();
             updateVisualMode();
@@ -278,16 +293,39 @@
         function updateSettingsPreview() {
             const vol = document.getElementById('volume-range').value;
             const speed = document.getElementById('speed-range').value;
-            const livesCount = document.getElementById('lives-range').value;
             
             document.getElementById('volume-val').innerText = Math.round(vol * 100) + "%";
-            document.getElementById('lives-val').innerText = livesCount;
             
             let speedText = "רגילה";
             if (speed < 1) speedText = "איטית";
             if (speed > 1.5) speedText = "מהירה";
             if (speed > 2.2) speedText = "מהירה מאוד";
             document.getElementById('speed-val').innerText = speedText;
+        }
+
+        // עדכון תצוגת חיים בשורות
+        function updateLivesDisplay() {
+            const livesEl = document.getElementById('lives-display');
+            livesEl.innerHTML = '';
+            
+            const maxPerRow = 10;
+            const rowCount = Math.ceil(lives / maxPerRow);
+            
+            for (let r = 0; r < rowCount; r++) {
+                const row = document.createElement('div');
+                row.className = 'lives-row';
+                
+                const heartsInThisRow = Math.min(maxPerRow, lives - (r * maxPerRow));
+                for (let i = 0; i < heartsInThisRow; i++) {
+                    row.innerHTML += '<span class="text-sm md:text-base">❤️</span>';
+                }
+                livesEl.appendChild(row);
+            }
+
+            // הצגת חוסר בחיים רק אם זה רלוונטי (עד 10 סה"כ)
+            if (lives < settings.maxLives && settings.maxLives <= 10) {
+                 // אופציונלי: להוסיף לבבות שחורים
+            }
         }
 
         function renderLettersSelector() {
@@ -324,14 +362,16 @@
 
         function saveAndCloseSettings() {
             if (settings.enabledLetters.length === 0) {
-                // אל תאפשר לסגור בלי אותיות
                 settings.enabledLetters = [...allHebrewLetters];
                 renderLettersSelector();
             }
             settings.hideTargetLetter = document.getElementById('hide-letter-toggle').checked;
             settings.baseSpeed = parseFloat(document.getElementById('speed-range').value);
             settings.volume = parseFloat(document.getElementById('volume-range').value);
-            settings.maxLives = parseInt(document.getElementById('lives-range').value);
+            
+            let manualLives = parseInt(document.getElementById('lives-manual-input').value);
+            settings.maxLives = isNaN(manualLives) ? 3 : manualLives;
+
             saveSettings();
             toggleSettings(false);
             updateVisualMode();
@@ -358,17 +398,6 @@
 
         function speakTarget() { if (currentTarget) speakLetterName(currentTarget); }
 
-        function updateLivesDisplay() {
-            const livesEl = document.getElementById('lives-display');
-            livesEl.innerHTML = '';
-            for (let i = 0; i < lives; i++) {
-                livesEl.innerHTML += '<span class="text-lg md:text-xl">❤️</span>';
-            }
-            for (let i = lives; i < settings.maxLives; i++) {
-                livesEl.innerHTML += '<span class="text-lg md:text-xl opacity-30">🖤</span>';
-            }
-        }
-
         function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
             gameActive = true;
@@ -382,7 +411,7 @@
         }
 
         function nextLevel() {
-            levelTransitioning = false; // אפס את הדגל
+            levelTransitioning = false;
             targetCollected = 0;
             targetGoal = Math.min(3 + Math.floor(score / 50), 12);
             const allowed = settings.enabledLetters.length > 0 ? settings.enabledLetters : allHebrewLetters;
@@ -420,7 +449,6 @@
             
             const minSize = window.innerWidth < 640 ? 55 : 70;
             const size = Math.floor(Math.random() * 15) + minSize;
-            
             const startX = Math.random() * (window.innerWidth - size - 40) + 20;
             
             letterEl.className = `letter font-black ${colorClass}`;
@@ -428,7 +456,6 @@
             letterEl.style.left = `${startX}px`;
             letterEl.style.top = `-100px`;
             letterEl.innerText = char;
-            letterEl.dataset.char = char; // שמירת התו למעקב
 
             const handleInteraction = (e) => {
                 e.preventDefault();
@@ -448,7 +475,7 @@
                     letterEl.remove();
                     
                     if (targetCollected >= targetGoal) {
-                        levelTransitioning = true; // הפעל את הדגל
+                        levelTransitioning = true;
                         setTimeout(() => { 
                             speak("כל הכבוד!"); 
                             nextLevel(); 
@@ -466,9 +493,7 @@
                     const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
                     createPopText(clientX, clientY, "X", "text-red-600");
                     
-                    if (lives <= 0) {
-                        endGame();
-                    }
+                    if (lives <= 0) endGame();
                 }
             };
 
@@ -481,25 +506,18 @@
             const speed = settings.baseSpeed + (score / 300);
             
             function step() {
-                // המשך לנוע גם במעבר רמות
                 if (!gameActive || !letterEl.parentNode) return;
-                
                 currentTop += speed;
                 letterEl.style.transform = `translateY(${currentTop + 100}px)`;
                 
                 if (currentTop < window.innerHeight + 100) {
                     requestAnimationFrame(step);
                 } else {
-                    // אות נפלה למטה בלי ללחוץ עליה
                     if (char === currentTarget && gameActive && !levelTransitioning) {
-                        // אם זו אות המטרה ולא לחצו עליה - מורידים חיה
                         lives--;
                         updateLivesDisplay();
                         createPopText(window.innerWidth / 2, window.innerHeight - 100, "-1 חיה", "text-red-600");
-                        
-                        if (lives <= 0) {
-                            endGame();
-                        }
+                        if (lives <= 0) endGame();
                     }
                     letterEl.remove();
                 }
@@ -520,15 +538,9 @@
         function endGame() {
             gameActive = false;
             clearInterval(spawnInterval);
-            
-            // נקה את כל האותיות הנופלות
-            const letters = document.querySelectorAll('.letter');
-            letters.forEach(letter => letter.remove());
-            
-            // הצג את מסך המשחק נגמר
+            document.querySelectorAll('.letter').forEach(l => l.remove());
             document.getElementById('final-score-display').innerText = score;
             document.getElementById('game-over-screen').style.display = 'flex';
-            
             speak("המשחק נגמר. הניקוד שלך " + score);
         }
 
@@ -542,10 +554,7 @@
             document.getElementById('start-screen').classList.remove('hidden');
             gameActive = false;
             clearInterval(spawnInterval);
-            
-            // נקה את כל האותיות הנופלות
-            const letters = document.querySelectorAll('.letter');
-            letters.forEach(letter => letter.remove());
+            document.querySelectorAll('.letter').forEach(l => l.remove());
         }
 
         window.onload = loadSettings;
