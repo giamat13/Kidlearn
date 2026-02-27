@@ -738,31 +738,6 @@
 <body>
     <div class="stars" id="stars"></div>
 
-    <!-- Setup Screen -->
-    <div class="setup-screen" id="setupScreen">
-        <div class="setup-card">
-            <div class="setup-title">🌟 ברוכים הבאים! 🌟</div>
-            <div class="setup-subtitle">בוא נכיר - מה שמך ובאיזו כיתה/גן את/ה?</div>
-            
-            <div class="setup-section">
-                <div class="setup-section-title">📝 השם שלי:</div>
-                <input type="text" id="studentName" class="name-input" placeholder="הכנס/י את שמך כאן..." maxlength="20">
-            </div>
-
-            <div class="setup-section">
-                <div class="setup-section-title">🎒 הכיתה/גן שלי:</div>
-                <div class="grade-grid">
-                    <div class="grade-option" data-grade="preschool">🧸 טרום חובה</div>
-                    <div class="grade-option" data-grade="kindergarten">🎨 גן חובה</div>
-                    <div class="grade-option" data-grade="first">📖 כיתה א׳</div>
-                    <div class="grade-option" data-grade="second">✏️ כיתה ב׳</div>
-                </div>
-            </div>
-
-            <button class="setup-button" id="startButton" disabled>בואו נתחיל!</button>
-        </div>
-    </div>
-
     <!-- Main App -->
     <div class="container" id="mainApp" style="display: none;">
         <div class="header">
@@ -793,14 +768,22 @@
         </div>
     </div>
 
+    <!-- Firebase v12 modular -->
+    <script type="module">
+      import { requireAuth, getCurrentProfile, logoutUser } from "./auth.js";
+
+      window._requireAuth      = requireAuth;
+      window._getCurrentProfile = getCurrentProfile;
+      window._logoutUser        = (path) => logoutUser(path);
+    </script>
+
     <script>
-        // Cookie functions
+        // ── Legacy cookie helpers (kept for grade-progression only) ──
         function setCookie(name, value, days) {
             const expires = new Date();
             expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
             document.cookie = name + '=' + value + ';expires=' + expires.toUTCString() + ';path=/';
         }
-
         function getCookie(name) {
             const nameEQ = name + '=';
             const ca = document.cookie.split(';');
@@ -811,12 +794,19 @@
             }
             return null;
         }
-
         function deleteCookie(name) {
             document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
         }
 
         // Tools data mapped by specific grades
+        // Shared card that appears for every grade
+        const sendMessageCard = {
+            icon: '💌',
+            title: 'שלח הודעה לאהובים',
+            description: 'שלח הודעה, ברכה או הישג לסבא, סבתא, אמא, אבא ועוד!',
+            url: 'send-message/'
+        };
+
         const tools = {
             'preschool': [
                 {
@@ -1019,7 +1009,7 @@
 
         function displayTools(grade) {
             toolsContainer.innerHTML = '';
-            const gradeTools = tools[grade];
+            const gradeTools = [...(tools[grade] || []), sendMessageCard];
 
             if (gradeTools && gradeTools.length > 0) {
                 gradeTools.forEach((tool, index) => {
@@ -1116,21 +1106,27 @@
             };
         }
 
-        // Check if user has already set up
-        function init() {
-            const savedName = getCookie('studentName');
-            const savedGrade = getCookie('studentGrade');
+        // ── Firebase-based initialisation ──────────────────── //
+        async function init() {
+            // modules load async — wait a tick for window._ to be assigned
+            await new Promise(r => setTimeout(r, 50));
 
-            if (savedName && savedGrade) {
-                // Check for grade progression first
-                const hasProgressed = checkAndProgressGrade(savedName, savedGrade);
-                
-                // Only show main app if no progression modal is shown
-                if (!hasProgressed) {
-                    showMainApp(savedName, savedGrade);
-                }
-            }
+            const user = await window._requireAuth('login.html');
+
+            const profile = await window._getCurrentProfile();
+            if (!profile) { window.location.href = 'login.html'; return; }
+
+            const name  = profile.username;
+            const grade = profile.grade;
+
+            const hasProgressed = checkAndProgressGrade(name, grade);
+            if (!hasProgressed) showMainApp(name, grade);
         }
+
+        changeSettingsBtn.textContent = '🚪 התנתק';
+        changeSettingsBtn.addEventListener('click', async () => {
+            await window._logoutUser('login.html');
+        });
 
         createStars();
         init();
