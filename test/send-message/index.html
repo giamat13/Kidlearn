@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KidLearn – שלח הודעה 💌</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Varela+Round&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --pink:#FF6B9D;--yellow:#FFD166;--mint:#06D6A0;
+  --sky:#4CC9F0;--orange:#FF9F1C;--purple:#A78BFA;
+  --bg:#0D1B2A;--surface:#162032;--card:#1E2D40;
+  --border:rgba(255,255,255,.07);--text:#F0F4FF;--muted:#7B8EA6;
+  --r:22px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Varela Round',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px 16px 80px;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,107,157,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,157,.03) 1px,transparent 1px);background-size:48px 48px;z-index:0;pointer-events:none;}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.15;animation:orbf 18s ease-in-out infinite alternate;}
+.o1{width:500px;height:500px;background:var(--pink);top:-120px;right:-120px;}
+.o2{width:380px;height:380px;background:var(--mint);bottom:-80px;left:-80px;animation-duration:13s;}
+.o3{width:220px;height:220px;background:var(--yellow);top:45%;left:55%;animation-duration:22s;}
+@keyframes orbf{from{transform:translate(0,0) scale(1);}to{transform:translate(28px,36px) scale(1.12);}}
+.wrap{position:relative;z-index:1;max-width:660px;margin:0 auto;}
+.back{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);font-family:'Fredoka',sans-serif;font-size:1rem;padding:10px 22px;border-radius:50px;cursor:pointer;text-decoration:none;margin-bottom:28px;transition:all .25s;backdrop-filter:blur(8px);}
+.back:hover{background:rgba(255,255,255,.1);color:var(--text);}
+.ph{text-align:center;margin-bottom:36px;}
+.pt{font-family:'Fredoka',sans-serif;font-size:2.8rem;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--yellow),var(--mint));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 200%;animation:gs 4s ease infinite;}
+@keyframes gs{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.ps{color:var(--muted);font-size:1rem;margin-top:6px;}
+.slabel{font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:600;color:var(--pink);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:32px;}
+.ccard{background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:20px 10px;text-align:center;cursor:pointer;transition:all .3s cubic-bezier(.175,.885,.32,1.275);position:relative;overflow:hidden;}
+.ccard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--pink),var(--yellow));opacity:0;transition:opacity .3s;}
+.ccard:hover{transform:translateY(-4px) scale(1.04);border-color:rgba(255,107,157,.4);}
+.ccard:hover::before{opacity:.07;}
+.ccard.sel{border-color:var(--pink);transform:translateY(-4px) scale(1.06);box-shadow:0 8px 30px rgba(255,107,157,.3);}
+.ccard.sel::before{opacity:.12;}
+.ccheck{position:absolute;top:7px;left:7px;width:20px;height:20px;border-radius:50%;background:var(--pink);display:flex;align-items:center;justify-content:center;font-size:.65rem;opacity:0;transform:scale(0);transition:all .3s cubic-bezier(.175,.885,.32,1.275);}
+.ccard.sel .ccheck{opacity:1;transform:scale(1);}
+.cavatar{font-size:2.2rem;margin-bottom:8px;display:block;position:relative;z-index:1;animation:fl 3s ease-in-out infinite;}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.cname{font-family:'Fredoka',sans-serif;font-size:.95rem;font-weight:600;color:var(--text);position:relative;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbadges{display:flex;gap:4px;justify-content:center;margin-top:5px;position:relative;z-index:1;}
+.cb{font-size:.6rem;padding:2px 6px;border-radius:50px;font-weight:600;}
+.cb-wa{background:rgba(37,211,102,.15);color:#25D366;}
+.cb-m{background:rgba(96,165,250,.15);color:#60A5FA;}
+.nocon{grid-column:1/-1;text-align:center;padding:36px;color:var(--muted);background:var(--card);border-radius:var(--r);border:2px dashed var(--border);}
+.nocon a{color:var(--pink);text-decoration:none;}
+.ttabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;background:var(--surface);padding:6px;border-radius:50px;}
+.ttab{flex:1;min-width:80px;font-family:'Fredoka',sans-serif;font-size:.95rem;font-weight:600;padding:11px 8px;border-radius:50px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .25s;white-space:nowrap;text-align:center;}
+.ttab.active{background:linear-gradient(135deg,var(--sky),var(--mint));color:#fff;box-shadow:0 4px 14px rgba(76,201,240,.3);}
+.panel{display:none;animation:su .3s ease both;}
+.panel.active{display:block;}
+@keyframes su{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.pbtn{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:14px 12px;cursor:pointer;text-align:right;transition:all .25s;font-family:'Varela Round',sans-serif;font-size:.88rem;color:var(--text);}
+.pbtn:hover{border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.06);}
+.pbtn.chosen{border-color:var(--yellow);background:rgba(255,209,102,.1);}
+.pemoji{font-size:1.5rem;display:block;margin-bottom:5px;}
+.mta{width:100%;min-height:130px;background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:18px 20px;font-family:'Varela Round',sans-serif;font-size:1rem;color:var(--text);resize:none;transition:all .3s;line-height:1.6;}
+.mta:focus{outline:none;border-color:rgba(255,107,157,.5);box-shadow:0 0 0 4px rgba(255,107,157,.08);}
+.mta::placeholder{color:var(--muted);}
+.cc{text-align:left;color:var(--muted);font-size:.8rem;margin-top:5px;}
+.canvas-wrap{position:relative;background:var(--card);border:2px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;}
+canvas{display:block;width:100%;height:280px;touch-action:none;cursor:crosshair;}
+.canvas-toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:rgba(0,0,0,.25);align-items:center;}
+.cswatch{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .2s;flex-shrink:0;}
+.cswatch.active{border-color:#fff;transform:scale(1.25);}
+.tb{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.85rem;transition:all .2s;}
+.tb:hover{background:var(--card);}
+.eraser{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:'Fredoka',sans-serif;font-size:.9rem;transition:all .2s;}
+.eraser.on{background:var(--pink);border-color:var(--pink);color:#fff;}
+.clrall{background:rgba(255,107,157,.12);border:1px solid rgba(255,107,157,.25);color:var(--pink);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:'Fredoka',sans-serif;font-size:.9rem;margin-right:auto;}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.acard{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all .25s;text-align:right;}
+.acard:hover{border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.06);}
+.acard.chosen{border-color:var(--purple);background:rgba(167,139,250,.1);}
+.ascore{font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:700;color:var(--yellow);}
+.aname{font-size:.82rem;color:var(--muted);}
+.srow{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;}
+.sbtn{flex:1;min-width:140px;font-family:'Fredoka',sans-serif;font-size:1.2rem;font-weight:700;padding:16px 20px;border:none;border-radius:50px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .35s cubic-bezier(.175,.885,.32,1.275);position:relative;overflow:hidden;}
+.sbtn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.15);opacity:0;transition:opacity .2s;}
+.sbtn:hover::after{opacity:1;}
+.sbtn:hover{transform:translateY(-3px) scale(1.03);}
+.sbtn:active{transform:scale(.97);}
+.sbtn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;}
+.sbtn:disabled:hover::after{opacity:0;}
+.bwa{background:linear-gradient(135deg,#128C7E,#25D366);color:#fff;box-shadow:0 6px 20px rgba(37,211,102,.3);}
+.bem{background:linear-gradient(135deg,var(--sky),#5B8DEF);color:#fff;box-shadow:0 6px 20px rgba(76,201,240,.3);}
+.celwrap{position:fixed;inset:0;z-index:200;background:rgba(13,27,42,.88);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;}
+.celwrap.show{opacity:1;pointer-events:all;}
+.celcard{background:var(--card);border-radius:28px;padding:48px 36px;text-align:center;max-width:360px;border:2px solid rgba(255,107,157,.3);box-shadow:0 30px 80px rgba(0,0,0,.5);transform:scale(.8);transition:transform .5s cubic-bezier(.175,.885,.32,1.275);}
+.celwrap.show .celcard{transform:scale(1);}
+.celemoji{font-size:4.5rem;display:block;margin-bottom:14px;animation:bb 1s ease-in-out infinite;}
+@keyframes bb{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.1)}}
+.celtitle{font-family:'Fredoka',sans-serif;font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
+.celmsg{color:var(--muted);font-size:.95rem;line-height:1.6;margin-bottom:26px;}
+.celback{font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:600;padding:13px 38px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--pink),var(--orange));color:#fff;box-shadow:0 6px 20px rgba(255,107,157,.35);transition:all .3s;}
+.celback:hover{transform:translateY(-2px) scale(1.04);}
+.cfp{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:300;animation:cff linear forwards;}
+@keyframes cff{0%{transform:translateY(-10px) rotate(0deg);opacity:1;}100%{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+.spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:480px){.pgrid,.agrid{grid-template-columns:1fr;}.sbtn{font-size:1rem;}.ttab{font-size:.82rem;padding:9px 6px;}}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+<div class="wrap">
+  <a href="../index.html" class="back">← חזרה</a>
+  <div class="ph">
+    <div class="pt">💌 שלח הודעה לאהובים</div>
+    <div class="ps">בחר למי, מה לשלוח — ולחץ שלח!</div>
+  </div>
+
+  <div class="slabel">1️⃣ למי שולחים?</div>
+  <div class="cgrid" id="cgrid"></div>
+
+  <div class="slabel">2️⃣ מה שולחים?</div>
+  <div class="ttabs">
+    <button class="ttab active" onclick="setType('free',this)">✏️ הודעה</button>
+    <button class="ttab"        onclick="setType('preset',this)">🎉 ברכות</button>
+    <button class="ttab"        onclick="setType('drawing',this)">🎨 ציור</button>
+    <button class="ttab"        onclick="setType('achieve',this)">🏆 הישגים</button>
+  </div>
+
+  <div class="panel active" id="pFree">
+    <textarea class="mta" id="mta" placeholder="כתוב/י כאן את ההודעה שלך... 💬" maxlength="300" oninput="onText()"></textarea>
+    <div class="cc"><span id="cc">0</span>/300</div>
+  </div>
+
+  <div class="panel" id="pPreset">
+    <div class="pgrid" id="pgrid"></div>
+  </div>
+
+  <div class="panel" id="pDrawing">
+    <div class="canvas-wrap">
+      <canvas id="drawCanvas"></canvas>
+      <div class="canvas-toolbar">
+        <div id="palette" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        <button class="tb" onclick="setSize(5)">S</button>
+        <button class="tb" onclick="setSize(12)">M</button>
+        <button class="tb" onclick="setSize(22)">L</button>
+        <button class="eraser" id="eraserBtn" onclick="toggleEraser()">🧹 מחק</button>
+        <button class="clrall" onclick="clearCanvas()">🗑️ נקה</button>
+      </div>
+    </div>
+    <textarea class="mta" id="drawMsg" placeholder="הוסף הודעה לציור... (לא חובה)" maxlength="200" style="min-height:70px;" oninput="updateSend()"></textarea>
+  </div>
+
+  <div class="panel" id="pAchieve">
+    <div class="agrid" id="agrid">
+      <div style="grid-column:1/-1;color:var(--muted);text-align:center;padding:30px">
+        <div style="font-size:2rem;margin-bottom:8px">⏳</div>טוען הישגים...
+      </div>
+    </div>
+  </div>
+
+  <div class="slabel" style="margin-top:28px;">3️⃣ איך שולחים?</div>
+  <div class="srow">
+    <button class="sbtn bwa" id="btnWa"   onclick="sendWA()"   disabled>💬 WhatsApp</button>
+    <button class="sbtn bem" id="btnMail" onclick="sendMail()" disabled>📧 מייל</button>
+  </div>
+</div>
+
+<div class="celwrap" id="cel">
+  <div class="celcard">
+    <span class="celemoji" id="celE">🎉</span>
+    <div class="celtitle">נשלח! 🚀</div>
+    <div class="celmsg" id="celM">ההודעה עפה!</div>
+    <button class="celback" onclick="closeCel()">שלח עוד 💌</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="module">
+import { requireAuth, getCurrentProfile } from "../auth.js";
+window._requireAuth       = requireAuth;
+window._getCurrentProfile = getCurrentProfile;
+</script>
+<script>
+// ⚠️  EmailJS — הרשם בחינם ב emailjs.com והחלף את המפתחות:
+const EJ_SERVICE  = "YOUR_SERVICE_ID";
+const EJ_TEMPLATE = "YOUR_TEMPLATE_ID";
+const EJ_KEY      = "YOUR_PUBLIC_KEY";
+emailjs.init(EJ_KEY);
+
+// ── State ──────────────────────────────────────────── //
+let profile=null,contacts=[],selIdx=null,msgType='free',selAchieve=null;
+
+const PRESETS=[
+  {e:'😘',t:'שלום! חושב/ת עליך ❤️'},
+  {e:'🌟',t:'אני אוהב/ת אותך מאוד!'},
+  {e:'🎂',t:'יום הולדת שמח! 🎉🎊🎈'},
+  {e:'🌸',t:'שבת שלום! נתראה בקרוב 😊'},
+  {e:'🤗',t:'מתגעגע/ת אליך! מתי נתראה?'},
+  {e:'🌈',t:'חג שמח! שיהיה מלא שמחה 🎊'},
+  {e:'☀️',t:'בוקר טוב! יום נפלא! 🌻'},
+  {e:'🥳',t:'הגיע חג! מאחל/ת לך הכי טוב!'},
+];
+const GNAMES={memory:'משחק הזיכרון 🃏',letters:'משחק האותיות 📖',colors:'צבעים ומספרים 🎨',fridge:'המקרר הקסום 🧲'};
+const AV_MAP={סבא:'👴',סבתא:'👵',אבא:'👨',אמא:'👩',אח:'👦',אחות:'👧',דוד:'🧔',דודה:'👩‍🦰'};
+function av(n=''){for(const[k,v] of Object.entries(AV_MAP))if(n.includes(k))return v;return['🧑','👤','🙂','😊'][Math.floor(Math.random()*4)];}
+
+// ── Canvas ─────────────────────────────────────────── //
+const cnv=document.getElementById('drawCanvas');
+const ctx=cnv.getContext('2d');
+let drawing=false,eraser=false,bSize=10;
+const COLS=['#FF6B9D','#FFD166','#06D6A0','#4CC9F0','#A78BFA','#FFFFFF','#FF9F1C','#1E2D40'];
+let curCol=COLS[0];
+
+function initCnv(){
+  const W=cnv.offsetWidth||640;
+  const dpr=window.devicePixelRatio||1;
+  cnv.width=W*dpr; cnv.height=280*dpr;
+  cnv.style.height='280px';
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle='#253347'; ctx.fillRect(0,0,W,280);
+}
+function buildPalette(){
+  const p=document.getElementById('palette'); p.innerHTML='';
+  COLS.forEach(c=>{
+    const s=document.createElement('div');
+    s.className='cswatch'+(c===curCol?' active':'');
+    s.style.background=c;
+    s.onclick=()=>{curCol=c;eraser=false;document.querySelectorAll('.cswatch').forEach(x=>x.classList.remove('active'));s.classList.add('active');document.getElementById('eraserBtn').classList.remove('on');};
+    p.appendChild(s);
+  });
+}
+function gPos(e){const r=cnv.getBoundingClientRect(),src=e.touches?e.touches[0]:e;return{x:src.clientX-r.left,y:src.clientY-r.top};}
+cnv.addEventListener('mousedown',e=>{drawing=true;const p=gPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+cnv.addEventListener('mousemove',e=>{if(drawing)doDraw(gPos(e));});
+cnv.addEventListener('mouseup',()=>{drawing=false;ctx.beginPath();updateSend();});
+cnv.addEventListener('mouseleave',()=>{drawing=false;ctx.beginPath();});
+cnv.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=gPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+cnv.addEventListener('touchmove',e=>{e.preventDefault();if(drawing)doDraw(gPos(e));},{passive:false});
+cnv.addEventListener('touchend',()=>{drawing=false;ctx.beginPath();updateSend();});
+function doDraw(p){ctx.lineWidth=bSize*(eraser?3:1);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=eraser?'#253347':curCol;ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);}
+function setSize(s){bSize=s;}
+function toggleEraser(){eraser=!eraser;document.getElementById('eraserBtn').classList.toggle('on',eraser);}
+function clearCanvas(){const W=cnv.offsetWidth||640;ctx.fillStyle='#253347';ctx.fillRect(0,0,W,280);}
+
+// ── Contacts ───────────────────────────────────────── //
+function renderContacts(){
+  const g=document.getElementById('cgrid');g.innerHTML='';
+  if(!contacts.length){g.innerHTML=`<div class="nocon"><div style="font-size:2.5rem;margin-bottom:10px">🤔</div>עדיין אין קרובים.<br/><a href="../login.html">הוסף בהגדרות</a></div>`;return;}
+  contacts.forEach((c,i)=>{
+    const d=document.createElement('div');d.className='ccard';
+    d.innerHTML=`<div class="ccheck">✓</div><span class="cavatar" style="animation-delay:${i*.2}s">${av(c.name)}</span><div class="cname">${c.name||'קרוב'}</div><div class="cbadges">${c.phone?'<span class="cb cb-wa">💬</span>':''}${c.email?'<span class="cb cb-m">📧</span>':''}</div>`;
+    d.onclick=()=>{document.querySelectorAll('.ccard').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');selIdx=i;updateSend();};
+    g.appendChild(d);
+  });
+}
+
+// ── Presets ────────────────────────────────────────── //
+function renderPresets(){
+  const g=document.getElementById('pgrid');
+  PRESETS.forEach(p=>{
+    const b=document.createElement('button');b.className='pbtn';
+    b.innerHTML=`<span class="pemoji">${p.e}</span>${p.t}`;
+    b.onclick=()=>{document.querySelectorAll('.pbtn').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');updateSend();};
+    g.appendChild(b);
+  });
+}
+
+// ── Achievements ───────────────────────────────────── //
+function renderAchievements(){
+  const g=document.getElementById('agrid');g.innerHTML='';
+  const scores=profile?.scores||{};
+  const entries=Object.entries(scores);
+  if(!entries.length){g.innerHTML=`<div style="grid-column:1/-1;color:var(--muted);text-align:center;padding:30px"><div style="font-size:2rem;margin-bottom:8px">🎮</div>עוד אין הישגים — שחק קצת!</div>`;return;}
+  entries.forEach(([game,score])=>{
+    const d=document.createElement('div');d.className='acard';
+    d.innerHTML=`<div style="font-size:1.4rem;margin-bottom:4px">🏆</div><div class="ascore">${score.toLocaleString()} נקודות</div><div class="aname">${GNAMES[game]||game}</div>`;
+    d.onclick=()=>{document.querySelectorAll('.acard').forEach(x=>x.classList.remove('chosen'));d.classList.add('chosen');selAchieve=`הגעתי ל-${score.toLocaleString()} נקודות ב${GNAMES[game]||game}! 🏆`;updateSend();};
+    g.appendChild(d);
+  });
+}
+
+// ── Type ───────────────────────────────────────────── //
+function setType(t,btn){
+  msgType=t;
+  document.querySelectorAll('.ttab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById({free:'pFree',preset:'pPreset',drawing:'pDrawing',achieve:'pAchieve'}[t]).classList.add('active');
+  if(t==='drawing'){setTimeout(()=>{initCnv();buildPalette();},50);}
+  selAchieve=null;updateSend();
+}
+
+// ── Message getter ─────────────────────────────────── //
+function getMsg(){
+  if(msgType==='free') return document.getElementById('mta').value.trim();
+  if(msgType==='preset'){const c=document.querySelector('.pbtn.chosen');return c?c.textContent.replace(/^\s+/,'').trim():'';}
+  if(msgType==='drawing') return '__DRAWING__';
+  if(msgType==='achieve') return selAchieve||'';
+  return '';
+}
+function onText(){document.getElementById('cc').textContent=document.getElementById('mta').value.length;updateSend();}
+function updateSend(){
+  const c=contacts[selIdx]||{};const msg=getMsg();const ok=selIdx!==null&&msg.length>0;
+  document.getElementById('btnWa').disabled=!(ok&&!!c.phone);
+  document.getElementById('btnMail').disabled=!(ok&&!!c.email);
+}
+
+// ── WhatsApp ───────────────────────────────────────── //
+function sendWA(){
+  const c=contacts[selIdx];
+  let msg=getMsg();if(msg==='__DRAWING__')msg=document.getElementById('drawMsg').value.trim()||'שלחתי לך ציור! 🎨';
+  let ph=c.phone.replace(/[\s\-()]/g,'');if(ph.startsWith('0'))ph='972'+ph.slice(1);
+  window.open(`https://wa.me/${ph}?text=${encodeURIComponent(`💌 הודעה מ${profile.username}:\n\n${msg}`)}`,'_blank');
+  celebrate('💬',`ה-WhatsApp נפתח! שלח ל${c.name} 📤`);
+}
+
+// ── Email ──────────────────────────────────────────── //
+async function sendMail(){
+  const c=contacts[selIdx];
+  const btn=document.getElementById('btnMail');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
+  let msg=getMsg();const isDrw=(msg==='__DRAWING__');
+  if(isDrw)msg=document.getElementById('drawMsg').value.trim()||'שלחתי לך ציור! 🎨';
+  const params={to_name:c.name||'שלום',to_email:c.email,from_name:profile.username,message:msg};
+  if(isDrw)params.drawing_data=cnv.toDataURL('image/png');
+  try{
+    await emailjs.send(EJ_SERVICE,EJ_TEMPLATE,params);
+    celebrate('📧',`המייל נשלח ל${c.name}! 🎉`);
+  }catch{
+    window.open(`mailto:${c.email}?subject=${encodeURIComponent(`💌 הודעה מ${profile.username}`)}&body=${encodeURIComponent(`שלום ${c.name}!\n\n${msg}\n\nנשלח מ-KidLearn 🌟`)}`,'_blank');
+    celebrate('📧',`תוכנת המייל נפתחה ל${c.name}!`);
+  }
+  btn.disabled=false;btn.innerHTML='📧 מייל';updateSend();
+}
+
+// ── Celebrate ──────────────────────────────────────── //
+function celebrate(e,m){document.getElementById('celE').textContent=e;document.getElementById('celM').textContent=m;document.getElementById('cel').classList.add('show');confetti();}
+function closeCel(){
+  document.getElementById('cel').classList.remove('show');
+  document.getElementById('mta').value='';document.getElementById('drawMsg').value='';document.getElementById('cc').textContent='0';
+  document.querySelectorAll('.ccard,.pbtn,.acard').forEach(x=>x.classList.remove('sel','chosen'));
+  selIdx=null;selAchieve=null;clearCanvas();updateSend();
+}
+function confetti(){
+  const cs=['#FF6B9D','#FFD166','#06D6A0','#4CC9F0','#A78BFA','#FF9F1C'];
+  for(let i=0;i<70;i++){const el=document.createElement('div');el.className='cfp';el.style.cssText=`left:${Math.random()*100}vw;background:${cs[i%cs.length]};animation-duration:${1.4+Math.random()*2}s;animation-delay:${Math.random()*.8}s;transform:rotate(${Math.random()*360}deg);`;document.body.appendChild(el);el.addEventListener('animationend',()=>el.remove());}
+}
+
+// ── Init ───────────────────────────────────────────── //
+async function init(){
+  await new Promise(r => setTimeout(r, 50)); // wait for module to assign window._
+  profile=await window._getCurrentProfile();
+  if(!profile){window.location.href='../login.html';return;}
+  contacts=profile.contacts||[];
+  renderContacts();renderPresets();renderAchievements();
+  initCnv();buildPalette();
+  // ?game=X&score=Y from game share button
+  const p=new URLSearchParams(location.search);
+  if(p.get('game')&&p.get('score')){
+    selAchieve=`הגעתי ל-${parseInt(p.get('score')).toLocaleString()} נקודות ב${GNAMES[p.get('game')]||p.get('game')}! 🏆`;
+    setType('achieve',document.querySelectorAll('.ttab')[3]);
+  }
+}
+window._requireAuth('../login.html').then ? window._requireAuth('../login.html').then(init) : setTimeout(()=>window._requireAuth('../login.html').then(init), 60);
+</script>
+</body>
+</html>

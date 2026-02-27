@@ -265,3 +265,7 @@ window.addEventListener('load', () => {
     startGame();
     displayCollectedCards();
 });
+
+function shareAchievement(){
+  window.location.href=`../send-message/?game=memory&score=${moves}`;
+}
