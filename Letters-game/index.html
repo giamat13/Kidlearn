@@ -1,563 +1,293 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>משחק אותיות נופלות - שמות האותיות</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap');
-        
-        body {
-            font-family: 'Assistant', sans-serif;
-            overflow: hidden;
-            touch-action: none;
-            background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משחק מספרים וצבעים</title>
 
-        .letter {
-            position: absolute;
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.1s;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-            z-index: 10;
-            white-space: nowrap;
-            will-change: transform;
-            display: block;
-        }
+<!-- טעינת הפונטים מחיצוני -->
+<link rel="stylesheet" href="fonts.txt">
 
-        .letter:active {
-            transform: scale(0.8);
-        }
-
-        .score-pop {
-            position: absolute;
-            animation: fadeUp 1s forwards;
-            pointer-events: none;
-            font-weight: bold;
-            z-index: 100;
-        }
-
-        @keyframes fadeUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-50px); }
-        }
-
-        #game-container {
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .settings-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-        }
-
-        .checkbox-letter:checked + label {
-            background-color: #3b82f6;
-            color: white;
-            border-color: #2563eb;
-        }
-
-        * {
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
-        .game-over-overlay {
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-        }
-
-        /* עיצוב שורות הלבבות */
-        .lives-row {
-            display: flex;
-            gap: 2px;
-            margin-bottom: -4px;
-        }
-    </style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{height:100vh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;overflow:hidden;font-family:Arial,sans-serif;transition:background 0.5s;}
+#topBar{width:100%;display:flex;justify-content:space-between;align-items:center;padding:5px;}
+#colorBar{height:20px;border-radius:5px;transition:width 0.3s, background 0.5s;width:0%;}
+#switchModeBtn{margin-right:10px;background:#2196f3;color:white;border:none;padding:5px 12px;border-radius:8px;cursor:pointer;}
+#colorSquare{width:200px;height:200px;margin:20px auto;display:flex;justify-content:center;align-items:center;border-radius:20px;box-shadow:0 5px 15px rgba(0,0,0,0.3);font-size:72px;color:white;text-shadow:2px 2px 4px rgba(0,0,0,0.5);transition:transform 0.3s, box-shadow 0.3s;}
+#colorSquare:hover{transform:scale(1.05);}
+button{padding:12px 24px;font-size:18px;margin:5px;color:white;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.2);transition:background-color 0.3s, transform 0.1s;}
+#foundButton{background-color:#ff9800;}#foundButton:hover{background-color:#fb8c00;}
+#foundAllButton{background-color:#ff5252;}#foundAllButton:hover{background-color:#ff1744;}
+#readBtn{background-color:#4ecdc4;}#readBtn:hover{background-color:#44a08d;}
+#nextBtn{background-color:#8e44ad;}#nextBtn:hover{background-color:#732d91;}
+#message,#clickCount,#score,#timer{margin-top:10px;font-size:22px;font-weight:bold;}
+.confetti{position:absolute;pointer-events:none;animation:fall linear forwards;}
+#modeOverlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.7);
+  display:flex;justify-content:center;align-items:center;z-index:1000;
+}
+#modeBox{
+  background:white;padding:30px;border-radius:12px;text-align:center;
+}
+#modeBox h2{margin-bottom:20px;}
+.modeBtn{
+  margin:10px;padding:12px 24px;font-size:20px;border:none;border-radius:10px;cursor:pointer;
+}
+#chooseFind{background:#ff9800;color:white;}
+#chooseLearn{background:#4ecdc4;color:white;}
+</style>
 </head>
-<body class="bg-blue-50">
+<body>
+<div id="topBar">
+  <div id="colorBar"></div>
+  <button id="switchModeBtn">החלף מצב</button>
+</div>
 
-    <div class="fixed top-0 left-0 right-0 p-2 md:p-4 z-40 flex justify-between items-start pointer-events-none">
-        <div class="bg-white/80 backdrop-blur p-2 md:p-4 rounded-2xl shadow-lg pointer-events-auto border-2 border-blue-400 max-w-[150px] md:max-w-[200px]">
-            <div class="text-lg md:text-xl font-bold text-blue-800">ניקוד: <span id="score-display">0</span></div>
-            <div class="text-xs md:text-sm text-blue-600">יעד: <span id="target-count-display">0</span>/<span id="goal-display">5</span></div>
-            <div class="mt-2">
-                <span class="text-xs md:text-sm text-red-600 font-bold block mb-1">חיים:</span>
-                <div id="lives-display" class="flex flex-col"></div>
-            </div>
-        </div>
-        
-        <div class="flex flex-col items-center gap-2">
-            <div id="target-card" class="bg-white/90 p-2 md:p-4 rounded-2xl shadow-lg text-center pointer-events-auto border-2 border-purple-400 min-w-[80px] md:min-w-[120px]">
-                <div class="text-[10px] md:text-sm font-bold text-gray-500 mb-1">חפש את האות:</div>
-                <div id="target-letter-display" class="text-3xl md:text-5xl font-black text-purple-600">?</div>
-                <button onclick="speakTarget()" class="mt-2 bg-purple-500 text-white px-2 py-1 rounded-full text-[10px] md:text-xs hover:bg-purple-600 active:scale-95 transition-all flex items-center justify-center gap-1 w-full">
-                    <span>🔊 השמע</span>
-                </button>
-            </div>
-            <button onclick="toggleSettings(true)" class="pointer-events-auto bg-gray-100 p-2 rounded-full shadow-md hover:bg-white transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </button>
-        </div>
-    </div>
+<h1>מצא או למד את המספר!</h1>
+<div id="colorSquare">✋</div>
+<div id="buttonsArea">
+  <button id="foundButton">מצאתי✋</button>
+  <button id="foundAllButton">מצאתי הכל ✋✋✋</button>
+  <button id="readBtn">🔊 הקרא</button>
+  <button id="nextBtn" style="display:none;">➡️ הצלחתי! הבא</button>
+</div>
 
-    <div id="start-screen" class="fixed inset-0 z-[100] bg-blue-600/95 flex items-center justify-center p-6 text-center">
-        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full">
-            <h1 class="text-3xl md:text-4xl font-black text-blue-600 mb-4">אותיות נופלות</h1>
-            <p class="text-gray-600 mb-8 text-base md:text-lg">הקשיבו לשם האות ונסו למצוא אותה!</p>
-            <div class="flex flex-col gap-3">
-                <button onclick="startGame()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 md:py-4 rounded-2xl text-xl md:text-2xl shadow-xl transform transition active:scale-95">
-                    מתחילים!
-                </button>
-                <button onclick="toggleSettings(true)" class="w-full bg-blue-100 text-blue-700 font-bold py-3 rounded-2xl hover:bg-blue-200 transition">
-                    הגדרות הורים
-                </button>
-            </div>
-        </div>
-    </div>
+<p id="clickCount">לחצת: 0 פעמים</p>
+<p id="score">נקודות: 0</p>
+<p id="timer">זמן: 0 שניות</p>
+<p id="message"></p>
 
-    <div id="game-over-screen" class="fixed inset-0 z-[100] game-over-overlay hidden items-center justify-center p-6 text-center">
-        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full">
-            <h1 class="text-3xl md:text-4xl font-black text-red-600 mb-4">המשחק נגמר!</h1>
-            <p class="text-gray-600 mb-4 text-base md:text-lg">הניקוד שלך:</p>
-            <div class="text-5xl md:text-6xl font-black text-blue-600 mb-8" id="final-score-display">0</div>
-            <div class="flex flex-col gap-3">
-                <button onclick="restartGame()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 md:py-4 rounded-2xl text-xl md:text-2xl shadow-xl transform transition active:scale-95">
-                    שחק שוב
-                </button>
-                <button onclick="backToMenu()" class="w-full bg-blue-100 text-blue-700 font-bold py-3 rounded-2xl hover:bg-blue-200 transition">
-                    חזרה לתפריט
-                </button>
-            </div>
-        </div>
-    </div>
+<div id="modeOverlay">
+  <div id="modeBox">
+    <h2>בחר מצב משחק:</h2>
+    <button id="chooseFind" class="modeBtn">🔎 מצא</button>
+    <button id="chooseLearn" class="modeBtn">📖 למד</button>
+  </div>
+</div>
 
-    <div id="settings-panel" class="fixed inset-0 z-[110] settings-overlay hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-            <div class="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800">הגדרות משחק</h2>
-                <button onclick="toggleSettings(false)" class="text-gray-400 hover:text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="p-4 md:p-6 overflow-y-auto flex-1 space-y-6 text-right">
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-base md:text-lg font-bold text-gray-800">עוצמת קול</span>
-                        <span id="volume-val" class="text-blue-600 font-bold">100%</span>
-                    </div>
-                    <input type="range" id="volume-range" min="0" max="1" step="0.1" value="1" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
-                </div>
+<script>
+// ---- קבועי אפקטים ----
+const CONFETTI_AUDIO = 'https://giamat13.github.io/Kidlearn/effects/confetti.mp3';
+const NEWLEVEL_AUDIO = 'https://giamat13.github.io/Kidlearn/effects/newlevel.mp3';
 
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-base md:text-lg font-bold text-gray-800">מהירות התחלתית</span>
-                        <span id="speed-val" class="text-blue-600 font-bold">רגילה</span>
-                    </div>
-                    <input type="range" id="speed-range" min="0.5" max="3" step="0.25" value="1.2" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
-                </div>
+// ---- רקעים ----
+const backgrounds = ['#6a6fd5','#ff6b6b','#44a08d','#f6e58d','#cd7f32','#c0c0c0','#ffd700','rainbow'];
+const squareColors = ['#ff6b6b','#44a08d','#f6e58d'];
 
-                <div class="space-y-3 bg-red-50 p-4 rounded-2xl">
-                    <div class="flex justify-between items-center">
-                        <span class="text-base md:text-lg font-bold text-red-800">מספר חיים</span>
-                        <div class="flex items-center gap-2">
-                            <input type="number" id="lives-manual-input" min="1" max="999" class="w-16 p-1 text-center border-2 border-red-300 rounded-lg font-bold text-red-600" oninput="syncLivesFromInput(this.value)">
-                            <span id="lives-val" class="text-red-600 font-bold hidden">3</span>
-                        </div>
-                    </div>
-                    <input type="range" id="lives-range" min="1" max="25" step="1" value="3" class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-500" oninput="syncLivesFromRange(this.value)">
-                    <p class="text-[10px] text-red-400 italic">* ניתן להזין כל מספר בתיבה או להשתמש בסרגל עד 25</p>
-                </div>
+// ---- משתנים ----
+let bgIndex = 0, stageIndex = 0;
+let totalItems, foundCount=0, startTime;
+let score=parseInt(getCookie('score'))||0;
+let clickCounterForConfetti=0;
+let currentSquareColor='';
+let gameMode = getCookie('gameMode') || "";
+let previousDigit = 0; 
 
-                <div class="flex items-center justify-between bg-blue-50 p-4 rounded-2xl">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="hide-letter-toggle" class="sr-only peer">
-                        <div class="w-12 h-6 md:w-14 md:h-7 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 md:after:h-6 md:after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                    <div class="mr-3 text-right">
-                        <span class="block text-base md:text-lg font-bold text-gray-800">מצב "הקשבה"</span>
-                        <span class="text-xs text-gray-600 italic">זיהוי לפי שם האות בלבד</span>
-                    </div>
-                </div>
+// ---- cookies ----
+function setCookie(name,value,days=7){
+  const d=new Date();
+  d.setTime(d.getTime()+(days*24*60*60*1000));
+  document.cookie=name+'='+value+';expires='+d.toUTCString()+';path=/';
+}
+function getCookie(name){
+  let match=document.cookie.match(new RegExp('(^| )'+name+'=([^;]+)'));
+  if(match) return match[2];
+  return "";
+}
 
-                <div>
-                    <h3 class="text-base md:text-lg font-bold text-gray-800 mb-4 border-r-4 border-blue-500 pr-3">בחירת אותיות</h3>
-                    <div class="grid grid-cols-5 md:grid-cols-6 gap-2" id="letters-selector-grid"></div>
-                    <div class="flex gap-2 mt-4">
-                        <button onclick="selectAllLetters(true)" class="flex-1 bg-gray-100 py-2 rounded-xl text-xs md:text-sm font-bold text-gray-600 hover:bg-gray-200">בחר הכל</button>
-                        <button onclick="selectAllLetters(false)" class="flex-1 bg-gray-100 py-2 rounded-xl text-xs md:text-sm font-bold text-gray-600 hover:bg-gray-200">נקה הכל</button>
-                    </div>
-                </div>
-            </div>
+// ---- טעינת הפונטים מה-CSS ----
+const fonts = [];
+for (const sheet of document.styleSheets) {
+  try {
+    for (const rule of sheet.cssRules) {
+      if (rule.selectorText && rule.selectorText.startsWith('.font-')) {
+        fonts.push(rule.selectorText.slice(1));
+      }
+    }
+  } catch(e) { }
+}
 
-            <div class="p-4 md:p-6 border-t border-gray-100 bg-gray-50">
-                <button onclick="saveAndCloseSettings()" class="w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-2xl shadow-lg hover:bg-blue-700 transition active:scale-95">
-                    שמור וחזור
-                </button>
-            </div>
-        </div>
-    </div>
+// ---- פונקציה לפונט אקראי ----
+function applyRandomFont() {
+  const square = document.getElementById('colorSquare');
+  const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+  square.classList.remove(...fonts);
+  square.classList.add(randomFont);
+}
 
-    <div id="game-container"></div>
+// ---- מספר אקראי ----
+function getRandomDigit(){
+  if(gameMode === "find") return Math.floor(Math.random() * 5) + 1;
+  return Math.floor(Math.random() * 9) + 1;
+}
 
-    <script>
-        const letterNames = {
-            'א': 'אלף', 'ב': 'בית', 'ג': 'גימל', 'ד': 'דלת', 'ה': 'הא', 'ו': 'וו', 'ז': 'זין',
-            'ח': 'חית', 'ט': 'טית', 'י': 'יוד', 'כ': 'כף', 'ל': 'למד', 'מ': 'מם', 'נ': 'נון',
-            'ס': 'סמך', 'ע': 'עין', 'פ': 'פא', 'צ': 'צדי', 'ק': 'קוף', 'ר': 'ריש', 'ש': 'שין', 'ת': 'תיו'
-        };
+function applyBackground(bg){
+  document.body.style.background = bg==='rainbow'
+    ? 'linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)'
+    : bg;
+}
 
-        const allHebrewLetters = Object.keys(letterNames);
-        const colors = ['text-red-500', 'text-blue-500', 'text-green-500', 'text-yellow-500', 'text-purple-500', 'text-pink-500', 'text-orange-500'];
-        
-        let settings = {
-            enabledLetters: [...allHebrewLetters],
-            hideTargetLetter: false,
-            baseSpeed: 1.2,
-            volume: 1.0,
-            maxLives: 3
-        };
+// ---- צבע לסרגל ----
+function pickColorForBar(){
+  const color = squareColors[stageIndex % squareColors.length];
+  currentSquareColor = color;
+  document.getElementById('colorBar').style.backgroundColor = color;
+}
 
-        let score = 0;
-        let lives = 3;
-        let currentTarget = '';
-        let targetCollected = 0;
-        let targetGoal = 5;
-        let gameActive = false;
-        let spawnInterval;
-        let levelTransitioning = false;
-        const synth = window.speechSynthesis;
-        const gameContainer = document.getElementById('game-container');
+// ---- Progress Bar ----
+function updateProgressBar(){
+  const progress = Math.min((score % 15) / 15 * 100, 100);
+  document.getElementById('colorBar').style.width = progress + '%';
+  const bgIndexFromScore = Math.floor(score / 15) % backgrounds.length;
+  applyBackground(backgrounds[bgIndexFromScore]);
+}
 
-        // פונקציות סנכרון לחיים
-        function syncLivesFromRange(val) {
-            document.getElementById('lives-manual-input').value = val;
-            updateSettingsPreview();
-        }
+// ---- סיבוב ----
+function startRound(){
+  const square=document.getElementById('colorSquare');
+  let digit = getRandomDigit();
+  totalItems = digit;
+  foundCount = 0;
+  startTime = new Date();
 
-        function syncLivesFromInput(val) {
-            let num = parseInt(val);
-            if (num > 0) {
-                if (num <= 25) {
-                    document.getElementById('lives-range').value = num;
-                }
-                updateSettingsPreview();
-            }
-        }
+  pickColorForBar();
+  square.style.backgroundColor = currentSquareColor;
+  square.style.color='white';
+  applyRandomFont();
 
-        function loadSettings() {
-            const saved = localStorage.getItem('falling_letters_v3_config');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.enabledLetters && parsed.enabledLetters.length > 0) {
-                        settings = {...settings, ...parsed};
-                    } else {
-                        settings = {...settings, volume: parsed.volume, baseSpeed: parsed.baseSpeed, hideTargetLetter: parsed.hideTargetLetter, maxLives: parsed.maxLives || 3};
-                    }
-                } catch (e) { console.error(e); }
-            }
-            applySettingsToUI();
-        }
+  if(gameMode==="find"){
+    square.textContent = digit;
+    document.getElementById('buttonsArea').style.display='block';
+    document.getElementById('foundButton').style.display='inline-block';
+    document.getElementById('foundAllButton').style.display='inline-block';
+    document.getElementById('readBtn').style.display='inline-block';
+    document.getElementById('nextBtn').style.display='none';
+    document.getElementById('clickCount').innerText='לחצת: 0 פעמים';
+  } else {
+    square.textContent = digit;
+    document.getElementById('buttonsArea').style.display='block';
+    document.getElementById('foundButton').style.display='none';
+    document.getElementById('foundAllButton').style.display='none';
+    document.getElementById('readBtn').style.display='inline-block';
+    document.getElementById('nextBtn').style.display='inline-block';
+  }
 
-        function saveSettings() {
-            localStorage.setItem('falling_letters_v3_config', JSON.stringify(settings));
-        }
+  previousDigit = digit;
+  document.getElementById('message').innerText='';
+  updateScoreDisplay();
+  updateProgressBar();
+  stageIndex++;
+}
 
-        function applySettingsToUI() {
-            document.getElementById('hide-letter-toggle').checked = settings.hideTargetLetter;
-            document.getElementById('speed-range').value = settings.baseSpeed;
-            document.getElementById('volume-range').value = settings.volume;
-            document.getElementById('lives-range').value = Math.min(settings.maxLives, 25);
-            document.getElementById('lives-manual-input').value = settings.maxLives;
-            updateSettingsPreview();
-            renderLettersSelector();
-            updateVisualMode();
-        }
+// ---- קונפטי ----
+function showConfetti(){
+  const colors=['#ff6b6b','#ffbe76','#f6e58d','#44a08d','#4ecdc4','#686de0','#e056fd','#ff7979','#ff9ff3','#f368e0','#ff9f43','#00d2d3'];
+  const count=150; const screenHeight=window.innerHeight;
+  for(let i=0;i<count;i++){
+    const confetti=document.createElement('div'); confetti.className='confetti';
+    confetti.style.background=colors[Math.floor(Math.random()*colors.length)];
+    const size=5+Math.random()*8; confetti.style.width=size+'px'; confetti.style.height=size+'px';
+    const duration=1+Math.random()*4; confetti.style.animationDuration=duration+'s';
+    confetti.style.animationDelay=(Math.random()*3)+'s';
+    confetti.style.top=(-Math.random()*100)+'px'; confetti.style.left=Math.random()*100+'vw';
+    const animName='fall'+i+Date.now();
+    const styleEl=document.createElement('style');
+    styleEl.innerHTML=`@keyframes ${animName}{0%{transform:translateY(0) rotate(0deg);}100%{transform:translateY(${screenHeight+size}px) rotate(720deg);}}`;
+    document.head.appendChild(styleEl); confetti.style.animationName=animName;
+    document.body.appendChild(confetti);
+    confetti.addEventListener('animationend',()=>{confetti.remove(); styleEl.remove();});
+  }
+}
 
-        function updateSettingsPreview() {
-            const vol = document.getElementById('volume-range').value;
-            const speed = document.getElementById('speed-range').value;
-            
-            document.getElementById('volume-val').innerText = Math.round(vol * 100) + "%";
-            
-            let speedText = "רגילה";
-            if (speed < 1) speedText = "איטית";
-            if (speed > 1.5) speedText = "מהירה";
-            if (speed > 2.2) speedText = "מהירה מאוד";
-            document.getElementById('speed-val').innerText = speedText;
-        }
+// ---- סיום סיבוב ----
+function finishRound(points){
+  score+=points;
+  clickCounterForConfetti += points;
+  setCookie('score',score,7);
+  updateScoreDisplay();
+  updateProgressBar();
 
-        // עדכון תצוגת חיים בשורות
-        function updateLivesDisplay() {
-            const livesEl = document.getElementById('lives-display');
-            livesEl.innerHTML = '';
-            
-            const maxPerRow = 10;
-            const rowCount = Math.ceil(lives / maxPerRow);
-            
-            for (let r = 0; r < rowCount; r++) {
-                const row = document.createElement('div');
-                row.className = 'lives-row';
-                
-                const heartsInThisRow = Math.min(maxPerRow, lives - (r * maxPerRow));
-                for (let i = 0; i < heartsInThisRow; i++) {
-                    row.innerHTML += '<span class="text-sm md:text-base">❤️</span>';
-                }
-                livesEl.appendChild(row);
-            }
+  if(clickCounterForConfetti >= 15){
+    showConfetti();
+    new Audio(CONFETTI_AUDIO).play().catch(()=>{});
+    new Audio(NEWLEVEL_AUDIO).play().catch(()=>{});
+    clickCounterForConfetti = 0;
+    updateProgressBar();
+  }
+  startRound();
+}
 
-            // הצגת חוסר בחיים רק אם זה רלוונטי (עד 10 סה"כ)
-            if (lives < settings.maxLives && settings.maxLives <= 10) {
-                 // אופציונלי: להוסיף לבבות שחורים
-            }
-        }
+// ---- כפתורים ----
+document.getElementById('foundButton').onclick = () => {
+  foundCount++;
+  document.getElementById('clickCount').innerText='לחצת: '+foundCount+' פעמים';
+  let basePoints = Math.max(10 - Math.floor((new Date() - startTime)/1000),1);
+  let bonus = Math.min(Math.max(previousDigit - totalItems + foundCount,0),2);
+  let totalPoints = basePoints + bonus;
 
-        function renderLettersSelector() {
-            const grid = document.getElementById('letters-selector-grid');
-            grid.innerHTML = '';
-            allHebrewLetters.forEach(char => {
-                const isChecked = settings.enabledLetters.includes(char);
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <input type="checkbox" id="check-${char}" class="checkbox-letter sr-only" ${isChecked ? 'checked' : ''} onchange="toggleLetter('${char}')">
-                    <label for="check-${char}" class="flex items-center justify-center h-10 rounded-xl border-2 border-gray-200 font-bold text-lg cursor-pointer transition-all">
-                        ${char}
-                    </label>
-                `;
-                grid.appendChild(div);
-            });
-        }
+  if(foundCount===totalItems){
+    finishRound(totalPoints);
+    document.getElementById('message').innerText='סיימת את הסיבוב!';
+  }
+};
+document.getElementById('foundAllButton').onclick = () => {
+  let basePoints = Math.max(10 - Math.floor((new Date() - startTime)/1000),1);
+  let bonus = Math.min(Math.max(previousDigit - totalItems,0),2);
+  finishRound(basePoints + bonus);
+  document.getElementById('message').innerText='סיימת את הסיבוב!';
+};
+document.getElementById('readBtn').onclick = () => {
+  const digit=document.getElementById('colorSquare').textContent;
+  if(!digit) return;
+  new Audio(`${digit}.mp3`).play().catch(()=>{});
+};
+document.getElementById('nextBtn').onclick = () => {
+  let basePoints = Math.max(10 - Math.floor((new Date() - startTime)/1000), 1);
+  finishRound(basePoints);
+  document.getElementById('message').innerText='עברת לסיבוב הבא!';
+};
 
-        function toggleLetter(char) {
-            const index = settings.enabledLetters.indexOf(char);
-            if (index > -1) settings.enabledLetters.splice(index, 1);
-            else settings.enabledLetters.push(char);
-        }
+// ---- טיימר ----
+setInterval(()=>{
+  if(startTime){
+    let elapsed=Math.floor((new Date()-startTime)/1000);
+    document.getElementById('timer').innerText='זמן: '+elapsed+' שניות';
+  }
+},1000);
 
-        function selectAllLetters(select) {
-            settings.enabledLetters = select ? [...allHebrewLetters] : [];
-            renderLettersSelector();
-        }
+// ---- החלפת מצב ----
+document.getElementById('switchModeBtn').addEventListener('click', ()=>{
+  gameMode = (gameMode==="find") ? "learn" : "find";
+  setCookie('gameMode',gameMode,7);
+  location.reload();
+});
 
-        function toggleSettings(show) {
-            const panel = document.getElementById('settings-panel');
-            panel.style.display = show ? 'flex' : 'none';
-        }
+// ---- בחירת מצב ראשונית ----
+document.getElementById('chooseFind').addEventListener('click', ()=>{
+  gameMode="find";
+  setCookie('gameMode',"find",7);
+  document.getElementById('modeOverlay').style.display='none';
+  startRound();
+});
+document.getElementById('chooseLearn').addEventListener('click', ()=>{
+  gameMode="learn";
+  setCookie('gameMode',"learn",7);
+  document.getElementById('modeOverlay').style.display='none';
+  startRound();
+});
 
-        function saveAndCloseSettings() {
-            if (settings.enabledLetters.length === 0) {
-                settings.enabledLetters = [...allHebrewLetters];
-                renderLettersSelector();
-            }
-            settings.hideTargetLetter = document.getElementById('hide-letter-toggle').checked;
-            settings.baseSpeed = parseFloat(document.getElementById('speed-range').value);
-            settings.volume = parseFloat(document.getElementById('volume-range').value);
-            
-            let manualLives = parseInt(document.getElementById('lives-manual-input').value);
-            settings.maxLives = isNaN(manualLives) ? 3 : manualLives;
+// ---- התחלה ----
+updateScoreDisplay();
+updateProgressBar();
+if(gameMode){
+  document.getElementById('modeOverlay').style.display='none';
+  startRound();
+}
 
-            saveSettings();
-            toggleSettings(false);
-            updateVisualMode();
-            if (gameActive) {
-                lives = settings.maxLives;
-                updateLivesDisplay();
-                nextLevel();
-            }
-        }
-
-        function speak(text) {
-            synth.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'he-IL';
-            utterance.volume = settings.volume;
-            utterance.rate = 0.85;
-            synth.speak(utterance);
-        }
-
-        function speakLetterName(char, prefix = "") {
-            const name = letterNames[char] || char;
-            speak(prefix + name);
-        }
-
-        function speakTarget() { if (currentTarget) speakLetterName(currentTarget); }
-
-        function startGame() {
-            document.getElementById('start-screen').classList.add('hidden');
-            gameActive = true;
-            levelTransitioning = false;
-            score = 0;
-            lives = settings.maxLives;
-            document.getElementById('score-display').innerText = "0";
-            updateLivesDisplay();
-            nextLevel();
-            startSpawning();
-        }
-
-        function nextLevel() {
-            levelTransitioning = false;
-            targetCollected = 0;
-            targetGoal = Math.min(3 + Math.floor(score / 50), 12);
-            const allowed = settings.enabledLetters.length > 0 ? settings.enabledLetters : allHebrewLetters;
-            currentTarget = allowed[Math.floor(Math.random() * allowed.length)];
-            updateVisualMode();
-            document.getElementById('target-count-display').innerText = "0";
-            document.getElementById('goal-display').innerText = targetGoal;
-            speakLetterName(currentTarget, "מצא את האות ");
-        }
-
-        function updateVisualMode() {
-            const displayEl = document.getElementById('target-letter-display');
-            if (settings.hideTargetLetter) {
-                displayEl.innerHTML = `<span class="text-2xl md:text-3xl text-gray-300">?</span>`;
-            } else if (currentTarget) {
-                displayEl.innerText = currentTarget;
-            }
-        }
-
-        function startSpawning() {
-            if (spawnInterval) clearInterval(spawnInterval);
-            spawnInterval = setInterval(() => {
-                if (gameActive && !levelTransitioning) {
-                    createLetter();
-                }
-            }, 1000 - Math.min(score, 500)); 
-        }
-
-        function createLetter() {
-            const allowed = settings.enabledLetters.length > 0 ? settings.enabledLetters : allHebrewLetters;
-            const letterEl = document.createElement('div');
-            const isTarget = Math.random() > 0.65; 
-            const char = isTarget ? currentTarget : allowed[Math.floor(Math.random() * allowed.length)];
-            const colorClass = colors[Math.floor(Math.random() * colors.length)];
-            
-            const minSize = window.innerWidth < 640 ? 55 : 70;
-            const size = Math.floor(Math.random() * 15) + minSize;
-            const startX = Math.random() * (window.innerWidth - size - 40) + 20;
-            
-            letterEl.className = `letter font-black ${colorClass}`;
-            letterEl.style.fontSize = `${size}px`;
-            letterEl.style.left = `${startX}px`;
-            letterEl.style.top = `-100px`;
-            letterEl.innerText = char;
-
-            const handleInteraction = (e) => {
-                e.preventDefault();
-                if (!gameActive || levelTransitioning) return;
-                
-                if (char === currentTarget) {
-                    speakLetterName(char, "נכון! זאת האות ");
-                    score += 10;
-                    targetCollected++;
-                    document.getElementById('score-display').innerText = score;
-                    document.getElementById('target-count-display').innerText = targetCollected;
-                    
-                    const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-                    const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-                    createPopText(clientX, clientY, "+10", "text-green-600");
-                    
-                    letterEl.remove();
-                    
-                    if (targetCollected >= targetGoal) {
-                        levelTransitioning = true;
-                        setTimeout(() => { 
-                            speak("כל הכבוד!"); 
-                            nextLevel(); 
-                        }, 1200);
-                    }
-                } else {
-                    speakLetterName(char, "זאת האות ");
-                    score = Math.max(0, score - 5);
-                    lives--;
-                    
-                    document.getElementById('score-display').innerText = score;
-                    updateLivesDisplay();
-                    
-                    const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-                    const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-                    createPopText(clientX, clientY, "X", "text-red-600");
-                    
-                    if (lives <= 0) endGame();
-                }
-            };
-
-            letterEl.addEventListener('touchstart', handleInteraction, { passive: false });
-            letterEl.addEventListener('mousedown', handleInteraction);
-
-            gameContainer.appendChild(letterEl);
-
-            let currentTop = -100;
-            const speed = settings.baseSpeed + (score / 300);
-            
-            function step() {
-                if (!gameActive || !letterEl.parentNode) return;
-                currentTop += speed;
-                letterEl.style.transform = `translateY(${currentTop + 100}px)`;
-                
-                if (currentTop < window.innerHeight + 100) {
-                    requestAnimationFrame(step);
-                } else {
-                    if (char === currentTarget && gameActive && !levelTransitioning) {
-                        lives--;
-                        updateLivesDisplay();
-                        createPopText(window.innerWidth / 2, window.innerHeight - 100, "-1 חיה", "text-red-600");
-                        if (lives <= 0) endGame();
-                    }
-                    letterEl.remove();
-                }
-            }
-            requestAnimationFrame(step);
-        }
-
-        function createPopText(x, y, text, color) {
-            const pop = document.createElement('div');
-            pop.className = `score-pop ${color} text-2xl md:text-3xl`;
-            pop.style.left = x + 'px';
-            pop.style.top = y + 'px';
-            pop.innerText = text;
-            document.body.appendChild(pop);
-            setTimeout(() => pop.remove(), 1000);
-        }
-
-        function endGame() {
-            gameActive = false;
-            clearInterval(spawnInterval);
-            document.querySelectorAll('.letter').forEach(l => l.remove());
-            document.getElementById('final-score-display').innerText = score;
-            document.getElementById('game-over-screen').style.display = 'flex';
-            speak("המשחק נגמר. הניקוד שלך " + score);
-        }
-
-        function restartGame() {
-            document.getElementById('game-over-screen').style.display = 'none';
-            startGame();
-        }
-
-        function backToMenu() {
-            document.getElementById('game-over-screen').style.display = 'none';
-            document.getElementById('start-screen').classList.remove('hidden');
-            gameActive = false;
-            clearInterval(spawnInterval);
-            document.querySelectorAll('.letter').forEach(l => l.remove());
-        }
-
-        window.onload = loadSettings;
-    </script>
+// ---- עדכון ניקוד ----
+function updateScoreDisplay(){document.getElementById('score').innerText='נקודות: '+score;}
+</script>
 </body>
 </html>
