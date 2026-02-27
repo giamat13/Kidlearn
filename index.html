@@ -771,13 +771,6 @@
     <!-- Firebase v12 modular -->
     <script type="module">
       import { requireAuth, getCurrentProfile, logoutUser } from "./auth.js";
-
-      window._requireAuth      = requireAuth;
-      window._getCurrentProfile = getCurrentProfile;
-      window._logoutUser        = (path) => logoutUser(path);
-    </script>
-
-    <script>
         // ── Legacy cookie helpers (kept for grade-progression only) ──
         function setCookie(name, value, days) {
             const expires = new Date();
@@ -1069,12 +1062,16 @@
 
         // ── Firebase-based initialisation ──────────────────── //
         async function init() {
-            // modules load async — wait a tick for window._ to be assigned
-            await new Promise(r => setTimeout(r, 50));
+            const user = await requireAuth('login.html');
 
-            const user = await window._requireAuth('login.html');
+            // Retry up to 5 times — Firestore write may not be done yet right after signup
+            let profile = null;
+            for (let i = 0; i < 5; i++) {
+                profile = await getCurrentProfile();
+                if (profile) break;
+                await new Promise(r => setTimeout(r, 600));
+            }
 
-            const profile = await window._getCurrentProfile();
             if (!profile) { window.location.href = 'login.html'; return; }
 
             const name  = profile.username;
@@ -1086,7 +1083,7 @@
 
         changeSettingsBtn.textContent = '🚪 התנתק';
         changeSettingsBtn.addEventListener('click', async () => {
-            await window._logoutUser('login.html');
+            await logoutUser('login.html');
         });
 
         createStars();

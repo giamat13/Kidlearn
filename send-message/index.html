@@ -176,10 +176,6 @@ canvas{display:block;width:100%;height:280px;touch-action:none;cursor:crosshair;
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module">
 import { requireAuth, getCurrentProfile } from "../auth.js";
-window._requireAuth       = requireAuth;
-window._getCurrentProfile = getCurrentProfile;
-</script>
-<script>
 // ⚠️  EmailJS — הרשם בחינם ב emailjs.com והחלף את המפתחות:
 const EJ_SERVICE  = "YOUR_SERVICE_ID";
 const EJ_TEMPLATE = "YOUR_TEMPLATE_ID";
@@ -346,20 +342,28 @@ function confetti(){
 
 // ── Init ───────────────────────────────────────────── //
 async function init(){
-  await new Promise(r => setTimeout(r, 50)); // wait for module to assign window._
-  profile=await window._getCurrentProfile();
+  profile=await getCurrentProfile();
   if(!profile){window.location.href='../login.html';return;}
   contacts=profile.contacts||[];
   renderContacts();renderPresets();renderAchievements();
   initCnv();buildPalette();
-  // ?game=X&score=Y from game share button
   const p=new URLSearchParams(location.search);
   if(p.get('game')&&p.get('score')){
     selAchieve=`הגעתי ל-${parseInt(p.get('score')).toLocaleString()} נקודות ב${GNAMES[p.get('game')]||p.get('game')}! 🏆`;
     setType('achieve',document.querySelectorAll('.ttab')[3]);
   }
 }
-window._requireAuth('../login.html').then ? window._requireAuth('../login.html').then(init) : setTimeout(()=>window._requireAuth('../login.html').then(init), 60);
+requireAuth('../login.html').then(init);
+
+// Expose onclick functions to global scope (required for module scripts)
+window.setType      = setType;
+window.setSize      = setSize;
+window.toggleEraser = toggleEraser;
+window.clearCanvas  = clearCanvas;
+window.sendWA       = sendWA;
+window.sendMail     = sendMail;
+window.closeCel     = closeCel;
+window.onText       = onText;
 </script>
 </body>
 </html>
