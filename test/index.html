@@ -948,11 +948,6 @@
         };
 
         // DOM elements
-        const setupScreen = document.getElementById('setupScreen');
-        const mainApp = document.getElementById('mainApp');
-        const studentNameInput = document.getElementById('studentName');
-        const gradeOptions = document.querySelectorAll('.grade-option');
-        const startButton = document.getElementById('startButton');
         const changeSettingsBtn = document.getElementById('changeSettingsBtn');
         const toolsContainer = document.getElementById('toolsContainer');
         const greeting = document.getElementById('greeting');
@@ -965,42 +960,8 @@
 
         let selectedGrade = null;
 
-        // Setup screen logic
-        gradeOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                gradeOptions.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedGrade = option.dataset.grade;
-                updateStartButton();
-            });
-        });
-
-        studentNameInput.addEventListener('input', updateStartButton);
-
-        function updateStartButton() {
-            const hasName = studentNameInput.value.trim().length > 0;
-            const hasGrade = selectedGrade !== null;
-            startButton.disabled = !(hasName && hasGrade);
-        }
-
-        startButton.addEventListener('click', () => {
-            const studentName = studentNameInput.value.trim();
-            if (studentName && selectedGrade) {
-                setCookie('studentName', studentName, 365);
-                setCookie('studentGrade', selectedGrade, 365);
-                showMainApp(studentName, selectedGrade);
-            }
-        });
-
-        changeSettingsBtn.addEventListener('click', () => {
-            deleteCookie('studentName');
-            deleteCookie('studentGrade');
-            location.reload();
-        });
-
         function showMainApp(name, grade) {
-            setupScreen.style.display = 'none';
-            mainApp.style.display = 'block';
+            document.getElementById('mainApp').style.display = 'block';
             changeSettingsBtn.classList.remove('hidden');
             
             greeting.textContent = `שלום ${name}! 👋`;
