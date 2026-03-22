@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Learning - Master English & Hebrew</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&family=Fredoka:wght@400;600;700;800;900&family=Assistant:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            font-size: 4rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.95);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 2.5rem;
+            padding: 3rem;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 5px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .app-card:hover::before {
+            opacity: 1;
+        }
+
+        .app-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 35px 100px rgba(0,0,0,0.35);
+            border-color: #667eea;
+        }
+
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            margin: 0 auto 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transition: all 0.4s;
+        }
+
+        .app-card:hover .app-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .app-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1a202c;
+            margin-bottom: 1rem;
+        }
+
+        .app-description {
+            color: #4a5568;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .tag-container {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .feature-list {
+            text-align: left;
+            margin: 1.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .feature-item {
+            color: #2d3748;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+            position: relative;
+        }
+
+        .feature-item::before {
+            content: '✓';
+            color: #48bb78;
+            font-weight: bold;
+            position: absolute;
+            left: -1.5rem;
+        }
+
+        .footer-text {
+            color: rgba(255,255,255,0.9);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .card-1 { animation-delay: 0.1s; }
+        .card-2 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+        <div class="text-center mb-20 animate-fade-in-up">
+            <h1 class="logo-text mb-5">Pro Learning</h1>
+            <p class="subtitle">Master English & Hebrew Skills</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-6xl w-full mb-16">
+            <!-- Pro English - Combined -->
+            <div class="app-card animate-fade-in-up card-1" onclick="window.location.href='apps/english.html'">
+                <div class="app-icon bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">📚</div>
+                <h3 class="app-title text-center">Pro English</h3>
+                <p class="app-description text-center">Complete English learning suite with quiz, grammar, and vocabulary modules</p>
+                
+                <div class="feature-list">
+                    <div class="feature-item">Fun Quiz - Interactive questions & voice recognition</div>
+                    <div class="feature-item">Grammar Hero - Scramble, error hunt & speech challenges</div>
+                    <div class="feature-item">Vocabulary Builder - Auto-translation & practice modes</div>
+                </div>
+
+                <div class="tag-container">
+                    <span class="tag bg-purple-100 text-purple-700">Quiz</span>
+                    <span class="tag bg-blue-100 text-blue-700">Grammar</span>
+                    <span class="tag bg-pink-100 text-pink-700">Vocabulary</span>
+                    <span class="tag bg-green-100 text-green-700">Voice Practice</span>
+                </div>
+            </div>
+
+            <!-- Hebrew Learning (בעברית) -->
+            <div class="app-card animate-fade-in-up card-2" onclick="window.location.href='apps/hebrew.html'">
+                <div class="app-icon bg-gradient-to-br from-yellow-400 to-orange-500">🔤</div>
+                <h3 class="app-title text-center">Hebrew Pronunciation</h3>
+                <p class="app-description text-center" dir="rtl">לימוד הברה נכונה בעברית</p>
+                
+                <div class="feature-list">
+                    <div class="feature-item" dir="rtl">4 אותיות: ס, ז, ש, צ</div>
+                    <div class="feature-item" dir="rtl">6 רמות קושי לכל אות</div>
+                    <div class="feature-item" dir="rtl">הקלטה והשמעה אישית</div>
+                    <div class="feature-item" dir="rtl">מדריך מפורט להורים</div>
+                </div>
+
+                <div class="tag-container">
+                    <span class="tag bg-yellow-100 text-yellow-700">ס ז ש צ</span>
+                    <span class="tag bg-orange-100 text-orange-700">הקלטה</span>
+                    <span class="tag bg-green-100 text-green-700">משחקים</span>
+                    <span class="tag bg-red-100 text-red-700">מדריך</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center">
+            <p class="footer-text">© 2024 Pro Learning - Your Complete Learning Platform</p>
+        </footer>
+    </div>
+</body>
+</html>
