@@ -82,7 +82,7 @@
       "url": "learn/apps/grammar.html",
       "categories": ["english"],
       "grade": ["second", "third", "fourth"],
-      "devices": ["desktop", "tablet"]
+      "devices": ["desktop", "tablet", "mobile"]
     },
     {
       "id": "vocab",
@@ -92,7 +92,7 @@
       "url": "learn/apps/vocab.html",
       "categories": ["english"],
       "grade": ["third", "fourth", "fifth", "sixth"],
-      "devices": ["desktop", "tablet"]
+      "devices": ["desktop", "tablet", "mobile"]
     },
     {
       "id": "quiz",
@@ -102,7 +102,7 @@
       "url": "learn/apps/quiz.html",
       "categories": ["english"],
       "grade": ["second", "third", "fourth"],
-      "devices": ["desktop", "tablet"]
+      "devices": ["desktop", "tablet", "mobile"]
     },
     {
       "id": "colors-numbers",
