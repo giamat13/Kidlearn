@@ -216,6 +216,14 @@
     <!-- מכל המשחק -->
     <div id="game-container"></div>
 
+    <!-- תצוגת אות גדולה במרכז המסך -->
+    <div id="big-letter-overlay" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none" style="display:none!important;">
+        <div id="big-letter-box" class="flex flex-col items-center justify-center gap-4">
+            <div id="big-letter-char" class="font-black" style="font-size: clamp(160px, 30vw, 320px); line-height:1; filter: drop-shadow(0 8px 32px rgba(0,0,0,0.25));"></div>
+            <div id="big-letter-name" class="font-bold text-white" style="font-size: clamp(32px, 6vw, 72px); text-shadow: 0 4px 16px rgba(0,0,0,0.4);"></div>
+        </div>
+    </div>
+
     <script>
         const letterNames = {
             'א': 'אלף', 'ב': 'בית', 'ג': 'גימל', 'ד': 'דלת', 'ה': 'הא', 'ו': 'וו', 'ז': 'זין',
@@ -342,6 +350,26 @@
             }
         }
 
+        function showBigLetter(char) {
+            const overlay = document.getElementById('big-letter-overlay');
+            const charEl = document.getElementById('big-letter-char');
+            const nameEl = document.getElementById('big-letter-name');
+            const colors6 = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#a855f7','#ec4899','#f97316'];
+            const color = colors6[Math.floor(Math.random() * colors6.length)];
+            charEl.innerText = char;
+            charEl.style.color = color;
+            nameEl.innerText = letterNames[char] || char;
+            overlay.style.removeProperty('display');
+            overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+            // fade out after 1.8s
+            setTimeout(() => {
+                overlay.style.transition = 'opacity 0.5s';
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.display = 'none'; overlay.style.transition = ''; }, 500);
+            }, 1800);
+        }
+
         function speak(text) {
             synth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
@@ -391,6 +419,7 @@
             document.getElementById('target-count-display').innerText = "0";
             document.getElementById('goal-display').innerText = targetGoal;
             speakLetterName(currentTarget, "מצא את האות ");
+            showBigLetter(currentTarget);
         }
 
         function updateVisualMode() {
