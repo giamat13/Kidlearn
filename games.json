@@ -60,7 +60,7 @@
       "description": "אילו מאכלים בריאים ואילו לא?",
       "icon": "🧊",
       "url": "the magical fridge/index.html",
-      "categories": ["he", "games"],
+      "categories": ["he", "games", "knowledge"],
       "grade": ["preschool", "kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
     },
