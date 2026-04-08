@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>משחק מספרים וצבעים</title>
 
-<!-- טעינת הפונטים מחיצוני -->
-<link rel="stylesheet" href="fonts.txt">
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{height:100vh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;overflow:hidden;font-family:Arial,sans-serif;transition:background 0.5s;}
@@ -79,7 +76,26 @@ let score=parseInt(getCookie('score'))||0;
 let clickCounterForConfetti=0;
 let currentSquareColor='';
 let gameMode = getCookie('gameMode') || "";
-let previousDigit = 0; 
+let previousDigit = 0;
+
+// ---- פונטים (נטענים מ-fonts.json) ----
+let fonts = [];
+
+async function loadFonts() {
+  try {
+    const response = await fetch('fonts.json');
+    const data = await response.json();
+    fonts = data.map(f => f.class);
+
+    // הזרקת סגנונות לדף
+    const styleEl = document.createElement('style');
+    styleEl.textContent = data.map(f => `.${f.class} { font-family: ${f.family}; }`).join('\n');
+    document.head.appendChild(styleEl);
+  } catch(e) {
+    console.warn('לא ניתן לטעון fonts.json, משתמשים בברירת מחדל', e);
+    fonts = ['font-arial'];
+  }
+}
 
 // ---- cookies ----
 function setCookie(name,value,days=7){
@@ -93,20 +109,9 @@ function getCookie(name){
   return "";
 }
 
-// ---- טעינת הפונטים מה-CSS ----
-const fonts = [];
-for (const sheet of document.styleSheets) {
-  try {
-    for (const rule of sheet.cssRules) {
-      if (rule.selectorText && rule.selectorText.startsWith('.font-')) {
-        fonts.push(rule.selectorText.slice(1));
-      }
-    }
-  } catch(e) { }
-}
-
 // ---- פונקציה לפונט אקראי ----
 function applyRandomFont() {
+  if (!fonts.length) return;
   const square = document.getElementById('colorSquare');
   const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
   square.classList.remove(...fonts);
@@ -274,16 +279,18 @@ document.getElementById('chooseLearn').addEventListener('click', ()=>{
   startRound();
 });
 
-// ---- התחלה ----
-updateScoreDisplay();
-updateProgressBar();
-if(gameMode){
-  document.getElementById('modeOverlay').style.display='none';
-  startRound();
-}
-
 // ---- עדכון ניקוד ----
 function updateScoreDisplay(){document.getElementById('score').innerText='נקודות: '+score;}
+
+// ---- התחלה (לאחר טעינת פונטים) ----
+loadFonts().then(() => {
+  updateScoreDisplay();
+  updateProgressBar();
+  if(gameMode){
+    document.getElementById('modeOverlay').style.display='none';
+    startRound();
+  }
+});
 </script>
 </body>
 </html>
