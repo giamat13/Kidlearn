@@ -446,6 +446,24 @@
             document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
 
+        const GRADE_ORDER = ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"];
+
+        function checkGradeUpgrade() {
+            const lastUpgradeYear = getCookie("gradeUpgradeYear");
+            const currentYear = new Date().getFullYear();
+            const now = new Date();
+            const isSeptemberOrLater = now.getMonth() >= 8;
+            if (!isSeptemberOrLater) return;
+            if (lastUpgradeYear === String(currentYear)) return;
+            const grade = getCookie("studentGrade");
+            if (!grade) return;
+            const idx = GRADE_ORDER.indexOf(grade);
+            if (idx === -1 || idx === GRADE_ORDER.length - 1) return;
+            const newGrade = GRADE_ORDER[idx + 1];
+            setCookie("studentGrade", newGrade, 365);
+            setCookie("gradeUpgradeYear", String(currentYear), 365);
+        }
+
         function openSettingsModal() {
             const name = getCookie('studentName') || '';
             const grade = getCookie('studentGrade') || '';
@@ -477,7 +495,8 @@
             setCookie('studentName', name, 365);
             setCookie('studentGrade', grade, 365);
             closeModal();
-            updateStudentInfo();
+            checkGradeUpgrade();
+        updateStudentInfo();
             renderCategories();
         }
 
@@ -546,6 +565,7 @@
             document.getElementById('modalCancelBtn').classList.add('hidden');
         }
 
+        checkGradeUpgrade();
         updateStudentInfo();
         renderCategories();
 
