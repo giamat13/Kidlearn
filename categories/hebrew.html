@@ -198,6 +198,13 @@
                 <div class="app-description">אילו מאכלים בריאים ואילו לא?</div>
                 <div class="grade-tag">כל הכיתות</div>
             </a>
+
+            <a id="homeworkCard" href="https://giamat13.github.io/homework-easy-times" target="_blank" class="app-card">
+                <span class="app-icon">⏰</span>
+                <div class="app-title">ניהול שיעורי בית</div>
+                <div class="app-description">ללמוד לנהל את הזמן ולעשות ש.ב!</div>
+                <div class="grade-tag">כיתה א׳, כיתה ב׳</div>
+            </a>
         </div>
     </div>
     
@@ -218,6 +225,16 @@
         function deleteCookie(name) {
             document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
+
+        function hideHomeworkIfNeeded() {
+            const grade = getCookie('studentGrade');
+            const homeworkCard = document.getElementById('homeworkCard');
+            if (homeworkCard && grade !== 'first' && grade !== 'second') {
+                homeworkCard.style.display = 'none';
+            }
+        }
+
+        hideHomeworkIfNeeded();
 
         // Create style for settings button
         const style = document.createElement('style');

@@ -182,12 +182,6 @@
         </div>
 
         <div class="apps-grid">
-            <a href="../learn/apps/english.html" class="app-card">
-                <span class="app-icon">📚</span>
-                <div class="app-title">English Lessons</div>
-                <div class="app-description">Learn English with interactive lessons and examples.</div>
-            </a>
-
             <a href="../learn/apps/grammar.html" class="app-card">
                 <span class="app-icon">✏️</span>
                 <div class="app-title">Grammar Rules</div>
@@ -206,7 +200,7 @@
                 <div class="app-description">Test your knowledge with interactive quizzes.</div>
             </a>
 
-            <a href="https://giamat13.github.io/homework-easy-times" target="_blank" class="app-card">
+            <a id="homeworkCard" href="https://giamat13.github.io/homework-easy-times" target="_blank" class="app-card">
                 <span class="app-icon">⏰</span>
                 <div class="app-title">ניהול שיעורי בית</div>
                 <div class="app-description">ללמוד לנהל את הזמן ולעשות ש.ב!</div>
@@ -232,6 +226,16 @@
         function deleteCookie(name) {
             document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
+
+        function hideHomeworkIfNeeded() {
+            const grade = getCookie('studentGrade');
+            const homeworkCard = document.getElementById('homeworkCard');
+            if (homeworkCard && grade !== 'first' && grade !== 'second') {
+                homeworkCard.style.display = 'none';
+            }
+        }
+
+        hideHomeworkIfNeeded();
 
         // Create style for settings button
         const style = document.createElement('style');
