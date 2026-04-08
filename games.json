@@ -51,7 +51,8 @@
       "icon": "🔤",
       "url": "Letters-game/index.html",
       "categories": ["he", "games"],
-      "grade": ["kindergarten", "first"]
+      "grade": ["kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "magic-fridge",
@@ -60,7 +61,8 @@
       "icon": "🧊",
       "url": "the magical fridge/index.html",
       "categories": ["he", "games"],
-      "grade": ["preschool", "kindergarten", "first", "second"]
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "homework",
@@ -69,7 +71,8 @@
       "icon": "⏰",
       "url": "https://giamat13.github.io/homework-easy-times",
       "categories": ["english", "he"],
-      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"]
+      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "grammar",
@@ -78,7 +81,8 @@
       "icon": "✏️",
       "url": "learn/apps/grammar.html",
       "categories": ["english"],
-      "grade": ["second", "third", "fourth"]
+      "grade": ["second", "third", "fourth"],
+      "devices": ["desktop", "tablet"]
     },
     {
       "id": "vocab",
@@ -87,7 +91,8 @@
       "icon": "📝",
       "url": "learn/apps/vocab.html",
       "categories": ["english"],
-      "grade": ["third", "fourth", "fifth", "sixth"]
+      "grade": ["third", "fourth", "fifth", "sixth"],
+      "devices": ["desktop", "tablet"]
     },
     {
       "id": "quiz",
@@ -96,7 +101,8 @@
       "icon": "❓",
       "url": "learn/apps/quiz.html",
       "categories": ["english"],
-      "grade": ["second", "third", "fourth"]
+      "grade": ["second", "third", "fourth"],
+      "devices": ["desktop", "tablet"]
     },
     {
       "id": "colors-numbers",
@@ -105,7 +111,8 @@
       "icon": "🔢",
       "url": "Learn-Color-Numburs/index.html",
       "categories": ["math"],
-      "grade": ["preschool", "kindergarten", "first"]
+      "grade": ["preschool", "kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "words-he-build",
@@ -114,7 +121,8 @@
       "icon": "📝",
       "url": "words-he-build/index.html",
       "categories": ["he"],
-      "grade": ["kindergarten", "first", "second", "third"]
+      "grade": ["kindergarten", "first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "facts",
@@ -123,7 +131,8 @@
       "icon": "🧠",
       "url": "Facts/index.html",
       "categories": ["knowledge"],
-      "grade": ["preschool", "kindergarten"]
+      "grade": ["preschool", "kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "secrets-series",
@@ -131,8 +140,9 @@
       "description": "סדרת וידאו ללימוד האותיות בעברית.",
       "icon": "📺",
       "url": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
-      "categories": ["series","he"],
-      "grade": ["kindergarten", "first", "second"]
+      "categories": ["series", "he"],
+      "grade": ["kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "parpar-nachmad-old",
@@ -141,7 +151,8 @@
       "icon": "🦋",
       "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
       "categories": ["series"],
-      "grade": ["preschool", "kindergarten", "first", "second"]
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "parpar-nachmad-new",
@@ -150,7 +161,8 @@
       "icon": "🦋",
       "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
       "categories": ["series"],
-      "grade": ["preschool", "kindergarten", "first", "second"]
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
     },
     {
       "id": "memory-game",
@@ -159,7 +171,8 @@
       "icon": "🧠",
       "url": "memory-game/index.html",
       "categories": ["games", "he", "math"],
-      "grade": ["kindergarten", "preschool", "first", "second", "third", "fourth"]
+      "grade": ["kindergarten", "preschool", "first", "second", "third", "fourth"],
+      "devices": ["mobile", "tablet", "desktop"]
     }
   ]
 }
