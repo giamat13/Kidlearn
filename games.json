@@ -51,8 +51,10 @@
       "icon": "🔤",
       "url": "Letters-game/index.html",
       "categories": ["hebrew", "games"],
-      "grades": ["kindergarten", "first"],
-      "badge": "גן חובה, כיתה א׳"
+      "preschool": false,
+      "kindergarten": true,
+      "first": true,
+      "second": false
     },
     {
       "id": "magic-fridge",
@@ -61,8 +63,10 @@
       "icon": "🧊",
       "url": "the magical fridge/index.html",
       "categories": ["hebrew", "games"],
-      "grades": ["preschool", "kindergarten", "first", "second"],
-      "badge": "כל הכיתות"
+      "preschool": true,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     },
     {
       "id": "homework",
@@ -71,8 +75,10 @@
       "icon": "⏰",
       "url": "https://giamat13.github.io/homework-easy-times",
       "categories": ["english", "hebrew"],
-      "grades": ["first", "second"],
-      "badge": "כיתה א׳, כיתה ב׳"
+      "preschool": false,
+      "kindergarten": false,
+      "first": true,
+      "second": true
     },
     {
       "id": "grammar",
@@ -81,7 +87,10 @@
       "icon": "✏️",
       "url": "learn/apps/grammar.html",
       "categories": ["english"],
-      "grades": ["kindergarten", "first", "second"]
+      "preschool": false,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     },
     {
       "id": "vocab",
@@ -90,7 +99,10 @@
       "icon": "📝",
       "url": "learn/apps/vocab.html",
       "categories": ["english"],
-      "grades": ["kindergarten", "first", "second"]
+      "preschool": false,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     },
     {
       "id": "quiz",
@@ -99,7 +111,10 @@
       "icon": "❓",
       "url": "learn/apps/quiz.html",
       "categories": ["english"],
-      "grades": ["kindergarten", "first", "second"]
+      "preschool": false,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     },
     {
       "id": "colors-numbers",
@@ -108,8 +123,10 @@
       "icon": "🔢",
       "url": "Learn-Color-Numburs/index.html",
       "categories": ["math"],
-      "grades": ["preschool", "kindergarten", "first", "second"],
-      "badge": "כל הכיתות"
+      "preschool": true,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     },
     {
       "id": "facts",
@@ -118,8 +135,10 @@
       "icon": "🧠",
       "url": "Facts/index.html",
       "categories": ["knowledge"],
-      "grades": ["preschool", "kindergarten", "first", "second"],
-      "badge": "כל הכיתות"
+      "preschool": true,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     },
     {
       "id": "secrets-series",
@@ -128,8 +147,34 @@
       "icon": "📺",
       "url": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
       "categories": ["series"],
-      "grades": ["kindergarten", "first"],
-      "badge": "גן חובה, כיתה א׳"
+      "preschool": false,
+      "kindergarten": true,
+      "first": true,
+      "second": false
+    },
+    {
+      "id": "parpar-nachmad-old",
+      "title": "פרפר נחמד ישן",
+      "description": "סדרת וידאו חינוכית מהנה לילדים.",
+      "icon": "🦋",
+      "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
+      "categories": ["series"],
+      "preschool": true,
+      "kindergarten": true,
+      "first": true,
+      "second": true
+    },
+    {
+      "id": "parpar-nachmad-new",
+      "title": "פרפר נחמד חדש",
+      "description": "סדרת וידאו עדכנית ללימוד מהנה של עברית.",
+      "icon": "🦋",
+      "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
+      "categories": ["series"],
+      "preschool": true,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     },
     {
       "id": "memory-game",
@@ -138,8 +183,10 @@
       "icon": "🧠",
       "url": "memory-game/index.html",
       "categories": ["games"],
-      "grades": ["kindergarten", "first", "second"],
-      "badge": "גן חובה, כיתה א׳, כיתה ב׳"
+      "preschool": false,
+      "kindergarten": true,
+      "first": true,
+      "second": true
     }
   ]
 }

@@ -326,7 +326,7 @@
 
                 const visibleCategories = data.categories.map(category => {
                     const visibleCount = data.items.filter(item =>
-                        item.categories.includes(category.id) && (!grade || item.grades.includes(grade))
+                        item.categories.includes(category.id) && (!grade || item[grade] === true)
                     ).length;
                     return { category, visibleCount };
                 }).filter(entry => entry.visibleCount > 0);

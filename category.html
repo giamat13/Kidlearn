@@ -117,17 +117,6 @@
             line-height: 1.6;
         }
 
-        .grade-tag {
-            display: inline-block;
-            margin-top: 16px;
-            padding: 8px 14px;
-            border-radius: 18px;
-            background: #ede9fe;
-            color: #5b21b6;
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
         .message {
             color: #444;
             margin-top: 30px;
@@ -208,12 +197,6 @@
                 <div class="app-title">${item.title}</div>
                 <div class="app-description">${item.description}</div>
             `;
-            if (item.badge) {
-                const badge = document.createElement('div');
-                badge.className = 'grade-tag';
-                badge.textContent = item.badge;
-                card.appendChild(badge);
-            }
             return card;
         }
 
@@ -240,7 +223,7 @@
                 subtitleEl.textContent = category.subtitle;
 
                 const visibleItems = data.items.filter(item =>
-                    item.categories.includes(category.id) && (!grade || item.grades.includes(grade))
+                    item.categories.includes(category.id) && (!grade || item[grade] === true)
                 );
 
                 if (visibleItems.length === 0) {
