@@ -212,8 +212,8 @@ function finishRound(points){
 
   if(clickCounterForConfetti >= 15){
     showConfetti();
-    new Audio('Confetti.mp3').play().catch(()=>{});
-    new Audio('newlevel.mp3').play().catch(()=>{});
+    new Audio('../effects/Confetti.mp3').play().catch(()=>{});
+    new Audio('../effects/newlevel.mp3').play().catch(()=>{});
     clickCounterForConfetti = 0;
     updateProgressBar();
   }
