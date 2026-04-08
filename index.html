@@ -415,6 +415,15 @@
     <button class="settings-button hidden" id="settingsBtn" onclick="openSettingsModal()">⚙️ הגדרות</button>
 
     <script>
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            const isMobile = /Mobi|Android|iPhone|iPod/.test(ua);
+            const isTablet = /iPad|Tablet/.test(ua) || (isMobile && Math.min(screen.width, screen.height) >= 600);
+            if (isTablet) return 'tablet';
+            if (isMobile) return 'mobile';
+            return 'desktop';
+        }
+
         const GRADE_LABELS = {
             preschool: 'טרום חובה',
             kindergarten: 'גן חובה',
@@ -537,10 +546,13 @@
                 const response = await fetch('games.json');
                 const data = await response.json();
                 const grade = getCookie('studentGrade');
+                const device = detectDevice();
 
                 const visibleCategories = data.categories.map(category => {
                     const visibleCount = data.items.filter(item =>
-                        item.categories.includes(category.id) && (!grade || item.grade.includes(grade))
+                        item.categories.includes(category.id) &&
+                        (!grade || item.grade.includes(grade)) &&
+                        (!item.devices || item.devices.includes(device))
                     ).length;
                     return { category, visibleCount };
                 }).filter(entry => entry.visibleCount > 0);

@@ -166,6 +166,15 @@
     </div>
 
     <script>
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            const isMobile = /Mobi|Android|iPhone|iPod/.test(ua);
+            const isTablet = /iPad|Tablet/.test(ua) || (isMobile && Math.min(screen.width, screen.height) >= 600);
+            if (isTablet) return 'tablet';
+            if (isMobile) return 'mobile';
+            return 'desktop';
+        }
+
         function getCookie(name) {
             const nameEQ = name + "=";
             const cookies = document.cookie.split(';');
@@ -222,8 +231,13 @@
                 titleEl.textContent = category.title;
                 subtitleEl.textContent = category.subtitle;
 
+                const grade = getCookie('studentGrade');
+                const device = detectDevice();
+
                 const visibleItems = data.items.filter(item =>
-                    item.categories.includes(category.id) && (!grade || item.grade.includes(grade))
+                    item.categories.includes(category.id) &&
+                    (!grade || item.grade.includes(grade)) &&
+                    (!item.devices || item.devices.includes(device))
                 );
 
                 if (visibleItems.length === 0) {
