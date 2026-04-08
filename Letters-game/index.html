@@ -232,7 +232,8 @@
             try {
                 const res = await fetch('../effects/fonts.json');
                 const data = await res.json();
-                availableFonts = data;
+                // Filter only Hebrew-compatible fonts
+                availableFonts = data.filter(font => font.hebrew === true);
                 // הזרקת כל הפונטים ל-Google Fonts בבת אחת
                 const families = availableFonts
                     .map(f => f.family.split(',')[0].trim().replace(/ /g, '+'))
