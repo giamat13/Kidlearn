@@ -172,6 +172,13 @@
             color: var(--primary);
         }
 
+        .message {
+            color: #444;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -226,49 +233,7 @@
             <div id="studentInfo" style="margin-top: 15px; font-size: 1.1rem; color: #666;"></div>
         </div>
 
-        <div class="categories-grid">
-            <div class="category-card hebrew" onclick="window.location.href='categories/hebrew.html'">
-                <span class="category-icon">🇮🇱</span>
-                <div class="category-title">עברית</div>
-                <div class="category-subtitle">כלים ללימוד אותיות, מילים ומגנטים</div>
-                <span class="category-count">3 כלים</span>
-            </div>
-
-            <div class="category-card english" onclick="window.location.href='categories/english.html'">
-                <span class="category-icon">🇺🇸</span>
-                <div class="category-title">אנגלית</div>
-                <div class="category-subtitle">כלים ללימוד אנגלית ומשאבים חיצוניים</div>
-                <span class="category-count">5 כלים</span>
-            </div>
-
-            <div class="category-card math" onclick="window.location.href='categories/math.html'">
-                <span class="category-icon">🔢</span>
-                <div class="category-title">חשבון</div>
-                <div class="category-subtitle">לימוד צבעים ומספרים</div>
-                <span class="category-count">1 כלי</span>
-            </div>
-
-            <div class="category-card knowledge" onclick="window.location.href='categories/knowledge.html'">
-                <span class="category-icon">🧠</span>
-                <div class="category-title">ידע כללי</div>
-                <div class="category-subtitle">עובדות מהנות</div>
-                <span class="category-count">1 כלי</span>
-            </div>
-
-            <div class="category-card series" onclick="window.location.href='categories/series.html'">
-                <span class="category-icon">📺</span>
-                <div class="category-title">סדרות חינוכיות</div>
-                <div class="category-subtitle">כרגע רק בלי סודות</div>
-                <span class="category-count">1 כלי</span>
-            </div>
-
-            <div class="category-card games" onclick="window.location.href='categories/games.html'">
-                <span class="category-icon">🎮</span>
-                <div class="category-title">משחקים</div>
-                <div class="category-subtitle">משחקים חינוכיים לזיכרון ואותיות</div>
-                <span class="category-count">3 כלים</span>
-            </div>
-        </div>
+        <div class="categories-grid" id="categoriesGrid"></div>
     </div>
     
     <script>
@@ -336,21 +301,49 @@
             };
             document.body.appendChild(settingsBtn);
         }
-        function hideUnavailableGameCategory() {
-            const grade = getCookie('studentGrade');
-            const gameCategory = document.querySelector('.category-card.games');
-            const games = [
-                { grades: ['kindergarten', 'first', 'second'] },
-                { grades: ['kindergarten', 'first'] },
-                { grades: ['preschool', 'kindergarten', 'first', 'second'] }
-            ];
 
-            if (!grade) return;
+        function createCategoryCard(category, visibleCount) {
+            const card = document.createElement('div');
+            card.className = `category-card ${category.id}`;
+            card.onclick = () => {
+                window.location.href = `category.html?category=${category.id}`;
+            };
+            card.innerHTML = `
+                <span class="category-icon">${category.icon}</span>
+                <div class="category-title">${category.title}</div>
+                <div class="category-subtitle">${category.subtitle}</div>
+                <span class="category-count">${visibleCount} כלי${visibleCount === 1 ? '' : 'ים'}</span>
+            `;
+            return card;
+        }
 
-            const visibleGames = games.some(game => game.grades.includes(grade));
-            if (!visibleGames && gameCategory) {
-                gameCategory.style.display = 'none';
+        async function renderCategories() {
+            try {
+                const response = await fetch('games.json');
+                const data = await response.json();
+                const grade = getCookie('studentGrade');
+                const categoriesGrid = document.getElementById('categoriesGrid');
+
+                const visibleCategories = data.categories.map(category => {
+                    const visibleCount = data.items.filter(item =>
+                        item.categories.includes(category.id) && (!grade || item.grades.includes(grade))
+                    ).length;
+                    return { category, visibleCount };
+                }).filter(entry => entry.visibleCount > 0);
+
+                if (visibleCategories.length === 0) {
+                    categoriesGrid.innerHTML = '<div class="message">אין קטגוריות זמינות לכיתה זו.</div>';
+                    return;
+                }
+
+                visibleCategories.forEach(entry => {
+                    categoriesGrid.appendChild(createCategoryCard(entry.category, entry.visibleCount));
+                });
+            } catch (error) {
+                const categoriesGrid = document.getElementById('categoriesGrid');
+                categoriesGrid.innerHTML = '<div class="message">שגיאה בטעינת הנתונים. נא לנסות שוב מאוחר יותר.</div>';
             }
         }
 
-        hideUnavailableGameCategory();    </script>
+        renderCategories();
+    </script>

@@ -1,0 +1,145 @@
+{
+  "categories": [
+    {
+      "id": "hebrew",
+      "title": "עברית",
+      "subtitle": "כלים ללימוד אותיות, מילים ומגנטים",
+      "icon": "🇮🇱",
+      "color": "linear-gradient(90deg, #FF6B9D, #FF8AB3)"
+    },
+    {
+      "id": "english",
+      "title": "אנגלית",
+      "subtitle": "כלים ללימוד אנגלית ומשאבים חיצוניים",
+      "icon": "🇺🇸",
+      "color": "linear-gradient(90deg, #60A5FA, #7DD3FC)"
+    },
+    {
+      "id": "math",
+      "title": "חשבון",
+      "subtitle": "לימוד צבעים ומספרים",
+      "icon": "🔢",
+      "color": "linear-gradient(90deg, #34D399, #5EEAD4)"
+    },
+    {
+      "id": "knowledge",
+      "title": "ידע כללי",
+      "subtitle": "עובדות מהנות",
+      "icon": "🧠",
+      "color": "linear-gradient(90deg, #F59E0B, #FCD34D)"
+    },
+    {
+      "id": "series",
+      "title": "סדרות חינוכיות",
+      "subtitle": "כרגע רק בלי סודות",
+      "icon": "📺",
+      "color": "linear-gradient(90deg, #8B5CF6, #A78BFA)"
+    },
+    {
+      "id": "games",
+      "title": "משחקים",
+      "subtitle": "משחקים חינוכיים לזיכרון ואותיות",
+      "icon": "🎮",
+      "color": "linear-gradient(90deg, #FEC163, #FBBF24)"
+    }
+  ],
+  "items": [
+    {
+      "id": "letters-game",
+      "title": "משחק האותיות",
+      "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
+      "icon": "🔤",
+      "url": "Letters-game/index.html",
+      "categories": ["hebrew", "games"],
+      "grades": ["kindergarten", "first"],
+      "badge": "גן חובה, כיתה א׳"
+    },
+    {
+      "id": "magic-fridge",
+      "title": "המקרר הקסום",
+      "description": "אילו מאכלים בריאים ואילו לא?",
+      "icon": "🧊",
+      "url": "the magical fridge/index.html",
+      "categories": ["hebrew", "games"],
+      "grades": ["preschool", "kindergarten", "first", "second"],
+      "badge": "כל הכיתות"
+    },
+    {
+      "id": "homework",
+      "title": "ניהול שיעורי בית",
+      "description": "ללמוד לנהל את הזמן ולעשות ש.ב!",
+      "icon": "⏰",
+      "url": "https://giamat13.github.io/homework-easy-times",
+      "categories": ["english", "hebrew"],
+      "grades": ["first", "second"],
+      "badge": "כיתה א׳, כיתה ב׳"
+    },
+    {
+      "id": "grammar",
+      "title": "Grammar Rules",
+      "description": "Master English grammar with clear explanations.",
+      "icon": "✏️",
+      "url": "learn/apps/grammar.html",
+      "categories": ["english"],
+      "grades": ["kindergarten", "first", "second"]
+    },
+    {
+      "id": "vocab",
+      "title": "Vocabulary",
+      "description": "Expand your English vocabulary with new words.",
+      "icon": "📝",
+      "url": "learn/apps/vocab.html",
+      "categories": ["english"],
+      "grades": ["kindergarten", "first", "second"]
+    },
+    {
+      "id": "quiz",
+      "title": "Quiz Time",
+      "description": "Test your knowledge with interactive quizzes.",
+      "icon": "❓",
+      "url": "learn/apps/quiz.html",
+      "categories": ["english"],
+      "grades": ["kindergarten", "first", "second"]
+    },
+    {
+      "id": "colors-numbers",
+      "title": "Learn Colors & Numbers",
+      "description": "Learn colors and numbers with fun challenges.",
+      "icon": "🔢",
+      "url": "Learn-Color-Numburs/index.html",
+      "categories": ["math"],
+      "grades": ["preschool", "kindergarten", "first", "second"],
+      "badge": "כל הכיתות"
+    },
+    {
+      "id": "facts",
+      "title": "עובדות",
+      "description": "לגלות עובדות מעניינות וידע כללי.",
+      "icon": "🧠",
+      "url": "Facts/index.html",
+      "categories": ["knowledge"],
+      "grades": ["preschool", "kindergarten", "first", "second"],
+      "badge": "כל הכיתות"
+    },
+    {
+      "id": "secrets-series",
+      "title": "בלי סודות",
+      "description": "סדרת וידאו ללימוד האותיות בעברית.",
+      "icon": "📺",
+      "url": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
+      "categories": ["series"],
+      "grades": ["kindergarten", "first"],
+      "badge": "גן חובה, כיתה א׳"
+    },
+    {
+      "id": "memory-game",
+      "title": "משחק הזיכרון",
+      "description": "תרגל את הזיכרון שלך עם משחק זכרון קלאסי!",
+      "icon": "🧠",
+      "url": "memory-game/index.html",
+      "categories": ["games"],
+      "grades": ["kindergarten", "first", "second"],
+      "badge": "גן חובה, כיתה א׳, כיתה ב׳"
+    }
+  ]
+}

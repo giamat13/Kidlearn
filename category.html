@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>סדרות חינוכיות - KidLearn</title>
+    <title>קטגוריה - KidLearn</title>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #8b5cf6;
-            --secondary: #a855f7;
-            --bg: #f5f3ff;
+            --primary: #5B21B6;
+            --bg: #FFF8F9;
             --card-bg: #FFFFFF;
             --shadow: rgba(0, 0, 0, 0.1);
         }
@@ -24,8 +23,8 @@
             font-family: 'Varela Round', 'Fredoka', sans-serif;
             background: var(--bg);
             background-image:
-                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+                radial-gradient(circle at 20% 30%, rgba(181, 148, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -41,10 +40,11 @@
             justify-content: space-between;
             margin-bottom: 50px;
             animation: fadeInDown 0.8s ease-out;
+            gap: 20px;
         }
 
         .back-button {
-            background: var(--primary);
+            background: #7C3AED;
             color: white;
             border: none;
             padding: 12px 30px;
@@ -57,14 +57,20 @@
         }
 
         .back-button:hover {
-            background: #7c3aed;
+            background: #9333EA;
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
         }
 
         .header h1 {
             font-size: 2.5rem;
             color: var(--primary);
+        }
+
+        .header p {
+            color: #666;
+            margin-top: 8px;
+            font-size: 1rem;
         }
 
         .apps-grid {
@@ -89,7 +95,7 @@
 
         .app-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 50px rgba(139, 92, 246, 0.2);
+            box-shadow: 0 20px 50px rgba(124, 58, 237, 0.2);
         }
 
         .app-icon {
@@ -117,31 +123,16 @@
             padding: 8px 14px;
             border-radius: 18px;
             background: #ede9fe;
-            color: #581c87;
+            color: #5b21b6;
             font-size: 0.85rem;
             font-weight: 700;
         }
 
-        .settings-button {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: linear-gradient(135deg, #8b5cf6, #a855f7);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .settings-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        .message {
+            color: #444;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            text-align: center;
         }
 
         @keyframes fadeInDown {
@@ -158,15 +149,11 @@
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
-                gap: 20px;
+                align-items: stretch;
             }
 
             .header h1 {
                 font-size: 2rem;
-            }
-
-            .back-button {
-                width: 100%;
             }
 
             .apps-grid {
@@ -178,18 +165,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <button class="back-button" onclick="window.location.href='../categories.html'">← חזור</button>
-            <h1>📺 סדרות חינוכיות</h1>
+            <button class="back-button" onclick="window.location.href='categories.html'">← חזור</button>
+            <div>
+                <h1 id="categoryTitle">קטגוריה</h1>
+                <p id="categorySubtitle"></p>
+            </div>
         </div>
 
-        <div class="apps-grid">
-            <a href="https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39" target="_blank" class="app-card">
-                <span class="app-icon">🎥</span>
-                <div class="app-title">בלי סודות</div>
-                <div class="app-description">סדרה חינוכית ללימוד אותיות בעברית.</div>
-                <div class="grade-tag">גן חובה, כיתה א׳</div>
-            </a>
-        </div>
+        <div class="apps-grid" id="appsGrid"></div>
+        <div class="message" id="categoryMessage"></div>
     </div>
 
     <script>
@@ -209,18 +193,70 @@
             document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
 
-        const studentName = getCookie('studentName');
-        if (studentName) {
-            const btn = document.createElement('button');
-            btn.className = 'settings-button';
-            btn.textContent = '⚙️ החלף תלמיד';
-            btn.onclick = function() {
-                deleteCookie('studentName');
-                deleteCookie('studentGrade');
-                window.location.href = '../index.html';
-            };
-            document.body.appendChild(btn);
+        function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
         }
+
+        function buildCard(item) {
+            const card = document.createElement('a');
+            card.href = item.url;
+            card.className = 'app-card';
+            card.target = item.url.startsWith('http') ? '_blank' : '_self';
+            card.innerHTML = `
+                <span class="app-icon">${item.icon}</span>
+                <div class="app-title">${item.title}</div>
+                <div class="app-description">${item.description}</div>
+            `;
+            if (item.badge) {
+                const badge = document.createElement('div');
+                badge.className = 'grade-tag';
+                badge.textContent = item.badge;
+                card.appendChild(badge);
+            }
+            return card;
+        }
+
+        async function renderCategory() {
+            const categoryId = getQueryParam('category');
+            const grade = getCookie('studentGrade');
+            const titleEl = document.getElementById('categoryTitle');
+            const subtitleEl = document.getElementById('categorySubtitle');
+            const appsGrid = document.getElementById('appsGrid');
+            const categoryMessage = document.getElementById('categoryMessage');
+
+            try {
+                const response = await fetch('games.json');
+                const data = await response.json();
+                const category = data.categories.find(cat => cat.id === categoryId);
+                if (!category) {
+                    titleEl.textContent = 'קטגוריה לא נמצאה';
+                    subtitleEl.textContent = '';
+                    categoryMessage.textContent = 'הקטגוריה שבחרת אינה קיימת או הועתקה קישור שגוי.';
+                    return;
+                }
+
+                titleEl.textContent = category.title;
+                subtitleEl.textContent = category.subtitle;
+
+                const visibleItems = data.items.filter(item =>
+                    item.categories.includes(category.id) && (!grade || item.grades.includes(grade))
+                );
+
+                if (visibleItems.length === 0) {
+                    categoryMessage.textContent = 'כרגע אין כלים זמינים עבור כיתה זו בקטגוריה הזו.';
+                    return;
+                }
+
+                for (const item of visibleItems) {
+                    appsGrid.appendChild(buildCard(item));
+                }
+            } catch (error) {
+                categoryMessage.textContent = 'שגיאה בטעינת הנתונים. נא לנסות שוב מאוחר יותר.';
+            }
+        }
+
+        renderCategory();
     </script>
 </body>
 </html>
