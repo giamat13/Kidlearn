@@ -78,12 +78,12 @@ let currentSquareColor='';
 let gameMode = getCookie('gameMode') || "";
 let previousDigit = 0;
 
-// ---- פונטים (נטענים מ-fonts.json) ----
+// ---- פונטים (נטענים מ-../effects/fonts.json) ----
 let fonts = [];
 
 async function loadFonts() {
   try {
-    const response = await fetch('fonts.json');
+    const response = await fetch('../effects/fonts.json');
     const data = await response.json();
     fonts = data.map(f => f.class);
 
@@ -92,7 +92,7 @@ async function loadFonts() {
     styleEl.textContent = data.map(f => `.${f.class} { font-family: ${f.family}; }`).join('\n');
     document.head.appendChild(styleEl);
   } catch(e) {
-    console.warn('לא ניתן לטעון fonts.json, משתמשים בברירת מחדל', e);
+    console.warn('לא ניתן לטעון ../effects/fonts.json, משתמשים בברירת מחדל', e);
     fonts = ['font-arial'];
   }
 }
