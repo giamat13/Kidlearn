@@ -100,6 +100,11 @@
                     <span>🔊 השמע</span>
                 </button>
             </div>
+            <button onclick="togglePause()" id="pause-btn" class="pointer-events-auto bg-gray-100 p-2 rounded-full shadow-md hover:bg-white transition-colors hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path id="pause-icon" d="M10 9v6m4-6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
             <button onclick="toggleSettings(true)" class="pointer-events-auto bg-gray-100 p-2 rounded-full shadow-md hover:bg-white transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -213,6 +218,22 @@
         </div>
     </div>
 
+    <!-- מסך השהיה -->
+    <div id="pause-screen" class="fixed inset-0 z-[90] hidden items-center justify-center" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(6px);">
+        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
+            <div class="text-5xl mb-4">⏸️</div>
+            <h2 class="text-2xl md:text-3xl font-black text-gray-800 mb-6">משחק מושהה</h2>
+            <div class="flex flex-col gap-3">
+                <button onclick="togglePause()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-2xl text-xl shadow-xl transition active:scale-95">
+                    המשך ▶
+                </button>
+                <button onclick="backToMenu()" class="w-full bg-blue-100 text-blue-700 font-bold py-3 rounded-2xl hover:bg-blue-200 transition">
+                    חזרה לתפריט
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- מכל המשחק -->
     <div id="game-container"></div>
 
@@ -277,6 +298,7 @@
         let gameActive = false;
         let spawnInterval;
         let levelTransitioning = false; // דגל חדש למניעת בעיות במעבר רמות
+        let gamePaused = false;
         const synth = window.speechSynthesis;
         const gameContainer = document.getElementById('game-container');
 
@@ -424,9 +446,26 @@
             }
         }
 
+        function togglePause() {
+            if (!gameActive) return;
+            gamePaused = !gamePaused;
+            const pauseScreen = document.getElementById('pause-screen');
+            const pauseBtn = document.getElementById('pause-btn');
+            if (gamePaused) {
+                pauseScreen.style.display = 'flex';
+                synth.cancel();
+                pauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>`;
+            } else {
+                pauseScreen.style.display = 'none';
+                pauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"/></svg>`;
+            }
+        }
+
         function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('pause-btn').classList.remove('hidden');
             gameActive = true;
+            gamePaused = false;
             levelTransitioning = false;
             score = 0;
             lives = settings.maxLives;
@@ -541,6 +580,7 @@
             function step() {
                 // המשך לנוע גם במעבר רמות
                 if (!gameActive || !letterEl.parentNode) return;
+                if (gamePaused) { requestAnimationFrame(step); return; }
                 
                 currentTop += speed;
                 letterEl.style.transform = `translateY(${currentTop + 100}px)`;
@@ -577,6 +617,9 @@
 
         function endGame() {
             gameActive = false;
+            gamePaused = false;
+            document.getElementById('pause-btn').classList.add('hidden');
+            document.getElementById('pause-screen').style.display = 'none';
             clearInterval(spawnInterval);
             
             // נקה את כל האותיות הנופלות
@@ -597,8 +640,11 @@
 
         function backToMenu() {
             document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('pause-screen').style.display = 'none';
+            document.getElementById('pause-btn').classList.add('hidden');
             document.getElementById('start-screen').classList.remove('hidden');
             gameActive = false;
+            gamePaused = false;
             clearInterval(spawnInterval);
             
             // נקה את כל האותיות הנופלות
