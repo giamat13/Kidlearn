@@ -353,6 +353,62 @@
             color: white;
             border-color: var(--primary);
         }
+
+        /* קונפטי */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            top: -20px;
+            animation: confettiFall linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* באנר רמה חדשה */
+        .level-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #FF6B9D, #FFD700);
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 30px 50px;
+            border-radius: 20px;
+            z-index: 10000;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: none;
+            pointer-events: none;
+        }
+
+        .level-banner.show {
+            animation: bannerPop 2.5s ease-out forwards;
+        }
+
+        @keyframes bannerPop {
+            0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            20%  { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+            30%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            80%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -415,6 +471,12 @@
         </div>
     </div>
 
+    <!-- קונפטי -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- באנר רמה חדשה -->
+    <div class="level-banner" id="levelBanner">🌟 כל הכבוד! 3 נכונות! 🌟</div>
+
     <!-- Modal להצלחה -->
     <div class="modal" id="successModal">
         <div class="modal-content">
@@ -426,6 +488,43 @@
     </div>
 
     <script>
+        // --- קונפטי וצלילים ---
+        const confettiColors = ['#FF6B9D','#34D399','#FCD34D','#60A5FA','#A78BFA','#F97316','#EC4899'];
+
+        function launchConfetti() {
+            const container = document.getElementById('confettiContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < 120; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+                const shape = Math.random() > 0.5 ? '50%' : '0%';
+                const left = Math.random() * 100;
+                const delay = Math.random() * 1.2;
+                const duration = 2.5 + Math.random() * 1.5;
+                const size = 8 + Math.random() * 10;
+                piece.style.cssText = `left:${left}%;width:${size}px;height:${size}px;background:${color};border-radius:${shape};animation-duration:${duration}s;animation-delay:${delay}s;`;
+                container.appendChild(piece);
+            }
+            setTimeout(() => { container.innerHTML = ''; }, 5000);
+        }
+
+        function playSound(src) {
+            try { new Audio(src).play().catch(() => {}); } catch(e) {}
+        }
+
+        function showMilestone() {
+            launchConfetti();
+            playSound('../effects/Conffeti.mp3');
+            setTimeout(() => playSound('../effects/newlevel.mp3'), 500);
+            const banner = document.getElementById('levelBanner');
+            banner.textContent = `🌟 ${correctCount} נכונות! מדהים! 🌟`;
+            banner.classList.remove('show');
+            void banner.offsetWidth;
+            banner.classList.add('show');
+            setTimeout(() => banner.classList.remove('show'), 2600);
+        }
+
         // משתנים של המשחק
         let words = null;
         let currentDifficulty = 'easy';
@@ -571,6 +670,10 @@
                 showSuccess();
                 document.getElementById('feedback').textContent = '✓ נכון מאוד!';
                 document.getElementById('feedback').className = 'feedback success';
+                // קונפטי + צלילים כל 3 נכונות
+                if (correctCount % 3 === 0) {
+                    setTimeout(showMilestone, 300);
+                }
             } else {
                 document.getElementById('feedback').textContent = '✗ לא נכון, נסה שוב!';
                 document.getElementById('feedback').className = 'feedback error';
