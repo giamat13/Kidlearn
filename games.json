@@ -51,10 +51,7 @@
       "icon": "🔤",
       "url": "Letters-game/index.html",
       "categories": ["hebrew", "games"],
-      "preschool": false,
-      "kindergarten": true,
-      "first": true,
-      "second": false
+      "grade": ["kindergarten", "first"]
     },
     {
       "id": "magic-fridge",
@@ -63,10 +60,7 @@
       "icon": "🧊",
       "url": "the magical fridge/index.html",
       "categories": ["hebrew", "games"],
-      "preschool": true,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["preschool", "kindergarten", "first", "second"]
     },
     {
       "id": "homework",
@@ -75,10 +69,7 @@
       "icon": "⏰",
       "url": "https://giamat13.github.io/homework-easy-times",
       "categories": ["english", "hebrew"],
-      "preschool": false,
-      "kindergarten": false,
-      "first": true,
-      "second": true
+      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
       "id": "grammar",
@@ -87,10 +78,7 @@
       "icon": "✏️",
       "url": "learn/apps/grammar.html",
       "categories": ["english"],
-      "preschool": false,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
       "id": "vocab",
@@ -99,10 +87,7 @@
       "icon": "📝",
       "url": "learn/apps/vocab.html",
       "categories": ["english"],
-      "preschool": false,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
       "id": "quiz",
@@ -111,10 +96,7 @@
       "icon": "❓",
       "url": "learn/apps/quiz.html",
       "categories": ["english"],
-      "preschool": false,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
       "id": "colors-numbers",
@@ -123,10 +105,7 @@
       "icon": "🔢",
       "url": "Learn-Color-Numburs/index.html",
       "categories": ["math"],
-      "preschool": true,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
       "id": "facts",
@@ -135,10 +114,7 @@
       "icon": "🧠",
       "url": "Facts/index.html",
       "categories": ["knowledge"],
-      "preschool": true,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
       "id": "secrets-series",
@@ -147,10 +123,7 @@
       "icon": "📺",
       "url": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
       "categories": ["series","hebrew"],
-      "preschool": false,
-      "kindergarten": true,
-      "first": true,
-      "second": false
+      "grade": ["kindergarten", "first"]
     },
     {
       "id": "parpar-nachmad-old",
@@ -159,10 +132,7 @@
       "icon": "🦋",
       "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
       "categories": ["series"],
-      "preschool": true,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["preschool", "kindergarten", "first", "second"]
     },
     {
       "id": "parpar-nachmad-new",
@@ -171,10 +141,7 @@
       "icon": "🦋",
       "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
       "categories": ["series"],
-      "preschool": true,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["preschool", "kindergarten", "first", "second"]
     },
     {
       "id": "memory-game",
@@ -183,10 +150,7 @@
       "icon": "🧠",
       "url": "memory-game/index.html",
       "categories": ["games"],
-      "preschool": false,
-      "kindergarten": true,
-      "first": true,
-      "second": true
+      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"]
     }
   ]
 }

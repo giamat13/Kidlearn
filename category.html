@@ -154,7 +154,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <button class="back-button" onclick="window.location.href='categories.html'">← חזור</button>
+            <button class="back-button" onclick="window.location.href='index.html'">← חזור</button>
             <div>
                 <h1 id="categoryTitle">קטגוריה</h1>
                 <p id="categorySubtitle"></p>
@@ -223,7 +223,7 @@
                 subtitleEl.textContent = category.subtitle;
 
                 const visibleItems = data.items.filter(item =>
-                    item.categories.includes(category.id) && (!grade || item[grade] === true)
+                    item.categories.includes(category.id) && (!grade || item.grade.includes(grade))
                 );
 
                 if (visibleItems.length === 0) {

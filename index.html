@@ -223,9 +223,185 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 30px;
+            padding: 45px 40px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-emoji {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .modal h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .modal .modal-sub {
+            color: #999;
+            font-size: 0.95rem;
+            margin-bottom: 28px;
+        }
+
+        .modal label {
+            display: block;
+            text-align: right;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .modal input[type="text"],
+        .modal select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-family: 'Varela Round', sans-serif;
+            color: #333;
+            background: #FAFAFA;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 18px;
+            direction: rtl;
+            appearance: none;
+        }
+
+        .modal input[type="text"]:focus,
+        .modal select:focus {
+            outline: none;
+            border-color: #FF6B9D;
+            box-shadow: 0 0 0 4px rgba(255,107,157,0.15);
+            background: #fff;
+        }
+
+        .modal-save-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Varela Round', sans-serif;
+            transition: all 0.3s ease;
+            margin-top: 4px;
+        }
+
+        .modal-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,107,157,0.4);
+        }
+
+        .modal-cancel-btn {
+            background: none;
+            border: none;
+            color: #bbb;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 14px;
+            font-family: 'Varela Round', sans-serif;
+            transition: color 0.2s;
+        }
+
+        .modal-cancel-btn:hover { color: #999; }
+
+        .settings-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            z-index: 100;
+            font-family: 'Varela Round', sans-serif;
+        }
+
+        .settings-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
+    <!-- Settings / Onboarding Modal -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal">
+            <span class="modal-emoji" id="modalEmoji">🎓</span>
+            <h2 id="modalTitle">ברוכים הבאים!</h2>
+            <p class="modal-sub" id="modalSub">הכנס את הפרטים שלך כדי להתחיל</p>
+
+            <label for="inputName">שם</label>
+            <input type="text" id="inputName" placeholder="למשל: יוסי" maxlength="30" />
+
+            <label for="inputGrade">כיתה</label>
+            <select id="inputGrade">
+                <option value="">בחר כיתה...</option>
+                <option value="preschool">טרום חובה</option>
+                <option value="kindergarten">גן חובה</option>
+                <option value="first">כיתה א׳</option>
+                <option value="second">כיתה ב׳</option>
+                <option value="third">כיתה ג׳</option>
+                <option value="fourth">כיתה ד׳</option>
+                <option value="fifth">כיתה ה׳</option>
+                <option value="sixth">כיתה ו׳</option>
+            </select>
+
+            <button class="modal-save-btn" onclick="saveSettings()">✅ שמור והתחל!</button>
+            <br>
+            <button class="modal-cancel-btn hidden" id="modalCancelBtn" onclick="closeModal()">ביטול</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🎓 KidLearn</h1>
@@ -235,71 +411,89 @@
 
         <div class="categories-grid" id="categoriesGrid"></div>
     </div>
-    
+
+    <button class="settings-button hidden" id="settingsBtn" onclick="openSettingsModal()">⚙️ הגדרות</button>
+
     <script>
-        // Cookie functions
+        const GRADE_LABELS = {
+            preschool: 'טרום חובה',
+            kindergarten: 'גן חובה',
+            first: 'כיתה א׳',
+            second: 'כיתה ב׳',
+            third: 'כיתה ג׳',
+            fourth: 'כיתה ד׳',
+            fifth: 'כיתה ה׳',
+            sixth: 'כיתה ו׳'
+        };
+
         function getCookie(name) {
             const nameEQ = name + "=";
             const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.indexOf(nameEQ) === 0) {
-                    return cookie.substring(nameEQ.length);
-                }
+            for (let c of cookies) {
+                c = c.trim();
+                if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length));
             }
             return null;
+        }
+
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
         }
 
         function deleteCookie(name) {
             document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
 
-        // Display student name if available
-        const studentName = getCookie('studentName');
-        const studentInfo = document.getElementById('studentInfo');
-        if (studentName) {
-            studentInfo.textContent = `שלום, ${studentName}! 👋`;
+        function openSettingsModal() {
+            const name = getCookie('studentName') || '';
+            const grade = getCookie('studentGrade') || '';
+            document.getElementById('inputName').value = name;
+            document.getElementById('inputGrade').value = grade;
+            document.getElementById('modalEmoji').textContent = '⚙️';
+            document.getElementById('modalTitle').textContent = 'הגדרות';
+            document.getElementById('modalSub').textContent = 'ערוך את השם והכיתה שלך';
+            document.getElementById('modalCancelBtn').classList.remove('hidden');
+            document.getElementById('modalOverlay').classList.remove('hidden');
         }
 
-        // Create style for settings button
-        const style = document.createElement('style');
-        style.textContent = `
-            .settings-button {
-                position: fixed;
-                bottom: 30px;
-                right: 30px;
-                background: linear-gradient(135deg, #FF6B9D, #A78BFA);
-                color: white;
-                border: none;
-                padding: 12px 25px;
-                border-radius: 50px;
-                font-size: 1rem;
-                font-weight: 600;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-                transition: all 0.3s ease;
-                z-index: 100;
-                font-family: 'Varela Round', sans-serif;
-            }
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+        }
 
-            .settings-button:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+        function saveSettings() {
+            const name = document.getElementById('inputName').value.trim();
+            const grade = document.getElementById('inputGrade').value;
+            if (!name) {
+                document.getElementById('inputName').focus();
+                document.getElementById('inputName').style.borderColor = '#FF6B9D';
+                return;
             }
-        `;
-        document.head.appendChild(style);
+            if (!grade) {
+                document.getElementById('inputGrade').style.borderColor = '#FF6B9D';
+                return;
+            }
+            setCookie('studentName', name, 365);
+            setCookie('studentGrade', grade, 365);
+            closeModal();
+            updateStudentInfo();
+            renderCategories();
+        }
 
-        // Create and add settings button
-        if (studentName) {
-            const settingsBtn = document.createElement('button');
-            settingsBtn.className = 'settings-button';
-            settingsBtn.textContent = '⚙️ החלף תלמיד';
-            settingsBtn.onclick = function() {
-                deleteCookie('studentName');
-                deleteCookie('studentGrade');
-                window.location.href = 'index.html';
-            };
-            document.body.appendChild(settingsBtn);
+        function updateStudentInfo() {
+            const name = getCookie('studentName');
+            const grade = getCookie('studentGrade');
+            const studentInfo = document.getElementById('studentInfo');
+            const settingsBtn = document.getElementById('settingsBtn');
+            if (name) {
+                const gradeLabel = GRADE_LABELS[grade] || '';
+                studentInfo.textContent = `שלום, ${name}! 👋${gradeLabel ? '  |  ' + gradeLabel : ''}`;
+                settingsBtn.classList.remove('hidden');
+            } else {
+                studentInfo.textContent = '';
+                settingsBtn.classList.add('hidden');
+            }
         }
 
         function createCategoryCard(category, visibleCount) {
@@ -318,15 +512,16 @@
         }
 
         async function renderCategories() {
+            const categoriesGrid = document.getElementById('categoriesGrid');
+            categoriesGrid.innerHTML = '';
             try {
                 const response = await fetch('games.json');
                 const data = await response.json();
                 const grade = getCookie('studentGrade');
-                const categoriesGrid = document.getElementById('categoriesGrid');
 
                 const visibleCategories = data.categories.map(category => {
                     const visibleCount = data.items.filter(item =>
-                        item.categories.includes(category.id) && (!grade || item[grade] === true)
+                        item.categories.includes(category.id) && (!grade || item.grade.includes(grade))
                     ).length;
                     return { category, visibleCount };
                 }).filter(entry => entry.visibleCount > 0);
@@ -340,10 +535,27 @@
                     categoriesGrid.appendChild(createCategoryCard(entry.category, entry.visibleCount));
                 });
             } catch (error) {
-                const categoriesGrid = document.getElementById('categoriesGrid');
                 categoriesGrid.innerHTML = '<div class="message">שגיאה בטעינת הנתונים. נא לנסות שוב מאוחר יותר.</div>';
             }
         }
 
+        // On load: show modal if no name set, otherwise show page normally
+        const existingName = getCookie('studentName');
+        if (!existingName) {
+            document.getElementById('modalOverlay').classList.remove('hidden');
+            document.getElementById('modalCancelBtn').classList.add('hidden');
+        }
+
+        updateStudentInfo();
         renderCategories();
+
+        // Close modal on overlay click (only if not first-time)
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this && getCookie('studentName')) closeModal();
+        });
+
+        // Enter key support in name input
+        document.getElementById('inputName').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') saveSettings();
+        });
     </script>
