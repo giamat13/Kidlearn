@@ -225,6 +225,32 @@
     </div>
 
     <script>
+        // טעינת פונטים מ-fonts.json
+        let availableFonts = [];
+
+        async function loadFonts() {
+            try {
+                const res = await fetch('../effects/fonts.json');
+                const data = await res.json();
+                availableFonts = data;
+                // הזרקת כל הפונטים ל-Google Fonts בבת אחת
+                const families = availableFonts
+                    .map(f => f.family.split(',')[0].trim().replace(/ /g, '+'))
+                    .join('&family=');
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?family=${families}&display=swap`;
+                document.head.appendChild(link);
+            } catch(e) {
+                console.warn('fonts.json לא נטען, ממשיך ללא פונטים מיוחדים', e);
+            }
+        }
+
+        function getRandomFont() {
+            if (!availableFonts.length) return null;
+            return availableFonts[Math.floor(Math.random() * availableFonts.length)];
+        }
+
         const letterNames = {
             'א': 'אלף', 'ב': 'בית', 'ג': 'גימל', 'ד': 'דלת', 'ה': 'הא', 'ו': 'וו', 'ז': 'זין',
             'ח': 'חית', 'ט': 'טית', 'י': 'יוד', 'כ': 'כף', 'ל': 'למד', 'מ': 'מם', 'נ': 'נון',
@@ -452,8 +478,10 @@
             
             const startX = Math.random() * (window.innerWidth - size - 40) + 20;
             
-            letterEl.className = `letter font-black ${colorClass}`;
+            const randomFont = getRandomFont();
+            letterEl.className = `letter font-black ${colorClass}${randomFont ? ' ' + randomFont.class : ''}`;
             letterEl.style.fontSize = `${size}px`;
+            if (randomFont) letterEl.style.fontFamily = randomFont.family;
             letterEl.style.left = `${startX}px`;
             letterEl.style.top = `-100px`;
             letterEl.innerText = char;
@@ -577,7 +605,7 @@
             letters.forEach(letter => letter.remove());
         }
 
-        window.onload = loadSettings;
+        window.onload = () => { loadFonts(); loadSettings(); };
     </script>
 </body>
 </html>
