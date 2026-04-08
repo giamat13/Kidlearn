@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בנייה של מילות עברית</title>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B9D;
+            --success: #34D399;
+            --warning: #FCD34D;
+            --danger: #FF6B6B;
+            --bg: #FFF8F0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Varela Round', 'Fredoka', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(52, 211, 153, 0.1) 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .word-display {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #F0F9FF;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .word-display h2 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .word-image {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 15px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            border: 3px dashed var(--primary);
+        }
+
+        .word-hint {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+            min-height: 30px;
+        }
+
+        .available-letters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .letter-btn {
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: 3px solid var(--primary);
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary);
+            font-family: inherit;
+        }
+
+        .letter-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .letter-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .letter-btn.used {
+            background: #E5E7EB;
+            color: #9CA3AF;
+            border-color: #D1D5DB;
+        }
+
+        .building-area {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #F3F4F6;
+            border-radius: 15px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .built-letter {
+            width: 50px;
+            height: 50px;
+            background: var(--success);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pop 0.5s ease-out;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #FF5A8A;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn-secondary {
+            background: #E5E7EB;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #D1D5DB;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 30px;
+            margin-bottom: 20px;
+        }
+
+        .feedback.success {
+            color: var(--success);
+        }
+
+        .feedback.error {
+            color: var(--danger);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #E5E7EB;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-item .label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .score-item .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .hint-btn {
+            background: var(--warning);
+            color: #333;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .hint-btn:hover {
+            background: #FBD34D;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .modal-content .emoji {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+            }
+            70% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: 2px solid #D1D5DB;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .difficulty-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔤 בנייה של מילות עברית</h1>
+            <p>בחר את האותיות ובנה את המילה!</p>
+        </div>
+
+        <div class="game-card">
+            <!-- בחירת קושי -->
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-difficulty="easy">קל 🌱</button>
+                <button class="difficulty-btn" data-difficulty="medium">בינוני 🌳</button>
+                <button class="difficulty-btn" data-difficulty="hard">קשה 🚀</button>
+            </div>
+
+            <!-- הצגת המילה -->
+            <div class="word-display">
+                <h2>בנה את המילה:</h2>
+                <div class="word-image" id="wordImage"></div>
+                <div class="word-hint" id="wordHint"></div>
+            </div>
+
+            <!-- אותיות זמינות -->
+            <div class="available-letters" id="availableLetters"></div>
+
+            <!-- אזור בנייה -->
+            <div class="building-area" id="buildingArea">
+                <div style="color: #999; font-size: 1.1rem;">בחר אותיות</div>
+            </div>
+
+            <!-- משוב -->
+            <div class="feedback" id="feedback"></div>
+
+            <!-- כפתורים -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="submitBtn">בדוק ✓</button>
+                <button class="btn btn-secondary hint-btn" id="hintBtn">עזרה 💡</button>
+                <button class="btn btn-secondary" id="clearBtn">מחק</button>
+            </div>
+
+            <!-- ניקוד -->
+            <div class="score-board">
+                <div class="score-item">
+                    <div class="label">מילים נכונות</div>
+                    <div class="value" id="correctScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label">ניסיונות</div>
+                    <div class="value" id="attempts">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label">ניקוד</div>
+                    <div class="value" id="points">0</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="nextBtn" style="width: 100%; margin-top: 20px;">מילה הבאה →</button>
+        </div>
+    </div>
+
+    <!-- Modal להצלחה -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="emoji">🎉</div>
+            <h2>כל הכבוד!</h2>
+            <p>בנית את המילה בצורה נכונה!</p>
+            <button class="btn btn-primary" onclick="document.getElementById('successModal').classList.remove('show'); loadNextWord();">מילה הבאה</button>
+        </div>
+    </div>
+
+    <script>
+        // משתנים של המשחק
+        let words = null;
+        let currentDifficulty = 'easy';
+        let usedWordIndices = new Set();
+        let currentWord = null;
+        let selectedLetters = [];   // [{ letter, slotIndex }]
+        let correctCount = 0;
+        let attemptCount = 0;
+        let totalPoints = 0;
+        let usedSlots = new Set();  // מעקב לפי slotIndex ייחודי (לא אינדקס הכפתור)
+
+        // טעינת המילים מקובץ חיצוני
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('words.json');
+                words = await res.json();
+            } catch (e) {
+                console.warn('לא ניתן לטעון words.json, משתמש במילים ברירת מחדל');
+                words = {
+                    easy: [
+                        { hebrew: 'אם', english: 'Mom', emoji: '👩', letters: ['א', 'מ'], hint: 'אישה זקנה...' },
+                        { hebrew: 'אב', english: 'Dad', emoji: '👨', letters: ['א', 'ב'], hint: 'גבר זקן...' },
+                        { hebrew: 'עץ', english: 'Tree', emoji: '🌳', letters: ['ע', 'ץ'], hint: 'גדל בגן...' },
+                        { hebrew: 'תה', english: 'Tea', emoji: '☕', letters: ['ת', 'ה'], hint: 'משקה חם...' }
+                    ],
+                    medium: [
+                        { hebrew: 'חתול', english: 'Cat', emoji: '🐱', letters: ['ח', 'ת', 'ו', 'ל'], hint: 'בעל חיים שזן' },
+                        { hebrew: 'כלב', english: 'Dog', emoji: '🐶', letters: ['כ', 'ל', 'ב'], hint: 'חברו של האדם' },
+                        { hebrew: 'ספר', english: 'Book', emoji: '📚', letters: ['ס', 'פ', 'ר'], hint: 'משהו שקוראים' },
+                        { hebrew: 'פרח', english: 'Flower', emoji: '🌸', letters: ['פ', 'ר', 'ח'], hint: 'צבעוני בגן' }
+                    ],
+                    hard: [
+                        { hebrew: 'תוספת', english: 'Addition', emoji: '➕', letters: ['ת', 'ו', 'ס', 'פ', 'ת'], hint: 'פעולה במתמטיקה' },
+                        { hebrew: 'ילדה', english: 'Girl', emoji: '👧', letters: ['י', 'ל', 'ד', 'ה'], hint: 'בת אדם צעירה' },
+                        { hebrew: 'פעמון', english: 'Bell', emoji: '🔔', letters: ['פ', 'ע', 'מ', 'ו', 'ן'], hint: 'משמיע קול נעים' }
+                    ]
+                };
+            }
+            loadNextWord();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentDifficulty = e.target.dataset.difficulty;
+                    usedWordIndices = new Set();
+                    correctCount = 0;
+                    attemptCount = 0;
+                    totalPoints = 0;
+                    updateScore();
+                    loadNextWord();
+                });
+            });
+
+            document.getElementById('submitBtn').addEventListener('click', checkWord);
+            document.getElementById('clearBtn').addEventListener('click', clearSelection);
+            document.getElementById('hintBtn').addEventListener('click', showHint);
+            document.getElementById('nextBtn').addEventListener('click', loadNextWord);
+        }
+
+        function loadNextWord() {
+            const wordList = words[currentDifficulty];
+
+            // אם ראינו את כל המילים - מתחילים מחדש
+            if (usedWordIndices.size >= wordList.length) {
+                usedWordIndices.clear();
+            }
+
+            // בוחרים אינדקס רנדומלי שלא השתמשנו בו עדיין
+            const available = wordList.map((_, i) => i).filter(i => !usedWordIndices.has(i));
+            const randomIndex = available[Math.floor(Math.random() * available.length)];
+            usedWordIndices.add(randomIndex);
+            currentWord = wordList[randomIndex];
+            selectedLetters = [];
+            usedSlots.clear();
+            
+            renderWord();
+            renderLetters();
+            clearFeedback();
+        }
+
+        function renderWord() {
+            document.getElementById('wordImage').textContent = currentWord.emoji;
+            document.getElementById('wordHint').textContent = '';
+            document.getElementById('buildingArea').innerHTML = '<div style="color: #999; font-size: 1.1rem;">בחר אותיות</div>';
+        }
+
+        function renderLetters() {
+            const container = document.getElementById('availableLetters');
+            container.innerHTML = '';
+            
+            // יצירת מערך עם slotIndex ייחודי לכל אות (כולל כפולות)
+            let slots = currentWord.letters.map((letter, i) => ({ letter, slotIndex: i }));
+            // עירבול
+            slots.sort(() => Math.random() - 0.5);
+            
+            slots.forEach(({ letter, slotIndex }) => {
+                const btn = document.createElement('button');
+                btn.className = 'letter-btn';
+                btn.textContent = letter;
+                btn.dataset.slotIndex = slotIndex;
+                btn.addEventListener('click', () => selectLetter(letter, slotIndex, btn));
+                container.appendChild(btn);
+            });
+        }
+
+        function selectLetter(letter, slotIndex, btn) {
+            if (usedSlots.has(slotIndex)) return;
+            
+            selectedLetters.push({ letter, slotIndex });
+            usedSlots.add(slotIndex);
+            btn.classList.add('used');
+            
+            updateBuildingArea();
+        }
+
+        function updateBuildingArea() {
+            const container = document.getElementById('buildingArea');
+            
+            if (selectedLetters.length === 0) {
+                container.innerHTML = '<div style="color: #999; font-size: 1.1rem;">בחר אותיות</div>';
+                return;
+            }
+            
+            container.innerHTML = selectedLetters
+                .map(item => `<div class="built-letter">${item.letter}</div>`)
+                .join('');
+        }
+
+        function checkWord() {
+            attemptCount++;
+            
+            const built = selectedLetters.map(item => item.letter).join('');
+            const correct = currentWord.hebrew;
+            
+            if (built === correct) {
+                correctCount++;
+                totalPoints += calculatePoints();
+                updateScore();
+                showSuccess();
+                document.getElementById('feedback').textContent = '✓ נכון מאוד!';
+                document.getElementById('feedback').className = 'feedback success';
+            } else {
+                document.getElementById('feedback').textContent = '✗ לא נכון, נסה שוב!';
+                document.getElementById('feedback').className = 'feedback error';
+            }
+        }
+
+        function clearSelection() {
+            selectedLetters = [];
+            usedSlots.clear();
+            document.querySelectorAll('.letter-btn').forEach(btn => btn.classList.remove('used'));
+            updateBuildingArea();
+            clearFeedback();
+        }
+
+        function showHint() {
+            document.getElementById('wordHint').textContent = currentWord.hint;
+        }
+
+        function clearFeedback() {
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+        }
+
+        function showSuccess() {
+            document.getElementById('successModal').classList.add('show');
+        }
+
+        function calculatePoints() {
+            const basePoints = 10;
+            const difficultyMultiplier = currentDifficulty === 'easy' ? 1 : currentDifficulty === 'medium' ? 2 : 3;
+            const attemptBonus = Math.max(0, 5 - attemptCount);
+            return (basePoints * difficultyMultiplier) + attemptBonus;
+        }
+
+        function updateScore() {
+            document.getElementById('correctScore').textContent = correctCount;
+            document.getElementById('attempts').textContent = attemptCount;
+            document.getElementById('points').textContent = totalPoints;
+        }
+    </script>
+</body>
+</html>

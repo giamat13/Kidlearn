@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "id": "hebrew",
+      "id": "he",
       "title": "עברית",
       "subtitle": "כלים ללימוד אותיות, מילים ומגנטים",
       "icon": "🇮🇱",
@@ -50,7 +50,7 @@
       "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
       "icon": "🔤",
       "url": "Letters-game/index.html",
-      "categories": ["hebrew", "games"],
+      "categories": ["he", "games"],
       "grade": ["kindergarten", "first"]
     },
     {
@@ -59,7 +59,7 @@
       "description": "אילו מאכלים בריאים ואילו לא?",
       "icon": "🧊",
       "url": "the magical fridge/index.html",
-      "categories": ["hebrew", "games"],
+      "categories": ["he", "games"],
       "grade": ["preschool", "kindergarten", "first", "second"]
     },
     {
@@ -68,7 +68,7 @@
       "description": "ללמוד לנהל את הזמן ולעשות ש.ב!",
       "icon": "⏰",
       "url": "https://giamat13.github.io/homework-easy-times",
-      "categories": ["english", "hebrew"],
+      "categories": ["english", "he"],
       "grade": ["first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
@@ -108,6 +108,15 @@
       "grade": ["preschool", "kindergarten", "first"]
     },
     {
+      "id": "words-he-build",
+      "title": "למידת איות",
+      "description": "ללמוד איות בדרך מהנה.",
+      "icon": "📝",
+      "url": "words-he-build/index.html",
+      "categories": ["he"],
+      "grade": ["kindergarten", "first", "second", "third"]
+    },
+    {
       "id": "facts",
       "title": "עובדות",
       "description": "לגלות עובדות מעניינות וידע כללי.",
@@ -122,7 +131,7 @@
       "description": "סדרת וידאו ללימוד האותיות בעברית.",
       "icon": "📺",
       "url": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
-      "categories": ["series","hebrew"],
+      "categories": ["series","he"],
       "grade": ["kindergarten", "first", "second"]
     },
     {
@@ -149,7 +158,7 @@
       "description": "תרגל את הזיכרון שלך עם משחק זכרון קלאסי!",
       "icon": "🧠",
       "url": "memory-game/index.html",
-      "categories": ["games", "hebrew", "math"],
+      "categories": ["games", "he", "math"],
       "grade": ["kindergarten", "preschool", "first", "second", "third", "fourth"]
     }
   ]
