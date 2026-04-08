@@ -6,6 +6,7 @@
 * **Giamat13**
 * Tsipkat16
 * GF
+* סמדר
 * Gemini (Google)
 * ChatGPT (OpenAI)
 * **Claude (Anthropic)**
