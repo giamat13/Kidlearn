@@ -43,9 +43,25 @@
             z-index: 100;
         }
 
+        .score-pop.letter-changed-pop {
+            animation: fadeUpBig 1.8s forwards;
+            font-size: 1.5rem;
+            background: #fff3cd;
+            border: 2px solid #f59e0b;
+            padding: 6px 14px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
         @keyframes fadeUp {
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        @keyframes fadeUpBig {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            20% { transform: translateY(-10px) scale(1.15); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1); }
         }
 
         #game-container {
@@ -293,6 +309,7 @@
         let score = 0;
         let lives = 3;
         let currentTarget = '';
+        let previousTarget = ''; // האות הקודמת שהיתה מטרה
         let targetCollected = 0;
         let targetGoal = 5;
         let gameActive = false;
@@ -469,6 +486,7 @@
             levelTransitioning = false;
             score = 0;
             lives = settings.maxLives;
+            previousTarget = '';
             document.getElementById('score-display').innerText = "0";
             updateLivesDisplay();
             nextLevel();
@@ -480,7 +498,14 @@
             targetCollected = 0;
             targetGoal = Math.min(3 + Math.floor(score / 50), 12);
             const allowed = settings.enabledLetters.length > 0 ? settings.enabledLetters : allHebrewLetters;
+            previousTarget = currentTarget; // שמור את האות הקודמת
             currentTarget = allowed[Math.floor(Math.random() * allowed.length)];
+            // ודא שהאות החדשה שונה מהקודמת (אם יש מספיק אותיות)
+            if (allowed.length > 1) {
+                while (currentTarget === previousTarget) {
+                    currentTarget = allowed[Math.floor(Math.random() * allowed.length)];
+                }
+            }
             updateVisualMode();
             document.getElementById('target-count-display').innerText = "0";
             document.getElementById('goal-display').innerText = targetGoal;
@@ -551,6 +576,26 @@
                             nextLevel(); 
                         }, 1200);
                     }
+                } else if (char === previousTarget && previousTarget !== '') {
+                    // המשתמש לחץ על האות הישנה - הוא לא שם לב שהאות התחלפה!
+                    score = Math.max(0, score - 5);
+                    lives--;
+                    document.getElementById('score-display').innerText = score;
+                    updateLivesDisplay();
+
+                    const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+                    const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+                    createPopText(clientX, clientY, "⚠️ האות התחלפה!", "text-orange-500", "letter-changed-pop");
+
+                    // הצג מחדש את האות הנוכחית על המסך
+                    showBigLetter(currentTarget);
+                    speak("שים לב! האות התחלפה. מצא את האות " + (letterNames[currentTarget] || currentTarget));
+
+                    letterEl.remove();
+
+                    if (lives <= 0) {
+                        endGame();
+                    }
                 } else {
                     speakLetterName(char, "זאת האות ");
                     score = Math.max(0, score - 5);
@@ -605,14 +650,14 @@
             requestAnimationFrame(step);
         }
 
-        function createPopText(x, y, text, color) {
+        function createPopText(x, y, text, color, extraClass = '') {
             const pop = document.createElement('div');
-            pop.className = `score-pop ${color} text-2xl md:text-3xl`;
-            pop.style.left = x + 'px';
+            pop.className = `score-pop ${color} text-2xl md:text-3xl ${extraClass}`;
+            pop.style.left = Math.min(x, window.innerWidth - 220) + 'px';
             pop.style.top = y + 'px';
             pop.innerText = text;
             document.body.appendChild(pop);
-            setTimeout(() => pop.remove(), 1000);
+            setTimeout(() => pop.remove(), extraClass ? 1800 : 1000);
         }
 
         function endGame() {
