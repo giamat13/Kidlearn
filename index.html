@@ -998,7 +998,8 @@
             if (studentName && selectedGrade) {
                 setCookie('studentName', studentName, 365);
                 setCookie('studentGrade', selectedGrade, 365);
-                showMainApp(studentName, selectedGrade);
+                // Redirect to categories page
+                window.location.href = 'categories.html';
             }
         });
 
