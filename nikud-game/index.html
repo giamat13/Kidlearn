@@ -489,19 +489,32 @@ const NIKUD = [
 
         function btnClick(btn, optSound, correctSound) {
             console.log(`🖱️ Click on ${optSound} (state: ${btn.dataset.state})`);
-            resetAllPreviews();
+            const wasReady = btn.dataset.state === 'ready';
+            resetOthers(btn);
             speak(optSound);
-            if (btn.dataset.state === 'preview') {
+            if (wasReady) {
+                console.log(`✅ Answer ${optSound} vs ${correctSound}`);
+                clearTimeout(previewTimer);
+                answer(optSound, correctSound);
+            } else {
                 console.log(`📢 Preview ${optSound} -> ready`);
                 btn.dataset.state = 'ready';
                 btn.style.borderColor = '#34D399';
                 btn.style.background = '#F0FDF4';
                 previewTimer = setTimeout(resetAllPreviews, 10000);
-                return;
             }
-            console.log(`✅ Answer ${optSound} vs ${correctSound}`);
-            clearTimeout(previewTimer);
-            answer(optSound, correctSound);
+        }
+
+        function resetOthers(excludeBtn) {
+            console.log('🔄 Reset others');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => {
+                if (b !== excludeBtn) {
+                    b.dataset.state = 'preview';
+                    b.style.borderColor = '';
+                    b.style.background = '';
+                }
+            });
         }
 
         function answer(chosenSound, correctSound) {
