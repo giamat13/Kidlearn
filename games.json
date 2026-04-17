@@ -173,6 +173,16 @@
       "categories": ["games", "he", "math"],
       "grade": ["kindergarten", "preschool", "first", "second", "third", "fourth"],
       "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "nikud-game",
+      "title": "משחק הניקוד",
+      "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
+      "icon": "🔡",
+      "url": "nikud-game/index.html",
+      "categories": ["he", "games"],
+      "grade": ["kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
     }
   ]
 }

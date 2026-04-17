@@ -409,6 +409,12 @@
             <div id="studentInfo" style="margin-top: 15px; font-size: 1.1rem; color: #666;"></div>
         </div>
 
+        <div style="max-width:480px;margin:0 auto 30px;position:relative;">
+            <input type="text" id="searchInput" placeholder="🔍 חפש משחק או כלי..." oninput="renderSearch()"
+                style="width:100%;padding:14px 20px;font-size:1.1rem;font-family:'Varela Round',sans-serif;border:3px solid #eee;border-radius:50px;outline:none;background:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.08);direction:rtl;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#FF6B9D'" onblur="this.style.borderColor='#eee'">
+        </div>
+        <div id="searchResults" style="display:none;margin-bottom:20px;"></div>
         <div class="categories-grid" id="categoriesGrid"></div>
     </div>
 
@@ -547,6 +553,7 @@
                 const data = await response.json();
                 const grade = getCookie('studentGrade');
                 const device = detectDevice();
+                allItemsCache = data.items;
 
                 const visibleCategories = data.categories.map(category => {
                     const visibleCount = data.items.filter(item =>
@@ -568,6 +575,42 @@
             } catch (error) {
                 categoriesGrid.innerHTML = '<div class="message">שגיאה בטעינת הנתונים. נא לנסות שוב מאוחר יותר.</div>';
             }
+        }
+
+        let allItemsCache = [];
+
+        function renderSearch() {
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            const resultsEl = document.getElementById('searchResults');
+            const gridEl = document.getElementById('categoriesGrid');
+            if (!q) {
+                resultsEl.style.display = 'none';
+                resultsEl.innerHTML = '';
+                gridEl.style.display = '';
+                return;
+            }
+            gridEl.style.display = 'none';
+            const grade = getCookie('studentGrade');
+            const device = detectDevice();
+            const matches = allItemsCache.filter(item =>
+                (!grade || item.grade.includes(grade)) &&
+                (!item.devices || item.devices.includes(device)) &&
+                (item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q))
+            );
+            if (matches.length === 0) {
+                resultsEl.innerHTML = '<div class="message">לא נמצאו תוצאות.</div>';
+            } else {
+                resultsEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:30px;">${
+                    matches.map(item => `
+                        <a href="${item.url}" style="background:#fff;border-radius:20px;padding:30px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.1);border-top:4px solid #FF6B9D;text-decoration:none;color:inherit;display:block;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform=''" ${item.url.startsWith('http')?'target="_blank"':''}>
+                            <span style="font-size:50px;display:block;margin-bottom:12px;">${item.icon}</span>
+                            <div style="font-size:1.3rem;font-weight:700;color:#333;margin-bottom:8px;">${item.title}</div>
+                            <div style="font-size:0.9rem;color:#888;">${item.description}</div>
+                        </a>`
+                    ).join('')
+                }</div>`;
+            }
+            resultsEl.style.display = 'block';
         }
 
         // On load: show modal if no name set, otherwise show page normally
