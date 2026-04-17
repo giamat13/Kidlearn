@@ -345,6 +345,7 @@ const NIKUD = [
                     } else {
                         enabledNikud = enabledNikud.filter(idx => idx !== i);
                     }
+                    saveSettings();
                 };
                 container.appendChild(div);
             });
@@ -404,6 +405,7 @@ const NIKUD = [
                 loadSettings();
                 renderSettings();
             }
+            console.log('⚙️ Toggle settings, enabled:', enabledNikud);
         }
 
         function getSound(name) {
