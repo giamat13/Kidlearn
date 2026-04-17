@@ -146,6 +146,12 @@
         }
         .next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,157,0.35); }
 
+        /* הגדרות */
+        #nikudCheckboxes .checkbox-item {
+            display: flex; align-items: center; gap: 10px; padding: 8px; background: #f9f9f9; border-radius: 8px;
+        }
+        #nikudCheckboxes input[type="checkbox"] { transform: scale(1.2); }
+
         /* מסך סיום */
         .end-screen {
             display: none;
@@ -234,10 +240,18 @@
                 <div class="label">רצף</div>
                 <div class="value" id="streakVal">0🔥</div>
             </div>
+            <button id="settingsBtn" onclick="toggleSettings()" style="padding: 8px 12px; font-size: 0.9rem; background: var(--primary); color: white; border: none; border-radius: 20px; cursor: pointer;">הגדרות ⚙️</button>
         </div>
 
         <div class="progress-bar-wrap">
             <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+
+        <!-- הגדרות -->
+        <div class="card" id="settingsCard" style="display: none;">
+            <div class="question-label">בחר אילו ניקוד ללמוד:</div>
+            <div id="nikudCheckboxes" style="display: grid; gap: 10px; margin: 20px 0;"></div>
+            <button class="next-btn" onclick="startGameFromSettings()" style="width: auto; padding: 12px 24px;">התחל משחק ←</button>
         </div>
 
         <!-- שאלה -->
@@ -265,17 +279,17 @@
 
     <script>
         // --- נתוני הניקוד ---
-        const NIKUD = [
-            { name: 'פַּתָּח', symbol: 'ַ', description: 'קמץ קטן מתחת לאות', example: 'בַּיִת' },
-            { name: 'קָמָץ', symbol: 'ָ', description: 'קמץ גדול מתחת לאות', example: 'שָׁלוֹם' },
-            { name: 'חִירִיק', symbol: 'ִ', description: 'נקודה אחת מתחת לאות', example: 'בִּית' },
-            { name: 'צֵירֵי', symbol: 'ֵ', description: 'שתי נקודות לצד האות', example: 'בֵּית' },
-            { name: 'סֶגּוֹל', symbol: 'ֶ', description: 'שלוש נקודות מתחת לאות', example: 'בֶּן' },
-            { name: 'שׁוּרוּק', symbol: 'וּ', description: 'ו עם נקודה', example: 'שׁוּלְחָן' },
-            { name: 'חוֹלָם', symbol: 'וֹ', description: 'ו עם נקודה מעל', example: 'שָׁלוֹם' },
-            { name: 'שְׁוָא', symbol: 'ְ', description: 'שתי נקודות זו על זו', example: 'בְּרָכָה' },
-            { name: 'קוּבּוּץ', symbol: 'ֻ', description: 'שלוש נקודות אלכסוניות', example: 'כֻּלָּם' },
-            { name: 'דָּגֵשׁ', symbol: 'ּ', description: 'נקודה בתוך האות', example: 'שַׁבָּת' },
+const NIKUD = [
+            { name: 'פַּתָּח', symbol: 'ַ', sound: 'אַ', description: 'קמץ קטן מתחת לאות', example: 'בַּיִת' },
+            { name: 'קָמָץ', symbol: 'ָ', sound: 'אָה', description: 'קמץ גדול מתחת לאות', example: 'שָׁלוֹם' },
+            { name: 'חִירִיק', symbol: 'ִ', sound: 'אִי', description: 'נקודה אחת מתחת לאות', example: 'בִּית' },
+            { name: 'צֵירֵי', symbol: 'ֵ', sound: 'אֵי', description: 'שתי נקודות לצד האות', example: 'בֵּית' },
+            { name: 'סֶגּוֹל', symbol: 'ֶ', sound: 'אֶ', description: 'שלוש נקודות מתחת לאות', example: 'בֶּן' },
+            { name: 'שׁוּרוּק', symbol: 'וּ', sound: 'אוּ', description: 'ו עם נקודה', example: 'שׁוּלְחָן' },
+            { name: 'חוֹלָם', symbol: 'וֹ', sound: 'אוֹ', description: 'ו עם נקודה מעל', example: 'שָׁלוֹם' },
+            { name: 'שְׁוָא', symbol: 'ְ', sound: 'אֱ', description: 'שתי נקודות זו על זו', example: 'בְּרָכָה' },
+            { name: 'קוּבּוּץ', symbol: 'ֻ', sound: 'אֻ', description: 'שלוש נקודות אלכסוניות', example: 'כֻּלָּם' },
+            { name: 'דָּגֵשׁ', symbol: 'ּ', sound: 'דָּגֵשׁ', description: 'נקודה בתוך האות', example: 'שַׁבָּת' },
         ];
 
         // שאלות: מילה עם ניקוד + שאלה על ניקוד ספציפי
@@ -298,6 +312,44 @@
         ];
 
         const TOTAL_QUESTIONS = 10;
+        let enabledNikud = []; // indices of enabled NIKUD
+
+        function loadSettings() {
+            const saved = localStorage.getItem('nikudEnabled');
+            if (saved) {
+                enabledNikud = JSON.parse(saved);
+            } else {
+                enabledNikud = Array.from({length: NIKUD.length}, (_, i) => i); // all enabled
+                localStorage.setItem('nikudEnabled', JSON.stringify(enabledNikud));
+            }
+            return enabledNikud;
+        }
+
+        function saveSettings() {
+            localStorage.setItem('nikudEnabled', JSON.stringify(enabledNikud));
+        }
+
+        function renderSettings() {
+            const container = document.getElementById('nikudCheckboxes');
+            container.innerHTML = '';
+            NIKUD.forEach((nikud, i) => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="nikud${i}" ${enabledNikud.includes(i) ? 'checked' : ''}>
+                    <label for="nikud${i}">${nikud.symbol} ${nikud.name}</label>
+                `;
+                div.querySelector('input').onchange = (e) => {
+                    if (e.target.checked) {
+                        if (!enabledNikud.includes(i)) enabledNikud.push(i);
+                    } else {
+                        enabledNikud = enabledNikud.filter(idx => idx !== i);
+                    }
+                };
+                container.appendChild(div);
+            });
+        }
+
         let questions = [];
         let current = 0;
         let score = 0;
@@ -308,19 +360,76 @@
             return [...arr].sort(() => Math.random() - 0.5);
         }
 
+        function startGameFromSettings() {
+            saveSettings();
+            document.getElementById('settingsCard').style.display = 'none';
+            document.getElementById('questionCard').style.display = 'block';
+            renderQuestion();
+        }
+
         function startGame() {
-            questions = shuffle(QUESTIONS).slice(0, TOTAL_QUESTIONS);
+            loadSettings();
+            renderSettings();
+            
+        // Filter questions
+            const filteredQuestions = QUESTIONS.filter(q => {
+                const correctNikud = NIKUD.find(n => n.name === q.correct);
+                return correctNikud && enabledNikud.includes(NIKUD.indexOf(correctNikud));
+            });
+            if (filteredQuestions.length === 0) {
+                enabledNikud = Array.from({length: NIKUD.length}, (_, i) => i);
+                localStorage.setItem('nikudEnabled', JSON.stringify(enabledNikud));
+                renderSettings();
+                alert('בחר לפחות ניקוד אחד!');
+                return;
+            }
+            questions = shuffle(filteredQuestions).slice(0, TOTAL_QUESTIONS);
             current = 0;
             score = 0;
             streak = 0;
             answered = false;
             document.getElementById('endScreen').style.display = 'none';
             document.getElementById('questionCard').style.display = 'block';
+            document.getElementById('settingsCard').style.display = 'none';
             renderQuestion();
+        }
+
+        function toggleSettings() {
+            const settingsCard = document.getElementById('settingsCard');
+            const questionCard = document.getElementById('questionCard');
+            const isSettingsVisible = settingsCard.style.display === 'block';
+            settingsCard.style.display = isSettingsVisible ? 'none' : 'block';
+            questionCard.style.display = isSettingsVisible ? 'block' : 'none';
+            if (!isSettingsVisible) {
+                loadSettings();
+                renderSettings();
+            }
+        }
+
+        function getSound(name) {
+            const nikud = NIKUD.find(n => n.name === name);
+            return nikud ? nikud.sound : name;
+        }
+
+        function getName(sound) {
+            const nikud = NIKUD.find(n => n.sound === sound);
+            return nikud ? nikud.name : sound;
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utt = new SpeechSynthesisUtterance(text);
+                utt.lang = 'he-IL';
+                utt.rate = 0.7;
+                utt.pitch = 1.1;
+                speechSynthesis.speak(utt);
+            }
         }
 
         function renderQuestion() {
             answered = false;
+            clearTimeout(previewTimer);
             const q = questions[current];
             document.getElementById('questionNum').textContent = `${current + 1}/${TOTAL_QUESTIONS}`;
             document.getElementById('progressBar').style.width = `${(current / TOTAL_QUESTIONS) * 100}%`;
@@ -344,15 +453,19 @@
 
             document.getElementById('questionText').textContent = q.question;
 
-            // אפשרויות
-            const options = shuffle([q.correct, ...q.wrong.slice(0, 3)]);
+            // אפשרויות - הצלילים
+            const correctSound = getSound(q.correct);
+            const wrongSounds = shuffle(q.wrong.slice(0, 3)).map(w => getSound(w));
+            const optionSounds = shuffle([correctSound, ...wrongSounds]);
             const grid = document.getElementById('optionsGrid');
             grid.innerHTML = '';
-            options.forEach(opt => {
+            optionSounds.forEach(optSound => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => answer(opt, q.correct);
+                btn.textContent = optSound;
+                btn.dataset.sound = optSound;
+                btn.dataset.state = 'preview';
+                btn.onclick = () => btnClick(btn, optSound, correctSound);
                 grid.appendChild(btn);
             });
         }
@@ -361,19 +474,50 @@
             return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         }
 
-        function answer(chosen, correct) {
+        let previewTimer = null;
+
+        function resetAllPreviews() {
+            console.log('🔄 Reset all previews');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => {
+                b.dataset.state = 'preview';
+                b.style.borderColor = '';
+                b.style.background = '';
+            });
+            clearTimeout(previewTimer);
+        }
+
+        function btnClick(btn, optSound, correctSound) {
+            console.log(`🖱️ Click on ${optSound} (state: ${btn.dataset.state})`);
+            resetAllPreviews();
+            speak(optSound);
+            if (btn.dataset.state === 'preview') {
+                console.log(`📢 Preview ${optSound} -> ready`);
+                btn.dataset.state = 'ready';
+                btn.style.borderColor = '#34D399';
+                btn.style.background = '#F0FDF4';
+                previewTimer = setTimeout(resetAllPreviews, 10000);
+                return;
+            }
+            console.log(`✅ Answer ${optSound} vs ${correctSound}`);
+            clearTimeout(previewTimer);
+            answer(optSound, correctSound);
+        }
+
+        function answer(chosenSound, correctSound) {
             if (answered) return;
             answered = true;
 
             const btns = document.querySelectorAll('.option-btn');
             btns.forEach(btn => {
                 btn.disabled = true;
-                if (btn.textContent === correct) btn.classList.add('correct');
-                else if (btn.textContent === chosen) btn.classList.add('wrong');
+                if (btn.dataset.sound === correctSound) btn.classList.add('correct');
+                else if (btn.dataset.sound === chosenSound) btn.classList.add('wrong');
             });
 
             const fb = document.getElementById('feedback');
-            if (chosen === correct) {
+            const correctName = getName(correctSound);
+            if (chosenSound === correctSound) {
                 const points = 10 + streak * 2;
                 score += points;
                 streak++;
@@ -382,7 +526,7 @@
                 if (streak % 3 === 0) launchConfetti();
             } else {
                 streak = 0;
-                fb.textContent = `✗ לא נכון. התשובה הנכונה: ${correct}`;
+                fb.textContent = `✗ לא נכון. התשובה הנכונה: ${correctSound} (${correctName})`;
                 fb.className = 'feedback error';
             }
 
@@ -392,6 +536,7 @@
         }
 
         function nextQuestion() {
+            clearTimeout(previewTimer);
             current++;
             if (current >= TOTAL_QUESTIONS) {
                 showEnd();
