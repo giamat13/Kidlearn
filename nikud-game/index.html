@@ -366,11 +366,11 @@ const NIKUD = [
             document.getElementById('settingsCard').style.display = 'none';
             document.getElementById('questionCard').style.display = 'block';
             renderQuestion();
+            console.log('🎮 From settings, enabled:', enabledNikud);
         }
 
         function startGame() {
             loadSettings();
-            renderSettings();
             
         // Filter questions
             const filteredQuestions = QUESTIONS.filter(q => {
@@ -382,6 +382,8 @@ const NIKUD = [
                 localStorage.setItem('nikudEnabled', JSON.stringify(enabledNikud));
                 renderSettings();
                 alert('בחר לפחות ניקוד אחד!');
+                document.getElementById('settingsCard').style.display = 'block';
+                document.getElementById('questionCard').style.display = 'none';
                 return;
             }
             questions = shuffle(filteredQuestions).slice(0, TOTAL_QUESTIONS);
@@ -393,6 +395,7 @@ const NIKUD = [
             document.getElementById('questionCard').style.display = 'block';
             document.getElementById('settingsCard').style.display = 'none';
             renderQuestion();
+            console.log('🎮 Start game with enabled:', enabledNikud, 'Questions:', filteredQuestions.length);
         }
 
         function toggleSettings() {
