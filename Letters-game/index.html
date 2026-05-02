@@ -215,6 +215,15 @@
                     </div>
                 </div>
 
+                <!-- סיכוי להפסיד חיה -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-base md:text-lg font-bold text-gray-800">סיכוי לאבד חיה כשאות נופלת</span>
+                        <span id="miss-chance-val" class="text-blue-600 font-bold">33%</span>
+                    </div>
+                    <input type="range" id="miss-chance-range" min="0" max="1" step="0.01" value="0.33" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSettingsPreview()">
+                </div>
+
                 <!-- בחירת אותיות -->
                 <div>
                     <h3 class="text-base md:text-lg font-bold text-gray-800 mb-4 border-r-4 border-blue-500 pr-3">בחירת אותיות</h3>
@@ -303,7 +312,8 @@
             hideTargetLetter: false,
             baseSpeed: 1.2,
             volume: 1.0,
-            maxLives: 5
+            maxLives: 5,
+            missChance: 0.33
         };
 
         let score = 0;
@@ -344,6 +354,7 @@
             document.getElementById('speed-range').value = settings.baseSpeed;
             document.getElementById('volume-range').value = settings.volume;
             document.getElementById('lives-range').value = settings.maxLives;
+            document.getElementById('miss-chance-range').value = settings.missChance;
             updateSettingsPreview();
             renderLettersSelector();
             updateVisualMode();
@@ -354,8 +365,10 @@
             const speed = document.getElementById('speed-range').value;
             const livesCount = document.getElementById('lives-range').value;
             
+            const missChance = document.getElementById('miss-chance-range').value;
             document.getElementById('volume-val').innerText = Math.round(vol * 100) + "%";
             document.getElementById('lives-val').innerText = livesCount;
+            document.getElementById('miss-chance-val').innerText = Math.round(missChance * 100) + "%";
             
             let speedText = "רגילה";
             if (speed < 1) speedText = "איטית";
@@ -406,6 +419,7 @@
             settings.baseSpeed = parseFloat(document.getElementById('speed-range').value);
             settings.volume = parseFloat(document.getElementById('volume-range').value);
             settings.maxLives = parseInt(document.getElementById('lives-range').value);
+            settings.missChance = parseFloat(document.getElementById('miss-chance-range').value);
             saveSettings();
             toggleSettings(false);
             updateVisualMode();
@@ -577,25 +591,20 @@
                         }, 1200);
                     }
                 } else if (char === previousTarget && previousTarget !== '') {
-                    // המשתמש לחץ על האות הישנה - הוא לא שם לב שהאות התחלפה!
-                    score = Math.max(0, score - 5);
-                    lives--;
-                    document.getElementById('score-display').innerText = score;
-                    updateLivesDisplay();
+                    // המשתמש לחץ על האות הישנה - מחזירים לו חיה!
+                    if (lives < settings.maxLives) {
+                        lives++;
+                        updateLivesDisplay();
+                    }
 
                     const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
                     const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-                    createPopText(clientX, clientY, "⚠️ האות התחלפה!", "text-orange-500", "letter-changed-pop");
+                    createPopText(clientX, clientY, "⚠️ האות התחלפה! +❤️", "text-orange-500", "letter-changed-pop");
 
-                    // הצג מחדש את האות הנוכחית על המסך
                     showBigLetter(currentTarget);
                     speak("שים לב! האות התחלפה. מצא את האות " + (letterNames[currentTarget] || currentTarget));
 
                     letterEl.remove();
-
-                    if (lives <= 0) {
-                        endGame();
-                    }
                 } else {
                     speakLetterName(char, "זאת האות ");
                     score = Math.max(0, score - 5);
@@ -635,13 +644,11 @@
                 } else {
                     // אות נפלה למטה בלי ללחוץ עליה
                     if (char === currentTarget && gameActive && !levelTransitioning) {
-                        // אם זו אות המטרה ולא לחצו עליה - מורידים חיה
-                        lives--;
-                        updateLivesDisplay();
-                        createPopText(window.innerWidth / 2, window.innerHeight - 100, "-1 חיה", "text-red-600");
-                        
-                        if (lives <= 0) {
-                            endGame();
+                        if (Math.random() < settings.missChance) {
+                            lives--;
+                            updateLivesDisplay();
+                            createPopText(window.innerWidth / 2, window.innerHeight - 100, "-1 חיה", "text-red-600");
+                            if (lives <= 0) endGame();
                         }
                     }
                     letterEl.remove();
