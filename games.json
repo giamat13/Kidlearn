@@ -146,7 +146,7 @@
       "title": "מדעים כיתה א׳",
       "description": "משחק מדע מקוון לכיתה א׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=1&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=1&subject=science",
       "categories": ["science", "games"],
       "grade": ["first"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -156,7 +156,7 @@
       "title": "מדעים כיתה ב׳",
       "description": "משחק מדע מקוון לכיתה ב׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=2&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=2&subject=science",
       "categories": ["science", "games"],
       "grade": ["second"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -166,7 +166,7 @@
       "title": "מדעים כיתה ג׳",
       "description": "משחק מדע מקוון לכיתה ג׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=3&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=3&subject=science",
       "categories": ["science", "games"],
       "grade": ["third"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -176,7 +176,7 @@
       "title": "מדעים כיתה ד׳",
       "description": "משחק מדע מקוון לכיתה ד׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=4&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=4&subject=science",
       "categories": ["science", "games"],
       "grade": ["fourth"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -186,7 +186,7 @@
       "title": "מדעים כיתה ה׳",
       "description": "משחק מדע מקוון לכיתה ה׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=5&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=5&subject=science",
       "categories": ["science", "games"],
       "grade": ["fifth"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -196,7 +196,7 @@
       "title": "מדעים כיתה ו׳",
       "description": "משחק מדע מקוון לכיתה ו׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=6&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=6&subject=science",
       "categories": ["science", "games"],
       "grade": ["sixth"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -206,7 +206,7 @@
       "title": "מדעים כיתה ז׳",
       "description": "משחק מדע מקוון לכיתה ז׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=7&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=7&subject=science",
       "categories": ["science", "games"],
       "grade": ["seventh"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -216,7 +216,7 @@
       "title": "מדעים כיתה ח׳",
       "description": "משחק מדע מקוון לכיתה ח׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=8&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=8&subject=science",
       "categories": ["science", "games"],
       "grade": ["eighth"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -226,7 +226,7 @@
       "title": "מדעים כיתה ט׳",
       "description": "משחק מדע מקוון לכיתה ט׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=9&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=9&subject=science",
       "categories": ["science", "games"],
       "grade": ["ninth"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -236,7 +236,7 @@
       "title": "מדעים כיתה י׳",
       "description": "משחק מדע מקוון לכיתה י׳.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=10&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=10&subject=science",
       "categories": ["science", "games"],
       "grade": ["tenth"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -246,7 +246,7 @@
       "title": "מדעים כיתה י\"א",
       "description": "משחק מדע מקוון לכיתה י\"א.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=11&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=11&subject=science",
       "categories": ["science", "games"],
       "grade": ["eleventh"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -256,7 +256,7 @@
       "title": "מדעים כיתה י\"ב",
       "description": "משחק מדע מקוון לכיתה י\"ב.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game-edu/?grade=12&subject=science",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=12&subject=science",
       "categories": ["science", "games"],
       "grade": ["twelfth"],
       "devices": ["mobile", "tablet", "desktop"]
