@@ -394,6 +394,12 @@
                 <option value="fourth">כיתה ד׳</option>
                 <option value="fifth">כיתה ה׳</option>
                 <option value="sixth">כיתה ו׳</option>
+                <option value="seventh">כיתה ז׳</option>
+                <option value="eighth">כיתה ח׳</option>
+                <option value="ninth">כיתה ט׳</option>
+                <option value="tenth">כיתה י׳</option>
+                <option value="eleventh">כיתה י"א</option>
+                <option value="twelfth">כיתה י"ב</option>
             </select>
 
             <button class="modal-save-btn" onclick="saveSettings()">✅ שמור והתחל!</button>
@@ -438,7 +444,13 @@
             third: 'כיתה ג׳',
             fourth: 'כיתה ד׳',
             fifth: 'כיתה ה׳',
-            sixth: 'כיתה ו׳'
+            sixth: 'כיתה ו׳',
+            seventh: 'כיתה ז׳',
+            eighth: 'כיתה ח׳',
+            ninth: 'כיתה ט׳',
+            tenth: 'כיתה י׳',
+            eleventh: 'כיתה י"א',
+            twelfth: 'כיתה י"ב'
         };
 
         function getCookie(name) {
@@ -461,7 +473,7 @@
             document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
 
-        const GRADE_ORDER = ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"];
+        const GRADE_ORDER = ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
 
         function checkGradeUpgrade() {
             const lastUpgradeYear = getCookie("gradeUpgradeYear");
