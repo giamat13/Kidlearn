@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 600" width="500" height="600">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4aa8e8"/>
+      <stop offset="100%" stop-color="#80c8f8"/>
+    </linearGradient>
+    <linearGradient id="seaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a70c0"/>
+      <stop offset="100%" stop-color="#0a4888"/>
+    </linearGradient>
+    <linearGradient id="sandGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8d080"/>
+      <stop offset="100%" stop-color="#c8a850"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="500" height="300" fill="url(#skyGrad)"/>
+  <!-- Sun -->
+  <circle cx="400" cy="70" r="45" fill="#FFD700" opacity="0.9"/>
+  <circle cx="400" cy="70" r="38" fill="#ffe040"/>
+  <!-- Sun rays -->
+  <line x1="400" y1="12" x2="400" y2="22" stroke="#FFD700" stroke-width="3"/>
+  <line x1="400" y1="118" x2="400" y2="128" stroke="#FFD700" stroke-width="3"/>
+  <line x1="342" y1="70" x2="352" y2="70" stroke="#FFD700" stroke-width="3"/>
+  <line x1="448" y1="70" x2="458" y2="70" stroke="#FFD700" stroke-width="3"/>
+  <line x1="359" y1="29" x2="366" y2="36" stroke="#FFD700" stroke-width="3"/>
+  <line x1="434" y1="104" x2="441" y2="111" stroke="#FFD700" stroke-width="3"/>
+  <line x1="441" y1="29" x2="434" y2="36" stroke="#FFD700" stroke-width="3"/>
+  <line x1="366" y1="104" x2="359" y2="111" stroke="#FFD700" stroke-width="3"/>
+
+  <!-- Clouds -->
+  <ellipse cx="100" cy="80" rx="55" ry="20" fill="white" opacity="0.85"/>
+  <ellipse cx="125" cy="70" rx="40" ry="18" fill="white" opacity="0.85"/>
+  <ellipse cx="75" cy="75" rx="30" ry="14" fill="white" opacity="0.85"/>
+  <ellipse cx="260" cy="55" rx="45" ry="16" fill="white" opacity="0.7"/>
+  <ellipse cx="280" cy="48" rx="35" ry="14" fill="white" opacity="0.7"/>
+
+  <!-- ═══ BIRD IN SKY (cx≈0.50, cy≈0.20 → x≈250, y≈120) ═══ -->
+  <!-- LEFT: seagull in sky -->
+  <path d="M 235 118 Q 248 108 258 118" stroke="#2a2a3a" stroke-width="2.5" fill="none"/>
+  <path d="M 258 118 Q 268 108 278 118" stroke="#2a2a3a" stroke-width="2.5" fill="none"/>
+  <!-- Second bird -->
+  <path d="M 218 100 Q 228 92 236 100" stroke="#2a2a3a" stroke-width="2" fill="none"/>
+
+  <!-- ═══ SEA ═══ -->
+  <rect x="0" y="280" width="500" height="170" fill="url(#seaGrad)"/>
+  <!-- Sea horizon line -->
+  <line x1="0" y1="285" x2="500" y2="285" stroke="#2a80d0" stroke-width="2"/>
+  <!-- Waves -->
+  <path d="M 0 310 Q 40 300 80 310 Q 120 320 160 310 Q 200 300 240 310 Q 280 320 320 310 Q 360 300 400 310 Q 440 320 500 310" stroke="#3a90e0" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M 0 330 Q 50 320 100 330 Q 150 340 200 330 Q 250 320 300 330 Q 350 340 400 330 Q 450 320 500 330" stroke="#3a90e0" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 0 355 Q 60 345 120 355 Q 180 365 240 355 Q 300 345 360 355 Q 420 365 500 355" stroke="#4aa0f0" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <!-- Sea foam -->
+  <path d="M 20 370 Q 60 364 100 370 Q 80 374 20 370 Z" fill="white" opacity="0.3"/>
+  <path d="M 200 360 Q 240 354 280 360 Q 260 364 200 360 Z" fill="white" opacity="0.3"/>
+
+  <!-- ═══ WAVE/PILE IN SEA (cx≈0.25, cy≈0.40 → x≈125, y≈240) ═══ -->
+  <!-- LEFT: has a wave splash / white foam pile in sea -->
+  <path d="M 95 305 Q 110 288 125 295 Q 140 288 155 305 Q 140 315 125 310 Q 110 315 95 305 Z" fill="white" opacity="0.7"/>
+  <path d="M 108 296 Q 125 285 142 296" stroke="white" stroke-width="2" fill="none" opacity="0.8"/>
+  <!-- Splash droplets -->
+  <circle cx="112" cy="288" r="2.5" fill="white" opacity="0.6"/>
+  <circle cx="125" cy="284" r="2" fill="white" opacity="0.6"/>
+  <circle cx="138" cy="288" r="2.5" fill="white" opacity="0.6"/>
+
+  <!-- Sand beach -->
+  <path d="M 0 430 Q 250 410 500 430 L 500 600 L 0 600 Z" fill="url(#sandGrad)"/>
+  <rect x="0" y="450" width="500" height="150" fill="#d4b868"/>
+  <!-- Sand texture -->
+  <ellipse cx="100" cy="470" rx="30" ry="8" fill="#c4a858" opacity="0.4"/>
+  <ellipse cx="300" cy="480" rx="40" ry="6" fill="#c4a858" opacity="0.3"/>
+  <ellipse cx="420" cy="465" rx="25" ry="7" fill="#c4a858" opacity="0.4"/>
+
+  <!-- Water-sand edge wave -->
+  <path d="M 0 435 Q 80 424 160 432 Q 240 440 320 432 Q 400 424 500 435" fill="#5a9ad0" opacity="0.4"/>
+  <path d="M 0 440 Q 80 430 160 438 Q 240 446 320 438 Q 400 430 500 440" fill="white" opacity="0.2"/>
+
+  <!-- ═══ SANDCASTLE (cx≈0.35, cy≈0.60 → x≈175, y≈360) ═══ -->
+  <!-- LEFT: has a sandcastle -->
+  <rect x="140" y="462" width="70" height="42" rx="3" fill="#c0982a"/>
+  <rect x="143" y="465" width="64" height="36" rx="2" fill="#d4ac38"/>
+  <!-- Castle towers -->
+  <rect x="138" y="450" width="18" height="20" rx="2" fill="#c0982a"/>
+  <rect x="194" y="450" width="18" height="20" rx="2" fill="#c0982a"/>
+  <!-- Tower battlements -->
+  <rect x="138" y="444" width="5" height="8" rx="1" fill="#c0982a"/>
+  <rect x="145" y="444" width="5" height="8" rx="1" fill="#c0982a"/>
+  <rect x="152" y="444" width="4" height="8" rx="1" fill="#c0982a"/>
+  <rect x="194" y="444" width="5" height="8" rx="1" fill="#c0982a"/>
+  <rect x="201" y="444" width="5" height="8" rx="1" fill="#c0982a"/>
+  <rect x="208" y="444" width="4" height="8" rx="1" fill="#c0982a"/>
+  <!-- Castle door -->
+  <path d="M 165 504 L 165 480 Q 165 474 175 474 Q 185 474 185 480 L 185 504 Z" fill="#8a6818"/>
+  <!-- Castle flag -->
+  <rect x="174" y="444" width="3" height="20" fill="#6a4a10"/>
+  <path d="M 177 444 L 190 450 L 177 456 Z" fill="#cc0000"/>
+  <!-- Moat -->
+  <path d="M 128 504 Q 175 510 222 504 Q 175 516 128 504 Z" fill="#5a90c0" opacity="0.5"/>
+
+  <!-- ═══ BEACH ITEMS / TOWEL ═══ -->
+  <!-- Striped towel -->
+  <ellipse cx="320" cy="488" rx="55" ry="18" fill="#e82020"/>
+  <line x1="270" y1="484" x2="370" y2="484" stroke="white" stroke-width="4" opacity="0.7"/>
+  <line x1="270" y1="492" x2="370" y2="492" stroke="white" stroke-width="4" opacity="0.7"/>
+  <line x1="270" y1="500" x2="370" y2="500" stroke="white" stroke-width="4" opacity="0.7"/>
+
+  <!-- Umbrella -->
+  <rect x="247" y="380" width="6" height="120" rx="2" fill="#4a3010"/>
+  <path d="M 190 390 Q 250 350 310 390 Q 285 410 250 410 Q 215 410 190 390 Z" fill="#e82020"/>
+  <path d="M 220 390 Q 250 375 280 390" stroke="#cc0000" stroke-width="2" fill="none"/>
+
+  <!-- ═══ SNORKEL SET IN SEA (cx≈0.65, cy≈0.55 → x≈325, y≈330) ═══ -->
+  <!-- LEFT: has snorkel/flippers in water -->
+  <!-- Snorkel tube sticking out -->
+  <rect x="318" y="295" width="5" height="30" rx="2" fill="#ff4444"/>
+  <ellipse cx="320" cy="295" rx="4" ry="3" fill="#ff4444"/>
+  <!-- Mask in water -->
+  <ellipse cx="330" cy="325" rx="18" ry="10" fill="#2a60a0" opacity="0.7"/>
+  <rect x="315" y="320" width="30" height="12" rx="5" fill="none" stroke="#ff4444" stroke-width="2.5" opacity="0.8"/>
+  <!-- Flippers -->
+  <path d="M 310 335 Q 295 340 288 350 Q 298 348 310 342 Z" fill="#ff4444" opacity="0.7"/>
+  <path d="M 345 335 Q 360 340 368 350 Q 358 348 345 342 Z" fill="#ff4444" opacity="0.7"/>
+
+  <!-- ═══ FEET IN SAND (cx≈0.50, cy≈0.75 → x≈250, y≈450) ═══ -->
+  <!-- LEFT: feet/footprints in sand -->
+  <!-- Feet sticking out from towel -->
+  <ellipse cx="285" cy="505" rx="12" ry="8" fill="#e8a060"/>
+  <ellipse cx="310" cy="503" rx="12" ry="8" fill="#e8a060"/>
+  <!-- Toes -->
+  <circle cx="277" cy="498" r="3" fill="#d89050"/>
+  <circle cx="282" cy="496" r="3" fill="#d89050"/>
+  <circle cx="288" cy="495" r="3" fill="#d89050"/>
+  <circle cx="294" cy="496" r="2.5" fill="#d89050"/>
+  <circle cx="300" cy="498" r="2.5" fill="#d89050"/>
+  <!-- Footprints in sand -->
+  <ellipse cx="230" cy="520" rx="8" ry="13" fill="#c0902a" opacity="0.5"/>
+  <ellipse cx="248" cy="535" rx="8" ry="13" fill="#c0902a" opacity="0.5"/>
+
+  <!-- Seashells on beach -->
+  <ellipse cx="130" cy="490" rx="8" ry="5" fill="#f0d0a0"/>
+  <ellipse cx="140" cy="492" rx="6" ry="4" fill="#e8c090"/>
+  <path d="M 126 488 Q 130 484 134 488" stroke="#c8a070" stroke-width="1.5" fill="none"/>
+  <ellipse cx="420" cy="485" rx="7" ry="4" fill="#f0c0a0"/>
+
+  <!-- Palm tree -->
+  <rect x="58" y="320" width="12" height="180" rx="4" fill="#5a3a18" transform="rotate(-5,64,450)"/>
+  <!-- Palm fronds -->
+  <path d="M 58 325 Q 20 295 10 270 Q 25 278 45 300 Q 55 310 60 325 Z" fill="#2a7020"/>
+  <path d="M 64 320 Q 90 288 110 275 Q 100 285 78 305 Q 68 312 64 320 Z" fill="#2a7020"/>
+  <path d="M 58 330 Q 28 318 15 308 Q 30 310 50 322 Q 55 326 58 330 Z" fill="#2a7020"/>
+  <path d="M 64 328 Q 95 316 110 308 Q 95 312 74 324 Q 68 328 64 328 Z" fill="#2a7020"/>
+  <!-- Coconuts -->
+  <circle cx="60" cy="332" r="7" fill="#5a3010"/>
+  <circle cx="68" cy="328" r="6" fill="#5a3010"/>
+</svg>

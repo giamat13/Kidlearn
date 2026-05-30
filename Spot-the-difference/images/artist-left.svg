@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 600" width="500" height="600">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d0e8c0"/>
+      <stop offset="100%" stop-color="#a0c880"/>
+    </linearGradient>
+    <radialGradient id="skinGrad" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#f5c880"/>
+      <stop offset="100%" stop-color="#d4944a"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Outdoor garden/park background -->
+  <rect width="500" height="600" fill="url(#bgGrad)"/>
+  <!-- Sky top portion -->
+  <rect width="500" height="200" fill="#a0c8f0"/>
+  <!-- Ground -->
+  <rect x="0" y="480" width="500" height="120" fill="#6a8a40"/>
+  <rect x="0" y="475" width="500" height="12" fill="#5a7a32"/>
+  <!-- Grass tufts -->
+  <path d="M 20 476 Q 25 466 30 476" stroke="#4a6a28" stroke-width="2" fill="none"/>
+  <path d="M 80 476 Q 85 468 90 476" stroke="#4a6a28" stroke-width="2" fill="none"/>
+  <path d="M 350 476 Q 355 468 360 476" stroke="#4a6a28" stroke-width="2" fill="none"/>
+  <path d="M 440 476 Q 445 468 450 476" stroke="#4a6a28" stroke-width="2" fill="none"/>
+  <!-- Background hedge -->
+  <ellipse cx="80" cy="240" rx="70" ry="50" fill="#3a6a28"/>
+  <ellipse cx="420" cy="250" rx="65" ry="48" fill="#3a6a28"/>
+  <ellipse cx="50" cy="260" rx="40" ry="35" fill="#4a7a35"/>
+  <ellipse cx="450" cy="265" rx="42" ry="36" fill="#4a7a35"/>
+  <!-- Flowers in background -->
+  <circle cx="60" cy="268" r="5" fill="#f0d020"/>
+  <circle cx="74" cy="265" r="4" fill="#e06080"/>
+  <circle cx="88" cy="270" r="5" fill="#f06030"/>
+  <circle cx="420" cy="270" r="5" fill="#f0d020"/>
+  <circle cx="434" cy="267" r="4" fill="#e06080"/>
+
+  <!-- ═══ EASEL ═══ -->
+  <!-- Easel legs -->
+  <line x1="290" y1="250" x2="260" y2="490" stroke="#5a3a18" stroke-width="6" stroke-linecap="round"/>
+  <line x1="330" y1="250" x2="360" y2="490" stroke="#5a3a18" stroke-width="6" stroke-linecap="round"/>
+  <line x1="310" y1="280" x2="310" y2="490" stroke="#5a3a18" stroke-width="5" stroke-linecap="round"/>
+  <!-- Easel cross bar -->
+  <line x1="278" y1="320" x2="342" y2="320" stroke="#5a3a18" stroke-width="5"/>
+  <!-- Canvas on easel -->
+  <rect x="265" y="200" width="110" height="130" rx="3" fill="#f5f0e5"/>
+  <rect x="268" y="203" width="104" height="124" rx="2" fill="#faf8f0"/>
+  <rect x="265" y="200" width="110" height="130" rx="3" fill="none" stroke="#5a3a18" stroke-width="4"/>
+
+  <!-- ═══ CANVAS PAINTING (cx≈0.65, cy≈0.50 → x≈325, y≈300) ═══ -->
+  <!-- LEFT: Canvas has a landscape painting with sun -->
+  <rect x="270" y="205" width="104" height="122" rx="1" fill="#a0c8f0"/>
+  <!-- Sky on painting -->
+  <rect x="270" y="205" width="104" height="60" fill="#80b0e8"/>
+  <!-- Ground on painting -->
+  <rect x="270" y="265" width="104" height="62" fill="#4a7a30"/>
+  <!-- Sun on painting -->
+  <circle cx="340" cy="228" r="14" fill="#FFD700"/>
+  <!-- Tree on painting -->
+  <rect x="282" y="248" width="6" height="30" fill="#3a2010"/>
+  <ellipse cx="285" cy="242" rx="14" ry="18" fill="#2a5020"/>
+  <!-- Mountain on painting -->
+  <path d="M 330 265 L 348 240 L 366 265 Z" fill="#8a7a6a"/>
+
+  <!-- ═══ BRUSH POT (cx≈0.50, cy≈0.30 → x≈250, y≈180) ═══ -->
+  <!-- Pot/jar for brushes on a small table near artist -->
+  <rect x="235" y="428" width="32" height="38" rx="5" fill="#3a80b0"/>
+  <rect x="233" y="424" width="36" height="8" rx="3" fill="#4a90c0"/>
+  <!-- LEFT: Has multiple brushes sticking up -->
+  <rect x="241" y="395" width="4" height="35" rx="1" fill="#4a2a10"/>
+  <ellipse cx="243" cy="394" rx="4" ry="6" fill="#cc2020"/>
+  <rect x="249" y="392" width="4" height="38" rx="1" fill="#4a2a10"/>
+  <ellipse cx="251" cy="391" rx="4" ry="6" fill="#2040a0"/>
+  <rect x="257" y="397" width="4" height="33" rx="1" fill="#4a2a10"/>
+  <ellipse cx="259" cy="396" rx="4" ry="6" fill="#1a8020"/>
+  <!-- Pot stand/table -->
+  <rect x="220" y="460" width="62" height="8" rx="3" fill="#5a3a18"/>
+  <rect x="225" y="466" width="8" height="30" rx="2" fill="#5a3a18"/>
+  <rect x="269" y="466" width="8" height="30" rx="2" fill="#5a3a18"/>
+
+  <!-- ═══ PAINT DRIPS ON GROUND (cx≈0.40, cy≈0.55 → x≈200, y≈330) ═══ -->
+  <!-- LEFT: has paint drips/spills on grass -->
+  <ellipse cx="195" cy="478" rx="18" ry="8" fill="#cc2020" opacity="0.7"/>
+  <ellipse cx="185" cy="482" rx="10" ry="5" fill="#cc2020" opacity="0.5"/>
+  <ellipse cx="172" cy="480" rx="8" ry="4" fill="#2040a0" opacity="0.6"/>
+  <ellipse cx="205" cy="484" rx="7" ry="4" fill="#1a8020" opacity="0.6"/>
+  <circle cx="215" cy="479" r="4" fill="#f0c000" opacity="0.7"/>
+  <circle cx="168" cy="484" r="3" fill="#cc2020" opacity="0.5"/>
+
+  <!-- Palette in hand -->
+  <ellipse cx="155" cy="355" rx="35" ry="28" fill="#d4a060"/>
+  <ellipse cx="155" cy="355" rx="32" ry="25" fill="#e0b070"/>
+  <!-- Thumb hole -->
+  <ellipse cx="148" cy="340" rx="8" ry="10" fill="#c09050"/>
+  <!-- Paint blobs on palette -->
+  <circle cx="140" cy="352" r="6" fill="#cc2020"/>
+  <circle cx="152" cy="346" r="5" fill="#FFD700"/>
+  <circle cx="164" cy="348" r="5" fill="#2040a0"/>
+  <circle cx="168" cy="360" r="5" fill="#1a8020"/>
+  <circle cx="157" cy="365" r="4" fill="#f06030"/>
+  <circle cx="144" cy="364" r="4" fill="#e080c0"/>
+
+  <!-- ═══ ARTIST CHARACTER ═══ -->
+  <!-- Legs -->
+  <rect x="212" y="430" width="30" height="80" rx="5" fill="#4a5a80"/>
+  <rect x="258" y="430" width="30" height="80" rx="5" fill="#4a5a80"/>
+  <!-- Shoes -->
+  <path d="M 206 505 Q 204 520 208 530 Q 222 538 242 535 L 242 505 Z" fill="#2a1a08"/>
+  <path d="M 254 505 Q 252 520 256 530 Q 270 538 290 535 L 290 505 Z" fill="#2a1a08"/>
+
+  <!-- Artist smock/coat -->
+  <rect x="180" y="295" width="140" height="145" rx="8" fill="#e8e0d0"/>
+  <!-- Smock stains -->
+  <circle cx="200" cy="330" r="8" fill="#cc2020" opacity="0.4"/>
+  <circle cx="215" cy="360" r="6" fill="#2040a0" opacity="0.4"/>
+  <circle cx="295" cy="340" r="7" fill="#1a8020" opacity="0.4"/>
+  <!-- ═══ PAINT ON CLOTHES (cx≈0.35, cy≈0.70 → x≈175, y≈420) ═══ -->
+  <!-- LEFT: large paint splash on smock -->
+  <ellipse cx="205" cy="380" rx="20" ry="15" fill="#FFD700" opacity="0.6"/>
+  <circle cx="198" cy="372" r="6" fill="#FFD700" opacity="0.5"/>
+  <circle cx="215" cy="374" r="5" fill="#f06030" opacity="0.6"/>
+
+  <!-- Shirt collar -->
+  <path d="M 225 295 L 215 318 L 248 308 Z" fill="#f0ece0"/>
+  <path d="M 275 295 L 285 318 L 252 308 Z" fill="#f0ece0"/>
+
+  <!-- Arms -->
+  <!-- Left arm - holding palette -->
+  <path d="M 180 308 Q 155 328 142 360 Q 135 385 138 410 L 162 405 Q 162 382 168 358 Q 178 332 190 315 Z" fill="#e8e0d0"/>
+  <!-- Right arm - holding brush toward canvas -->
+  <path d="M 320 308 Q 345 322 352 350 Q 358 375 350 410 L 325 405 Q 330 375 325 352 Q 318 325 308 315 Z" fill="#e8e0d0"/>
+
+  <!-- Hands -->
+  <ellipse cx="150" cy="412" rx="15" ry="12" fill="url(#skinGrad)"/>
+  <ellipse cx="338" cy="408" rx="15" ry="12" fill="url(#skinGrad)"/>
+
+  <!-- Paintbrush in right hand -->
+  <rect x="328" y="358" width="5" height="65" rx="2" fill="#4a2a10" transform="rotate(-20,330,390)"/>
+  <ellipse cx="324" cy="360" rx="5" ry="7" fill="#cc2020" transform="rotate(-20,330,390)"/>
+
+  <!-- Neck -->
+  <rect x="235" y="268" width="30" height="30" rx="7" fill="url(#skinGrad)"/>
+
+  <!-- Head -->
+  <ellipse cx="250" cy="230" rx="58" ry="56" fill="url(#skinGrad)"/>
+
+  <!-- Beret hat -->
+  <ellipse cx="250" cy="190" rx="65" ry="20" fill="#8b1a1a"/>
+  <ellipse cx="250" cy="185" rx="55" ry="25" fill="#aa2020"/>
+  <circle cx="278" cy="178" r="6" fill="#8b1a1a"/>
+
+  <!-- Ears -->
+  <ellipse cx="194" cy="232" rx="10" ry="13" fill="#e8a860"/>
+  <ellipse cx="306" cy="232" rx="10" ry="13" fill="#e8a860"/>
+
+  <!-- ═══ GLASSES ON HEAD (cx≈0.75, cy≈0.45 → x≈375, y≈270) ═══ -->
+  <!-- LEFT: has sunglasses pushed up on head/forehead -->
+  <rect x="220" y="193" width="30" height="14" rx="6" fill="#1a1a1a" opacity="0.7"/>
+  <rect x="254" y="193" width="30" height="14" rx="6" fill="#1a1a1a" opacity="0.7"/>
+  <line x1="250" y1="200" x2="254" y2="200" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="220" y1="200" x2="214" y2="204" stroke="#1a1a1a" stroke-width="1.5"/>
+  <line x1="284" y1="200" x2="290" y2="204" stroke="#1a1a1a" stroke-width="1.5"/>
+  <!-- Lens color -->
+  <rect x="221" y="194" width="28" height="12" rx="5" fill="#3a5a8a" opacity="0.5"/>
+  <rect x="255" y="194" width="28" height="12" rx="5" fill="#3a5a8a" opacity="0.5"/>
+
+  <!-- Eyes -->
+  <circle cx="225" cy="225" r="11" fill="white"/>
+  <circle cx="227" cy="226" r="6" fill="#3a6a20"/>
+  <circle cx="228" cy="225" r="3.5" fill="#0a0a0a"/>
+  <circle cx="229" cy="224" r="1.2" fill="white"/>
+  <circle cx="275" cy="225" r="11" fill="white"/>
+  <circle cx="277" cy="226" r="6" fill="#3a6a20"/>
+  <circle cx="278" cy="225" r="3.5" fill="#0a0a0a"/>
+  <circle cx="279" cy="224" r="1.2" fill="white"/>
+
+  <!-- Eyebrows -->
+  <path d="M 210 213 Q 222 208 236 212" stroke="#4a2a10" stroke-width="3" fill="none"/>
+  <path d="M 264 212 Q 278 208 290 213" stroke="#4a2a10" stroke-width="3" fill="none"/>
+
+  <!-- Nose -->
+  <path d="M 247 232 Q 243 242 239 246 Q 243 250 250 248 Q 257 250 261 246 Q 257 242 253 232" fill="#d4944a"/>
+
+  <!-- Beard/goatee -->
+  <path d="M 230 260 Q 238 272 250 275 Q 262 272 270 260 Q 262 278 250 280 Q 238 278 230 260 Z" fill="#3a2010"/>
+
+  <!-- Smile -->
+  <path d="M 236 258 Q 244 265 250 265 Q 256 265 264 258" stroke="#8b4020" stroke-width="2.5" fill="none"/>
+</svg>

@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0020"/>
+      <stop offset="100%" style="stop-color:#3a0a00"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="500" fill="url(#sky)"/>
+  <circle cx="340" cy="60" r="35" fill="#FFFACD"/>
+  <circle cx="325" cy="50" r="25" fill="#0d0020"/>
+  <circle cx="30" cy="40" r="1.5" fill="white"/><circle cx="80" cy="25" r="1" fill="white"/>
+  <circle cx="120" cy="55" r="2" fill="white"/><circle cx="170" cy="30" r="1" fill="white"/>
+  <circle cx="220" cy="20" r="1.5" fill="white"/>
+  <polygon points="0,500 0,320 80,200 160,320 200,260 240,320 300,180 360,280 400,200 400,500" fill="#1a0a00"/>
+  <polygon points="0,500 0,350 60,250 120,350 180,290 250,350 310,220 370,310 400,250 400,500" fill="#260d00"/>
+
+  <ellipse cx="200" cy="300" rx="90" ry="60" fill="#228B22"/>
+  <path d="M130 290 Q145 280 160 290 Q145 300 130 290Z" fill="#1a6b1a" opacity="0.6"/>
+  <path d="M155 275 Q170 265 185 275 Q170 285 155 275Z" fill="#1a6b1a" opacity="0.6"/>
+  <path d="M180 268 Q195 258 210 268 Q195 278 180 268Z" fill="#1a6b1a" opacity="0.6"/>
+  <path d="M205 270 Q220 260 235 270 Q220 280 205 270Z" fill="#1a6b1a" opacity="0.6"/>
+  <path d="M225 282 Q240 272 255 282 Q240 292 225 282Z" fill="#1a6b1a" opacity="0.6"/>
+  <path d="M240 298 Q255 288 270 298 Q255 308 240 298Z" fill="#1a6b1a" opacity="0.6"/>
+  <ellipse cx="200" cy="310" rx="55" ry="35" fill="#90EE90"/>
+  <path d="M200 245 Q220 220 250 200 Q270 185 290 180" stroke="#228B22" stroke-width="45" stroke-linecap="round" fill="none"/>
+  <ellipse cx="305" cy="165" rx="50" ry="35" fill="#228B22"/>
+  <ellipse cx="340" cy="172" rx="25" ry="18" fill="#1a8b1a"/>
+  <circle cx="348" cy="168" r="4" fill="#0d5a0d"/>
+  <circle cx="356" cy="172" r="4" fill="#0d5a0d"/>
+  <!-- DIFF 1: Only 2 horns (left has 4) -->
+  <path d="M290 140 L283 110 L300 138Z" fill="#8B4513"/>
+  <path d="M308 135 L308 102 L320 138Z" fill="#8B4513"/>
+  <ellipse cx="295" cy="160" rx="12" ry="10" fill="#FFD700"/>
+  <ellipse cx="295" cy="160" rx="5" ry="8" fill="black"/>
+  <circle cx="293" cy="157" r="2" fill="white" opacity="0.6"/>
+  <path d="M320 178 L325 192 L330 178" fill="white"/>
+  <path d="M330 180 L335 194 L340 180" fill="white"/>
+  <path d="M340 182 L345 196 L350 182" fill="white"/>
+
+  <!-- DIFF 2: Only 3 fire balls (left has 5) -->
+  <ellipse cx="375" cy="155" rx="15" ry="10" fill="#FF4400" opacity="0.9"/>
+  <ellipse cx="395" cy="140" rx="12" ry="8" fill="#FF6600" opacity="0.8"/>
+  <ellipse cx="388" cy="165" rx="10" ry="7" fill="#FF2200" opacity="0.85"/>
+
+  <path d="M150 270 Q80 200 60 150 Q90 170 110 200 Q90 160 120 130 Q140 165 130 200 Q145 165 165 145 Q170 180 155 210 L150 270Z" fill="#1a6b1a"/>
+  <path d="M150 270 Q80 200 60 150" stroke="#0d5a0d" stroke-width="2" fill="none"/>
+  <path d="M150 270 Q90 160 120 130" stroke="#0d5a0d" stroke-width="1.5" fill="none"/>
+  <path d="M150 270 Q145 165 165 145" stroke="#0d5a0d" stroke-width="1.5" fill="none"/>
+  <path d="M250 270 Q290 210 310 170 Q295 190 290 230 Q305 190 330 170 Q325 205 305 240 L250 270Z" fill="#1a6b1a"/>
+
+  <path d="M130 320 Q80 360 50 390 Q40 420 60 440 Q70 420 80 400 Q100 430 110 450" stroke="#228B22" stroke-width="25" stroke-linecap="round" fill="none"/>
+  <!-- DIFF 3: Only 3 tail spikes (left has 6) -->
+  <polygon points="50,390 35,375 48,398" fill="#8B4513"/>
+  <polygon points="66,412 49,400 64,422" fill="#8B4513"/>
+  <polygon points="88,440 71,430 87,449" fill="#8B4513"/>
+
+  <ellipse cx="160" cy="370" rx="30" ry="15" fill="#1a6b1a"/>
+  <path d="M140 378 L130 395" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+  <path d="M152 382 L145 400" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+  <path d="M164 383 L160 402" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+  <path d="M176 381 L175 400" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="240" cy="370" rx="30" ry="15" fill="#1a6b1a"/>
+  <path d="M220 378 L210 395" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+  <path d="M232 382 L225 400" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+  <path d="M244 383 L240 402" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+  <path d="M256 381 L255 400" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+
+  <ellipse cx="200" cy="460" rx="100" ry="30" fill="#FFD700"/>
+  <!-- DIFF 4: Only 2 gems (left has 5) -->
+  <polygon points="185,450 190,435 195,450" fill="#FF0000"/>
+  <polygon points="205,450 210,435 215,450" fill="#0000FF"/>
+  <circle cx="140" cy="458" r="6" fill="#DAA520"/><circle cx="155" cy="462" r="5" fill="#DAA520"/>
+  <circle cx="260" cy="458" r="6" fill="#DAA520"/><circle cx="245" cy="463" r="5" fill="#DAA520"/>
+
+  <!-- DIFF 5: Only 3 castle towers (left has 5) -->
+  <rect x="20" y="350" width="25" height="80" fill="#2a0a00"/>
+  <rect x="20" y="342" width="25" height="15" fill="#2a0a00"/>
+  <rect x="23" y="335" width="5" height="12" fill="#2a0a00"/>
+  <rect x="32" y="335" width="5" height="12" fill="#2a0a00"/>
+  <rect x="55" y="360" width="25" height="70" fill="#2a0a00"/>
+  <rect x="55" y="352" width="25" height="15" fill="#2a0a00"/>
+  <rect x="58" y="345" width="5" height="12" fill="#2a0a00"/>
+  <rect x="67" y="345" width="5" height="12" fill="#2a0a00"/>
+  <rect x="90" y="370" width="20" height="60" fill="#2a0a00"/>
+  <rect x="90" y="362" width="20" height="12" fill="#2a0a00"/>
+</svg>

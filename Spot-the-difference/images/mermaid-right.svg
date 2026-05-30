@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <linearGradient id="ocean" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#006994"/>
+      <stop offset="100%" style="stop-color:#001a33"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="500" fill="url(#ocean)"/>
+  <circle cx="30" cy="100" r="5" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <circle cx="50" cy="60" r="3" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+  <circle cx="370" cy="80" r="4" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <circle cx="350" cy="40" r="6" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+  <circle cx="80" cy="200" r="4" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+  <circle cx="320" cy="180" r="3" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+  <line x1="100" y1="0" x2="180" y2="300" stroke="rgba(255,255,200,0.06)" stroke-width="30"/>
+  <line x1="200" y1="0" x2="250" y2="300" stroke="rgba(255,255,200,0.06)" stroke-width="25"/>
+  <line x1="300" y1="0" x2="320" y2="300" stroke="rgba(255,255,200,0.06)" stroke-width="20"/>
+  <path d="M340 500 Q350 450 340 420 Q355 430 360 400 Q370 420 365 450 Q375 440 380 420 Q385 450 375 470 L340 500Z" fill="#FF6644"/>
+  <path d="M20 500 Q30 460 25 430 Q35 445 40 415 Q50 440 45 460 L20 500Z" fill="#FF4466"/>
+  <path d="M360 500 Q365 470 370 440" stroke="#22AA44" stroke-width="4" fill="none"/>
+  <path d="M370 440 Q380 430 385 415" stroke="#22AA44" stroke-width="3" fill="none"/>
+  <circle cx="385" cy="413" r="5" fill="#22AA44"/>
+  <path d="M15 500 Q10 470 5 440 Q-5 430 0 415" stroke="#22AA44" stroke-width="3" fill="none"/>
+  <circle cx="0" cy="413" r="5" fill="#22AA44"/>
+  <path d="M70 500 Q60 470 70 450 Q60 430 70 410 Q80 430 70 450" stroke="#1a8a3a" stroke-width="5" fill="none"/>
+  <path d="M330 500 Q340 470 330 450 Q340 430 330 410 Q320 430 330 450" stroke="#1a8a3a" stroke-width="5" fill="none"/>
+  <rect x="30" y="430" width="60" height="45" rx="3" fill="#8B4513"/>
+  <rect x="30" y="430" width="60" height="15" rx="3" fill="#A0522D"/>
+  <rect x="52" y="445" width="16" height="12" rx="2" fill="#FFD700"/>
+  <circle cx="60" cy="451" r="3" fill="#8B4513"/>
+
+  <!-- Tail -->
+  <path d="M160 350 Q170 400 150 450 Q165 465 200 470 Q235 465 250 450 Q230 400 240 350 Z" fill="#00CC88"/>
+  <path d="M165 370 Q180 365 195 370 Q210 365 225 370 Q215 375 200 370 Q185 375 165 370Z" fill="#00AA66" opacity="0.5"/>
+  <path d="M160 390 Q175 385 190 390 Q205 385 220 390 Q235 385 245 390 Q235 395 220 390 Q205 395 190 390 Q175 395 160 390Z" fill="#00AA66" opacity="0.5"/>
+  <path d="M162 410 Q178 405 195 410 Q212 405 230 410 Q242 405 248 410 Q238 415 222 410 Q207 415 192 410 Q177 415 162 410Z" fill="#00AA66" opacity="0.5"/>
+  <path d="M165 430 Q182 425 200 430 Q218 425 235 430 Q225 435 208 430 Q192 435 175 430Z" fill="#00AA66" opacity="0.5"/>
+  <path d="M150 450 Q120 475 130 490 Q155 475 165 465Z" fill="#00CC88"/>
+  <path d="M250 450 Q280 475 270 490 Q245 475 235 465Z" fill="#00CC88"/>
+  <!-- DIFF 5: Only 2 stripes on fin (left has 4) -->
+  <line x1="127" y1="475" x2="152" y2="460" stroke="#00AA66" stroke-width="2"/>
+  <line x1="132" y1="482" x2="158" y2="467" stroke="#00AA66" stroke-width="2"/>
+
+  <path d="M165 270 Q155 310 160 350 L240 350 Q245 310 235 270 Z" fill="#FDBCB4"/>
+  <ellipse cx="183" cy="295" rx="18" ry="14" fill="#FF8C94" transform="rotate(-10 183 295)"/>
+  <ellipse cx="217" cy="295" rx="18" ry="14" fill="#FF8C94" transform="rotate(10 217 295)"/>
+  <!-- DIFF 1: Only 3 lines on left shell (left has 5) -->
+  <line x1="183" y1="283" x2="175" y2="308" stroke="#FF6677" stroke-width="1.5"/>
+  <line x1="183" y1="283" x2="183" y2="309" stroke="#FF6677" stroke-width="1.5"/>
+  <line x1="183" y1="283" x2="191" y2="308" stroke="#FF6677" stroke-width="1.5"/>
+
+  <path d="M165 280 Q130 290 120 320" stroke="#FDBCB4" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <path d="M235 280 Q270 290 280 320" stroke="#FDBCB4" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <circle cx="118" cy="323" r="10" fill="#FDBCB4"/>
+  <circle cx="282" cy="323" r="10" fill="#FDBCB4"/>
+  <circle cx="200" cy="230" r="50" fill="#FDBCB4"/>
+  <path d="M155 215 Q130 250 140 310 Q155 290 160 350" fill="#CC2200"/>
+  <path d="M245 215 Q270 250 260 310 Q245 290 240 350" fill="#CC2200"/>
+  <ellipse cx="200" cy="195" rx="50" ry="25" fill="#CC2200"/>
+  <path d="M165 200 Q170 240 165 280" stroke="#FF4422" stroke-width="3" fill="none" opacity="0.5"/>
+  <ellipse cx="187" cy="228" rx="7" ry="6" fill="white"/>
+  <ellipse cx="213" cy="228" rx="7" ry="6" fill="white"/>
+  <circle cx="187" cy="228" r="4" fill="#3a6ea8"/>
+  <circle cx="213" cy="228" r="4" fill="#3a6ea8"/>
+  <circle cx="188" cy="227" r="2" fill="black"/>
+  <circle cx="214" cy="227" r="2" fill="black"/>
+  <path d="M181 223 L183 218 M185 221 L186 216 M189 222 L191 217" stroke="black" stroke-width="1.5"/>
+  <path d="M207 221 L208 216 M211 221 L213 216 M215 222 L217 217" stroke="black" stroke-width="1.5"/>
+  <ellipse cx="200" cy="238" rx="4" ry="3" fill="#e8a090"/>
+  <path d="M192 248 Q200 255 208 248" stroke="#CC4466" stroke-width="2" fill="#CC4466" opacity="0.6"/>
+
+  <!-- DIFF 2: Crown has only 3 starfish (left has 5) -->
+  <path d="M180 198 L182 191 L184 198 L177 194 L187 194Z" fill="#FFD700"/>
+  <path d="M200 195 L202 188 L204 195 L197 191 L207 191Z" fill="#FFD700"/>
+  <path d="M220 198 L222 191 L224 198 L217 194 L227 194Z" fill="#FFD700"/>
+
+  <!-- DIFF 3: Only 2 fish (left has 4) -->
+  <ellipse cx="60" cy="250" rx="18" ry="10" fill="#FF8C00"/>
+  <path d="M42 250 L30 242 L30 258Z" fill="#FF8C00"/>
+  <circle cx="67" cy="247" r="2" fill="black"/>
+  <ellipse cx="340" cy="200" rx="15" ry="8" fill="#FF4488"/>
+  <path d="M325 200 L313 193 L313 207Z" fill="#FF4488"/>
+  <circle cx="346" cy="197" r="2" fill="black"/>
+
+  <!-- DIFF 4: Only 5 pearls (left has 8) -->
+  <circle cx="184" cy="268" r="4" fill="white" stroke="#ddd" stroke-width="1"/>
+  <circle cx="193" cy="266" r="4" fill="white" stroke="#ddd" stroke-width="1"/>
+  <circle cx="202" cy="265" r="4" fill="white" stroke="#ddd" stroke-width="1"/>
+  <circle cx="211" cy="266" r="4" fill="white" stroke="#ddd" stroke-width="1"/>
+  <circle cx="220" cy="268" r="4" fill="white" stroke="#ddd" stroke-width="1"/>
+</svg>
