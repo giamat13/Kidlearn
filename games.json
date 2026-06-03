@@ -312,6 +312,16 @@
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
+      "id": "multiplication-game",
+      "title": "לוח הכפל",
+      "description": "תרגל לוח כפל, ענה מהר וצבור ניקוד!",
+      "icon": "✖️",
+      "url": "multiplication-game/index.html",
+      "categories": ["math", "games"],
+      "grade": ["third", "fourth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
       "id": "spot-the-difference",
       "title": "מצא את ההבדלים",
       "description": "מצא את כל ההבדלים בין שתי התמונות!",
