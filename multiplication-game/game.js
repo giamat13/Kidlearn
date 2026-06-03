@@ -1,5 +1,5 @@
 const QUESTIONS_PER_ROUND = 10;
-const QUESTION_TIME = 10;      // שניות לכל שאלה
+const QUESTION_TIME = 30;      // שניות לכל שאלה
 const MAX_BASE_POINTS = 100;   // ניקוד מקסימלי לשאלה
 const MIN_BASE_POINTS = 5;     // ניקוד מינימלי אם ענו ברגע האחרון
 const STREAK_BONUS = 5;        // בונוס לכל תשובה ברצף
