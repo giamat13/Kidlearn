@@ -298,7 +298,7 @@
       "icon": "🧠",
       "url": "memory-game/index.html",
       "categories": ["games", "he", "math"],
-      "grade": ["kindergarten", "preschool", "first", "second", "third", "fourth"],
+      "grade": ["kindergarten", "preschool", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
