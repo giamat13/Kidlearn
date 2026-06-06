@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Pro - לימוד אוצר מילים באנגלית</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid #e5e7eb;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        
+        @keyframes spin { 
+            to { transform: rotate(360deg); } 
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 50%;
+            transform: translateX(50%);
+            background: #1e1b4b;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-blue-50 min-h-screen">
+    <div id="app" class="p-6"></div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+        class VocabApp {
+            constructor() {
+                this.words = JSON.parse(localStorage.getItem('vocabWords')) || [];
+                this.searchTerm = '';
+                this.newWordInput = '';
+                this.practiceMode = null;
+                this.currentWordIndex = 0;
+                this.showAnswer = false;
+                // Auto-translate enabled by default (unless user explicitly turned it off)
+                const savedSetting = localStorage.getItem('autoTranslate');
+                this.autoTranslate = savedSetting === null ? true : savedSetting === 'true';
+                this.translating = {};
+                this.render();
+            }
+
+            saveWords() {
+                localStorage.setItem('vocabWords', JSON.stringify(this.words));
+            }
+
+            getStats() {
+                const seen = this.words.filter(w => w.seen).length;
+                const learned = this.words.filter(w => w.mastery >= 80).length;
+                const mastery = this.words.length > 0 
+                    ? Math.round(this.words.reduce((acc, w) => acc + (w.mastery || 0), 0) / this.words.length)
+                    : 0;
+                const today = new Date().toDateString();
+                const startedToday = this.words.filter(w => w.lastPracticed === today).length;
+
+                return { seen, startedToday, learned, mastery };
+            }
+
+            async translateText(text, from = 'en', to = 'he') {
+                const langpair = `${from}|${to}`;
+                const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langpair}`;
+                
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) {
+                        if (res.status === 429) {
+                            throw new Error('הגעת למגבלה היומית. נסה שוב מחר.');
+                        }
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                    const data = await res.json();
+                    if (data.responseStatus !== 200) {
+                        throw new Error(data.responseDetails || 'שגיאה בתרגום');
+                    }
+                    return data.responseData.translatedText;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            async translateWord(id) {
+                const word = this.words.find(w => w.id === id);
+                if (!word) return;
+
+                this.translating[id] = true;
+                this.render();
+
+                try {
+                    const translated = await this.translateText(word.english, 'en', 'he');
+                    word.hebrew = translated;
+                    this.saveWords();
+                    this.showToast('✓ תורגם בהצלחה!');
+                } catch (error) {
+                    this.showToast('⚠️ שגיאה: ' + error.message);
+                } finally {
+                    delete this.translating[id];
+                    this.render();
+                }
+            }
+
+            async addWords() {
+                const lines = this.newWordInput.trim().split('\n');
+                const newWords = [];
+
+                for (let index = 0; index < lines.length; index++) {
+                    const line = lines[index].trim();
+                    if (!line) continue;
+
+                    const parts = line.split(/[-–]/).map(p => p.trim());
+                    
+                    if (parts.length >= 2) {
+                        // יש תרגום - הוסף כרגיל
+                        newWords.push({
+                            id: Date.now() + index,
+                            english: parts[0],
+                            hebrew: parts.slice(1).join(' - '),
+                            seen: false,
+                            mastery: 0,
+                            lastPracticed: null
+                        });
+                    } else if (this.autoTranslate && parts.length === 1) {
+                        // אין תרגום ותרגום אוטומטי מופעל
+                        const newWord = {
+                            id: Date.now() + index,
+                            english: parts[0],
+                            hebrew: '...מתרגם',
+                            seen: false,
+                            mastery: 0,
+                            lastPracticed: null
+                        };
+                        newWords.push(newWord);
+                        
+                        // תרגם ברקע
+                        setTimeout(async () => {
+                            try {
+                                const translated = await this.translateText(parts[0], 'en', 'he');
+                                newWord.hebrew = translated;
+                                this.saveWords();
+                                this.render();
+                            } catch (error) {
+                                newWord.hebrew = '(שגיאה בתרגום)';
+                                this.saveWords();
+                                this.render();
+                            }
+                        }, index * 600); // עיכוב קטן בין תרגומים
+                    } else if (parts.length === 1) {
+                        // אין תרגום ותרגום אוטומטי כבוי
+                        newWords.push({
+                            id: Date.now() + index,
+                            english: parts[0],
+                            hebrew: '(לא תורגם)',
+                            seen: false,
+                            mastery: 0,
+                            lastPracticed: null
+                        });
+                    }
+                }
+
+                this.words = [...this.words, ...newWords];
+                this.newWordInput = '';
+                this.saveWords();
+                this.render();
+
+                if (this.autoTranslate) {
+                    this.showToast('✓ מילים נוספו ומתורגמות...');
+                } else {
+                    this.showToast('✓ מילים נוספו למאגר');
+                }
+            }
+
+            deleteWord(id) {
+                this.words = this.words.filter(w => w.id !== id);
+                this.saveWords();
+                this.render();
+            }
+
+            toggleAutoTranslate() {
+                this.autoTranslate = !this.autoTranslate;
+                localStorage.setItem('autoTranslate', this.autoTranslate);
+                this.showToast(this.autoTranslate ? '✓ תרגום אוטומטי הופעל' : 'תרגום אוטומטי כבוי');
+                this.render();
+            }
+
+            startPractice(mode) {
+                if (this.words.length === 0) {
+                    alert('הוסף מילים למאגר לפני תחילת תרגול');
+                    return;
+                }
+                this.practiceMode = mode;
+                this.currentWordIndex = 0;
+                this.showAnswer = false;
+                this.render();
+            }
+
+            handleAnswer(correct) {
+                const word = this.words[this.currentWordIndex];
+                
+                if (correct) {
+                    word.mastery = Math.min(100, (word.mastery || 0) + 20);
+                } else {
+                    word.mastery = Math.max(0, (word.mastery || 0) - 10);
+                }
+                
+                word.seen = true;
+                word.lastPracticed = new Date().toDateString();
+                
+                this.saveWords();
+                this.showAnswer = false;
+                
+                if (this.currentWordIndex < this.words.length - 1) {
+                    this.currentWordIndex++;
+                } else {
+                    this.practiceMode = null;
+                    alert('סיימת את התרגול! כל הכבוד!');
+                }
+                
+                this.render();
+            }
+
+            getFilteredWords() {
+                return this.words.filter(word => 
+                    word.english.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                    word.hebrew.includes(this.searchTerm)
+                );
+            }
+
+            showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            renderPracticeMode() {
+                const currentWord = this.words[this.currentWordIndex];
+                const progress = ((this.currentWordIndex + 1) / this.words.length) * 100;
+
+                return `
+                    <div class="max-w-2xl mx-auto fade-in">
+                        <div class="bg-white rounded-2xl shadow-xl p-8">
+                            <div class="text-center mb-8">
+                                <div class="text-sm text-gray-500 mb-2">
+                                    מילה ${this.currentWordIndex + 1} מתוך ${this.words.length}
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: ${progress}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="text-5xl font-bold text-indigo-600 mb-8">
+                                    ${this.practiceMode === 'heb-to-eng' ? currentWord.hebrew : currentWord.english}
+                                </div>
+
+                                ${this.showAnswer ? `
+                                    <div>
+                                        <div class="text-3xl text-gray-700 mb-8">
+                                            ${this.practiceMode === 'heb-to-eng' ? currentWord.english : currentWord.hebrew}
+                                        </div>
+                                        <div class="flex gap-4 justify-center">
+                                            <button onclick="app.handleAnswer(true)" class="px-8 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition">
+                                                ידעתי ✓
+                                            </button>
+                                            <button onclick="app.handleAnswer(false)" class="px-8 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition">
+                                                לא ידעתי ✗
+                                            </button>
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <button onclick="app.showAnswer = true; app.render();" class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">
+                                        הראה תשובה
+                                    </button>
+                                `}
+                            </div>
+
+                            <button onclick="app.practiceMode = null; app.render();" class="mt-8 text-gray-500 hover:text-gray-700">
+                                ← חזור למסך הראשי
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderMainScreen() {
+                const stats = this.getStats();
+                const filteredWords = this.getFilteredWords();
+
+                return `
+                    <div class="max-w-6xl mx-auto fade-in">
+                        <!-- Header -->
+                        <div class="bg-indigo-600 rounded-2xl p-6 mb-6 flex justify-between items-center text-white">
+                            <div class="flex items-center gap-4">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                                <h1 class="text-3xl font-bold">English Pro</h1>
+                            </div>
+                            <div class="text-lg">
+                                ${this.words.length} מילים
+                            </div>
+                        </div>
+
+                        <!-- Main Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- Add Words Card -->
+                            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <div class="p-3 bg-indigo-100 rounded-xl">
+                                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-2xl font-bold">הוספת מילים</h2>
+                                </div>
+                                
+                                <!-- Auto-translate toggle -->
+                                <div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium">תרגום אוטומטי</span>
+                                    </div>
+                                    <button 
+                                        onclick="app.toggleAutoTranslate()"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition ${this.autoTranslate ? 'bg-indigo-600' : 'bg-gray-300'}"
+                                    >
+                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition ${this.autoTranslate ? 'translate-x-6' : 'translate-x-1'}"></span>
+                                    </button>
+                                </div>
+
+                                <p class="text-gray-600 mb-4 text-sm">
+                                    ${this.autoTranslate ? '💡 פשוט הקלד מילים באנגלית - יתורגמו אוטומטית!' : 'הקלד בפורמט: hello - שלום'}
+                                </p>
+                                <textarea
+                                    id="newWordInput"
+                                    placeholder="${this.autoTranslate ? 'דוגמה:\nhello\nworld\nlearn' : 'דוגמה:\nhello - שלום\nworld - עולם\nlearn - ללמוד'}"
+                                    class="w-full p-4 border-2 border-gray-200 rounded-xl mb-4 min-h-32 focus:border-indigo-600 focus:outline-none"
+                                    dir="ltr"
+                                    oninput="app.newWordInput = this.value"
+                                >${this.newWordInput}</textarea>
+                                <button
+                                    onclick="app.addWords()"
+                                    class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition"
+                                >
+                                    ${this.autoTranslate ? '🔄 הוסף ותרגם' : 'הוסף למאגר'}
+                                </button>
+                            </div>
+
+                            <!-- Practice Center Card -->
+                            <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-2xl p-8 shadow-lg text-white">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                    <h2 class="text-2xl font-bold">מרכז תרגול</h2>
+                                </div>
+                                <p class="mb-6 opacity-90">תרגול, כתיבה וביטויים</p>
+                                <div class="space-y-3">
+                                    <button
+                                        onclick="app.startPractice('eng-to-heb')"
+                                        class="w-full bg-white text-indigo-600 py-3 rounded-xl font-semibold hover:bg-indigo-50 transition"
+                                    >
+                                        אנגלית → עברית
+                                    </button>
+                                    <button
+                                        onclick="app.startPractice('heb-to-eng')"
+                                        class="w-full bg-white text-indigo-600 py-3 rounded-xl font-semibold hover:bg-indigo-50 transition"
+                                    >
+                                        עברית → אנגלית
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-white rounded-xl p-6 text-center shadow">
+                                <div class="text-4xl font-bold text-red-500 mb-2">${stats.seen}</div>
+                                <div class="text-gray-600 text-sm">נצפו</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 text-center shadow">
+                                <div class="text-4xl font-bold text-orange-500 mb-2">${stats.startedToday}</div>
+                                <div class="text-gray-600 text-sm">התחלתי היום</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 text-center shadow">
+                                <div class="text-4xl font-bold text-teal-500 mb-2">${stats.learned}</div>
+                                <div class="text-gray-600 text-sm">נלמד</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 text-center shadow">
+                                <div class="text-4xl font-bold text-indigo-600 mb-2">${stats.mastery}%</div>
+                                <div class="text-gray-600 text-sm">שליטה</div>
+                            </div>
+                        </div>
+
+                        <!-- Word Bank -->
+                        <div class="bg-white rounded-2xl p-8 shadow-lg">
+                            <h2 class="text-2xl font-bold mb-6">המאגר שלי</h2>
+                            
+                            <div class="relative mb-6">
+                                <svg class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <input
+                                    type="text"
+                                    value="${this.searchTerm}"
+                                    oninput="app.searchTerm = this.value; app.render();"
+                                    placeholder="חיפוש מהיר..."
+                                    class="w-full pr-12 pl-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                                />
+                            </div>
+
+                            ${filteredWords.length === 0 ? `
+                                <div class="text-center text-gray-400 py-12">
+                                    ${this.words.length === 0 ? 'המאגר ריק - הוסף מילים כדי להתחיל' : 'לא נמצאו תוצאות'}
+                                </div>
+                            ` : `
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="border-b-2 border-gray-200">
+                                                <th class="text-right py-3 px-4 font-semibold text-gray-700">אנגלית</th>
+                                                <th class="text-right py-3 px-4 font-semibold text-gray-700">עברית (תרגום)</th>
+                                                <th class="text-right py-3 px-4 font-semibold text-gray-700">שליטה</th>
+                                                <th class="text-right py-3 px-4 font-semibold text-gray-700">פעולות</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${filteredWords.map(word => `
+                                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                                    <td class="py-4 px-4 font-medium" dir="ltr">${this.escapeHtml(word.english)}</td>
+                                                    <td class="py-4 px-4">
+                                                        ${this.translating[word.id] ? 
+                                                            '<span class="spinner"></span> מתרגם...' : 
+                                                            this.escapeHtml(word.hebrew)
+                                                        }
+                                                    </td>
+                                                    <td class="py-4 px-4">
+                                                        <div class="flex items-center gap-2">
+                                                            <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                                                <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: ${word.mastery || 0}%"></div>
+                                                            </div>
+                                                            <span class="text-sm text-gray-600 w-10">${word.mastery || 0}%</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-4 px-4">
+                                                        <div class="flex gap-2">
+                                                            ${word.hebrew === '(לא תורגם)' || word.hebrew === '(שגיאה בתרגום)' ? `
+                                                                <button onclick="app.translateWord(${word.id})" class="text-indigo-500 hover:text-indigo-700 transition" title="תרגם">
+                                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            ` : ''}
+                                                            <button onclick="app.deleteWord(${word.id})" class="text-red-500 hover:text-red-700 transition">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `}
+                        </div>
+
+                        <!-- API Info -->
+                        <div class="text-center text-sm text-gray-500 mt-6">
+                            מופעל על ידי <a href="https://mymemory.translated.net" target="_blank" class="text-indigo-600 hover:underline">MyMemory API</a> · חינמי לחלוטין · ~5,000 תווים ביום
+                        </div>
+                    </div>
+                `;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            render() {
+                const html = this.practiceMode ? this.renderPracticeMode() : this.renderMainScreen();
+                document.getElementById('app').innerHTML = html;
+            }
+        }
+
+        // Initialize app
+        const app = new VocabApp();
+    </script>
+</body>
+</html>

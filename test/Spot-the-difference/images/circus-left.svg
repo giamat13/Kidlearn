@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Big top background -->
+  <rect width="400" height="500" fill="#1a0a2e"/>
+  <!-- Circus tent stripes at top -->
+  <polygon points="0,0 400,0 400,120 0,120" fill="#CC0000"/>
+  <polygon points="0,0 50,120 0,120" fill="#FFDD00"/>
+  <polygon points="50,0 100,0 100,120 50,120" fill="#FFDD00"/>
+  <polygon points="150,0 200,0 200,120 150,120" fill="#FFDD00"/>
+  <polygon points="250,0 300,0 300,120 250,120" fill="#FFDD00"/>
+  <polygon points="350,0 400,0 400,120 350,120" fill="#FFDD00"/>
+
+  <!-- Tent peak -->
+  <polygon points="200,0 150,0 200,-30 250,0" fill="#CC0000"/>
+
+  <!-- Spotlight beams -->
+  <polygon points="80,120 50,500 110,500" fill="rgba(255,255,200,0.05)"/>
+  <polygon points="200,120 170,500 230,500" fill="rgba(255,255,200,0.07)"/>
+  <polygon points="320,120 290,500 350,500" fill="rgba(255,255,200,0.05)"/>
+
+  <!-- Circus ring -->
+  <ellipse cx="200" cy="430" rx="180" ry="50" fill="#8B4513"/>
+  <ellipse cx="200" cy="420" rx="170" ry="40" fill="#A0522D"/>
+  <!-- Ring border -->
+  <ellipse cx="200" cy="420" rx="170" ry="40" fill="none" stroke="#FFD700" stroke-width="5"/>
+
+  <!-- Clown -->
+  <!-- Clown shoes -->
+  <ellipse cx="165" cy="445" rx="30" ry="12" fill="#FF4444" transform="rotate(-10 165 445)"/>
+  <ellipse cx="235" cy="445" rx="30" ry="12" fill="#FF4444" transform="rotate(10 235 445)"/>
+  <!-- Clown pants - big and baggy -->
+  <path d="M155 350 Q140 400 150 440 L180 440 Q185 400 200 380 Q215 400 220 440 L250 440 Q260 400 245 350 Z" fill="#FF8C00"/>
+  <!-- Polka dots on pants -->
+  <circle cx="160" cy="370" r="6" fill="#FFD700"/>
+  <circle cx="175" cy="390" r="5" fill="#FF4444"/>
+  <circle cx="165" cy="415" r="6" fill="#FFFFFF"/>
+  <circle cx="235" cy="372" r="6" fill="#FFD700"/>
+  <circle cx="225" cy="395" r="5" fill="#FF4444"/>
+  <circle cx="238" cy="420" r="6" fill="#FFFFFF"/>
+  <!-- Belt -->
+  <rect x="155" y="348" width="90" height="12" fill="#CC0000"/>
+  <rect x="192" y="345" width="16" height="18" rx="2" fill="#FFD700"/>
+
+  <!-- Clown body -->
+  <rect x="165" y="270" width="70" height="85" rx="15" fill="#FF4444"/>
+  <!-- Frilly collar -->
+  <ellipse cx="200" cy="272" rx="45" ry="18" fill="#FFDD00"/>
+  <!-- Collar ruffles -->
+  <path d="M158 272 Q170 258 180 272 Q190 258 200 272 Q210 258 220 272 Q230 258 242 272" fill="none" stroke="#FF8C00" stroke-width="3"/>
+  <!-- Buttons on costume -->
+  <!-- DIFF 1: 5 pom-poms (right has 3) -->
+  <circle cx="200" cy="290" r="8" fill="white"/>
+  <circle cx="200" cy="308" r="8" fill="white"/>
+  <circle cx="200" cy="326" r="8" fill="white"/>
+  <circle cx="200" cy="344" r="8" fill="white"/>
+  <circle cx="200" cy="278" r="8" fill="white"/>
+
+  <!-- Clown arms -->
+  <path d="M165 285 Q130 295 115 315" stroke="#FF4444" stroke-width="22" stroke-linecap="round" fill="none"/>
+  <path d="M235 285 Q270 295 285 315" stroke="#FF4444" stroke-width="22" stroke-linecap="round" fill="none"/>
+  <!-- Gloves -->
+  <circle cx="110" cy="320" r="16" fill="white"/>
+  <circle cx="290" cy="320" r="16" fill="white"/>
+  <!-- DIFF 2: Left hand holds 4 balloons (right holds 2) -->
+  <line x1="110" y1="304" x2="95" y2="260" stroke="#888" stroke-width="1.5"/>
+  <line x1="110" y1="304" x2="105" y2="255" stroke="#888" stroke-width="1.5"/>
+  <line x1="110" y1="304" x2="115" y2="258" stroke="#888" stroke-width="1.5"/>
+  <line x1="110" y1="304" x2="125" y2="262" stroke="#888" stroke-width="1.5"/>
+  <circle cx="95" cy="248" r="14" fill="#FF4444"/>
+  <circle cx="105" cy="243" r="14" fill="#4444FF"/>
+  <circle cx="116" cy="246" r="14" fill="#44FF44"/>
+  <circle cx="126" cy="250" r="14" fill="#FFDD00"/>
+
+  <!-- Clown head -->
+  <circle cx="200" cy="235" r="48" fill="#FDBCB4"/>
+  <!-- Clown hat -->
+  <rect x="165" y="185" width="70" height="15" rx="3" fill="#CC0000"/>
+  <rect x="180" y="140" width="40" height="50" rx="5" fill="#CC0000"/>
+  <!-- DIFF 3: Hat has 4 stars (right has 2) -->
+  <polygon points="200,148 203,156 211,156 205,161 207,169 200,164 193,169 195,161 189,156 197,156" fill="#FFD700" transform="scale(0.5) translate(200,148)"/>
+  <polygon points="188,155 190,160 196,160 191,163 193,168 188,165 183,168 185,163 180,160 186,160" fill="#FFD700"/>
+  <polygon points="212,155 214,160 220,160 215,163 217,168 212,165 207,168 209,163 204,160 210,160" fill="#FFD700"/>
+  <polygon points="196,145 198,150 204,150 199,153 201,158 196,155 191,158 193,153 188,150 194,150" fill="#FFD700"/>
+  <polygon points="204,145 206,150 212,150 207,153 209,158 204,155 199,158 201,153 196,150 202,150" fill="#FFD700"/>
+  <!-- Hat pompom -->
+  <circle cx="200" cy="138" r="10" fill="white"/>
+
+  <!-- Clown face -->
+  <!-- Big red nose -->
+  <circle cx="200" cy="238" r="14" fill="#FF0000"/>
+  <!-- Eyes -->
+  <ellipse cx="182" cy="225" rx="10" ry="12" fill="white"/>
+  <ellipse cx="218" cy="225" rx="10" ry="12" fill="white"/>
+  <circle cx="182" cy="226" r="6" fill="#1a1a8a"/>
+  <circle cx="218" cy="226" r="6" fill="#1a1a8a"/>
+  <circle cx="183" cy="224" r="2.5" fill="black"/>
+  <circle cx="219" cy="224" r="2.5" fill="black"/>
+  <circle cx="184" cy="222" r="1.5" fill="white"/>
+  <circle cx="220" cy="222" r="1.5" fill="white"/>
+  <!-- Eyebrows - painted on high -->
+  <path d="M173 212 Q182 206 191 212" stroke="#000" stroke-width="3" fill="none"/>
+  <path d="M209 212 Q218 206 227 212" stroke="#000" stroke-width="3" fill="none"/>
+  <!-- Big smile -->
+  <path d="M178 252 Q200 272 222 252" stroke="#CC0000" stroke-width="3" fill="#CC0000" opacity="0.7"/>
+  <!-- Rosy cheeks -->
+  <circle cx="172" cy="242" r="12" fill="#FF6688" opacity="0.5"/>
+  <circle cx="228" cy="242" r="12" fill="#FF6688" opacity="0.5"/>
+
+  <!-- DIFF 4: 4 stars on ring border (right has 2) -->
+  <text x="50" y="428" font-size="18" fill="#FFD700">★</text>
+  <text x="150" y="420" font-size="18" fill="#FFD700">★</text>
+  <text x="250" y="420" font-size="18" fill="#FFD700">★</text>
+  <text x="330" y="428" font-size="18" fill="#FFD700">★</text>
+
+  <!-- DIFF 5: 5 lights at tent top (right has 3) -->
+  <circle cx="60" cy="125" r="8" fill="#FFDD00"/>
+  <circle cx="140" cy="122" r="8" fill="#FF4444"/>
+  <circle cx="200" cy="120" r="8" fill="#FFDD00"/>
+  <circle cx="260" cy="122" r="8" fill="#FF4444"/>
+  <circle cx="340" cy="125" r="8" fill="#FFDD00"/>
+  <!-- Light glow -->
+  <circle cx="60" cy="125" r="15" fill="#FFDD00" opacity="0.2"/>
+  <circle cx="140" cy="122" r="15" fill="#FF4444" opacity="0.2"/>
+  <circle cx="200" cy="120" r="15" fill="#FFDD00" opacity="0.2"/>
+  <circle cx="260" cy="122" r="15" fill="#FF4444" opacity="0.2"/>
+  <circle cx="340" cy="125" r="15" fill="#FFDD00" opacity="0.2"/>
+</svg>

@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 600" width="500" height="600">
+  <defs>
+    <radialGradient id="stageGrad" cx="50%" cy="100%" r="80%">
+      <stop offset="0%" stop-color="#1a0a2a"/>
+      <stop offset="100%" stop-color="#0a0515"/>
+    </radialGradient>
+    <radialGradient id="skinGrad" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#f5c880"/>
+      <stop offset="100%" stop-color="#d4944a"/>
+    </radialGradient>
+    <radialGradient id="spotGrad" cx="50%" cy="0%" r="100%">
+      <stop offset="0%" stop-color="#fff8d0" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#fff8d0" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background (identical) -->
+  <rect width="500" height="600" fill="url(#stageGrad)"/>
+  <rect x="0" y="480" width="500" height="120" fill="#1a0a10"/>
+  <line x1="0" y1="480" x2="500" y2="480" stroke="#8b0000" stroke-width="3"/>
+  <line x1="0" y1="510" x2="500" y2="510" stroke="#250a12" stroke-width="1.5"/>
+  <line x1="0" y1="540" x2="500" y2="540" stroke="#250a12" stroke-width="1.5"/>
+  <line x1="80" y1="480" x2="80" y2="600" stroke="#250a12" stroke-width="1"/>
+  <line x1="160" y1="480" x2="160" y2="600" stroke="#250a12" stroke-width="1"/>
+  <line x1="240" y1="480" x2="240" y2="600" stroke="#250a12" stroke-width="1"/>
+  <line x1="320" y1="480" x2="320" y2="600" stroke="#250a12" stroke-width="1"/>
+  <line x1="400" y1="480" x2="400" y2="600" stroke="#250a12" stroke-width="1"/>
+  <path d="M 200 0 L 80 480 L 420 480 L 300 0 Z" fill="url(#spotGrad)"/>
+  <path d="M 0 0 Q 20 150 0 300 Q 30 250 50 300 Q 30 150 60 0 Z" fill="#5a0010"/>
+  <path d="M 60 0 Q 40 150 60 300 Q 80 250 90 300 Q 70 150 100 0 Z" fill="#8b0015"/>
+  <path d="M 500 0 Q 480 150 500 300 Q 470 250 450 300 Q 470 150 440 0 Z" fill="#5a0010"/>
+  <path d="M 440 0 Q 460 150 440 300 Q 420 250 410 300 Q 430 150 400 0 Z" fill="#8b0015"/>
+
+  <!-- Table (identical) -->
+  <rect x="320" y="380" width="140" height="15" rx="5" fill="#3a1a08"/>
+  <rect x="323" y="380" width="134" height="10" rx="4" fill="#5a2a10"/>
+  <rect x="330" y="393" width="12" height="90" rx="3" fill="#3a1a08"/>
+  <rect x="448" y="393" width="12" height="90" rx="3" fill="#3a1a08"/>
+  <path d="M 316 380 Q 390 372 464 380 L 468 395 Q 390 388 312 395 Z" fill="#5a0050"/>
+  <rect x="340" y="340" width="45" height="40" rx="2" fill="#0a0a0a"/>
+  <rect x="330" y="376" width="65" height="8" rx="3" fill="#1a1a1a"/>
+  <rect x="343" y="343" width="39" height="35" rx="1" fill="#1a1a1a"/>
+  <ellipse cx="358" cy="334" rx="6" ry="14" fill="white"/>
+  <ellipse cx="372" cy="332" rx="6" ry="14" fill="white"/>
+  <ellipse cx="358" cy="334" rx="3" ry="9" fill="#f0a0a0"/>
+  <ellipse cx="372" cy="332" rx="3" ry="9" fill="#f0a0a0"/>
+  <circle cx="450" cy="368" r="20" fill="#a0c8e0" opacity="0.6"/>
+  <circle cx="450" cy="368" r="18" fill="none" stroke="#c0d8f0" stroke-width="2" opacity="0.7"/>
+  <ellipse cx="444" cy="362" rx="6" ry="4" fill="white" opacity="0.4"/>
+  <circle cx="450" cy="360" r="6" fill="#6080c0" opacity="0.3"/>
+  <ellipse cx="450" cy="386" rx="15" ry="5" fill="#3a1a08"/>
+
+  <!-- ═══ HOOPS — DIFFERENCE 5: NO hoops (left had 3 colored rings) ═══ -->
+
+  <!-- Legs (identical) -->
+  <rect x="210" y="430" width="32" height="80" rx="5" fill="#0a0a0a"/>
+  <rect x="258" y="430" width="32" height="80" rx="5" fill="#0a0a0a"/>
+  <line x1="226" y1="430" x2="226" y2="510" stroke="#c0a000" stroke-width="2"/>
+  <line x1="274" y1="430" x2="274" y2="510" stroke="#c0a000" stroke-width="2"/>
+
+  <!-- Shoes (identical) -->
+  <path d="M 204 506 Q 202 520 206 530 Q 220 538 242 535 Q 252 531 254 522 L 252 506 Z" fill="#0a0a0a"/>
+  <path d="M 254 506 Q 252 520 256 530 Q 270 538 292 535 Q 302 531 304 522 L 302 506 Z" fill="#0a0a0a"/>
+  <path d="M 208 510 Q 220 506 238 508" stroke="#3a3a3a" stroke-width="1.5" fill="none"/>
+  <path d="M 258 510 Q 270 506 288 508" stroke="#3a3a3a" stroke-width="1.5" fill="none"/>
+
+  <!-- Tailcoat (identical) -->
+  <rect x="178" y="290" width="144" height="150" rx="8" fill="#0a0a0a"/>
+  <path d="M 178 390 Q 165 430 162 480 L 185 480 Q 186 435 195 398 Z" fill="#0a0a0a"/>
+  <path d="M 322 390 Q 335 430 338 480 L 315 480 Q 314 435 305 398 Z" fill="#0a0a0a"/>
+
+  <!-- Waistcoat (identical) -->
+  <rect x="215" y="295" width="70" height="140" rx="4" fill="#8b0000"/>
+  <circle cx="250" cy="318" r="4" fill="#d4af37"/>
+  <circle cx="250" cy="336" r="4" fill="#d4af37"/>
+  <circle cx="250" cy="354" r="4" fill="#d4af37"/>
+  <circle cx="250" cy="372" r="4" fill="#d4af37"/>
+
+  <!-- White shirt front (identical) -->
+  <rect x="232" y="295" width="36" height="140" rx="3" fill="#f0f0f0"/>
+
+  <!-- ═══ BOUTONNIERE — DIFFERENCE 2: NO flower (left had pink flower) ═══ -->
+
+  <!-- Bow tie (identical) -->
+  <path d="M 232 298 L 244 308 L 232 318 Z" fill="#8b0000"/>
+  <path d="M 268 298 L 256 308 L 268 318 Z" fill="#8b0000"/>
+  <circle cx="250" cy="308" r="5" fill="#c00000"/>
+
+  <!-- ═══ SHIRT PATTERN — DIFFERENCE 3: Shirt has stripe pattern (left had polka dots) ═══ -->
+  <line x1="236" y1="295" x2="236" y2="435" stroke="#c0c0c0" stroke-width="1.5" opacity="0.5"/>
+  <line x1="244" y1="295" x2="244" y2="435" stroke="#c0c0c0" stroke-width="1.5" opacity="0.5"/>
+  <line x1="256" y1="295" x2="256" y2="435" stroke="#c0c0c0" stroke-width="1.5" opacity="0.5"/>
+  <line x1="264" y1="295" x2="264" y2="435" stroke="#c0c0c0" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- Lapels (identical) -->
+  <path d="M 215 295 L 195 340 L 230 315 Z" fill="#1a1a1a"/>
+  <path d="M 285 295 L 305 340 L 270 315 Z" fill="#1a1a1a"/>
+  <path d="M 218 298 L 202 336 L 218 322" stroke="#3a3a3a" stroke-width="1" fill="none" opacity="0.5"/>
+
+  <!-- Arms (identical) -->
+  <path d="M 178 305 Q 155 330 145 370 Q 140 395 145 415 L 170 408 Q 168 388 172 365 Q 180 335 192 312 Z" fill="#0a0a0a"/>
+  <path d="M 322 305 Q 348 318 358 345 Q 368 375 360 410 L 335 405 Q 340 375 332 348 Q 322 320 308 312 Z" fill="#0a0a0a"/>
+
+  <!-- Hands (identical) -->
+  <ellipse cx="157" cy="418" rx="16" ry="13" fill="url(#skinGrad)"/>
+  <ellipse cx="348" cy="412" rx="16" ry="13" fill="url(#skinGrad)"/>
+
+  <!-- Wand (identical) -->
+  <rect x="340" y="370" width="7" height="60" rx="3" fill="#1a0a00" transform="rotate(15,344,400)"/>
+  <circle cx="347" cy="370" r="5" fill="#f0f0f0" transform="rotate(15,344,400)"/>
+
+  <!-- ═══ CARDS — DIFFERENCE 4: NO cards in hand (left had 3 playing cards) ═══ -->
+
+  <!-- Neck (identical) -->
+  <rect x="234" y="268" width="32" height="28" rx="7" fill="url(#skinGrad)"/>
+
+  <!-- Head (identical) -->
+  <ellipse cx="250" cy="230" rx="58" ry="58" fill="url(#skinGrad)"/>
+
+  <!-- Ears (identical) -->
+  <ellipse cx="194" cy="232" rx="10" ry="13" fill="#e8a860"/>
+  <ellipse cx="306" cy="232" rx="10" ry="13" fill="#e8a860"/>
+
+  <!-- Hair (identical) -->
+  <path d="M 196 220 Q 198 185 225 172 Q 250 165 275 172 Q 302 185 304 220 L 296 215 Q 290 182 265 175 Q 250 170 235 175 Q 210 182 204 215 Z" fill="#0a0a0a"/>
+  <line x1="250" y1="170" x2="252" y2="215" stroke="#1a1a1a" stroke-width="2"/>
+
+  <!-- Eyebrows (identical) -->
+  <path d="M 210 212 Q 222 207 234 210" stroke="#0a0a0a" stroke-width="3.5" fill="none"/>
+  <path d="M 266 210 Q 278 207 290 212" stroke="#0a0a0a" stroke-width="3.5" fill="none"/>
+
+  <!-- Eyes (identical) -->
+  <circle cx="224" cy="225" r="12" fill="white"/>
+  <circle cx="226" cy="226" r="7" fill="#2a1a6a"/>
+  <circle cx="227" cy="225" r="4" fill="#0a0a0a"/>
+  <circle cx="228" cy="224" r="1.5" fill="white"/>
+  <circle cx="276" cy="225" r="12" fill="white"/>
+  <circle cx="278" cy="226" r="7" fill="#2a1a6a"/>
+  <circle cx="279" cy="225" r="4" fill="#0a0a0a"/>
+  <circle cx="280" cy="224" r="1.5" fill="white"/>
+
+  <!-- Mustache & face (identical) -->
+  <path d="M 234 248 Q 244 252 250 250 Q 256 252 266 248" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+  <path d="M 234 248 Q 244 255 250 253 Q 256 255 266 248" stroke="#0a0a0a" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 247 232 Q 243 242 239 246 Q 243 250 250 248 Q 257 250 261 246 Q 257 242 253 232" fill="#d4944a"/>
+  <path d="M 234 260 Q 244 268 250 268 Q 256 268 266 260" stroke="#8b4020" stroke-width="2.5" fill="none"/>
+
+  <!-- ═══ TOP HAT — DIFFERENCE 1: NO stars on hat ═══ -->
+  <ellipse cx="250" cy="178" rx="72" ry="14" fill="#0a0a0a"/>
+  <ellipse cx="250" cy="176" rx="68" ry="11" fill="#1a1a1a"/>
+  <rect x="194" y="80" width="112" height="100" rx="4" fill="#0a0a0a"/>
+  <rect x="198" y="84" width="104" height="92" rx="3" fill="#1a1a1a"/>
+  <rect x="194" y="162" width="112" height="16" rx="2" fill="#8b0000"/>
+  <!-- No stars on hat (left had gold star polygons) -->
+</svg>

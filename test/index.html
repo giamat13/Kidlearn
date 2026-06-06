@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KidLearn - בחר קטגוריה</title>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #FEC163;
+            --accent: #67D5B5;
+            --purple: #A78BFA;
+            --blue: #60A5FA;
+            --green: #34D399;
+            --orange: #FB923C;
+            --bg: #FFF8F0;
+            --card-bg: #FFFFFF;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Varela Round', 'Fredoka', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(103, 213, 181, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 90%, rgba(254, 193, 99, 0.08) 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: #666;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px var(--shadow);
+            border: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-card.hebrew::before {
+            background: linear-gradient(90deg, #FF6B9D, #FF8AB3);
+        }
+
+        .category-card.english::before {
+            background: linear-gradient(90deg, #60A5FA, #7DD3FC);
+        }
+
+        .category-card.math::before {
+            background: linear-gradient(90deg, #34D399, #5EEAD4);
+        }
+
+        .category-card.knowledge::before {
+            background: linear-gradient(90deg, #F59E0B, #FCD34D);
+        }
+
+        .category-card.series::before {
+            background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+        }
+
+        .category-card.games::before {
+            background: linear-gradient(90deg, #FEC163, #FBBF24);
+        }
+
+        .category-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .category-card.english .category-icon {
+            animation-delay: 0.1s;
+        }
+
+        .category-card.math .category-icon {
+            animation-delay: 0.2s;
+        }
+
+        .category-card.games .category-icon {
+            animation-delay: 0.3s;
+        }
+
+        .category-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .category-subtitle {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .category-count {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .category-card:hover .category-title {
+            color: var(--primary);
+        }
+
+        .message {
+            color: #444;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .categories-grid .category-card:nth-child(1) {
+            animation: fadeInDown 0.6s ease-out 0.1s both;
+        }
+
+        .categories-grid .category-card:nth-child(2) {
+            animation: fadeInDown 0.6s ease-out 0.2s both;
+        }
+
+        .categories-grid .category-card:nth-child(3) {
+            animation: fadeInDown 0.6s ease-out 0.3s both;
+        }
+
+        .categories-grid .category-card:nth-child(4) {
+            animation: fadeInDown 0.6s ease-out 0.4s both;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .category-icon {
+                font-size: 60px;
+            }
+
+            .category-title {
+                font-size: 1.5rem;
+            }
+
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 30px;
+            padding: 45px 40px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-emoji {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .modal h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .modal .modal-sub {
+            color: #999;
+            font-size: 0.95rem;
+            margin-bottom: 28px;
+        }
+
+        .modal label {
+            display: block;
+            text-align: right;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .modal input[type="text"],
+        .modal select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-family: 'Varela Round', sans-serif;
+            color: #333;
+            background: #FAFAFA;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 18px;
+            direction: rtl;
+            appearance: none;
+        }
+
+        .modal input[type="text"]:focus,
+        .modal select:focus {
+            outline: none;
+            border-color: #FF6B9D;
+            box-shadow: 0 0 0 4px rgba(255,107,157,0.15);
+            background: #fff;
+        }
+
+        .modal-save-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Varela Round', sans-serif;
+            transition: all 0.3s ease;
+            margin-top: 4px;
+        }
+
+        .modal-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,107,157,0.4);
+        }
+
+        .modal-cancel-btn {
+            background: none;
+            border: none;
+            color: #bbb;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 14px;
+            font-family: 'Varela Round', sans-serif;
+            transition: color 0.2s;
+        }
+
+        .modal-cancel-btn:hover { color: #999; }
+
+        .settings-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            z-index: 100;
+            font-family: 'Varela Round', sans-serif;
+        }
+
+        .settings-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Settings / Onboarding Modal -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal">
+            <span class="modal-emoji" id="modalEmoji">🎓</span>
+            <h2 id="modalTitle">ברוכים הבאים!</h2>
+            <p class="modal-sub" id="modalSub">הכנס את הפרטים שלך כדי להתחיל</p>
+
+            <label for="inputName">שם</label>
+            <input type="text" id="inputName" placeholder="למשל: יוסי" maxlength="30" />
+
+            <label for="inputGrade">כיתה</label>
+            <select id="inputGrade">
+                <option value="">בחר כיתה...</option>
+                <option value="preschool">טרום חובה</option>
+                <option value="kindergarten">גן חובה</option>
+                <option value="first">כיתה א׳</option>
+                <option value="second">כיתה ב׳</option>
+                <option value="third">כיתה ג׳</option>
+                <option value="fourth">כיתה ד׳</option>
+                <option value="fifth">כיתה ה׳</option>
+                <option value="sixth">כיתה ו׳</option>
+                <option value="seventh">כיתה ז׳</option>
+                <option value="eighth">כיתה ח׳</option>
+                <option value="ninth">כיתה ט׳</option>
+                <option value="tenth">כיתה י׳</option>
+                <option value="eleventh">כיתה י"א</option>
+                <option value="twelfth">כיתה י"ב</option>
+            </select>
+
+            <button class="modal-save-btn" onclick="saveSettings()">✅ שמור והתחל!</button>
+            <br>
+            <button class="modal-cancel-btn hidden" id="modalCancelBtn" onclick="closeModal()">ביטול</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎓 KidLearn</h1>
+            <p>בחר את הנושא שלך ותחל ללמוד!</p>
+            <div id="studentInfo" style="margin-top: 15px; font-size: 1.1rem; color: #666;"></div>
+        </div>
+
+        <div style="max-width:480px;margin:0 auto 30px;position:relative;">
+            <input type="text" id="searchInput" placeholder="🔍 חפש משחק או כלי..." oninput="renderSearch()"
+                style="width:100%;padding:14px 20px;font-size:1.1rem;font-family:'Varela Round',sans-serif;border:3px solid #eee;border-radius:50px;outline:none;background:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.08);direction:rtl;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#FF6B9D'" onblur="this.style.borderColor='#eee'">
+        </div>
+        <div id="searchResults" style="display:none;margin-bottom:20px;"></div>
+        <div class="categories-grid" id="categoriesGrid"></div>
+    </div>
+
+    <button class="settings-button hidden" id="settingsBtn" onclick="openSettingsModal()">⚙️ הגדרות</button>
+
+    <script>
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            const isMobile = /Mobi|Android|iPhone|iPod/.test(ua);
+            const isTablet = /iPad|Tablet/.test(ua) || (isMobile && Math.min(screen.width, screen.height) >= 600);
+            if (isTablet) return 'tablet';
+            if (isMobile) return 'mobile';
+            return 'desktop';
+        }
+
+        const GRADE_LABELS = {
+            preschool: 'טרום חובה',
+            kindergarten: 'גן חובה',
+            first: 'כיתה א׳',
+            second: 'כיתה ב׳',
+            third: 'כיתה ג׳',
+            fourth: 'כיתה ד׳',
+            fifth: 'כיתה ה׳',
+            sixth: 'כיתה ו׳',
+            seventh: 'כיתה ז׳',
+            eighth: 'כיתה ח׳',
+            ninth: 'כיתה ט׳',
+            tenth: 'כיתה י׳',
+            eleventh: 'כיתה י"א',
+            twelfth: 'כיתה י"ב'
+        };
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                c = c.trim();
+                if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length));
+            }
+            return null;
+        }
+
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+
+        const GRADE_ORDER = ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
+
+        function checkGradeUpgrade() {
+            const lastUpgradeYear = getCookie("gradeUpgradeYear");
+            const currentYear = new Date().getFullYear();
+            const now = new Date();
+            const isSeptemberOrLater = now.getMonth() >= 8;
+            if (!isSeptemberOrLater) return;
+            if (lastUpgradeYear === String(currentYear)) return;
+            const grade = getCookie("studentGrade");
+            if (!grade) return;
+            const idx = GRADE_ORDER.indexOf(grade);
+            if (idx === -1 || idx === GRADE_ORDER.length - 1) return;
+            const newGrade = GRADE_ORDER[idx + 1];
+            setCookie("studentGrade", newGrade, 365);
+            setCookie("gradeUpgradeYear", String(currentYear), 365);
+        }
+
+        function openSettingsModal() {
+            const name = getCookie('studentName') || '';
+            const grade = getCookie('studentGrade') || '';
+            document.getElementById('inputName').value = name;
+            document.getElementById('inputGrade').value = grade;
+            document.getElementById('modalEmoji').textContent = '⚙️';
+            document.getElementById('modalTitle').textContent = 'הגדרות';
+            document.getElementById('modalSub').textContent = 'ערוך את השם והכיתה שלך';
+            document.getElementById('modalCancelBtn').classList.remove('hidden');
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            const name = document.getElementById('inputName').value.trim();
+            const grade = document.getElementById('inputGrade').value;
+            if (!name) {
+                document.getElementById('inputName').focus();
+                document.getElementById('inputName').style.borderColor = '#FF6B9D';
+                return;
+            }
+            if (!grade) {
+                document.getElementById('inputGrade').style.borderColor = '#FF6B9D';
+                return;
+            }
+            setCookie('studentName', name, 365);
+            setCookie('studentGrade', grade, 365);
+            closeModal();
+            checkGradeUpgrade();
+        updateStudentInfo();
+            renderCategories();
+        }
+
+        function updateStudentInfo() {
+            const name = getCookie('studentName');
+            const grade = getCookie('studentGrade');
+            const studentInfo = document.getElementById('studentInfo');
+            const settingsBtn = document.getElementById('settingsBtn');
+            if (name) {
+                const gradeLabel = GRADE_LABELS[grade] || '';
+                studentInfo.textContent = `שלום, ${name}! 👋${gradeLabel ? '  |  ' + gradeLabel : ''}`;
+                settingsBtn.classList.remove('hidden');
+            } else {
+                studentInfo.textContent = '';
+                settingsBtn.classList.add('hidden');
+            }
+        }
+
+        function createCategoryCard(category, visibleCount) {
+            const card = document.createElement('div');
+            card.className = `category-card ${category.id}`;
+            card.onclick = () => {
+                window.location.href = `category.html?category=${category.id}`;
+            };
+            card.innerHTML = `
+                <span class="category-icon">${category.icon}</span>
+                <div class="category-title">${category.title}</div>
+                <div class="category-subtitle">${category.subtitle}</div>
+                <span class="category-count">${visibleCount} כלי${visibleCount === 1 ? '' : 'ים'}</span>
+            `;
+            return card;
+        }
+
+        async function renderCategories() {
+            const categoriesGrid = document.getElementById('categoriesGrid');
+            categoriesGrid.innerHTML = '';
+            try {
+                const response = await fetch('games.json');
+                const data = await response.json();
+                const grade = getCookie('studentGrade');
+                const device = detectDevice();
+                allItemsCache = data.items;
+
+                const visibleCategories = data.categories.map(category => {
+                    const visibleCount = data.items.filter(item =>
+                        item.categories.includes(category.id) &&
+                        (!grade || item.grade.includes(grade)) &&
+                        (!item.devices || item.devices.includes(device))
+                    ).length;
+                    return { category, visibleCount };
+                }).filter(entry => entry.visibleCount > 0);
+
+                if (visibleCategories.length === 0) {
+                    categoriesGrid.innerHTML = '<div class="message">אין קטגוריות זמינות לכיתה זו.</div>';
+                    return;
+                }
+
+                visibleCategories.forEach(entry => {
+                    categoriesGrid.appendChild(createCategoryCard(entry.category, entry.visibleCount));
+                });
+            } catch (error) {
+                categoriesGrid.innerHTML = '<div class="message">שגיאה בטעינת הנתונים. נא לנסות שוב מאוחר יותר.</div>';
+            }
+        }
+
+        let allItemsCache = [];
+
+        function renderSearch() {
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            const resultsEl = document.getElementById('searchResults');
+            const gridEl = document.getElementById('categoriesGrid');
+            if (!q) {
+                resultsEl.style.display = 'none';
+                resultsEl.innerHTML = '';
+                gridEl.style.display = '';
+                return;
+            }
+            gridEl.style.display = 'none';
+            const grade = getCookie('studentGrade');
+            const device = detectDevice();
+            const matches = allItemsCache.filter(item =>
+                (!grade || item.grade.includes(grade)) &&
+                (!item.devices || item.devices.includes(device)) &&
+                (item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q))
+            );
+            if (matches.length === 0) {
+                resultsEl.innerHTML = '<div class="message">לא נמצאו תוצאות.</div>';
+            } else {
+                resultsEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:30px;">${
+                    matches.map(item => `
+                        <a href="${item.url}" style="background:#fff;border-radius:20px;padding:30px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.1);border-top:4px solid #FF6B9D;text-decoration:none;color:inherit;display:block;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform=''" ${item.url.startsWith('http')?'target="_blank"':''}>
+                            <span style="font-size:50px;display:block;margin-bottom:12px;">${item.icon}</span>
+                            <div style="font-size:1.3rem;font-weight:700;color:#333;margin-bottom:8px;">${item.title}</div>
+                            <div style="font-size:0.9rem;color:#888;">${item.description}</div>
+                        </a>`
+                    ).join('')
+                }</div>`;
+            }
+            resultsEl.style.display = 'block';
+        }
+
+        // On load: show modal if no name set, otherwise show page normally
+        const existingName = getCookie('studentName');
+        if (!existingName) {
+            document.getElementById('modalOverlay').classList.remove('hidden');
+            document.getElementById('modalCancelBtn').classList.add('hidden');
+        }
+
+        checkGradeUpgrade();
+        updateStudentInfo();
+        renderCategories();
+
+        // Close modal on overlay click (only if not first-time)
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this && getCookie('studentName')) closeModal();
+        });
+
+        // Enter key support in name input
+        document.getElementById('inputName').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') saveSettings();
+        });
+    </script>

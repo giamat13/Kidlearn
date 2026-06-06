@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <linearGradient id="ksky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a6a8a"/>
+      <stop offset="100%" style="stop-color:#2a4a6a"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="500" fill="url(#ksky)"/>
+  <rect x="0" y="200" width="400" height="300" fill="#8B7355"/>
+  <rect x="0" y="200" width="80" height="40" fill="#7a6245" stroke="#6a5235" stroke-width="1"/>
+  <rect x="80" y="200" width="80" height="40" fill="#8B7355" stroke="#6a5235" stroke-width="1"/>
+  <rect x="160" y="200" width="80" height="40" fill="#7a6245" stroke="#6a5235" stroke-width="1"/>
+  <rect x="240" y="200" width="80" height="40" fill="#8B7355" stroke="#6a5235" stroke-width="1"/>
+  <rect x="320" y="200" width="80" height="40" fill="#7a6245" stroke="#6a5235" stroke-width="1"/>
+  <rect x="40" y="240" width="80" height="40" fill="#7a6245" stroke="#6a5235" stroke-width="1"/>
+  <rect x="120" y="240" width="80" height="40" fill="#8B7355" stroke="#6a5235" stroke-width="1"/>
+  <rect x="200" y="240" width="80" height="40" fill="#7a6245" stroke="#6a5235" stroke-width="1"/>
+  <rect x="280" y="240" width="80" height="40" fill="#8B7355" stroke="#6a5235" stroke-width="1"/>
+  <rect x="0" y="280" width="80" height="40" fill="#8B7355" stroke="#6a5235" stroke-width="1"/>
+  <rect x="80" y="280" width="80" height="40" fill="#7a6245" stroke="#6a5235" stroke-width="1"/>
+  <rect x="160" y="280" width="80" height="40" fill="#8B7355" stroke="#6a5235" stroke-width="1"/>
+  <rect x="240" y="280" width="80" height="40" fill="#7a6245" stroke="#6a5235" stroke-width="1"/>
+  <rect x="320" y="280" width="80" height="40" fill="#8B7355" stroke="#6a5235" stroke-width="1"/>
+  <rect x="0" y="155" width="400" height="50" fill="#8B7355"/>
+  <rect x="30" y="155" width="20" height="35" fill="url(#ksky)"/>
+  <rect x="80" y="155" width="20" height="35" fill="url(#ksky)"/>
+  <rect x="130" y="155" width="20" height="35" fill="url(#ksky)"/>
+  <rect x="180" y="155" width="20" height="35" fill="url(#ksky)"/>
+  <rect x="230" y="155" width="20" height="35" fill="url(#ksky)"/>
+  <rect x="280" y="155" width="20" height="35" fill="url(#ksky)"/>
+  <rect x="330" y="155" width="20" height="35" fill="url(#ksky)"/>
+  <rect x="380" y="155" width="20" height="35" fill="url(#ksky)"/>
+
+  <line x1="40" y1="155" x2="40" y2="115" stroke="#888" stroke-width="2"/>
+  <rect x="40" y="115" width="30" height="20" fill="#CC0000"/>
+  <line x1="200" y1="155" x2="200" y2="110" stroke="#888" stroke-width="2"/>
+  <!-- DIFF 1: Only 2 diamonds on flag (left has 4) -->
+  <rect x="200" y="110" width="40" height="25" fill="#CC0000"/>
+  <polygon points="210,115 215,120 210,125 205,120" fill="#FFD700"/>
+  <polygon points="222,115 227,120 222,125 217,120" fill="#FFD700"/>
+  <line x1="350" y1="155" x2="350" y2="118" stroke="#888" stroke-width="2"/>
+  <rect x="350" y="118" width="30" height="20" fill="#0000AA"/>
+
+  <rect x="162" y="435" width="32" height="50" rx="8" fill="#778899"/>
+  <rect x="206" y="435" width="32" height="50" rx="8" fill="#778899"/>
+  <rect x="155" y="472" width="45" height="22" rx="8" fill="#6a7b8a"/>
+  <rect x="200" y="472" width="45" height="22" rx="8" fill="#6a7b8a"/>
+  <rect x="163" y="370" width="30" height="70" rx="6" fill="#8899aa"/>
+  <rect x="207" y="370" width="30" height="70" rx="6" fill="#8899aa"/>
+  <ellipse cx="178" cy="372" rx="18" ry="10" fill="#6a7b8a"/>
+  <ellipse cx="222" cy="372" rx="18" ry="10" fill="#6a7b8a"/>
+  <rect x="158" y="320" width="40" height="55" rx="8" fill="#778899"/>
+  <rect x="202" y="320" width="40" height="55" rx="8" fill="#778899"/>
+  <rect x="145" y="305" width="110" height="25" rx="8" fill="#6a7b8a"/>
+  <rect x="140" y="225" width="120" height="85" rx="12" fill="#8899aa"/>
+  <path d="M200 235 L200 305" stroke="#6a7b8a" stroke-width="3"/>
+  <path d="M145 260 L255 260" stroke="#6a7b8a" stroke-width="2" opacity="0.5"/>
+  <rect x="192" y="240" width="16" height="40" fill="#CC0000" opacity="0.8"/>
+  <rect x="175" y="255" width="50" height="14" fill="#CC0000" opacity="0.8"/>
+  <!-- DIFF 2: Only 3 rivets (left has 6) -->
+  <circle cx="150" cy="240" r="4" fill="#AAB8C5"/>
+  <circle cx="250" cy="240" r="4" fill="#AAB8C5"/>
+  <circle cx="200" cy="290" r="4" fill="#AAB8C5"/>
+
+  <ellipse cx="140" cy="232" rx="28" ry="18" fill="#6a7b8a"/>
+  <ellipse cx="260" cy="232" rx="28" ry="18" fill="#6a7b8a"/>
+  <ellipse cx="130" cy="245" rx="22" ry="10" fill="#778899"/>
+  <ellipse cx="270" cy="245" rx="22" ry="10" fill="#778899"/>
+  <rect x="102" y="238" width="30" height="70" rx="10" fill="#8899aa"/>
+  <rect x="268" y="238" width="30" height="70" rx="10" fill="#8899aa"/>
+  <ellipse cx="117" cy="312" rx="16" ry="10" fill="#6a7b8a"/>
+  <ellipse cx="283" cy="312" rx="16" ry="10" fill="#6a7b8a"/>
+  <rect x="104" y="316" width="26" height="55" rx="8" fill="#8899aa"/>
+  <rect x="270" y="316" width="26" height="55" rx="8" fill="#8899aa"/>
+  <rect x="100" y="366" width="34" height="28" rx="8" fill="#6a7b8a"/>
+  <rect x="266" y="366" width="34" height="28" rx="8" fill="#6a7b8a"/>
+  <rect x="102" y="390" width="8" height="10" rx="3" fill="#778899"/>
+  <rect x="112" y="390" width="8" height="10" rx="3" fill="#778899"/>
+  <rect x="122" y="390" width="8" height="10" rx="3" fill="#778899"/>
+
+  <rect x="296" y="240" width="8" height="140" rx="3" fill="#C0C0C0"/>
+  <rect x="278" y="278" width="44" height="8" rx="3" fill="#8B4513"/>
+  <circle cx="300" cy="288" r="6" fill="#8B4513"/>
+  <!-- DIFF 3: Only 2 sword notches (left has 5) -->
+  <rect x="294" y="260" width="12" height="4" fill="#AAA"/>
+  <rect x="294" y="300" width="12" height="4" fill="#AAA"/>
+  <polygon points="296,380 304,380 300,400" fill="#C0C0C0"/>
+
+  <ellipse cx="105" cy="340" rx="40" ry="50" fill="#8B0000"/>
+  <ellipse cx="105" cy="340" rx="40" ry="50" fill="none" stroke="#FFD700" stroke-width="4"/>
+  <path d="M105 295 L105 385" stroke="#FFD700" stroke-width="3"/>
+  <path d="M68 340 L142 340" stroke="#FFD700" stroke-width="3"/>
+  <!-- DIFF 4: Only 1 fleur-de-lis (left has 4) -->
+  <text x="98" y="345" font-size="16" fill="#FFD700">⚜</text>
+
+  <rect x="160" y="170" width="80" height="62" rx="8" fill="#8899aa"/>
+  <rect x="163" y="190" width="74" height="30" rx="5" fill="#6a7b8a"/>
+  <!-- DIFF 5: Only 3 visor slits (left has 5) -->
+  <rect x="168" y="195" width="60" height="4" rx="1" fill="#4a5a6a"/>
+  <rect x="168" y="205" width="60" height="4" rx="1" fill="#4a5a6a"/>
+  <rect x="168" y="215" width="60" height="4" rx="1" fill="#4a5a6a"/>
+  <path d="M200 170 Q185 145 175 125 Q185 135 195 120 Q195 140 200 155 Q205 140 205 120 Q215 135 215 145 Q205 155 200 170Z" fill="#CC0000"/>
+  <rect x="196" y="165" width="8" height="10" rx="2" fill="#6a7b8a"/>
+</svg>
