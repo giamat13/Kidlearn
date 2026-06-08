@@ -48,6 +48,13 @@
       "subtitle": "משחקים חינוכיים לזיכרון ואותיות",
       "icon": "🎮",
       "color": "linear-gradient(90deg, #FEC163, #FBBF24)"
+    },
+    {
+      "id": "gan-chova",
+      "title": "הכנה לכיתה א'",
+      "subtitle": "הכנה חובה לכניסה לכיתה א' עם כל הכלים הדרושים",
+      "icon": "📝",
+      "color": "linear-gradient(90deg, #EC4899, #F43F5E)"
     }
   ],
   "items": [
@@ -57,7 +64,7 @@
       "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
       "icon": "🔤",
       "url": "Letters-game/index.html",
-      "categories": ["he", "games"],
+      "categories": ["he", "games", "gan-chova"],
       "grade": ["kindergarten", "first"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -117,7 +124,7 @@
       "description": "ללמוד מספרים עד 10 בדרכים מהנות.",
       "icon": "🔢",
       "url": "Learn-Color-Numburs/index.html",
-      "categories": ["math"],
+      "categories": ["math", "gan-chova"],
       "grade": ["preschool", "kindergarten", "first"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -127,7 +134,7 @@
       "description": "ללמוד איות בדרך מהנה.",
       "icon": "📝",
       "url": "words-he-build/index.html",
-      "categories": ["he"],
+      "categories": ["he", "gan-chova"],
       "grade": ["kindergarten", "first", "second", "third"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -307,7 +314,7 @@
       "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
       "icon": "🔡",
       "url": "nikud-game/index.html",
-      "categories": ["he", "games"],
+      "categories": ["he", "games", "gan-chova"],
       "grade": ["kindergarten", "first"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -327,7 +334,7 @@
       "description": "צבע תמונות מהנות לפי מספרים — כל מספר מייצג צבע!",
       "icon": "🎨",
       "url": "coloring-pages/index.html",
-      "categories": ["math", "games"],
+      "categories": ["math", "games", "gan-chova"],
       "grade": ["preschool", "kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
     },
