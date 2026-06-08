@@ -337,16 +337,6 @@
       "categories": ["math", "games", "gan-chova"],
       "grade": ["preschool", "kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
-    },
-    {
-      "id": "spot-the-difference",
-      "title": "מצא את ההבדלים",
-      "description": "מצא את כל ההבדלים בין שתי התמונות!",
-      "icon": "🔍",
-      "url": "Spot-the-difference/index.html",
-      "categories": ["games", "he"],
-      "grade": ["kindergarten", "first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
     }
   ]
 }
