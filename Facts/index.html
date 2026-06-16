@@ -369,7 +369,7 @@
         <div class="results-container" id="resultsContainer">
             <div class="results-header">
                 <div class="results-title" id="resultsTitle">תוצאות חיפוש</div>
-                <button class="back-button" onclick="goBack()">🏠 חזרה</button>
+                <button class="back-button" onclick="goBack()" data-gamepad-back>🏠 חזרה</button>
             </div>
             <div class="results-grid" id="resultsGrid"></div>
             <div class="fun-facts" id="funFacts"></div>
@@ -585,5 +585,6 @@ const categories = {
             }
         }
     </script>
+    <script src="../effects/gamepad-ui.js"></script>
 </body>
 </html>

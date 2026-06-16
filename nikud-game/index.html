@@ -272,7 +272,7 @@
             <div class="final-score" id="finalScore"></div>
             <div>
                 <button class="restart-btn" onclick="startGame()">שחק שוב 🔄</button>
-                <button class="back-btn" onclick="goBack()">חזרה לתפריט</button>
+                <button class="back-btn" onclick="goBack()" data-gamepad-back>חזרה לתפריט</button>
             </div>
         </div>
     </div>
@@ -602,5 +602,6 @@ const NIKUD = [
 
         startGame();
     </script>
+    <script src="../effects/gamepad-ui.js"></script>
 </body>
 </html>

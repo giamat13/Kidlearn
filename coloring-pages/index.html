@@ -233,7 +233,7 @@ body{
 <body>
 
 <div class="header">
-  <button class="back-btn" onclick="history.back()">← חזור</button>
+  <button class="back-btn" onclick="history.back()" data-gamepad-back>← חזור</button>
   <h1>🎨 צביעה לפי מספרים</h1>
   <div style="width:60px"></div>
 </div>
@@ -581,5 +581,6 @@ function launchConfetti() {
 // ─── Init ────────────────────────────────────────────────────────────
 loadScene(0);
 </script>
+<script src="../effects/gamepad-ui.js"></script>
 </body>
 </html>
