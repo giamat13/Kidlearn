@@ -15,7 +15,7 @@
 
     // ---------- הגדרות ----------
     var DEADZONE = 0.15;
-    var CURSOR_MAX_SPEED = 18; // פיקסלים לפריים בהטיה מקסימלית
+    var CURSOR_MAX_SPEED = 8; // פיקסלים לפריים בהטיה מקסימלית
     var FOCUS_OUTLINE_COLOR = '#FF6B9D';
     var BACK_BUTTON_SELECTOR = '[data-gamepad-back]'; // סלקטור לכפתור Back
     var BUTTON_COOLDOWN_MS = 250; // זמן מינימלי בין שתי הפעלות של אותו כפתור, נגד ריצוד/לחיצות כפולות
