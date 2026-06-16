@@ -18,6 +18,11 @@
     var CURSOR_MAX_SPEED = 18; // פיקסלים לפריים בהטיה מקסימלית
     var FOCUS_OUTLINE_COLOR = '#FF6B9D';
     var BACK_BUTTON_SELECTOR = '[data-gamepad-back]'; // סלקטור לכפתור Back
+    var BUTTON_COOLDOWN_MS = 250; // זמן מינימלי בין שתי הפעלות של אותו כפתור, נגד ריצוד/לחיצות כפולות
+
+    // מצב debug: הפעל ע"י window.GAMEPAD_DEBUG = true בקונסול, או ?gpdebug ב-URL.
+    // מדפיס לקונסול כל כפתור שנלחץ (אינדקס) — שימושי לבדוק מיפוי בבקר לא-סטנדרטי.
+    var DEBUG = /[?&]gpdebug\b/.test(location.search);
 
     // ---------- מצב ----------
     var cursorX = window.innerWidth / 2;
@@ -29,6 +34,31 @@
     // מצב כפתורים קודם, לכל gamepad index, ל-edge detection
     // prevButtons[gamepadIndex] = [bool, bool, ...]
     var prevButtons = {};
+
+    // נעילה + cooldown גנריים לכל "פעולה" (Back / A-click / LB / RB):
+    // locked[actionName][padIndex] - חובה לשחרר את הכפתור לפני הפעלה חדשה.
+    // lastFire[actionName][padIndex] - חותמת זמן ההפעלה האחרונה, לאכיפת BUTTON_COOLDOWN_MS.
+    // מונע גם ירי חוזר כשהדף לא מתחלף (goBack שמחליף תצוגה) וגם ריצוד של הבקר.
+    var actionLocked = {};
+    var actionLastFire = {};
+
+    // מפעיל fn לכלל-once-per-press, עם cooldown, לפעולה בשם actionName על בקר padIndex.
+    // pressedNow: האם הכפתור/ים הרלוונטיים לחוצים כרגע בפריים הזה.
+    function fireWithCooldown(actionName, padIndex, pressedNow, fn) {
+        if (!actionLocked[actionName]) actionLocked[actionName] = {};
+        if (!actionLastFire[actionName]) actionLastFire[actionName] = {};
+        if (!pressedNow) {
+            actionLocked[actionName][padIndex] = false; // שוחרר - מאפשר הפעלה הבאה
+            return;
+        }
+        if (actionLocked[actionName][padIndex]) return; // עדיין לחוץ מההפעלה הקודמת
+        actionLocked[actionName][padIndex] = true;
+        var now = performance.now();
+        var last = actionLastFire[actionName][padIndex] || 0;
+        if (now - last < BUTTON_COOLDOWN_MS) return; // בתוך חלון ה-cooldown
+        actionLastFire[actionName][padIndex] = now;
+        fn();
+    }
 
     // ---------- יצירת סמן ויזואלי ----------
     function createCursor() {
@@ -95,6 +125,45 @@
         }
         if (rect) {
             flashCursor();
+        }
+    }
+
+    // ---------- כפתור Back ----------
+    // בודק שהאלמנט באמת גלוי (לא display:none / visibility:hidden / מחוץ ל-DOM).
+    // חשוב כי בחלק מהמשחקים יש כמה כפתורי Back שחלקם מוסתרים (מסך סיום וכו').
+    function isVisible(el) {
+        if (!el) return false;
+        var rect = el.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) return false;
+        var style = window.getComputedStyle(el);
+        return style.visibility !== 'hidden' && style.display !== 'none';
+    }
+
+    function triggerBack() {
+        flashCursor();
+        // מאתר את כל כפתורי ה-Back ובוחר את הראשון שגלוי כרגע.
+        var candidates = document.querySelectorAll(BACK_BUTTON_SELECTOR);
+        var backEl = null;
+        for (var i = 0; i < candidates.length; i++) {
+            if (isVisible(candidates[i])) {
+                backEl = candidates[i];
+                break;
+            }
+        }
+        if (backEl) {
+            // .click() מפעיל onclick inline, listeners, וניווט של <a>.
+            if (typeof backEl.click === 'function') {
+                backEl.click();
+            } else {
+                backEl.dispatchEvent(new MouseEvent('click', {
+                    bubbles: true, cancelable: true, view: window
+                }));
+            }
+            return;
+        }
+        // אין כפתור Back גלוי בעמוד הזה — fallback לניווט אחורה של הדפדפן.
+        if (window.history.length > 1) {
+            window.history.back();
         }
     }
 
@@ -211,39 +280,32 @@
             moveCursorTo(cursorX + dx * CURSOR_MAX_SPEED, cursorY + dy * CURSOR_MAX_SPEED);
         }
 
-        // --- כפתור A (אינדקס 0) = קליק, עם edge-detection ---
-        var aPressed = buttonPressed(buttons, 0);
-        var aPrev = !!prev[0];
-        if (aPressed && !aPrev) {
-            clickAtCursor();
-        }
+        // --- כפתור A (אינדקס 0) = קליק, עם נעילת-שחרור + cooldown ---
+        fireWithCooldown('a', pad.index, buttonPressed(buttons, 0), clickAtCursor);
 
-        // --- LB/RB (4/5) = ניווט כרטיסיות/פוקוס, עם edge-detection ---
-        var lbPressed = buttonPressed(buttons, 4);
-        var rbPressed = buttonPressed(buttons, 5);
-        var lbPrev = !!prev[4];
-        var rbPrev = !!prev[5];
-        if (lbPressed && !lbPrev) {
+        // --- LB/RB (4/5) = ניווט כרטיסיות/פוקוס, עם נעילת-שחרור + cooldown ---
+        fireWithCooldown('lb', pad.index, buttonPressed(buttons, 4), function () {
             navigateFocusable(-1);
-        }
-        if (rbPressed && !rbPrev) {
+        });
+        fireWithCooldown('rb', pad.index, buttonPressed(buttons, 5), function () {
             navigateFocusable(1);
-        }
+        });
 
-        // --- Button 9 (Back/Select) = לחץ על כפתור Back אם קיים ---
-        var backPressed = buttonPressed(buttons, 9);
-        var backPrev = !!prev[9];
-        if (backPressed && !backPrev) {
-            var backEl = document.querySelector(BACK_BUTTON_SELECTOR);
-            if (backEl) {
-                clickAtCursor_Custom(backEl);
-            }
-        }
+        // --- כפתור Back: B (1) / View-Select (8) / Start-Menu (9) ---
+        // ב-mapping סטנדרטי B הוא הכפתור המוכר ל"חזרה/ביטול".
+        var backNow = buttonPressed(buttons, 1) ||
+                      buttonPressed(buttons, 8) ||
+                      buttonPressed(buttons, 9);
+        fireWithCooldown('back', pad.index, backNow, triggerBack);
 
         // שמירת מצב הכפתורים לפריים הבא (edge detection)
         var snapshot = [];
         for (var i = 0; i < buttons.length; i++) {
             snapshot[i] = buttonPressed(buttons, i);
+            if ((DEBUG || window.GAMEPAD_DEBUG) && snapshot[i] && !prev[i]) {
+                console.log('[gamepad] button down index=' + i +
+                    ' mapping=' + pad.mapping + ' id=' + pad.id);
+            }
         }
         prevButtons[pad.index] = snapshot;
     }
@@ -258,7 +320,10 @@
             if (!rafId) pollGamepads();
         });
         window.addEventListener('gamepaddisconnected', function (e) {
-            delete prevButtons[e.gamepad.index];
+            var idx = e.gamepad.index;
+            delete prevButtons[idx];
+            for (var action in actionLocked) delete actionLocked[action][idx];
+            for (var action2 in actionLastFire) delete actionLastFire[action2][idx];
         });
 
         // התחל לדגום בכל מקרה (ייתכן שבקר כבר מחובר לפני האירוע)
