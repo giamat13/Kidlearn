@@ -337,6 +337,16 @@
       "categories": ["math", "games", "gan-chova"],
       "grade": ["preschool", "kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "ruler-design",
+      "title": "עיצוב סרגל מתקפל",
+      "description": "צובעים ומקשטים סרגל מתקפל בדרך יצירתית ומהנה.",
+      "icon": "🎨",
+      "url": "Ruler-design/index.html",
+      "categories": ["games", "he"],
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
     }
   ]
 }
