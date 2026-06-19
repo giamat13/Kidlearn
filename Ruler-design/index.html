@@ -331,9 +331,29 @@
   /* hidden screens */
   .screen { display: none; }
   .screen.active { display: block; }
+
+  /* back button */
+  .back-btn {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    background: rgba(193,111,255,0.15);
+    border: 2px solid var(--purple);
+    color: var(--purple);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .2s;
+    z-index: 100;
+  }
+  .back-btn:hover { background: rgba(193,111,255,0.3); }
 </style>
 </head>
 <body>
+
+<button class="back-btn" onclick="history.back()" data-gamepad-back>← חזור</button>
 
 <h1>✂️ הסרגל המתקפל שלי 🌈</h1>
 <p class="subtitle">עצבי, גזרי, הדפיסי!</p>
@@ -829,5 +849,6 @@ function goTo(i) {
 setupTools();
 initRuler();
 </script>
+<script src="../effects/gamepad-ui.js"></script>
 </body>
 </html>

@@ -112,8 +112,8 @@
             bubbles: true,
             cancelable: true,
             view: window,
-            clientX: rect ? rect.left + rect.width / 2 : cursorX,
-            clientY: rect ? rect.top + rect.height / 2 : cursorY
+            clientX: cursorX,
+            clientY: cursorY
         };
         try {
             el.dispatchEvent(new MouseEvent('mousedown', opts));
