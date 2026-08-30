@@ -1,8 +1,5 @@
 .sixth/
 TODO.md
 .claude/
-functions/node_modules/
-functions/.env
-functions/.env.*
 .firebase/
 firebase-debug.log

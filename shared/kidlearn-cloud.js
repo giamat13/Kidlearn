@@ -13,7 +13,7 @@
     return /^[a-z0-9_]{3,20}$/.test(String(username || "").trim().toLowerCase());
   }
 
-  let app, auth, db, analytics, functions;
+  let app, auth, db, analytics;
   let currentProfile = null; // { uid, username }
   const authListeners = [];
 
@@ -22,9 +22,11 @@
     app = firebase.initializeApp(config);
     auth = firebase.auth();
     db = firebase.firestore();
-    functions = firebase.app().functions ? firebase.functions() : null;
     if (config.measurementId && firebase.analytics) {
       analytics = firebase.analytics();
+    }
+    if (window.KIDLEARN_EMAILJS_CONFIG && window.emailjs) {
+      window.emailjs.init(window.KIDLEARN_EMAILJS_CONFIG.publicKey);
     }
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -33,7 +35,8 @@
         return;
       }
       const snap = await db.collection("users").doc(user.uid).get();
-      currentProfile = { uid: user.uid, username: (snap.data() || {}).username || user.email };
+      const storedUsername = (snap.data() || {}).username;
+      currentProfile = { uid: user.uid, username: storedUsername || (user.email || "").split("@")[0] };
       authListeners.forEach((cb) => cb(currentProfile));
     });
   }
@@ -109,11 +112,46 @@
     },
   };
 
+  // Sends straight from the browser via EmailJS (no server/Cloud Function needed,
+  // works on Firebase's free Spark plan). Requires shared/kidlearn-emailjs-config.js
+  // and the EmailJS SDK script to be loaded before KidLearn.init().
   async function sendFamilyMessage(contactId, subject, body) {
     requireAuth();
-    const call = functions.httpsCallable("sendFamilyMessage");
-    const res = await call({ contactId, subject, body });
-    return res.data;
+    if (!window.emailjs || !window.KIDLEARN_EMAILJS_CONFIG) {
+      throw new Error("EmailJS לא הוגדר - ראו shared/kidlearn-emailjs-config.js");
+    }
+    const uid = auth.currentUser.uid;
+    const contactSnap = await db.collection("users").doc(uid).collection("contacts").doc(contactId).get();
+    if (!contactSnap.exists) throw new Error("איש הקשר לא נמצא");
+    const contact = contactSnap.data();
+
+    const userSnap = await db.collection("users").doc(uid).get();
+    const fromUsername = (userSnap.data() || {}).username || "ילד/ה מ-KidLearn";
+
+    const messageRef = db.collection("messages").doc();
+    await messageRef.set({
+      fromUid: uid,
+      fromUsername,
+      toName: contact.name,
+      toEmail: contact.email,
+      subject: subject || "הודעה חדשה מ-KidLearn",
+      body,
+      replied: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const replyLink = new URL("reply.html?id=" + messageRef.id, location.href).href;
+    const { serviceId, templateId } = window.KIDLEARN_EMAILJS_CONFIG;
+    await window.emailjs.send(serviceId, templateId, {
+      to_email: contact.email,
+      to_name: contact.name,
+      from_username: fromUsername,
+      subject: subject || `הודעה חדשה מ-${fromUsername} ב-KidLearn`,
+      message: body,
+      reply_link: replyLink,
+    });
+
+    return { messageId: messageRef.id };
   }
 
   // Generic localStorage<->cloud bridge so existing games can gain cloud saves
