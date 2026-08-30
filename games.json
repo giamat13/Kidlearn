@@ -55,6 +55,13 @@
       "subtitle": "הכנה חובה לכניסה לכיתה א' עם כל הכלים הדרושים",
       "icon": "📝",
       "color": "linear-gradient(90deg, #EC4899, #F43F5E)"
+    },
+    {
+      "id": "family",
+      "title": "משפחה",
+      "subtitle": "כלים לתקשורת עם המשפחה",
+      "icon": "💌",
+      "color": "linear-gradient(90deg, #FB7185, #FDA4AF)"
     }
   ],
   "items": [
@@ -446,6 +453,16 @@
       "url": "first-reading-game/index.html",
       "categories": ["gan-chova"],
       "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "family-mail",
+      "title": "מכתב למשפחה",
+      "description": "כותבים (או מדברים!) מכתב שנשלח באמת באימייל למשפחה, והם יכולים לענות.",
+      "icon": "💌",
+      "url": "family-mail/index.html",
+      "categories": ["family", "games"],
+      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"],
       "devices": ["mobile", "tablet", "desktop"]
     }
   ]

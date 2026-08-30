@@ -60,6 +60,13 @@
     <div id="app" class="p-6"></div>
     <div id="toast" class="toast"></div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="../../shared/kidlearn-firebase-config.js"></script>
+    <script src="../../shared/kidlearn-cloud.js"></script>
+    <script src="../../shared/kidlearn-widget.js"></script>
+    <script>KidLearn.init();</script>
     <script>
         class VocabApp {
             constructor() {
@@ -78,6 +85,7 @@
 
             saveWords() {
                 localStorage.setItem('vocabWords', JSON.stringify(this.words));
+                if (window.KidLearn) KidLearn.pushLocalStorageKey('vocabWords');
             }
 
             getStats() {
@@ -213,6 +221,7 @@
             toggleAutoTranslate() {
                 this.autoTranslate = !this.autoTranslate;
                 localStorage.setItem('autoTranslate', this.autoTranslate);
+                if (window.KidLearn) KidLearn.pushLocalStorageKey('autoTranslate');
                 this.showToast(this.autoTranslate ? '✓ תרגום אוטומטי הופעל' : 'תרגום אוטומטי כבוי');
                 this.render();
             }
@@ -527,6 +536,18 @@
 
         // Initialize app
         const app = new VocabApp();
+        if (window.KidLearn) {
+            KidLearn.onAuthChange(async (profile) => {
+                if (profile) {
+                    await KidLearn.pullLocalStorageKey('vocabWords');
+                    await KidLearn.pullLocalStorageKey('autoTranslate');
+                    app.words = JSON.parse(localStorage.getItem('vocabWords')) || [];
+                    const savedSetting = localStorage.getItem('autoTranslate');
+                    app.autoTranslate = savedSetting === null ? true : savedSetting === 'true';
+                    app.render();
+                }
+            });
+        }
     </script>
 </body>
 </html>

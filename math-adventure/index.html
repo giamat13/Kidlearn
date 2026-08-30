@@ -13,69 +13,41 @@
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="../shared/kidlearn-firebase-config.js"></script>
+    <script src="../shared/kidlearn-cloud.js"></script>
+    <script src="../shared/kidlearn-widget.js"></script>
+    <script>
+        KidLearn.init();
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'math-adventure-game';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-
-        let db = null;
-        let auth = null;
-        let currentUser = null;
-
-        if (firebaseConfig) {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-
-            async function initCloudAuth() {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        const userCred = await signInWithCustomToken(auth, __initial_auth_token);
-                        currentUser = userCred.user;
-                    } else {
-                        const userCred = await signInAnonymously(auth);
-                        currentUser = userCred.user;
-                    }
-                    if (currentUser && window.loadGameStateFromCloud) {
-                        window.loadGameStateFromCloud();
-                    }
-                } catch (e) {
-                    console.error("Firebase auth error:", e);
-                }
-            }
-            initCloudAuth();
-        }
-
-        // Global functions for cloud persistence
-        window.saveGameStateToCloud = async function(data) {
-            if (!db || !currentUser) return;
+        // Global functions for cloud persistence (backed by the KidLearn account system).
+        window.saveGameStateToCloud = async function (data) {
+            if (!KidLearn.currentUser()) return;
             try {
-                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saveData', 'progress');
-                await setDoc(userDocRef, data, { merge: true });
+                await KidLearn.saveData('math-adventure', data);
                 window.showSaveNotification();
             } catch (e) {
                 console.error("Error saving game state:", e);
             }
         };
 
-        window.loadGameStateFromCloud = async function() {
-            if (!db || !currentUser) return;
+        window.loadGameStateFromCloud = async function () {
+            if (!KidLearn.currentUser()) return;
             try {
-                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saveData', 'progress');
-                const docSnap = await getDoc(userDocRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (window.applyLoadedGameState) {
-                        window.applyLoadedGameState(data);
-                    }
+                const data = await KidLearn.loadData('math-adventure');
+                if (data && window.applyLoadedGameState) {
+                    window.applyLoadedGameState(data);
                 }
             } catch (e) {
                 console.error("Error loading game state:", e);
             }
         };
+
+        KidLearn.onAuthChange((profile) => {
+            if (profile) window.loadGameStateFromCloud();
+        });
     </script>
 
     <style>
