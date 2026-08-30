@@ -2,7 +2,7 @@
 // Email Templates (service + template IDs). The public key is meant to be public
 // (EmailJS enforces limits/allowed domains on their side) - safe to commit.
 window.KIDLEARN_EMAILJS_CONFIG = {
-  publicKey: "PASTE_ME",
-  serviceId: "PASTE_ME",
-  templateId: "PASTE_ME",
+  publicKey: "HR6FKhSxM7L4RHDZq",
+  serviceId: "service_wsdxorq",
+  templateId: "template_79vstg7",
 };
