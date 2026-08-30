@@ -140,13 +140,15 @@
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
-    const replyLink = new URL("reply.html?id=" + messageRef.id, location.href).href;
+    // Hardcoded to the production site so replies sent while testing locally
+    // (e.g. from 127.0.0.1:5500) still link somewhere the family can actually open.
+    const replyLink = "https://giamat13.github.io/Kidlearn/family-mail/reply.html?id=" + messageRef.id;
     const { serviceId, templateId } = window.KIDLEARN_EMAILJS_CONFIG;
     await window.emailjs.send(serviceId, templateId, {
       to_email: contact.email,
       to_name: contact.name,
       from_username: fromUsername,
-      subject: subject || `הודעה חדשה מ-${fromUsername} ב-KidLearn`,
+      subject: `הודעה מ: ${fromUsername} ${subject || "הודעה חדשה"}`,
       message: body,
       reply_link: replyLink,
     });
@@ -177,9 +179,20 @@
     return messages;
   }
 
+  async function getUnseenReplies() {
+    const messages = await listSentMessages();
+    return messages.filter((m) => m.replied && !m.replySeenByKid);
+  }
+
+  async function markReplySeen(messageId) {
+    requireAuth();
+    await db.collection("messages").doc(messageId).update({ replySeenByKid: true });
+  }
+
   window.KidLearn = {
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
     saveData, loadData, contacts, sendFamilyMessage, listSentMessages,
+    getUnseenReplies, markReplySeen,
     _internal: { usernameToAuthEmail, isValidUsername },
   };
 })();

@@ -4,38 +4,71 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>מכתב למשפחה</title>
+<link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  body{font-family:sans-serif;background:#FFF5F8;margin:0;padding:16px;direction:rtl}
-  h1{color:#FF6B9D;text-align:center}
-  .card{background:#fff;border-radius:16px;padding:16px;max-width:480px;margin:16px auto;
-    box-shadow:0 2px 8px rgba(0,0,0,.08)}
-  input,textarea,select{width:100%;box-sizing:border-box;padding:9px;margin:6px 0;
-    border:1px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit}
+  :root{
+    --primary:#FF6B9D; --purple:#A78BFA; --accent:#67D5B5; --bg:#FFF8F0; --shadow:rgba(0,0,0,.1);
+  }
+  *{box-sizing:border-box}
+  body{font-family:'Varela Round','Fredoka',sans-serif;background:var(--bg);
+    background-image:radial-gradient(circle at 20% 30%, rgba(255,107,157,.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(103,213,181,.08) 0%, transparent 50%);
+    margin:0;padding:16px;direction:rtl;min-height:100vh}
+  h1{color:var(--primary);text-align:center;font-size:2.2rem;margin:10px 0 4px}
+  .subtitle{text-align:center;color:#888;margin-bottom:10px}
+  .card{background:#fff;border-radius:20px;padding:20px;max-width:480px;margin:16px auto;
+    box-shadow:0 10px 30px var(--shadow)}
+  input,textarea,select{width:100%;box-sizing:border-box;padding:12px 14px;margin:6px 0;
+    border:2px solid #eee;border-radius:12px;font-size:15px;font-family:inherit;background:#FAFAFA;
+    transition:border-color .2s,background .2s}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);background:#fff}
   textarea{min-height:120px;resize:vertical}
-  button{padding:9px 16px;border:none;border-radius:8px;background:#FF6B9D;color:#fff;
-    font-size:14px;cursor:pointer}
-  button.secondary{background:#eee;color:#333}
-  button:disabled{opacity:.5;cursor:default}
+  button{padding:11px 20px;border:none;border-radius:50px;background:var(--primary);color:#fff;
+    font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .2s,box-shadow .2s}
+  button:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(255,107,157,.35)}
+  button.secondary{background:#f0f0f0;color:#555}
+  button.secondary:hover{box-shadow:0 6px 16px rgba(0,0,0,.12)}
+  button:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none}
   .row{display:flex;gap:8px;align-items:center}
   .contact-list li{display:flex;justify-content:space-between;align-items:center;
-    list-style:none;padding:6px 0;border-bottom:1px solid #f0f0f0}
-  .msg{background:#fafafa;border-radius:10px;padding:10px;margin:8px 0;font-size:14px}
-  .msg .reply{background:#EAFBF0;border-radius:8px;padding:8px;margin-top:6px}
+    list-style:none;padding:8px 0;border-bottom:1px solid #f0f0f0}
   .muted{color:#999;font-size:12px}
   .gate{text-align:center;padding:40px 16px}
-  #mic{background:#7DD3FC}
+  #mic{background:var(--accent)}
   #mic.on{background:#c0392b}
-  a.back{display:inline-block;margin:10px 16px;color:#666;text-decoration:none}
+  a.back{display:inline-block;margin:10px 16px;color:#888;text-decoration:none;font-size:.9rem}
   #contacts-onboarding h2{margin-top:0}
   #contacts-onboarding .row{flex-direction:column;align-items:stretch}
   #contacts-settings{max-width:480px;margin:16px auto}
-  #contacts-settings summary{cursor:pointer;font-weight:bold;color:#666;padding:4px 0}
-  #contacts-settings[open] summary{color:#FF6B9D}
+  #contacts-settings summary{cursor:pointer;font-weight:700;color:#888;padding:6px 0}
+  #contacts-settings[open] summary{color:var(--primary)}
+
+  /* Letters */
+  .msg{background:#fafafa;border-radius:14px;padding:14px;margin:10px 0;font-size:14px}
+  .msg .to{color:#999;font-size:12px;margin-bottom:2px}
+  .msg .subject{font-weight:700;color:#333}
+  .msg .reply{background:#EAFBF0;border-radius:10px;padding:10px;margin-top:8px;
+    animation:replyReveal .5s ease}
+  .msg .reply b{color:#2E9E63}
+  .waiting{color:#bbb;font-size:13px;margin-top:6px}
+  @keyframes replyReveal{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+
+  /* Unopened letter envelope */
+  .envelope{background:linear-gradient(135deg,#FFF0F5,#F5F0FF);border:2px dashed var(--primary);
+    border-radius:14px;padding:16px;margin:10px 0;text-align:center;cursor:pointer;
+    transition:transform .2s}
+  .envelope:hover{transform:translateY(-2px)}
+  .envelope .icon{font-size:40px;display:block;margin-bottom:6px;animation:sway 2s ease-in-out infinite}
+  @keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+  .envelope .open-btn{margin-top:8px;background:linear-gradient(135deg,var(--primary),var(--purple))}
+  .envelope.opening .icon{animation:openBurst .5s ease forwards}
+  @keyframes openBurst{0%{transform:scale(1) rotate(0)}40%{transform:scale(1.4) rotate(-8deg)}100%{transform:scale(0) rotate(20deg);opacity:0}}
 </style>
 </head>
 <body>
 <a class="back" href="../index.html">⟵ חזרה</a>
 <h1>✉️ מכתב למשפחה</h1>
+<p class="subtitle">כתבו מכתב לבני המשפחה, וקבלו מהם תשובה</p>
 
 <div id="gate" class="gate card" hidden>
   <p>צריך להתחבר לחשבון KidLearn כדי לשלוח מכתבים.</p>
@@ -173,17 +206,49 @@ document.getElementById("send").onclick = async () => {
   sendBtn.disabled = false;
 };
 
+function renderMessage(m) {
+  // A reply that hasn't been opened yet shows as a closed envelope;
+  // the kid has to tap it to reveal the reply (and mark it seen).
+  if (m.replied && !m.replySeenByKid) {
+    const envelope = document.createElement("div");
+    envelope.className = "envelope";
+    envelope.innerHTML = `
+      <span class="icon">💌</span>
+      <div><b>ל${m.toName}:</b> ${m.subject || ""}</div>
+      <div class="muted">קיבלת תשובה!</div>
+      <button class="open-btn">פתיחת התשובה 🎉</button>
+    `;
+    envelope.querySelector(".open-btn").onclick = async (e) => {
+      e.stopPropagation();
+      envelope.classList.add("opening");
+      try { await KidLearn.markReplySeen(m.id); } catch (err) { /* still show it locally */ }
+      setTimeout(() => {
+        const div = renderOpenMessage(m);
+        envelope.replaceWith(div);
+      }, 450);
+    };
+    return envelope;
+  }
+  return renderOpenMessage(m);
+}
+
+function renderOpenMessage(m) {
+  const div = document.createElement("div");
+  div.className = "msg";
+  div.innerHTML = `<div class="to">ל${m.toName}</div><div class="subject">${m.subject || ""}</div>${m.body}` +
+    (m.replied ? `<div class="reply"><b>תשובה:</b> ${m.replyBody}</div>` : `<div class="waiting">עוד לא ענו</div>`);
+  return div;
+}
+
 async function loadSent() {
   const messages = await KidLearn.listSentMessages();
   const box = document.getElementById("sent-list");
-  box.innerHTML = messages.length ? "" : "<p class='muted'>עוד לא נשלחו מכתבים.</p>";
-  messages.forEach((m) => {
-    const div = document.createElement("div");
-    div.className = "msg";
-    div.innerHTML = `<b>ל${m.toName}:</b> ${m.subject || ""}<br>${m.body}` +
-      (m.replied ? `<div class="reply"><b>תשובה:</b> ${m.replyBody}</div>` : "<div class='muted'>עוד לא ענו</div>");
-    box.appendChild(div);
-  });
+  box.innerHTML = "";
+  if (!messages.length) {
+    box.innerHTML = "<p class='muted'>עוד לא נשלחו מכתבים.</p>";
+    return;
+  }
+  messages.forEach((m) => box.appendChild(renderMessage(m)));
 }
 document.getElementById("refresh").onclick = loadSent;
 

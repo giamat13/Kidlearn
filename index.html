@@ -408,6 +408,18 @@
         </div>
     </div>
 
+    <!-- New family-mail notification modal -->
+    <div class="modal-overlay hidden" id="mailModalOverlay">
+        <div class="modal">
+            <span class="modal-emoji">💌</span>
+            <h2 id="mailModalTitle">יש לך מכתב חדש!</h2>
+            <p class="modal-sub">מישהו במשפחה ענה למכתב שלך</p>
+            <button class="modal-save-btn" id="mailModalOpenBtn">📬 פתיחת המכתבים</button>
+            <br>
+            <button class="modal-cancel-btn" id="mailModalCloseBtn">אח"כ</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🎓 KidLearn</h1>
@@ -654,6 +666,27 @@
     <script src="shared/kidlearn-firebase-config.js"></script>
     <script src="shared/kidlearn-cloud.js"></script>
     <script src="shared/kidlearn-widget.js"></script>
-    <script>KidLearn.init();</script>
+    <script>
+        KidLearn.init();
+
+        document.getElementById('mailModalOpenBtn').onclick = () => {
+            window.location.href = 'family-mail/index.html';
+        };
+        document.getElementById('mailModalCloseBtn').onclick = () => {
+            document.getElementById('mailModalOverlay').classList.add('hidden');
+        };
+
+        KidLearn.onAuthChange(async (profile) => {
+            if (!profile) return;
+            try {
+                const unseen = await KidLearn.getUnseenReplies();
+                if (unseen.length > 0) {
+                    document.getElementById('mailModalTitle').textContent =
+                        unseen.length > 1 ? `יש לך ${unseen.length} מכתבים חדשים!` : 'יש לך מכתב חדש!';
+                    document.getElementById('mailModalOverlay').classList.remove('hidden');
+                }
+            } catch (e) { /* not logged into a KidLearn account yet */ }
+        });
+    </script>
 </body>
 </html>
