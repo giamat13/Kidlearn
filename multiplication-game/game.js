@@ -287,6 +287,13 @@ function getRecord() {
 }
 function saveRecord(s) {
     localStorage.setItem('multiplicationRecord', s);
+    if (window.KidLearn) KidLearn.pushLocalStorageKey('multiplicationRecord');
+}
+
+if (window.KidLearn) {
+    KidLearn.onAuthChange(async (profile) => {
+        if (profile) await KidLearn.pullLocalStorageKey('multiplicationRecord');
+    });
 }
 
 window.addEventListener('load', buildTablesGrid);

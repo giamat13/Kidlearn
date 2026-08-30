@@ -347,6 +347,7 @@
 
         function saveSettings() {
             localStorage.setItem('falling_letters_v3_config', JSON.stringify(settings));
+            if (window.KidLearn) KidLearn.pushLocalStorageKey('falling_letters_v3_config');
         }
 
         function applySettingsToUI() {
@@ -705,7 +706,22 @@
         }
 
         window.onload = () => { loadFonts(); loadSettings(); };
+        if (window.KidLearn) {
+            KidLearn.onAuthChange(async (profile) => {
+                if (profile) {
+                    await KidLearn.pullLocalStorageKey('falling_letters_v3_config');
+                    loadSettings();
+                }
+            });
+        }
     </script>
     <script src="../effects/gamepad-ui.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="../shared/kidlearn-firebase-config.js"></script>
+    <script src="../shared/kidlearn-cloud.js"></script>
+    <script src="../shared/kidlearn-widget.js"></script>
+    <script>KidLearn.init();</script>
 </body>
 </html>

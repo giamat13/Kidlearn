@@ -207,6 +207,13 @@ function getRecord() {
 }
 function saveRecord(s) {
     localStorage.setItem('firstReadingRecord', s);
+    if (window.KidLearn) KidLearn.pushLocalStorageKey('firstReadingRecord');
+}
+
+if (window.KidLearn) {
+    KidLearn.onAuthChange(async (profile) => {
+        if (profile) await KidLearn.pullLocalStorageKey('firstReadingRecord');
+    });
 }
 
 window.addEventListener('load', startGame);

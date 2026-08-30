@@ -300,6 +300,13 @@ function getRecord() {
 }
 function saveRecord(s) {
     localStorage.setItem('additionSubtractionRecord', s);
+    if (window.KidLearn) KidLearn.pushLocalStorageKey('additionSubtractionRecord');
+}
+
+if (window.KidLearn) {
+    KidLearn.onAuthChange(async (profile) => {
+        if (profile) await KidLearn.pullLocalStorageKey('additionSubtractionRecord');
+    });
 }
 
 window.addEventListener('load', buildSetupGrids);

@@ -321,12 +321,14 @@ const NIKUD = [
             } else {
                 enabledNikud = Array.from({length: NIKUD.length}, (_, i) => i); // all enabled
                 localStorage.setItem('nikudEnabled', JSON.stringify(enabledNikud));
+                if (window.KidLearn) KidLearn.pushLocalStorageKey('nikudEnabled');
             }
             return enabledNikud;
         }
 
         function saveSettings() {
             localStorage.setItem('nikudEnabled', JSON.stringify(enabledNikud));
+            if (window.KidLearn) KidLearn.pushLocalStorageKey('nikudEnabled');
         }
 
         function renderSettings() {
@@ -380,6 +382,7 @@ const NIKUD = [
             if (filteredQuestions.length === 0) {
                 enabledNikud = Array.from({length: NIKUD.length}, (_, i) => i);
                 localStorage.setItem('nikudEnabled', JSON.stringify(enabledNikud));
+                if (window.KidLearn) KidLearn.pushLocalStorageKey('nikudEnabled');
                 renderSettings();
                 alert('בחר לפחות ניקוד אחד!');
                 document.getElementById('settingsCard').style.display = 'block';
@@ -601,7 +604,22 @@ const NIKUD = [
         }
 
         startGame();
+        if (window.KidLearn) {
+            KidLearn.onAuthChange(async (profile) => {
+                if (profile) {
+                    await KidLearn.pullLocalStorageKey('nikudEnabled');
+                    loadSettings();
+                }
+            });
+        }
     </script>
     <script src="../effects/gamepad-ui.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="../shared/kidlearn-firebase-config.js"></script>
+    <script src="../shared/kidlearn-cloud.js"></script>
+    <script src="../shared/kidlearn-widget.js"></script>
+    <script>KidLearn.init();</script>
 </body>
 </html>

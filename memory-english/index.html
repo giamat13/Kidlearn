@@ -354,6 +354,7 @@
       localStorage.setItem(STORE_KEY, JSON.stringify({
         coins: gameCoins, unlockedThemes, currentTheme, bestScores
       }));
+      if (window.KidLearn) KidLearn.pushLocalStorageKey(STORE_KEY);
     } catch (e) { /* storage unavailable, progress stays in-memory for this session */ }
   }
 
@@ -737,8 +738,25 @@
   applyTheme(currentTheme);
   updateCoinsDisplay();
   init();
+  if (window.KidLearn) {
+    KidLearn.onAuthChange(async (profile) => {
+      if (profile) {
+        await KidLearn.pullLocalStorageKey(STORE_KEY);
+        loadProgress();
+        applyTheme(currentTheme);
+        updateCoinsDisplay();
+      }
+    });
+  }
 </script>
 
 <script src="../effects/gamepad-ui.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
 </body>
 </html>
