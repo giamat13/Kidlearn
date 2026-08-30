@@ -170,9 +170,11 @@
 
   async function listSentMessages() {
     requireAuth();
-    const snap = await db.collection("messages").where("fromUid", "==", auth.currentUser.uid)
-      .orderBy("createdAt", "desc").get();
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    // Sorted client-side to avoid needing a composite Firestore index for this query.
+    const snap = await db.collection("messages").where("fromUid", "==", auth.currentUser.uid).get();
+    const messages = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    messages.sort((a, b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0));
+    return messages;
   }
 
   window.KidLearn = {
