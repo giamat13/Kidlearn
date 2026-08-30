@@ -26,6 +26,11 @@
   #mic{background:#7DD3FC}
   #mic.on{background:#c0392b}
   a.back{display:inline-block;margin:10px 16px;color:#666;text-decoration:none}
+  #contacts-onboarding h2{margin-top:0}
+  #contacts-onboarding .row{flex-direction:column;align-items:stretch}
+  #contacts-settings{max-width:480px;margin:16px auto}
+  #contacts-settings summary{cursor:pointer;font-weight:bold;color:#666;padding:4px 0}
+  #contacts-settings[open] summary{color:#FF6B9D}
 </style>
 </head>
 <body>
@@ -38,17 +43,29 @@
 </div>
 
 <div id="app" hidden>
-  <div class="card">
-    <h3>אנשי קשר</h3>
-    <ul class="contact-list" id="contact-list"></ul>
+  <div id="contacts-onboarding" class="card" hidden>
+    <h2>👪 קודם, בואו נוסיף בני משפחה</h2>
+    <p class="muted">להורים: הוסיפו כאן את מי שהילד/ה יוכלו לכתוב לו מכתבים. אפשר להוסיף עוד בכל שלב.</p>
     <div class="row">
-      <input id="new-name" placeholder="שם">
-      <input id="new-email" placeholder="אימייל" type="email">
-      <button id="add-contact">הוספה</button>
+      <input id="new-name-onboarding" placeholder="שם (למשל: סבתא רותי)">
+      <input id="new-email-onboarding" placeholder="אימייל" type="email">
+      <button id="add-contact-onboarding">הוספת איש קשר ➕</button>
     </div>
   </div>
 
-  <div class="card">
+  <details id="contacts-settings" hidden>
+    <summary>👪 ניהול אנשי קשר (הורים)</summary>
+    <div class="card">
+      <ul class="contact-list" id="contact-list"></ul>
+      <div class="row">
+        <input id="new-name" placeholder="שם">
+        <input id="new-email" placeholder="אימייל" type="email">
+        <button id="add-contact">הוספה</button>
+      </div>
+    </div>
+  </details>
+
+  <div id="compose-section" class="card" hidden>
     <h3>כתיבת מכתב</h3>
     <select id="to-contact"></select>
     <input id="subject" placeholder="נושא">
@@ -61,7 +78,7 @@
     <p class="muted" id="send-status"></p>
   </div>
 
-  <div class="card">
+  <div id="sent-section" class="card" hidden>
     <h3>מכתבים ששלחתי</h3>
     <div id="sent-list"></div>
     <button class="secondary" id="refresh">רענון</button>
@@ -114,17 +131,26 @@ async function loadContacts() {
     opt.textContent = c.name;
     select.appendChild(opt);
   });
+
+  const hasContacts = contacts.length > 0;
+  document.getElementById("contacts-onboarding").hidden = hasContacts;
+  document.getElementById("contacts-settings").hidden = !hasContacts;
+  document.getElementById("compose-section").hidden = !hasContacts;
+  document.getElementById("sent-section").hidden = !hasContacts;
 }
 
-document.getElementById("add-contact").onclick = async () => {
-  const name = document.getElementById("new-name").value.trim();
-  const email = document.getElementById("new-email").value.trim();
+async function addContact(nameInputId, emailInputId) {
+  const name = document.getElementById(nameInputId).value.trim();
+  const email = document.getElementById(emailInputId).value.trim();
   if (!name || !email) return;
   await KidLearn.contacts.add(name, email);
-  document.getElementById("new-name").value = "";
-  document.getElementById("new-email").value = "";
+  document.getElementById(nameInputId).value = "";
+  document.getElementById(emailInputId).value = "";
   await loadContacts();
-};
+}
+
+document.getElementById("add-contact").onclick = () => addContact("new-name", "new-email");
+document.getElementById("add-contact-onboarding").onclick = () => addContact("new-name-onboarding", "new-email-onboarding");
 
 document.getElementById("send").onclick = async () => {
   const contactId = document.getElementById("to-contact").value;
