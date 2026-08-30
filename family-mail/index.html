@@ -4,79 +4,131 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>מכתב למשפחה</title>
-<link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --primary:#FF6B9D; --purple:#A78BFA; --accent:#67D5B5; --bg:#FFF8F0; --shadow:rgba(0,0,0,.1);
+    --paper:#FBF3E3; --paper-dark:#F3E6C9; --ink:#3A2E22; --stamp:#D6584A;
+    --postal:#3C6E71; --gold:#C9973B; --success:#5B8C5A; --muted:#A89A82;
+    --shadow:rgba(58,46,34,.14);
   }
   *{box-sizing:border-box}
-  body{font-family:'Varela Round','Fredoka',sans-serif;background:var(--bg);
-    background-image:radial-gradient(circle at 20% 30%, rgba(255,107,157,.08) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(103,213,181,.08) 0%, transparent 50%);
-    margin:0;padding:16px;direction:rtl;min-height:100vh}
-  h1{color:var(--primary);text-align:center;font-size:2.2rem;margin:10px 0 4px}
-  .subtitle{text-align:center;color:#888;margin-bottom:10px}
-  .card{background:#fff;border-radius:20px;padding:20px;max-width:480px;margin:16px auto;
-    box-shadow:0 10px 30px var(--shadow)}
+  body{font-family:'Rubik',sans-serif;color:var(--ink);background:var(--paper);
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(214,88,74,.06) 0%, transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(60,110,113,.07) 0%, transparent 45%);
+    margin:0;padding:20px 16px 60px;direction:rtl;min-height:100vh}
+
+  a.back{display:inline-block;margin:0 0 6px;color:var(--muted);text-decoration:none;font-size:.85rem}
+  a.back:hover{color:var(--postal)}
+
+  header.masthead{max-width:480px;margin:8px auto 6px;display:flex;align-items:center;
+    justify-content:center;gap:14px}
+  .stamp-badge{flex:none;width:58px;height:58px;background:var(--paper-dark);
+    border:2px dashed var(--stamp);border-radius:6px;display:flex;align-items:center;
+    justify-content:center;font-size:28px;transform:rotate(-6deg);
+    box-shadow:0 3px 0 var(--shadow)}
+  h1{font-family:'Suez One',serif;color:var(--stamp);text-align:center;font-size:2rem;
+    margin:0;letter-spacing:.5px}
+  .subtitle{text-align:center;color:var(--muted);margin:2px 0 18px;font-size:.95rem}
+
+  .sheet{background:var(--paper-dark);border-radius:4px 4px 16px 16px;padding:22px 20px 18px;
+    max-width:480px;margin:18px auto;box-shadow:0 8px 22px var(--shadow);position:relative}
+  .sheet::before{content:"";position:absolute;top:0;left:12px;right:12px;height:6px;
+    background-image:repeating-linear-gradient(90deg, transparent 0 6px, var(--paper) 6px 9px);
+    border-radius:0 0 3px 3px}
+  .sheet.tilt-r{transform:rotate(.4deg)}
+  .sheet.tilt-l{transform:rotate(-.4deg)}
+
+  h2,h3{font-family:'Suez One',serif;font-weight:400;color:var(--ink);margin:2px 0 12px}
+  h3{font-size:1.15rem}
+  h2{font-size:1.3rem}
+
   input,textarea,select{width:100%;box-sizing:border-box;padding:12px 14px;margin:6px 0;
-    border:2px solid #eee;border-radius:12px;font-size:15px;font-family:inherit;background:#FAFAFA;
-    transition:border-color .2s,background .2s}
-  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);background:#fff}
-  textarea{min-height:120px;resize:vertical}
-  button{padding:11px 20px;border:none;border-radius:50px;background:var(--primary);color:#fff;
-    font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .2s,box-shadow .2s}
-  button:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(255,107,157,.35)}
-  button.secondary{background:#f0f0f0;color:#555}
-  button.secondary:hover{box-shadow:0 6px 16px rgba(0,0,0,.12)}
+    border:2px solid #E6D6AE;border-radius:10px;font-size:15px;font-family:inherit;
+    background:var(--paper);color:var(--ink);transition:border-color .2s,box-shadow .2s}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--postal);
+    box-shadow:0 0 0 3px rgba(60,110,113,.14)}
+  textarea{min-height:140px;resize:vertical;line-height:26px;
+    background-image:repeating-linear-gradient(var(--paper) 0 25px, #E6D6AE 25px 26px);
+    background-position-y:6px}
+
+  button{padding:11px 22px;border:none;border-radius:999px;background:var(--stamp);color:#fff;
+    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+    box-shadow:0 3px 0 #a83f34;transition:transform .12s,box-shadow .12s}
+  button:hover{transform:translateY(-1px)}
+  button:active{transform:translateY(2px);box-shadow:0 1px 0 #a83f34}
+  button.secondary{background:var(--paper);color:var(--postal);box-shadow:0 3px 0 #d8c69c;
+    border:2px solid #E6D6AE}
+  button.secondary:active{box-shadow:0 1px 0 #d8c69c}
   button:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none}
+
+  #send{width:100%;margin-top:10px;font-size:15px;padding:13px}
   .row{display:flex;gap:8px;align-items:center}
+  .contact-list{padding:0;margin:0 0 10px}
   .contact-list li{display:flex;justify-content:space-between;align-items:center;
-    list-style:none;padding:8px 0;border-bottom:1px solid #f0f0f0}
-  .muted{color:#999;font-size:12px}
+    list-style:none;padding:9px 2px;border-bottom:1px dashed #E6D6AE}
+  .contact-list li span{display:flex;align-items:center;gap:6px}
+  .muted{color:var(--muted);font-size:12px}
   .gate{text-align:center;padding:40px 16px}
-  #mic{background:var(--accent)}
-  #mic.on{background:#c0392b}
-  a.back{display:inline-block;margin:10px 16px;color:#888;text-decoration:none;font-size:.9rem}
+  .gate .stamp-badge{margin:0 auto 14px}
+
+  #mic{background:var(--postal);box-shadow:0 3px 0 #294e50}
+  #mic.on{background:var(--stamp);box-shadow:0 3px 0 #a83f34}
+
   #contacts-onboarding h2{margin-top:0}
   #contacts-onboarding .row{flex-direction:column;align-items:stretch}
-  #contacts-settings{max-width:480px;margin:16px auto}
-  #contacts-settings summary{cursor:pointer;font-weight:700;color:#888;padding:6px 0}
-  #contacts-settings[open] summary{color:var(--primary)}
+  #contacts-settings{max-width:480px;margin:18px auto}
+  #contacts-settings summary{cursor:pointer;font-weight:600;color:var(--muted);padding:8px 4px;
+    list-style:none}
+  #contacts-settings summary::-webkit-details-marker{display:none}
+  #contacts-settings summary::before{content:"▸ ";display:inline-block;transition:transform .2s}
+  #contacts-settings[open] summary::before{transform:rotate(90deg)}
+  #contacts-settings[open] summary{color:var(--postal)}
+  #contacts-settings .sheet{margin-top:8px}
 
-  /* Letters */
-  .msg{background:#fafafa;border-radius:14px;padding:14px;margin:10px 0;font-size:14px}
-  .msg .to{color:#999;font-size:12px;margin-bottom:2px}
-  .msg .subject{font-weight:700;color:#333}
-  .msg .reply{background:#EAFBF0;border-radius:10px;padding:10px;margin-top:8px;
+  /* Sent letters */
+  #sent-list{display:flex;flex-direction:column;gap:12px}
+  .msg{background:var(--paper);border-radius:10px;padding:14px 16px;font-size:14px;
+    border:1px solid #E6D6AE}
+  .msg:nth-child(odd){transform:rotate(-.5deg)}
+  .msg:nth-child(even){transform:rotate(.5deg)}
+  .msg .to{color:var(--postal);font-size:12px;margin-bottom:2px;font-weight:600}
+  .msg .subject{font-weight:700;color:var(--ink);font-family:'Suez One',serif;font-size:1rem}
+  .msg .reply{background:#EAF2E9;border-radius:8px;padding:10px 12px;margin-top:10px;
     animation:replyReveal .5s ease}
-  .msg .reply b{color:#2E9E63}
-  .waiting{color:#bbb;font-size:13px;margin-top:6px}
+  .msg .reply b{color:var(--success)}
+  .waiting{color:var(--muted);font-size:13px;margin-top:6px;font-style:italic}
   @keyframes replyReveal{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 
   /* Unopened letter envelope */
-  .envelope{background:linear-gradient(135deg,#FFF0F5,#F5F0FF);border:2px dashed var(--primary);
-    border-radius:14px;padding:16px;margin:10px 0;text-align:center;cursor:pointer;
+  .envelope{background:linear-gradient(135deg,#FBEAE7,#EAF1F1);border:2px dashed var(--stamp);
+    border-radius:12px;padding:18px;margin:0;text-align:center;cursor:pointer;
     transition:transform .2s}
   .envelope:hover{transform:translateY(-2px)}
-  .envelope .icon{font-size:40px;display:block;margin-bottom:6px;animation:sway 2s ease-in-out infinite}
+  .envelope .icon{font-size:38px;display:block;margin-bottom:6px;animation:sway 2s ease-in-out infinite}
   @keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
-  .envelope .open-btn{margin-top:8px;background:linear-gradient(135deg,var(--primary),var(--purple))}
+  .envelope .open-btn{margin-top:10px;background:linear-gradient(135deg,var(--stamp),var(--gold));
+    box-shadow:0 3px 0 #a8763a}
   .envelope.opening .icon{animation:openBurst .5s ease forwards}
   @keyframes openBurst{0%{transform:scale(1) rotate(0)}40%{transform:scale(1.4) rotate(-8deg)}100%{transform:scale(0) rotate(20deg);opacity:0}}
 </style>
 </head>
 <body>
 <a class="back" href="../index.html">⟵ חזרה</a>
-<h1>✉️ מכתב למשפחה</h1>
+<header class="masthead">
+  <span class="stamp-badge">✉️</span>
+  <h1>מכתב למשפחה</h1>
+</header>
 <p class="subtitle">כתבו מכתב לבני המשפחה, וקבלו מהם תשובה</p>
 
-<div id="gate" class="gate card" hidden>
+<div id="gate" class="gate sheet" hidden>
+  <span class="stamp-badge">🔒</span>
   <p>צריך להתחבר לחשבון KidLearn כדי לשלוח מכתבים.</p>
   <p class="muted">לחצו על כפתור "התחברות" בפינה השמאלית התחתונה.</p>
 </div>
 
 <div id="app" hidden>
-  <div id="contacts-onboarding" class="card" hidden>
+  <div id="contacts-onboarding" class="sheet" hidden>
     <h2>👪 קודם, בואו נוסיף בני משפחה</h2>
     <p class="muted">להורים: הוסיפו כאן את מי שהילד/ה יוכלו לכתוב לו מכתבים. אפשר להוסיף עוד בכל שלב.</p>
     <div class="row">
@@ -88,7 +140,7 @@
 
   <details id="contacts-settings" hidden>
     <summary>👪 ניהול אנשי קשר (הורים)</summary>
-    <div class="card">
+    <div class="sheet">
       <ul class="contact-list" id="contact-list"></ul>
       <div class="row">
         <input id="new-name" placeholder="שם">
@@ -98,8 +150,8 @@
     </div>
   </details>
 
-  <div id="compose-section" class="card" hidden>
-    <h3>כתיבת מכתב</h3>
+  <div id="compose-section" class="sheet tilt-r" hidden>
+    <h3>✍️ כתיבת מכתב</h3>
     <select id="to-contact"></select>
     <input id="subject" placeholder="נושא">
     <div class="row">
@@ -111,10 +163,10 @@
     <p class="muted" id="send-status"></p>
   </div>
 
-  <div id="sent-section" class="card" hidden>
-    <h3>מכתבים ששלחתי</h3>
+  <div id="sent-section" class="sheet tilt-l" hidden>
+    <h3>📬 מכתבים ששלחתי</h3>
     <div id="sent-list"></div>
-    <button class="secondary" id="refresh">רענון</button>
+    <button class="secondary" id="refresh" style="margin-top:12px">רענון</button>
   </div>
 </div>
 
@@ -151,7 +203,7 @@ async function loadContacts() {
   select.innerHTML = "";
   contacts.forEach((c) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span>${c.name} — ${c.email}</span>`;
+    li.innerHTML = `<span>👤 ${c.name} — ${c.email}</span>`;
     const del = document.createElement("button");
     del.textContent = "מחיקה";
     del.className = "secondary";
