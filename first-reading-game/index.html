@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הקריאה הראשונה שלי</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <a href="../index.html" data-gamepad-back class="back-btn">← חזור</a>
+        <h1>📖 הקריאה הראשונה שלי</h1>
+        <p class="subtitle">מרכיבים משפט קצר וקוראים אותו!</p>
+    </header>
+
+    <!-- מסך משחק: משפט ראשון -->
+    <div id="sentence-screen">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">ניקוד</span>
+                <span class="stat-value" id="sScoreDisplay">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">משפט</span>
+                <span class="stat-value" id="sQuestionNum">1/6</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">רצף 🔥</span>
+                <span class="stat-value streak" id="sStreakDisplay">0</span>
+            </div>
+        </div>
+
+        <div class="sentence-card">
+            <div class="sentence-emoji" id="sentenceEmoji"></div>
+            <div class="build-slots sentence-slots" id="sentenceSlots"></div>
+            <div class="letters-bank word-bank" id="wordBank"></div>
+            <div class="word-actions">
+                <button class="btn btn-secondary btn-sm" onclick="clearSentenceBuild()">נקה ✖️</button>
+            </div>
+        </div>
+
+        <div class="feedback" id="sFeedbackArea"></div>
+    </div>
+
+    <!-- מסך סיום -->
+    <div id="end-screen">
+        <div id="recordBadge" style="display:none" class="record-badge">🏆 שיא חדש!</div>
+        <h2 id="endTitle">🎉 כל הכבוד!</h2>
+        <div class="final-score">
+            <span id="finalScore">0</span>
+            <small>נקודות</small>
+        </div>
+        <div class="end-stats">
+            <div class="end-stat">
+                <div class="end-stat-label">נכון</div>
+                <div class="end-stat-value" id="endCorrect">—</div>
+            </div>
+            <div class="end-stat">
+                <div class="end-stat-label">רצף מקסימלי</div>
+                <div class="end-stat-value" id="endStreak">—</div>
+            </div>
+            <div class="end-stat">
+                <div class="end-stat-label">שיא אישי</div>
+                <div class="end-stat-value" id="endRecord">—</div>
+            </div>
+        </div>
+        <div class="end-buttons">
+            <button class="btn btn-primary" onclick="startGame()">שחק שוב 🔄</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../index.html'">תפריט ⚙️</button>
+        </div>
+    </div>
+</div>
+
+<script src="words-data.js"></script>
+<script src="game.js"></script>
+<script src="../effects/gamepad-ui.js"></script>
+</body>
+</html>

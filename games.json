@@ -64,7 +64,7 @@
       "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
       "icon": "🔤",
       "url": "Letters-game/index.html",
-      "categories": ["he", "games", "gan-chova"],
+      "categories": ["he", "games"],
       "grade": ["kindergarten", "first"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -124,7 +124,7 @@
       "description": "ללמוד מספרים עד 10 בדרכים מהנות.",
       "icon": "🔢",
       "url": "Learn-Color-Numburs/index.html",
-      "categories": ["math", "gan-chova"],
+      "categories": ["math"],
       "grade": ["preschool", "kindergarten", "first"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -134,7 +134,7 @@
       "description": "ללמוד איות בדרך מהנה.",
       "icon": "📝",
       "url": "words-he-build/index.html",
-      "categories": ["he", "gan-chova"],
+      "categories": ["he"],
       "grade": ["kindergarten", "first", "second", "third"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -314,7 +314,7 @@
       "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
       "icon": "🔡",
       "url": "nikud-game/index.html",
-      "categories": ["he", "games", "gan-chova"],
+      "categories": ["he", "games"],
       "grade": ["kindergarten", "first"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -334,7 +334,7 @@
       "description": "צבע תמונות מהנות לפי מספרים — כל מספר מייצג צבע!",
       "icon": "🎨",
       "url": "coloring-pages/index.html",
-      "categories": ["math", "games", "gan-chova"],
+      "categories": ["math", "games"],
       "grade": ["preschool", "kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
     },
@@ -346,6 +346,96 @@
       "url": "Ruler-design/index.html",
       "categories": ["games", "he"],
       "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "memory-english",
+      "title": "משחק זיכרון - אנגלית ועברית",
+      "description": "התאימו כל מילה באנגלית לתרגום שלה בעברית וצברו מטבעות!",
+      "icon": "🧠",
+      "url": "memory-english/index.html",
+      "categories": ["games", "english", "he"],
+      "grade": ["fifth", "sixth", "seventh"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "math-addition-subtraction",
+      "title": "חיבור וחיסור",
+      "description": "תרגלו חיבור וחיסור עד 10 או עד 20, ענו מהר וצברו נקודות!",
+      "icon": "➕",
+      "url": "math-addition-subtraction/index.html",
+      "categories": ["math", "games"],
+      "grade": ["first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "first-reading-game",
+      "title": "הקריאה הראשונה שלי",
+      "description": "מרכיבים משפט קצר ממילים מעורבבות וקוראים אותו בעברית.",
+      "icon": "📖",
+      "url": "first-reading-game/index.html",
+      "categories": ["he", "games"],
+      "grade": ["kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "letters-game-gan-chova",
+      "title": "משחק האותיות",
+      "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
+      "icon": "🔤",
+      "url": "Letters-game/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "colors-numbers-gan-chova",
+      "title": "למידת מספרים",
+      "description": "ללמוד מספרים עד 10 בדרכים מהנות.",
+      "icon": "🔢",
+      "url": "Learn-Color-Numburs/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "words-he-build-gan-chova",
+      "title": "למידת איות",
+      "description": "ללמוד איות בדרך מהנה.",
+      "icon": "📝",
+      "url": "words-he-build/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "nikud-game-gan-chova",
+      "title": "משחק הניקוד",
+      "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
+      "icon": "🔡",
+      "url": "nikud-game/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "coloring-pages-gan-chova",
+      "title": "צביעה לפי מספרים",
+      "description": "צבע תמונות מהנות לפי מספרים — כל מספר מייצג צבע!",
+      "icon": "🎨",
+      "url": "coloring-pages/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "first-reading-game-gan-chova",
+      "title": "הקריאה הראשונה שלי",
+      "description": "מרכיבים משפט קצר ממילים מעורבבות וקוראים אותו בעברית.",
+      "icon": "📖",
+      "url": "first-reading-game/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
       "devices": ["mobile", "tablet", "desktop"]
     }
   ]
