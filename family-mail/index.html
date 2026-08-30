@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מכתב למשפחה</title>
+<style>
+  body{font-family:sans-serif;background:#FFF5F8;margin:0;padding:16px;direction:rtl}
+  h1{color:#FF6B9D;text-align:center}
+  .card{background:#fff;border-radius:16px;padding:16px;max-width:480px;margin:16px auto;
+    box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  input,textarea,select{width:100%;box-sizing:border-box;padding:9px;margin:6px 0;
+    border:1px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit}
+  textarea{min-height:120px;resize:vertical}
+  button{padding:9px 16px;border:none;border-radius:8px;background:#FF6B9D;color:#fff;
+    font-size:14px;cursor:pointer}
+  button.secondary{background:#eee;color:#333}
+  button:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:8px;align-items:center}
+  .contact-list li{display:flex;justify-content:space-between;align-items:center;
+    list-style:none;padding:6px 0;border-bottom:1px solid #f0f0f0}
+  .msg{background:#fafafa;border-radius:10px;padding:10px;margin:8px 0;font-size:14px}
+  .msg .reply{background:#EAFBF0;border-radius:8px;padding:8px;margin-top:6px}
+  .muted{color:#999;font-size:12px}
+  .gate{text-align:center;padding:40px 16px}
+  #mic{background:#7DD3FC}
+  #mic.on{background:#c0392b}
+  a.back{display:inline-block;margin:10px 16px;color:#666;text-decoration:none}
+</style>
+</head>
+<body>
+<a class="back" href="../index.html">⟵ חזרה</a>
+<h1>✉️ מכתב למשפחה</h1>
+
+<div id="gate" class="gate card" hidden>
+  <p>צריך להתחבר לחשבון KidLearn כדי לשלוח מכתבים.</p>
+  <p class="muted">לחצו על כפתור "התחברות" בפינה השמאלית התחתונה.</p>
+</div>
+
+<div id="app" hidden>
+  <div class="card">
+    <h3>אנשי קשר</h3>
+    <ul class="contact-list" id="contact-list"></ul>
+    <div class="row">
+      <input id="new-name" placeholder="שם">
+      <input id="new-email" placeholder="אימייל" type="email">
+      <button id="add-contact">הוספה</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>כתיבת מכתב</h3>
+    <select id="to-contact"></select>
+    <input id="subject" placeholder="נושא">
+    <div class="row">
+      <button id="mic">🎤 להקליט</button>
+      <span class="muted" id="mic-status"></span>
+    </div>
+    <textarea id="body" placeholder="כתבו כאן, או לחצו על המיקרופון ותדברו..."></textarea>
+    <button id="send">שליחת מכתב 💌</button>
+    <p class="muted" id="send-status"></p>
+  </div>
+
+  <div class="card">
+    <h3>מכתבים ששלחתי</h3>
+    <div id="sent-list"></div>
+    <button class="secondary" id="refresh">רענון</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>
+KidLearn.init();
+
+const gate = document.getElementById("gate");
+const app = document.getElementById("app");
+let contacts = [];
+
+KidLearn.onAuthChange(async (profile) => {
+  gate.hidden = !!profile;
+  app.hidden = !profile;
+  if (profile) {
+    await loadContacts();
+    await loadSent();
+  }
+});
+
+async function loadContacts() {
+  contacts = await KidLearn.contacts.list();
+  const list = document.getElementById("contact-list");
+  const select = document.getElementById("to-contact");
+  list.innerHTML = "";
+  select.innerHTML = "";
+  contacts.forEach((c) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span>${c.name} — ${c.email}</span>`;
+    const del = document.createElement("button");
+    del.textContent = "מחיקה";
+    del.className = "secondary";
+    del.onclick = async () => { await KidLearn.contacts.remove(c.id); await loadContacts(); };
+    li.appendChild(del);
+    list.appendChild(li);
+
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+}
+
+document.getElementById("add-contact").onclick = async () => {
+  const name = document.getElementById("new-name").value.trim();
+  const email = document.getElementById("new-email").value.trim();
+  if (!name || !email) return;
+  await KidLearn.contacts.add(name, email);
+  document.getElementById("new-name").value = "";
+  document.getElementById("new-email").value = "";
+  await loadContacts();
+};
+
+document.getElementById("send").onclick = async () => {
+  const contactId = document.getElementById("to-contact").value;
+  const subject = document.getElementById("subject").value.trim();
+  const body = document.getElementById("body").value.trim();
+  const status = document.getElementById("send-status");
+  if (!contactId || !body) { status.textContent = "צריך לבחור נמען ולכתוב הודעה"; return; }
+  const sendBtn = document.getElementById("send");
+  sendBtn.disabled = true;
+  status.textContent = "שולח...";
+  try {
+    await KidLearn.sendFamilyMessage(contactId, subject, body);
+    status.textContent = "נשלח! 🎉";
+    document.getElementById("body").value = "";
+    document.getElementById("subject").value = "";
+    await loadSent();
+  } catch (e) {
+    status.textContent = "שגיאה: " + (e.message || e);
+  }
+  sendBtn.disabled = false;
+};
+
+async function loadSent() {
+  const messages = await KidLearn.listSentMessages();
+  const box = document.getElementById("sent-list");
+  box.innerHTML = messages.length ? "" : "<p class='muted'>עוד לא נשלחו מכתבים.</p>";
+  messages.forEach((m) => {
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.innerHTML = `<b>ל${m.toName}:</b> ${m.subject || ""}<br>${m.body}` +
+      (m.replied ? `<div class="reply"><b>תשובה:</b> ${m.replyBody}</div>` : "<div class='muted'>עוד לא ענו</div>");
+    box.appendChild(div);
+  });
+}
+document.getElementById("refresh").onclick = loadSent;
+
+// Speech-to-text dictation (native Web Speech API, Hebrew).
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const micBtn = document.getElementById("mic");
+const micStatus = document.getElementById("mic-status");
+if (SpeechRecognition) {
+  const recognition = new SpeechRecognition();
+  recognition.lang = "he-IL";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  let listening = false;
+
+  recognition.onresult = (e) => {
+    const textarea = document.getElementById("body");
+    let addition = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      addition += e.results[i][0].transcript;
+    }
+    textarea.value = (textarea.value + " " + addition).trim();
+  };
+  recognition.onerror = () => { micStatus.textContent = "לא הצלחתי לשמוע, נסו שוב"; };
+  recognition.onend = () => { listening = false; micBtn.classList.remove("on"); micBtn.textContent = "🎤 להקליט"; };
+
+  micBtn.onclick = () => {
+    if (listening) { recognition.stop(); return; }
+    listening = true;
+    micBtn.classList.add("on");
+    micBtn.textContent = "⏹ עצירה";
+    micStatus.textContent = "מקשיב...";
+    recognition.start();
+  };
+} else {
+  micBtn.disabled = true;
+  micStatus.textContent = "הדפדפן לא תומך בהקלטה";
+}
+</script>
+</body>
+</html>

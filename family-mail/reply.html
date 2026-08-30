@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תשובה למכתב</title>
+<style>
+  body{font-family:sans-serif;background:#FFF5F8;margin:0;padding:16px;direction:rtl}
+  .card{background:#fff;border-radius:16px;padding:20px;max-width:440px;margin:40px auto;
+    box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  h2{color:#FF6B9D}
+  .original{background:#fafafa;border-radius:10px;padding:12px;margin:12px 0;font-size:15px}
+  textarea{width:100%;box-sizing:border-box;min-height:120px;padding:9px;border:1px solid #ddd;
+    border-radius:8px;font-size:15px;font-family:inherit;resize:vertical}
+  button{padding:9px 16px;border:none;border-radius:8px;background:#FF6B9D;color:#fff;
+    font-size:14px;cursor:pointer;margin-top:8px}
+  #mic{background:#7DD3FC}
+  #mic.on{background:#c0392b}
+  .muted{color:#999;font-size:13px}
+</style>
+</head>
+<body>
+<div class="card" id="card">טוען...</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script>
+firebase.initializeApp(window.KIDLEARN_FIREBASE_CONFIG);
+const db = firebase.firestore();
+const card = document.getElementById("card");
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
+async function load() {
+  if (!id) { card.textContent = "קישור לא תקין."; return; }
+  const doc = await db.collection("messages").doc(id).get();
+  if (!doc.exists) { card.textContent = "המכתב לא נמצא."; return; }
+  const m = doc.data();
+
+  card.innerHTML = `
+    <h2>מכתב מ-${m.fromUsername}</h2>
+    <div class="original"><b>${m.subject || ""}</b><br>${m.body}</div>
+    ${m.replied
+      ? `<p class="muted">כבר עניתם למכתב הזה:</p><div class="original">${m.replyBody}</div>`
+      : `<div class="row" style="display:flex;gap:8px;align-items:center">
+           <button id="mic">🎤 להקליט</button><span class="muted" id="mic-status"></span>
+         </div>
+         <textarea id="reply-body" placeholder="כתבו כאן את התשובה..."></textarea>
+         <button id="send-reply">שליחת תשובה</button>
+         <p class="muted" id="status"></p>`}
+  `;
+
+  if (!m.replied) {
+    document.getElementById("send-reply").onclick = async () => {
+      const text = document.getElementById("reply-body").value.trim();
+      const status = document.getElementById("status");
+      if (!text) { status.textContent = "כתבו משהו קודם"; return; }
+      await db.collection("messages").doc(id).update({
+        replyBody: text, replied: true, repliedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      status.textContent = "התשובה נשלחה! 🎉";
+      load();
+    };
+    setupMic();
+  }
+}
+
+function setupMic() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = document.getElementById("mic");
+  const micStatus = document.getElementById("mic-status");
+  if (!SpeechRecognition) { micBtn.disabled = true; micStatus.textContent = "הדפדפן לא תומך בהקלטה"; return; }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "he-IL";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  let listening = false;
+  recognition.onresult = (e) => {
+    const textarea = document.getElementById("reply-body");
+    let addition = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) addition += e.results[i][0].transcript;
+    textarea.value = (textarea.value + " " + addition).trim();
+  };
+  recognition.onerror = () => { micStatus.textContent = "לא הצלחתי לשמוע, נסו שוב"; };
+  recognition.onend = () => { listening = false; micBtn.classList.remove("on"); micBtn.textContent = "🎤 להקליט"; };
+  micBtn.onclick = () => {
+    if (listening) { recognition.stop(); return; }
+    listening = true;
+    micBtn.classList.add("on");
+    micBtn.textContent = "⏹ עצירה";
+    micStatus.textContent = "מקשיב...";
+    recognition.start();
+  };
+}
+
+load();
+</script>
+</body>
+</html>
