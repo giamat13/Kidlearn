@@ -429,6 +429,16 @@
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
+      "id": "math-adventure",
+      "title": "הרפתקת החשבון",
+      "description": "עולמות קסומים מלאי אתגרי חשבון וצבע!",
+      "icon": "🧮",
+      "url": "math-adventure/index.html",
+      "categories": ["math", "games"],
+      "grade": ["first", "second", "third", "fourth", "fifth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
       "id": "first-reading-game-gan-chova",
       "title": "הקריאה הראשונה שלי",
       "description": "מרכיבים משפט קצר ממילים מעורבבות וקוראים אותו בעברית.",
