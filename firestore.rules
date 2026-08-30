@@ -13,8 +13,6 @@ service cloud.firestore {
       }
     }
 
-    // Sent client-side (no server) after signing in - EmailJS delivers the actual
-    // email. The doc id is an unguessable token used as the reply link.
     match /messages/{messageId} {
       allow get: if true;
       allow list: if request.auth != null && resource.data.fromUid == request.auth.uid;
