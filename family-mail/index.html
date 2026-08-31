@@ -202,7 +202,6 @@
 <script src="../shared/kidlearn-emailjs-config.js"></script>
 <script src="../shared/kidlearn-cloud.js"></script>
 <script src="../shared/kidlearn-widget.js"></script>
-<script src="../shared/kidlearn-nikud.js"></script>
 <script>
 KidLearn.init();
 
@@ -357,11 +356,6 @@ function renderOpenMessage(m) {
   const [messageBtn, replyBtn] = div.querySelectorAll(".speak-btn");
   messageBtn.addEventListener("click", () => speak(m.body));
   if (replyBtn) replyBtn.addEventListener("click", () => speak(latestReply.text));
-  div.querySelectorAll(".msg-text").forEach((el) => {
-    if (KidLearnNikud.isHebrew(el.textContent)) {
-      el.insertAdjacentElement("afterend", KidLearnNikud.attachButton(el));
-    }
-  });
   div.querySelector(".chat-btn").addEventListener("click", () => showConversation({ name: m.toName, email: m.toEmail }));
   return div;
 }
@@ -407,11 +401,6 @@ function showConversation(contact) {
       bubble.className = "bubble " + entry.from;
       const meta = entry.from === "kid" ? "אני" : contact.name;
       bubble.innerHTML = `<div class="bubble-meta">${meta}</div><span class="msg-text">${entry.text}</span>`;
-      const textEl = bubble.querySelector(".msg-text");
-      if (KidLearnNikud.isHebrew(entry.text)) {
-        bubble.appendChild(document.createElement("br"));
-        bubble.appendChild(KidLearnNikud.attachButton(textEl));
-      }
       thread.appendChild(bubble);
     });
   }
