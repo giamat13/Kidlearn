@@ -104,13 +104,17 @@
 </div>
 
 <script>
+// Icons are composed from a small set of parts (☀️/☁️/🌧️/⛈️) rather than
+// picked from unrelated single glyphs, so any code that includes a sun can
+// have just that sun swapped for the moon phase after sunset (see the
+// emoji.startsWith("☀️") check below) while the rest of the icon stays put.
 const WEATHER_CODES = {
-  0: ["☀️", "שמיים בהירים"], 1: ["🌤️", "בהיר בעיקר"], 2: ["⛅", "מעונן חלקית"], 3: ["☁️", "מעונן"],
+  0: ["☀️", "שמיים בהירים"], 1: ["☀️☁️", "בהיר בעיקר"], 2: ["☀️☁️☁️", "מעונן חלקית"], 3: ["☁️☁️", "מעונן"],
   45: ["🌫️", "ערפל"], 48: ["🌫️", "ערפילי כפור"],
-  51: ["🌦️", "טפטוף קל"], 53: ["🌦️", "טפטוף"], 55: ["🌧️", "טפטוף חזק"],
+  51: ["☀️🌧️", "טפטוף קל"], 53: ["🌧️", "טפטוף"], 55: ["🌧️", "טפטוף חזק"],
   61: ["🌧️", "גשם קל"], 63: ["🌧️", "גשם"], 65: ["🌧️", "גשם חזק"],
   71: ["🌨️", "שלג קל"], 73: ["🌨️", "שלג"], 75: ["❄️", "שלג כבד"],
-  80: ["🌦️", "ממטרים"], 81: ["🌦️", "ממטרים"], 82: ["⛈️", "ממטרים עזים"],
+  80: ["☀️🌧️", "ממטרים"], 81: ["☀️🌧️", "ממטרים"], 82: ["⛈️", "ממטרים עזים"],
   95: ["⛈️", "סופת רעמים"],
 };
 const RAIN_CODES = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95];
@@ -241,7 +245,7 @@ function renderForSelection() {
   const temp = Math.round(weatherData.hourly.temperature_2m[idx]);
   const code = weatherData.hourly.weathercode[idx];
   const uvMax = weatherData.daily.uv_index_max[selectedOffset];
-  const [emoji, label] = WEATHER_CODES[code] || ["🌡️", "מזג אוויר"];
+  let [emoji, label] = WEATHER_CODES[code] || ["🌡️", "מזג אוויר"];
 
   const [sh, sm] = weatherData.daily.sunset[selectedOffset].split("T")[1].split(":").map(Number);
   const now = new Date();
@@ -250,6 +254,13 @@ function renderForSelection() {
   const sunsetText = isToday && minsToSunset > 0
     ? `שקיעה בעוד ${Math.floor(minsToSunset / 60)} שעות ו-${minsToSunset % 60} דקות (${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")})`
     : `שקיעה בשעה ${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`;
+
+  // Any icon starting with the sun glyph (clear, partly cloudy, sunny
+  // showers, ...) - after sunset, swap just the sun for tonight's actual
+  // moon phase, keeping the rest of the icon (clouds, rain, ...) as-is.
+  if (emoji.startsWith("☀️") && selectedHour * 60 >= sh * 60 + sm) {
+    emoji = moonPhaseFor(selectedOffset)[0] + emoji.slice("☀️".length);
+  }
 
   box.innerHTML = `
     <div class="thermo-row">
@@ -365,19 +376,22 @@ function initWeather() {
 // Takes a day offset so it can follow the same היום/מחר/מחרתיים selection
 // as the weather card.
 const MOON_DAY_TITLES = ["🌙 הירח הלילה", "🌙 הירח מחר בלילה", "🌙 הירח מחרתיים בלילה"];
-function loadMoon(offset = 0) {
-  document.getElementById("moon-title").textContent = MOON_DAY_TITLES[offset];
-  const box = document.getElementById("moon-box");
+const MOON_PHASES = [
+  ["🌑", "ירח חדש"], ["🌒", "סהר מתמלא"], ["🌓", "רבע ראשון"], ["🌔", "לקראת מילוא"],
+  ["🌕", "ירח מלא"], ["🌖", "אחרי מילוא"], ["🌗", "רבע אחרון"], ["🌘", "סהר דועך"],
+];
+function moonPhaseFor(offset = 0) {
   const synodicMonth = 29.53058867;
   const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
   const daysSince = (Date.now() + offset * 86400000 - knownNewMoon) / 86400000;
   const age = ((daysSince % synodicMonth) + synodicMonth) % synodicMonth;
-  const PHASES = [
-    ["🌑", "ירח חדש"], ["🌒", "סהר מתמלא"], ["🌓", "רבע ראשון"], ["🌔", "לקראת מילוא"],
-    ["🌕", "ירח מלא"], ["🌖", "אחרי מילוא"], ["🌗", "רבע אחרון"], ["🌘", "סהר דועך"],
-  ];
   const idx = Math.round((age / synodicMonth) * 8) % 8;
-  const [emoji, name] = PHASES[idx];
+  return MOON_PHASES[idx];
+}
+function loadMoon(offset = 0) {
+  document.getElementById("moon-title").textContent = MOON_DAY_TITLES[offset];
+  const box = document.getElementById("moon-box");
+  const [emoji, name] = moonPhaseFor(offset);
   box.innerHTML = `<div class="moon-emoji">${emoji}</div><div class="moon-name">${name}</div>`;
 }
 
