@@ -242,6 +242,15 @@
 <script>
 KidLearn.init();
 
+// Any text that came from a user (kid-authored or, via family replies, an
+// anonymous third party through reply.html) must be escaped before going
+// into innerHTML - names, subjects, letter/reply bodies, etc.
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
 const gate = document.getElementById("gate");
 const app = document.getElementById("app");
 let contacts = [];
@@ -283,7 +292,7 @@ async function loadContacts() {
   select.innerHTML = "";
   contacts.forEach((c) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span>👤 ${c.name} — ${c.email}</span>`;
+    li.innerHTML = `<span>👤 ${escapeHtml(c.name)} — ${escapeHtml(c.email)}</span>`;
     const actions = document.createElement("span");
     actions.className = "contact-actions";
     const chat = document.createElement("button");
@@ -450,7 +459,7 @@ function renderMessage(m) {
     envelope.className = "envelope";
     envelope.innerHTML = `
       <span class="icon">💌</span>
-      <div><b>ל${m.toName}:</b> ${m.subject || ""}</div>
+      <div><b>ל${escapeHtml(m.toName)}:</b> ${escapeHtml(m.subject)}</div>
       <div class="muted">קיבלת תשובה!</div>
       <button class="open-btn">פתיחת התשובה 🎉</button>
     `;
@@ -479,11 +488,11 @@ function renderOpenMessage(m) {
   // entry in the thread - see messageEntries().
   const familyEntries = messageEntries(m).filter((e) => e.from === "family");
   const latestReply = familyEntries[familyEntries.length - 1];
-  div.innerHTML = `<div class="to">ל${m.toName}</div><div class="subject">${m.subject || ""}</div>` +
-    `<span class="msg-text">${m.body}</span> <button class="secondary speak-btn" type="button">🔊 הקראת ההודעה</button>` +
+  div.innerHTML = `<div class="to">ל${escapeHtml(m.toName)}</div><div class="subject">${escapeHtml(m.subject)}</div>` +
+    `<span class="msg-text">${escapeHtml(m.body)}</span> <button class="secondary speak-btn" type="button">🔊 הקראת ההודעה</button>` +
     (m.image ? `<img class="msg-img" src="${m.image}" alt="תמונה מצורפת">` : "") +
     (latestReply
-      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${latestReply.text}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
+      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${escapeHtml(latestReply.text)}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
       : `<div class="waiting">עוד לא ענו</div>`) +
     `<button class="secondary chat-btn" type="button" style="margin-top:8px">💬 לשיחה המלאה</button>`;
   const [messageBtn, replyBtn] = div.querySelectorAll(".speak-btn");
@@ -546,8 +555,8 @@ function showConversation(contact) {
     entries.forEach((entry) => {
       const bubble = document.createElement("div");
       bubble.className = "bubble " + entry.from;
-      const meta = entry.from === "kid" ? `${KidLearn.currentUser().avatarEmoji || "🙂"} אני` : contact.name;
-      bubble.innerHTML = `<div class="bubble-meta">${meta}</div><span class="msg-text">${entry.text}</span>` +
+      const meta = entry.from === "kid" ? `${escapeHtml(KidLearn.currentUser().avatarEmoji || "🙂")} אני` : escapeHtml(contact.name);
+      bubble.innerHTML = `<div class="bubble-meta">${meta}</div><span class="msg-text">${escapeHtml(entry.text)}</span>` +
         (entry.image ? `<img class="msg-img" src="${entry.image}" alt="תמונה מצורפת">` : "");
       thread.appendChild(bubble);
     });

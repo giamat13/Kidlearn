@@ -69,6 +69,14 @@
 firebase.initializeApp(window.KIDLEARN_FIREBASE_CONFIG);
 const db = firebase.firestore();
 const card = document.getElementById("card");
+
+// Kid-authored text (subject, body, thread entries) must be escaped before
+// innerHTML - this page is reachable by anyone with the link, no auth.
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
 const params = new URLSearchParams(location.search);
 const id = params.get("id");
 
@@ -90,12 +98,12 @@ async function load() {
   const m = doc.data();
 
   const entries = threadEntries(m);
-  const kidLabel = `${m.fromAvatar || "🙂"} ${m.fromUsername}`;
+  const kidLabel = `${escapeHtml(m.fromAvatar || "🙂")} ${escapeHtml(m.fromUsername)}`;
 
   card.className = "sheet" + (m.bgTheme ? " bg-" + m.bgTheme : "");
   card.innerHTML = `
     <h2>💬 שיחה עם ${kidLabel}</h2>
-    <div class="muted">${m.subject || ""}</div>
+    <div class="muted">${escapeHtml(m.subject)}</div>
     <div id="thread"></div>
     <div class="row">
       <button id="mic">🎤 להקליט</button><span class="muted" id="mic-status"></span>
@@ -109,7 +117,7 @@ async function load() {
   entries.forEach((e) => {
     const bubble = document.createElement("div");
     bubble.className = "bubble " + e.from;
-    bubble.innerHTML = `<div class="bubble-meta">${e.from === "kid" ? kidLabel : "אני"}</div><span class="msg-text">${e.text}</span>` +
+    bubble.innerHTML = `<div class="bubble-meta">${e.from === "kid" ? kidLabel : "אני"}</div><span class="msg-text">${escapeHtml(e.text)}</span>` +
       (e.image ? `<img class="msg-img" src="${e.image}" alt="תמונה מצורפת">` : "");
     thread.appendChild(bubble);
   });
