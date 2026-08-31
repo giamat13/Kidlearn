@@ -3,621 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מכתב למשפחה</title>
+<title>שיחה מלאה</title>
 <link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#FBF3E3; --paper-dark:#F3E6C9; --ink:#3A2E22; --stamp:#D6584A;
-    --postal:#3C6E71; --gold:#C9973B; --success:#5B8C5A; --muted:#A89A82;
-    --shadow:rgba(58,46,34,.14);
+    --postal:#3C6E71; --gold:#C9973B; --muted:#A89A82; --shadow:rgba(58,46,34,.14);
   }
   *{box-sizing:border-box}
   body{font-family:'Rubik',sans-serif;color:var(--ink);background:var(--paper);
-    background-image:
-      radial-gradient(circle at 15% 8%, rgba(214,88,74,.06) 0%, transparent 40%),
-      radial-gradient(circle at 85% 92%, rgba(60,110,113,.07) 0%, transparent 45%);
-    margin:0;padding:20px 16px 60px;direction:rtl;min-height:100vh}
-
-  a.back{display:inline-block;margin:0 0 6px;color:var(--muted);text-decoration:none;font-size:.85rem}
-  a.back:hover{color:var(--postal)}
-
-  header.masthead{max-width:480px;margin:8px auto 6px;display:flex;align-items:center;
-    justify-content:center;gap:14px}
-  .stamp-badge{flex:none;width:58px;height:58px;background:var(--paper-dark);
-    border:2px dashed var(--stamp);border-radius:6px;display:flex;align-items:center;
-    justify-content:center;font-size:28px;transform:rotate(-6deg);
-    box-shadow:0 3px 0 var(--shadow)}
-  h1{font-family:'Suez One',serif;color:var(--stamp);text-align:center;font-size:2rem;
-    margin:0;letter-spacing:.5px}
-  .subtitle{text-align:center;color:var(--muted);margin:2px 0 18px;font-size:.95rem}
-
+    background-image:radial-gradient(circle at 85% 10%, rgba(214,88,74,.06) 0%, transparent 45%);
+    margin:0;padding:16px;direction:rtl}
+  .stamp-badge{width:52px;height:52px;background:var(--paper-dark);border:2px dashed var(--stamp);
+    border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:26px;
+    transform:rotate(-6deg);margin:24px auto 0;box-shadow:0 3px 0 var(--shadow)}
   .sheet{background:var(--paper-dark);border-radius:4px 4px 16px 16px;padding:22px 20px 18px;
-    max-width:480px;margin:18px auto;box-shadow:0 8px 22px var(--shadow);position:relative}
+    max-width:440px;margin:14px auto 40px;box-shadow:0 8px 22px var(--shadow);position:relative}
   .sheet::before{content:"";position:absolute;top:0;left:12px;right:12px;height:6px;
     background-image:repeating-linear-gradient(90deg, transparent 0 6px, var(--paper) 6px 9px);
     border-radius:0 0 3px 3px}
-  .sheet.tilt-r{transform:rotate(.4deg)}
-  .sheet.tilt-l{transform:rotate(-.4deg)}
-
-  h2,h3{font-family:'Suez One',serif;font-weight:400;color:var(--ink);margin:2px 0 12px}
-  h3{font-size:1.15rem}
-  h2{font-size:1.3rem}
-
-  input,textarea,select{width:100%;box-sizing:border-box;padding:12px 14px;margin:6px 0;
+  h2{font-family:'Suez One',serif;font-weight:400;color:var(--stamp);margin:2px 0 12px;font-size:1.3rem}
+  .original{background:var(--paper);border:1px solid #E6D6AE;border-radius:10px;padding:12px 14px;
+    margin:12px 0;font-size:15px;line-height:1.5}
+  textarea{width:100%;box-sizing:border-box;min-height:130px;padding:12px 14px;
     border:2px solid #E6D6AE;border-radius:10px;font-size:15px;font-family:inherit;
-    background:var(--paper);color:var(--ink);transition:border-color .2s,box-shadow .2s}
-  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--postal);
-    box-shadow:0 0 0 3px rgba(60,110,113,.14)}
-  textarea{min-height:140px;resize:vertical;line-height:26px;
+    background:var(--paper);color:var(--ink);resize:vertical;line-height:26px;
     background-image:repeating-linear-gradient(var(--paper) 0 25px, #E6D6AE 25px 26px);
     background-position-y:6px}
-
-  button{padding:11px 22px;border:none;border-radius:999px;background:var(--stamp);color:#fff;
-    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
-    box-shadow:0 3px 0 #a83f34;transition:transform .12s,box-shadow .12s}
-  button:hover{transform:translateY(-1px)}
+  textarea:focus{outline:none;border-color:var(--postal)}
+  button{padding:11px 20px;border:none;border-radius:999px;background:var(--stamp);color:#fff;
+    font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;font-family:inherit;
+    box-shadow:0 3px 0 #a83f34;transition:transform .12s}
   button:active{transform:translateY(2px);box-shadow:0 1px 0 #a83f34}
-  button.secondary{background:var(--paper);color:var(--postal);box-shadow:0 3px 0 #d8c69c;
-    border:2px solid #E6D6AE}
-  button.secondary:active{box-shadow:0 1px 0 #d8c69c}
-  button:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none}
-
-  #send{width:100%;margin-top:10px;font-size:15px;padding:13px}
-  .row{display:flex;gap:8px;align-items:center}
-  .contact-list{padding:0;margin:0 0 10px}
-  .contact-list li{display:flex;justify-content:space-between;align-items:center;
-    list-style:none;padding:9px 2px;border-bottom:1px dashed #E6D6AE}
-  .contact-list li span{display:flex;align-items:center;gap:6px}
-  .muted{color:var(--muted);font-size:12px}
-  .gate{text-align:center;padding:40px 16px}
-  .gate .stamp-badge{margin:0 auto 14px}
-
+  #send-reply{width:100%;padding:13px;font-size:15px}
   #mic{background:var(--postal);box-shadow:0 3px 0 #294e50}
   #mic.on{background:var(--stamp);box-shadow:0 3px 0 #a83f34}
+  .muted{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;align-items:center;margin-top:4px}
 
-  #contacts-onboarding h2{margin-top:0}
-  #contacts-onboarding .row{flex-direction:column;align-items:stretch}
-  #contacts-settings{max-width:480px;margin:18px auto}
-  #contacts-settings summary{cursor:pointer;font-weight:600;color:var(--muted);padding:8px 4px;
-    list-style:none}
-  #contacts-settings summary::-webkit-details-marker{display:none}
-  #contacts-settings summary::before{content:"▸ ";display:inline-block;transition:transform .2s}
-  #contacts-settings[open] summary::before{transform:rotate(90deg)}
-  #contacts-settings[open] summary{color:var(--postal)}
-  #contacts-settings .sheet{margin-top:8px}
-
-  /* Sent letters */
-  #sent-list{display:flex;flex-direction:column;gap:12px}
-  .msg{background:var(--paper);border-radius:10px;padding:14px 16px;font-size:14px;
-    border:1px solid #E6D6AE}
-  .msg:nth-child(odd){transform:rotate(-.5deg)}
-  .msg:nth-child(even){transform:rotate(.5deg)}
-  .msg .to{color:var(--postal);font-size:12px;margin-bottom:2px;font-weight:600}
-  .msg .subject{font-weight:700;color:var(--ink);font-family:'Suez One',serif;font-size:1rem}
-  .msg .reply{background:#EAF2E9;border-radius:8px;padding:10px 12px;margin-top:10px;
-    animation:replyReveal .5s ease}
-  .msg .reply b{color:var(--success)}
-  .waiting{color:var(--muted);font-size:13px;margin-top:6px;font-style:italic}
-  .speak-btn,.nikud-btn{padding:4px 12px;font-size:12px;margin-inline-start:8px;box-shadow:0 2px 0 #d8c69c}
-  .sticker-row{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
-  .sticker-row button{background:var(--paper);border:2px solid #E6D6AE;border-radius:10px;
-    padding:6px 8px;font-size:18px;line-height:1;box-shadow:none}
-  .sticker-row button:active{transform:scale(.9)}
-  .avatar-row button.selected{border-color:var(--postal);background:#EAF2F1}
-  #search-sent{margin-bottom:10px}
-  .bg-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
-  .bg-row button{width:30px;height:30px;padding:0;border-radius:50%;border:2px solid #E6D6AE;
-    box-shadow:none}
-  .bg-row button.selected{border-color:var(--postal);transform:scale(1.15)}
+  #thread{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+  .bubble{max-width:82%;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.5}
+  .bubble.kid{align-self:flex-start;background:var(--paper);border:1px solid #E6D6AE;
+    border-start-start-radius:2px}
+  .bubble.family{align-self:flex-end;background:#EAF2E9;border-start-end-radius:2px}
+  .bubble .bubble-meta{font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600}
+  .nikud-btn{padding:4px 12px;font-size:12px;margin-inline-start:8px;margin-top:6px;
+    background:var(--paper);color:var(--postal);box-shadow:0 2px 0 #d8c69c;
+    border:2px solid #E6D6AE}
   .bg-sky{background:linear-gradient(135deg,#EAF4FB,#D9ECF7)}
   .bg-mint{background:linear-gradient(135deg,#EAF7EF,#D8F0E0)}
   .bg-blush{background:linear-gradient(135deg,#FBEAF0,#F6D9E4)}
   .bg-sun{background:linear-gradient(135deg,#FDF6E3,#FBEAB8)}
   .bg-lav{background:linear-gradient(135deg,#F1EAFB,#E3D6F5)}
-  .msg-img{max-width:180px;border-radius:10px;display:block;margin-top:8px}
-  #image-preview-wrap{display:flex;align-items:center;gap:6px}
-  #image-preview{max-width:60px;max-height:60px;border-radius:8px;object-fit:cover}
-  @keyframes replyReveal{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
-
-  /* Unopened letter envelope */
-  .envelope{background:linear-gradient(135deg,#FBEAE7,#EAF1F1);border:2px dashed var(--stamp);
-    border-radius:12px;padding:18px;margin:0;text-align:center;cursor:pointer;
-    transition:transform .2s}
-  .envelope:hover{transform:translateY(-2px)}
-  .envelope .icon{font-size:38px;display:block;margin-bottom:6px;animation:sway 2s ease-in-out infinite}
-  @keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
-  .envelope .open-btn{margin-top:10px;background:linear-gradient(135deg,var(--stamp),var(--gold));
-    box-shadow:0 3px 0 #a8763a}
-  .envelope.opening .icon{animation:openBurst .5s ease forwards}
-  @keyframes openBurst{0%{transform:scale(1) rotate(0)}40%{transform:scale(1.4) rotate(-8deg)}100%{transform:scale(0) rotate(20deg);opacity:0}}
-
-  .contact-list .contact-actions{display:flex;gap:6px}
-  .contact-list .chat-btn{padding:6px 12px;font-size:12px}
-
-  /* Conversation history */
-  #conversation-thread{display:flex;flex-direction:column;gap:10px;margin:12px 0}
-  .bubble{max-width:80%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5}
-  .bubble.kid{align-self:flex-end;background:var(--paper);border:1px solid #E6D6AE;
-    border-start-end-radius:2px}
-  .bubble.family{align-self:flex-start;background:#EAF2E9;border-start-start-radius:2px}
-  .bubble .bubble-meta{font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600}
+  .msg-img{max-width:200px;border-radius:10px;display:block;margin-top:8px}
 </style>
 </head>
 <body>
-<a class="back" href="../index.html">⟵ חזרה</a>
-<header class="masthead">
-  <span class="stamp-badge">✉️</span>
-  <h1>מכתב למשפחה</h1>
-</header>
-<p class="subtitle">כתבו מכתב לבני המשפחה, וקבלו מהם תשובה</p>
-
-<div id="gate" class="gate sheet" hidden>
-  <span class="stamp-badge">🔒</span>
-  <p>צריך להתחבר לחשבון KidLearn כדי לשלוח מכתבים.</p>
-  <p class="muted">לחצו על כפתור "התחברות" בפינה השמאלית התחתונה.</p>
-</div>
-
-<div id="app" hidden>
-  <div id="contacts-onboarding" class="sheet" hidden>
-    <h2>👪 קודם, בואו נוסיף בני משפחה</h2>
-    <p class="muted">להורים: הוסיפו כאן את מי שהילד/ה יוכלו לכתוב לו מכתבים. אפשר להוסיף עוד בכל שלב.</p>
-    <div class="row">
-      <input id="new-name-onboarding" placeholder="שם (למשל: סבתא רותי)">
-      <input id="new-email-onboarding" placeholder="אימייל" type="email">
-      <button id="add-contact-onboarding">הוספת איש קשר ➕</button>
-    </div>
-  </div>
-
-  <details id="avatar-settings" hidden>
-    <summary>🙂 האווטאר שלי</summary>
-    <div class="sheet">
-      <p class="muted">בחרו איך תיראו ליד השם שלכם במכתבים</p>
-      <span id="avatar-picker" class="sticker-row avatar-row"></span>
-    </div>
-  </details>
-
-  <details id="contacts-settings" hidden>
-    <summary>👪 ניהול אנשי קשר (הורים)</summary>
-    <div class="sheet">
-      <ul class="contact-list" id="contact-list"></ul>
-      <div class="row">
-        <input id="new-name" placeholder="שם">
-        <input id="new-email" placeholder="אימייל" type="email">
-        <button id="add-contact">הוספה</button>
-      </div>
-      <button class="secondary" id="export-contacts" style="margin-top:8px">📇 ייצוא אנשי קשר (לגוגל)</button>
-    </div>
-  </details>
-
-  <div id="conversation-view" class="sheet" hidden>
-    <button class="secondary" id="close-conversation">← חזרה</button>
-    <h3 id="conversation-title"></h3>
-    <div id="conversation-thread"></div>
-  </div>
-
-  <div id="compose-section" class="sheet tilt-r" hidden>
-    <h3>✍️ כתיבת מכתב</h3>
-    <select id="to-contact"></select>
-    <div class="row">
-      <input id="subject" placeholder="נושא" style="width:auto;flex:1">
-      <button id="mic-subject">🎤</button>
-    </div>
-    <span class="muted" id="mic-subject-status"></span>
-    <div class="row">
-      <button id="mic">🎤 להקליט</button>
-      <span class="muted" id="mic-status"></span>
-    </div>
-    <div class="row" style="flex-wrap:wrap"><span class="muted">מדבקות:</span> <span id="stickers" class="sticker-row"></span></div>
-    <div class="row" style="flex-wrap:wrap"><span class="muted">רקע:</span> <span id="bg-picker" class="bg-row"></span></div>
-    <div class="row">
-      <button type="button" class="secondary" id="attach-image-btn">📷 צירוף תמונה</button>
-      <input type="file" id="attach-image" accept="image/*" capture="environment" hidden>
-      <span id="image-preview-wrap" hidden>
-        <img id="image-preview" alt="">
-        <button type="button" class="secondary" id="remove-image">✖</button>
-      </span>
-    </div>
-    <textarea id="body" placeholder="כתבו כאן, או לחצו על המיקרופון ותדברו..."></textarea>
-    <button id="send">שליחת מכתב 💌</button>
-    <p class="muted" id="send-status"></p>
-  </div>
-
-  <div id="sent-section" class="sheet tilt-l" hidden>
-    <h3>📬 מכתבים ששלחתי</h3>
-    <input id="search-sent" placeholder="🔍 חיפוש במכתבים...">
-    <div id="sent-list"></div>
-    <button class="secondary" id="refresh" style="margin-top:12px">רענון</button>
-  </div>
-</div>
+<div class="stamp-badge">✉️</div>
+<div class="sheet" id="card">טוען...</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="../shared/kidlearn-firebase-config.js"></script>
-<script src="../shared/kidlearn-emailjs-config.js"></script>
-<script src="../shared/kidlearn-cloud.js"></script>
-<script src="../shared/kidlearn-widget.js"></script>
 <script>
-KidLearn.init();
+firebase.initializeApp(window.KIDLEARN_FIREBASE_CONFIG);
+const db = firebase.firestore();
+// Holiday background patterns (tiled emoji over a gradient), same generator
+// and theme table as family-mail/index.html - kept in sync manually since
+// both are self-contained single files. General bg-* gradients stay in CSS above.
+function emojiPatternDataUri(emojis, size) {
+  const positions = [[8, 10], [size - 10, size * 0.4], [size * 0.4, size - 8]];
+  const glyphs = positions.map(([x, y], i) =>
+    `<text x="${x}" y="${y}" font-size="${size * 0.32}">${emojis[i % emojis.length]}</text>`
+  ).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">${glyphs}</svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+const HOLIDAY_BG_THEMES = [
+  { key: "rosh-hashana", emojis: ["🍎", "🍯", "🌟"],
+    variants: [["#FFF3D6", "#FFE1A8"], ["#FDECC8", "#F7C873"], ["#FFF8E7", "#F6D989"]] },
+  { key: "yom-kippur", emojis: ["🕊️", "✨", "🤍"],
+    variants: [["#F5F7FA", "#E4E9F0"], ["#F2F4F7", "#DCE3EC"], ["#FAFBFC", "#E9EDF3"]] },
+  { key: "sukkot", emojis: ["🌿", "🍋", "⭐"],
+    variants: [["#EAF6E8", "#D3EDCF"], ["#F1F7E0", "#DDEBB0"], ["#E6F3E9", "#C8E6CE"]] },
+  { key: "hanukkah", emojis: ["🕎", "🕯️", "✨"],
+    variants: [["#E9EEF9", "#CBD7EF"], ["#EFE6F5", "#D9C4EA"], ["#E6ECFA", "#C3D2F0"]] },
+  { key: "tu-bishvat", emojis: ["🌳", "🍇", "🌱"],
+    variants: [["#EAF5EA", "#CFE9CF"], ["#F0F6E4", "#DCEBBF"], ["#E4F1E7", "#C6E2CB"]] },
+  { key: "purim", emojis: ["🎭", "🍬", "🎉"],
+    variants: [["#FDEAF6", "#F8C9E8"], ["#FFF0DC", "#FFD08A"], ["#EAF0FE", "#C6D4FB"]] },
+  { key: "pesach", emojis: ["🍷", "🫓", "🌸"],
+    variants: [["#F3E9EC", "#E3C7CE"], ["#F7F1E3", "#EBDDB6"], ["#EEF2E4", "#D6E0BF"]] },
+  { key: "shavuot", emojis: ["🌾", "🧺", "🌻"],
+    variants: [["#FBF6E3", "#F3E6A8"], ["#EFF6E4", "#D9EBB6"], ["#FDF9EC", "#F0E2A6"]] },
+];
+const bgStyle = document.createElement("style");
+HOLIDAY_BG_THEMES.forEach((h) => {
+  const pattern = emojiPatternDataUri(h.emojis, 56);
+  h.variants.forEach((colors, i) => {
+    bgStyle.textContent += `.bg-${h.key}-${i + 1}{background-color:${colors[1]};` +
+      `background-image:url("${pattern}"),linear-gradient(135deg,${colors[0]},${colors[1]});` +
+      `background-size:56px 56px,cover}\n`;
+  });
+});
+document.head.appendChild(bgStyle);
 
-// Any text that came from a user (kid-authored or, via family replies, an
-// anonymous third party through reply.html) must be escaped before going
-// into innerHTML - names, subjects, letter/reply bodies, etc.
+const card = document.getElementById("card");
+
+// Kid-authored text (subject, body, thread entries) must be escaped before
+// innerHTML - this page is reachable by anyone with the link, no auth.
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   }[c]));
 }
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
 
-const gate = document.getElementById("gate");
-const app = document.getElementById("app");
-let contacts = [];
-let allMessages = [];
-
-KidLearn.onAuthChange(async (profile) => {
-  gate.hidden = !!profile;
-  app.hidden = !profile;
-  if (profile) {
-    document.getElementById("avatar-settings").hidden = false;
-    renderAvatarPicker(profile.avatarEmoji);
-    await loadContacts();
-    await loadSent();
-  }
-});
-
-const AVATARS = ["🙂", "😄", "🥳", "🦄", "🐶", "🐱", "🦋", "🐻", "🌟", "🌈"];
-function renderAvatarPicker(current) {
-  const picker = document.getElementById("avatar-picker");
-  picker.innerHTML = "";
-  AVATARS.forEach((emoji) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = emoji;
-    if (emoji === current) btn.classList.add("selected");
-    btn.onclick = async () => {
-      await KidLearn.setAvatar(emoji);
-      renderAvatarPicker(emoji);
-    };
-    picker.appendChild(btn);
-  });
-}
-
-async function loadContacts() {
-  contacts = await KidLearn.contacts.list();
-  const list = document.getElementById("contact-list");
-  const select = document.getElementById("to-contact");
-  list.innerHTML = "";
-  select.innerHTML = "";
-  contacts.forEach((c) => {
-    const li = document.createElement("li");
-    li.innerHTML = `<span>👤 ${escapeHtml(c.name)} — ${escapeHtml(c.email)}</span>`;
-    const actions = document.createElement("span");
-    actions.className = "contact-actions";
-    const chat = document.createElement("button");
-    chat.textContent = "💬 שיחה";
-    chat.className = "secondary chat-btn";
-    chat.onclick = () => showConversation(c);
-    const del = document.createElement("button");
-    del.textContent = "מחיקה";
-    del.className = "secondary";
-    del.onclick = async () => { await KidLearn.contacts.remove(c.id); await loadContacts(); };
-    actions.appendChild(chat);
-    actions.appendChild(del);
-    li.appendChild(actions);
-    list.appendChild(li);
-
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    select.appendChild(opt);
-  });
-
-  const hasContacts = contacts.length > 0;
-  document.getElementById("contacts-onboarding").hidden = hasContacts;
-  document.getElementById("contacts-settings").hidden = !hasContacts;
-  document.getElementById("compose-section").hidden = !hasContacts;
-  document.getElementById("sent-section").hidden = !hasContacts;
-}
-
-document.getElementById("export-contacts").onclick = () => {
-  const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
-  const rows = contacts.map((c) => [esc(c.name), esc(c.name), "* Other", esc(c.email)].join(","));
-  const csv = "Name,Given Name,E-mail 1 - Label,E-mail 1 - Value\n" + rows.join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "kidlearn-contacts.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-async function addContact(nameInputId, emailInputId) {
-  const name = document.getElementById(nameInputId).value.trim();
-  const email = document.getElementById(emailInputId).value.trim();
-  if (!name || !email) return;
-  await KidLearn.contacts.add(name, email);
-  document.getElementById(nameInputId).value = "";
-  document.getElementById(emailInputId).value = "";
-  await loadContacts();
-}
-
-document.getElementById("add-contact").onclick = () => addContact("new-name", "new-email");
-document.getElementById("add-contact-onboarding").onclick = () => addContact("new-name-onboarding", "new-email-onboarding");
-
-document.getElementById("send").onclick = async () => {
-  const contactId = document.getElementById("to-contact").value;
-  const subject = document.getElementById("subject").value.trim();
-  const body = document.getElementById("body").value.trim();
-  const status = document.getElementById("send-status");
-  if (!contactId || !body) { status.textContent = "צריך לבחור נמען ולכתוב הודעה"; return; }
-  const sendBtn = document.getElementById("send");
-  sendBtn.disabled = true;
-  status.textContent = "שולח...";
-  try {
-    await KidLearn.sendFamilyMessage(contactId, subject, body, selectedBg, selectedImage);
-    status.textContent = "נשלח! 🎉";
-    document.getElementById("body").value = "";
-    document.getElementById("subject").value = "";
-    selectedBg = null;
-    bgPicker.querySelectorAll("button").forEach((b) => b.classList.remove("selected"));
-    document.getElementById("compose-section").className = "sheet tilt-r";
-    clearImage();
-    await loadSent();
-  } catch (e) {
-    status.textContent = "שגיאה: " + (e.text || e.message || e) + " - בקשו ממבוגר שיעזור לכם.";
-    speak("המכתב לא נשלח. בקשו ממבוגר שיעזור לכם.");
-  }
-  sendBtn.disabled = false;
-};
-
-const STICKERS = ["☀️", "🌈", "❤️", "🐻", "🎈", "⭐", "🍀", "🦄", "🐶", "🌸",
-  "🐱", "🐰", "🦋", "🌻", "🍎", "🍭", "🎨", "🎵", "😊", "😍", "🥳", "👍", "💐", "🍕",
-  "🐬", "🚀", "🎁"];
-const stickerRow = document.getElementById("stickers");
-STICKERS.forEach((emoji) => {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.textContent = emoji;
-  btn.onclick = () => {
-    const body = document.getElementById("body");
-    const pos = body.selectionStart ?? body.value.length;
-    body.value = body.value.slice(0, pos) + emoji + body.value.slice(pos);
-    body.focus();
-    body.selectionStart = body.selectionEnd = pos + emoji.length;
-  };
-  stickerRow.appendChild(btn);
-});
-
-const BG_THEMES = ["sky", "mint", "blush", "sun", "lav"];
-let selectedBg = null;
-const bgPicker = document.getElementById("bg-picker");
-BG_THEMES.forEach((theme) => {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "bg-" + theme;
-  btn.title = theme;
-  btn.onclick = () => {
-    selectedBg = selectedBg === theme ? null : theme;
-    bgPicker.querySelectorAll("button").forEach((b) => b.classList.toggle("selected", b === btn && selectedBg));
-    document.getElementById("compose-section").className = "sheet tilt-r" + (selectedBg ? " bg-" + selectedBg : "");
-  };
-  bgPicker.appendChild(btn);
-});
-
-// No Cloud Storage bucket on this project (Spark plan), so an attached photo/drawing
-// is downscaled client-side and embedded as a base64 data URL directly on the
-// message doc - see firestore.rules for the size cap this relies on.
-let selectedImage = null;
-function downscaleImage(file, maxDim) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(img.src);
-      resolve(canvas.toDataURL("image/jpeg", 0.6));
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-}
-function clearImage() {
-  selectedImage = null;
-  document.getElementById("attach-image").value = "";
-  document.getElementById("image-preview-wrap").hidden = true;
-}
-document.getElementById("attach-image-btn").onclick = () => document.getElementById("attach-image").click();
-document.getElementById("attach-image").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const status = document.getElementById("send-status");
-  if (!file.type.startsWith("image/")) {
-    status.textContent = "אפשר לצרף רק תמונה.";
-    clearImage();
-    return;
-  }
-  const MAX_SOURCE_BYTES = 15 * 1024 * 1024; // 15MB - generous but keeps huge phone-camera RAWs off the canvas
-  if (file.size > MAX_SOURCE_BYTES) {
-    status.textContent = "התמונה גדולה מדי, נסו תמונה אחרת.";
-    clearImage();
-    return;
-  }
-  status.textContent = "";
-  try {
-    selectedImage = await downscaleImage(file, 480);
-  } catch (err) {
-    status.textContent = "לא הצלחנו לטעון את התמונה, נסו תמונה אחרת.";
-    clearImage();
-    return;
-  }
-  document.getElementById("image-preview").src = selectedImage;
-  document.getElementById("image-preview-wrap").hidden = false;
-});
-document.getElementById("remove-image").onclick = clearImage;
-
-function speak(text) {
-  if (!("speechSynthesis" in window)) return;
-  speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = "he-IL";
-  utt.rate = 0.9;
-  speechSynthesis.speak(utt);
-}
-
-function renderMessage(m) {
-  // A reply that hasn't been opened yet shows as a closed envelope;
-  // the kid has to tap it to reveal the reply (and mark it seen).
-  if (m.replied && !m.replySeenByKid) {
-    const envelope = document.createElement("div");
-    envelope.className = "envelope";
-    envelope.innerHTML = `
-      <span class="icon">💌</span>
-      <div><b>ל${escapeHtml(m.toName)}:</b> ${escapeHtml(m.subject)}</div>
-      <div class="muted">קיבלת תשובה!</div>
-      <button class="open-btn">פתיחת התשובה 🎉</button>
-    `;
-    envelope.querySelector(".open-btn").onclick = async (e) => {
-      e.stopPropagation();
-      envelope.classList.add("opening");
-      try { await KidLearn.markReplySeen(m.id); } catch (err) { /* still show it locally */ }
-      setTimeout(() => {
-        const div = renderOpenMessage(m);
-        envelope.replaceWith(div);
-        const familyEntries = messageEntries(m).filter((e) => e.from === "family");
-        const latestReply = familyEntries[familyEntries.length - 1];
-        if (latestReply) speak(latestReply.text);
-      }, 450);
-    };
-    return envelope;
-  }
-  return renderOpenMessage(m);
-}
-
-function renderOpenMessage(m) {
-  const div = document.createElement("div");
-  div.className = "msg" + (m.bgTheme ? " bg-" + m.bgTheme : "");
-  // The latest reply may be the legacy replyBody field or, for anything
-  // replied to after the `thread` array was introduced, the last family
-  // entry in the thread - see messageEntries().
-  const familyEntries = messageEntries(m).filter((e) => e.from === "family");
-  const latestReply = familyEntries[familyEntries.length - 1];
-  div.innerHTML = `<div class="to">ל${escapeHtml(m.toName)}</div><div class="subject">${escapeHtml(m.subject)}</div>` +
-    `<span class="msg-text">${escapeHtml(m.body)}</span> <button class="secondary speak-btn" type="button">🔊 הקראת ההודעה</button>` +
-    (m.image ? `<img class="msg-img" src="${m.image}" alt="תמונה מצורפת">` : "") +
-    (latestReply
-      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${escapeHtml(latestReply.text)}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
-      : `<div class="waiting">עוד לא ענו</div>`) +
-    `<button class="secondary chat-btn" type="button" style="margin-top:8px">💬 לשיחה המלאה</button>`;
-  const [messageBtn, replyBtn] = div.querySelectorAll(".speak-btn");
-  messageBtn.addEventListener("click", () => speak(m.body));
-  if (replyBtn) replyBtn.addEventListener("click", () => speak(latestReply.text));
-  div.querySelector(".chat-btn").addEventListener("click", () => showConversation({ name: m.toName, email: m.toEmail }));
-  return div;
-}
-
-async function loadSent() {
-  allMessages = await KidLearn.listSentMessages();
-  document.getElementById("search-sent").value = "";
-  renderSentList(allMessages);
-}
-document.getElementById("refresh").onclick = loadSent;
-
-function renderSentList(messages) {
-  const box = document.getElementById("sent-list");
-  box.innerHTML = "";
-  if (!messages.length) {
-    box.innerHTML = "<p class='muted'>לא נמצאו מכתבים.</p>";
-    return;
-  }
-  messages.forEach((m) => box.appendChild(renderMessage(m)));
-}
-
-document.getElementById("search-sent").addEventListener("input", (e) => {
-  const q = e.target.value.trim().toLowerCase();
-  if (!q) { renderSentList(allMessages); return; }
-  renderSentList(allMessages.filter((m) =>
-    (m.subject || "").toLowerCase().includes(q) ||
-    (m.body || "").toLowerCase().includes(q) ||
-    (m.toName || "").toLowerCase().includes(q)));
-});
-
-// A message doc's history flattened to a chronological list: the original
-// letter, its legacy single-reply field (if it predates the `thread` array),
-// then every entry appended to `thread` since (see reply.html).
-function messageEntries(m) {
-  const millis = (ts) => (ts ? ts.toMillis() : 0);
-  const entries = [{ from: "kid", text: m.body, at: millis(m.createdAt), image: m.image || null }];
-  if (m.replyBody) entries.push({ from: "family", text: m.replyBody, at: millis(m.repliedAt) || millis(m.createdAt) });
+// The full history is kept as: the original letter (body), its legacy
+// single-reply field (replyBody, for messages sent before the `thread` array
+// existed), then every entry appended to `thread` since - see kidlearn-cloud.js
+// and family-mail/index.html's identical flattening for the kid's own view.
+function threadEntries(m) {
+  const entries = [{ from: "kid", text: m.body, at: 0, image: m.image || null }];
+  if (m.replyBody) entries.push({ from: "family", text: m.replyBody, at: 1 });
   (m.thread || []).forEach((e) => entries.push(e));
   return entries;
 }
 
-// Organized back-and-forth history with one contact: every kid-authored
-// letter to them, flattened into one chronologically sorted transcript.
-function showConversation(contact) {
-  const thread = document.getElementById("conversation-thread");
-  document.getElementById("conversation-title").textContent = `💬 שיחה עם ${contact.name}`;
-  thread.innerHTML = "";
+async function load() {
+  if (!id) { card.textContent = "קישור לא תקין."; return; }
+  const doc = await db.collection("messages").doc(id).get();
+  if (!doc.exists) { card.textContent = "המכתב לא נמצא."; return; }
+  const m = doc.data();
 
-  const entries = allMessages.filter((m) => m.toEmail === contact.email).flatMap(messageEntries);
-  entries.sort((a, b) => a.at - b.at);
+  const entries = threadEntries(m);
+  const kidLabel = `${escapeHtml(m.fromAvatar || "🙂")} ${escapeHtml(m.fromUsername)}`;
 
-  if (!entries.length) {
-    thread.innerHTML = "<p class='muted'>עוד אין היסטוריית שיחה.</p>";
-  } else {
-    entries.forEach((entry) => {
-      const bubble = document.createElement("div");
-      bubble.className = "bubble " + entry.from;
-      const meta = entry.from === "kid" ? `${escapeHtml(KidLearn.currentUser().avatarEmoji || "🙂")} אני` : escapeHtml(contact.name);
-      bubble.innerHTML = `<div class="bubble-meta">${meta}</div><span class="msg-text">${escapeHtml(entry.text)}</span>` +
-        (entry.image ? `<img class="msg-img" src="${entry.image}" alt="תמונה מצורפת">` : "");
-      thread.appendChild(bubble);
+  card.className = "sheet" + (m.bgTheme ? " bg-" + m.bgTheme : "");
+  card.innerHTML = `
+    <h2>💬 שיחה עם ${kidLabel}</h2>
+    <div class="muted">${escapeHtml(m.subject)}</div>
+    <div id="thread"></div>
+    <div class="row">
+      <button id="mic">🎤 להקליט</button><span class="muted" id="mic-status"></span>
+    </div>
+    <textarea id="reply-body" placeholder="כתבו כאן..."></textarea>
+    <button id="send-reply">שליחת הודעה 💌</button>
+    <p class="muted" id="status"></p>
+  `;
+
+  const thread = document.getElementById("thread");
+  entries.forEach((e) => {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + e.from;
+    bubble.innerHTML = `<div class="bubble-meta">${e.from === "kid" ? kidLabel : "אני"}</div><span class="msg-text">${escapeHtml(e.text)}</span>` +
+      (e.image ? `<img class="msg-img" src="${e.image}" alt="תמונה מצורפת">` : "");
+    thread.appendChild(bubble);
+  });
+
+  document.getElementById("send-reply").onclick = async () => {
+    const text = document.getElementById("reply-body").value.trim();
+    const status = document.getElementById("status");
+    if (!text) { status.textContent = "כתבו משהו קודם"; return; }
+    await db.collection("messages").doc(id).update({
+      thread: firebase.firestore.FieldValue.arrayUnion({ from: "family", text, at: Date.now() }),
+      replied: true, replySeenByKid: false, repliedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-  }
-
-  ["contacts-onboarding", "contacts-settings", "compose-section", "sent-section"]
-    .forEach((id) => { document.getElementById(id).hidden = true; });
-  document.getElementById("conversation-view").hidden = false;
+    status.textContent = "נשלח! 🎉";
+    load();
+  };
+  setupMic();
 }
-document.getElementById("close-conversation").onclick = () => {
-  document.getElementById("conversation-view").hidden = true;
-  loadContacts();
-};
 
-// Speech-to-text dictation (native Web Speech API, Hebrew).
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-function attachMic(fieldId, micBtnId, statusId, idleLabel) {
-  const field = document.getElementById(fieldId);
-  const micBtn = document.getElementById(micBtnId);
-  const micStatus = document.getElementById(statusId);
-  if (!SpeechRecognition) {
-    micBtn.disabled = true;
-    micStatus.textContent = "הדפדפן לא תומך בהקלטה";
-    return;
-  }
+function setupMic() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = document.getElementById("mic");
+  const micStatus = document.getElementById("mic-status");
+  if (!SpeechRecognition) { micBtn.disabled = true; micStatus.textContent = "הדפדפן לא תומך בהקלטה"; return; }
   const recognition = new SpeechRecognition();
   recognition.lang = "he-IL";
   recognition.continuous = true;
   recognition.interimResults = false;
   let listening = false;
-
   recognition.onresult = (e) => {
+    const textarea = document.getElementById("reply-body");
     let addition = "";
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      addition += e.results[i][0].transcript;
-    }
-    field.value = (field.value + " " + addition).trim();
+    for (let i = e.resultIndex; i < e.results.length; i++) addition += e.results[i][0].transcript;
+    textarea.value = (textarea.value + " " + addition).trim();
   };
   recognition.onerror = () => { micStatus.textContent = "לא הצלחתי לשמוע, נסו שוב"; };
-  recognition.onend = () => { listening = false; micBtn.classList.remove("on"); micBtn.textContent = idleLabel; };
-
+  recognition.onend = () => { listening = false; micBtn.classList.remove("on"); micBtn.textContent = "🎤 להקליט"; };
   micBtn.onclick = () => {
     if (listening) { recognition.stop(); return; }
     listening = true;
@@ -628,8 +204,7 @@ function attachMic(fieldId, micBtnId, statusId, idleLabel) {
   };
 }
 
-attachMic("body", "mic", "mic-status", "🎤 להקליט");
-attachMic("subject", "mic-subject", "mic-subject-status", "🎤");
+load();
 </script>
 </body>
 </html>

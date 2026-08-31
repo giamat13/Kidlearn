@@ -109,6 +109,7 @@
   .bg-row button{width:30px;height:30px;padding:0;border-radius:50%;border:2px solid #E6D6AE;
     box-shadow:none}
   .bg-row button.selected{border-color:var(--postal);transform:scale(1.15)}
+  .bg-picker-group{width:100%;font-size:11px;color:var(--muted);margin:4px 0 -2px}
   .bg-sky{background:linear-gradient(135deg,#EAF4FB,#D9ECF7)}
   .bg-mint{background:linear-gradient(135deg,#EAF7EF,#D8F0E0)}
   .bg-blush{background:linear-gradient(135deg,#FBEAF0,#F6D9E4)}
@@ -391,16 +392,124 @@ STICKERS.forEach((emoji) => {
   stickerRow.appendChild(btn);
 });
 
-const BG_THEMES = ["sky", "mint", "blush", "sun", "lav"];
+// Backgrounds are no longer just a flat gradient: holiday themes get a
+// gradient base plus a tiled SVG pattern of emoji scattered over it.
+// Pattern is built once per theme and injected as a <style> rule (.bg-<key>),
+// same mechanism the rest of the app already uses to pick a bgTheme.
+function emojiPatternDataUri(emojis, size) {
+  const positions = [[8, 10], [size - 10, size * 0.4], [size * 0.4, size - 8]];
+  const glyphs = positions.map(([x, y], i) =>
+    `<text x="${x}" y="${y}" font-size="${size * 0.32}">${emojis[i % emojis.length]}</text>`
+  ).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">${glyphs}</svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+
+const GENERAL_BG_THEMES = [
+  { key: "sky", label: "שמיים", colors: ["#EAF4FB", "#D9ECF7"] },
+  { key: "mint", label: "מנטה", colors: ["#EAF7EF", "#D8F0E0"] },
+  { key: "blush", label: "ורוד", colors: ["#FBEAF0", "#F6D9E4"] },
+  { key: "sun", label: "שמש", colors: ["#FDF6E3", "#FBEAB8"] },
+  { key: "lav", label: "לבנדר", colors: ["#F1EAFB", "#E3D6F5"] },
+];
+
+// 3 background variants per holiday - same holiday emojis, different color
+// pairing/pattern scale each time so kids get a real choice per חג.
+const HOLIDAY_BG_THEMES = [
+  { holiday: "ראש השנה", key: "rosh-hashana", emojis: ["🍎", "🍯", "🌟"],
+    variants: [["#FFF3D6", "#FFE1A8"], ["#FDECC8", "#F7C873"], ["#FFF8E7", "#F6D989"]] },
+  { holiday: "יום כיפור", key: "yom-kippur", emojis: ["🕊️", "✨", "🤍"],
+    variants: [["#F5F7FA", "#E4E9F0"], ["#F2F4F7", "#DCE3EC"], ["#FAFBFC", "#E9EDF3"]] },
+  { holiday: "סוכות", key: "sukkot", emojis: ["🌿", "🍋", "⭐"],
+    variants: [["#EAF6E8", "#D3EDCF"], ["#F1F7E0", "#DDEBB0"], ["#E6F3E9", "#C8E6CE"]] },
+  { holiday: "חנוכה", key: "hanukkah", emojis: ["🕎", "🕯️", "✨"],
+    variants: [["#E9EEF9", "#CBD7EF"], ["#EFE6F5", "#D9C4EA"], ["#E6ECFA", "#C3D2F0"]] },
+  { holiday: "טו בשבט", key: "tu-bishvat", emojis: ["🌳", "🍇", "🌱"],
+    variants: [["#EAF5EA", "#CFE9CF"], ["#F0F6E4", "#DCEBBF"], ["#E4F1E7", "#C6E2CB"]] },
+  { holiday: "פורים", key: "purim", emojis: ["🎭", "🍬", "🎉"],
+    variants: [["#FDEAF6", "#F8C9E8"], ["#FFF0DC", "#FFD08A"], ["#EAF0FE", "#C6D4FB"]] },
+  { holiday: "פסח", key: "pesach", emojis: ["🍷", "🫓", "🌸"],
+    variants: [["#F3E9EC", "#E3C7CE"], ["#F7F1E3", "#EBDDB6"], ["#EEF2E4", "#D6E0BF"]] },
+  { holiday: "שבועות", key: "shavuot", emojis: ["🌾", "🧺", "🌻"],
+    variants: [["#FBF6E3", "#F3E6A8"], ["#EFF6E4", "#D9EBB6"], ["#FDF9EC", "#F0E2A6"]] },
+];
+
+// A holiday theme only shows up in the picker once the חג is close - otherwise
+// all 8 would clutter it year-round. "Close" = the holiday is happening today
+// or starts within HOLIDAY_WINDOW_DAYS. Dates are computed via the Hebrew
+// calendar built into Intl (no date-library dependency, and it's leap-year
+// aware for free since we match on month *name*, not a numeric index that
+// shifts when Adar I/Adar II are inserted).
+const HOLIDAY_WINDOW_DAYS = 21;
+function hebrewMonthDayRange(month, fromDay, toDay) {
+  const days = [];
+  for (let d = fromDay; d <= toDay; d++) days.push({ month, day: d });
+  return days;
+}
+const HOLIDAY_HEBREW_DATES = {
+  "rosh-hashana": hebrewMonthDayRange("Tishri", 1, 2),
+  "yom-kippur": hebrewMonthDayRange("Tishri", 10, 10),
+  "sukkot": hebrewMonthDayRange("Tishri", 15, 22),
+  "hanukkah": [...hebrewMonthDayRange("Kislev", 25, 30), ...hebrewMonthDayRange("Tevet", 1, 3)],
+  "tu-bishvat": hebrewMonthDayRange("Shevat", 15, 15),
+  // Purim falls in "Adar" on a regular year, "Adar II" on a leap year.
+  "purim": [...hebrewMonthDayRange("Adar", 14, 14), ...hebrewMonthDayRange("Adar II", 14, 14)],
+  "pesach": hebrewMonthDayRange("Nisan", 15, 22),
+  "shavuot": hebrewMonthDayRange("Sivan", 6, 6),
+};
+function hebrewMonthDay(date) {
+  const parts = new Intl.DateTimeFormat("en-u-ca-hebrew", { month: "long", day: "numeric" }).formatToParts(date);
+  return { month: parts.find((p) => p.type === "month").value, day: Number(parts.find((p) => p.type === "day").value) };
+}
+function activeOrUpcomingHolidayKeys() {
+  const keys = new Set();
+  const today = new Date();
+  for (let offset = 0; offset <= HOLIDAY_WINDOW_DAYS; offset++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + offset);
+    const { month, day } = hebrewMonthDay(d);
+    for (const [key, dates] of Object.entries(HOLIDAY_HEBREW_DATES)) {
+      if (dates.some((p) => p.month === month && p.day === day)) keys.add(key);
+    }
+  }
+  return keys;
+}
+
+const BG_THEMES = [...GENERAL_BG_THEMES];
+const bgStyle = document.createElement("style");
+GENERAL_BG_THEMES.forEach((t) => {
+  bgStyle.textContent += `.bg-${t.key}{background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]})}\n`;
+});
+const activeHolidayKeys = activeOrUpcomingHolidayKeys();
+HOLIDAY_BG_THEMES.filter((h) => activeHolidayKeys.has(h.key)).forEach((h) => {
+  const pattern = emojiPatternDataUri(h.emojis, 56);
+  h.variants.forEach((colors, i) => {
+    const key = `${h.key}-${i + 1}`;
+    BG_THEMES.push({ key, label: `${h.holiday} ${i + 1}`, group: h.holiday });
+    bgStyle.textContent += `.bg-${key}{background-color:${colors[1]};` +
+      `background-image:url("${pattern}"),linear-gradient(135deg,${colors[0]},${colors[1]});` +
+      `background-size:56px 56px,cover;background-blend-mode:normal,normal}\n`;
+  });
+});
+document.head.appendChild(bgStyle);
+
 let selectedBg = null;
 const bgPicker = document.getElementById("bg-picker");
+let lastGroup = null;
 BG_THEMES.forEach((theme) => {
+  if (theme.group && theme.group !== lastGroup) {
+    lastGroup = theme.group;
+    const label = document.createElement("div");
+    label.className = "bg-picker-group";
+    label.textContent = theme.group;
+    bgPicker.appendChild(label);
+  }
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "bg-" + theme;
-  btn.title = theme;
+  btn.className = "bg-" + theme.key;
+  btn.title = theme.label || theme.key;
   btn.onclick = () => {
-    selectedBg = selectedBg === theme ? null : theme;
+    selectedBg = selectedBg === theme.key ? null : theme.key;
     bgPicker.querySelectorAll("button").forEach((b) => b.classList.toggle("selected", b === btn && selectedBg));
     document.getElementById("compose-section").className = "sheet tilt-r" + (selectedBg ? " bg-" + selectedBg : "");
   };
@@ -436,7 +545,26 @@ document.getElementById("attach-image-btn").onclick = () => document.getElementB
 document.getElementById("attach-image").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  selectedImage = await downscaleImage(file, 480);
+  const status = document.getElementById("send-status");
+  if (!file.type.startsWith("image/")) {
+    status.textContent = "אפשר לצרף רק תמונה.";
+    clearImage();
+    return;
+  }
+  const MAX_SOURCE_BYTES = 15 * 1024 * 1024; // 15MB - generous but keeps huge phone-camera RAWs off the canvas
+  if (file.size > MAX_SOURCE_BYTES) {
+    status.textContent = "התמונה גדולה מדי, נסו תמונה אחרת.";
+    clearImage();
+    return;
+  }
+  status.textContent = "";
+  try {
+    selectedImage = await downscaleImage(file, 480);
+  } catch (err) {
+    status.textContent = "לא הצלחנו לטעון את התמונה, נסו תמונה אחרת.";
+    clearImage();
+    return;
+  }
   document.getElementById("image-preview").src = selectedImage;
   document.getElementById("image-preview-wrap").hidden = false;
 });

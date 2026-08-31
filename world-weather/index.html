@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מזג האוויר והירח</title>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#EAF6FC; --sky-dark:#D9EEF8; --ink:#22303A; --accent:#1E88C7;
+    --muted:#7B8C97; --shadow:rgba(30,60,80,.12);
+  }
+  *{box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;color:var(--ink);background:var(--sky);
+    margin:0;padding:20px 16px 60px;min-height:100vh}
+  a.back{display:inline-block;margin:0 0 6px;color:var(--muted);text-decoration:none;font-size:.85rem}
+  a.back:hover{color:var(--accent)}
+  header.masthead{max-width:480px;margin:8px auto 6px;display:flex;align-items:center;
+    justify-content:center;gap:10px}
+  .badge{flex:none;width:52px;height:52px;background:var(--sky-dark);
+    border:2px dashed var(--accent);border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:24px;box-shadow:0 3px 0 var(--shadow)}
+  h1{font-family:'Suez One',serif;color:var(--accent);text-align:center;font-size:1.8rem;margin:0}
+  .subtitle{text-align:center;color:var(--muted);margin:2px 0 22px;font-size:.95rem}
+
+  .card{background:#fff;border-radius:16px;padding:22px 20px;box-shadow:0 8px 22px var(--shadow);
+    max-width:420px;margin:0 auto 18px;text-align:center;transition:background-color .4s}
+  .card h2{font-family:'Suez One',serif;font-weight:400;font-size:1.1rem;color:var(--ink);margin:0 0 14px}
+  .loading{color:var(--muted);font-size:13px}
+  .err{color:#b23b2f}
+
+  .weather-emoji{font-size:56px;line-height:1}
+  .weather-temp{font-family:'Suez One',serif;font-size:2.6rem;color:var(--accent);margin:2px 0}
+  .weather-label{font-size:15px;color:var(--muted)}
+
+  .thermo-row{display:flex;align-items:center;justify-content:center;gap:18px}
+
+  .outfit-title{font-size:13px;color:var(--muted);margin:18px 0 8px}
+  .outfit-list{display:flex;flex-direction:column;gap:8px}
+  .outfit-row{display:flex;align-items:center;gap:12px;background:var(--sky-dark);
+    border-radius:12px;padding:8px 14px;text-align:start}
+  .outfit-icon{flex:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+    font-size:24px}
+  .outfit-text{font-size:15px}
+  .outfit-text b{color:var(--accent)}
+
+  .moon-emoji{font-size:56px;line-height:1}
+  .moon-name{font-family:'Suez One',serif;font-size:1.3rem;color:var(--ink);margin-top:6px}
+</style>
+</head>
+<body>
+<a class="back" href="../index.html">⟵ חזרה</a>
+<header class="masthead">
+  <span class="badge">☁️</span>
+  <span class="badge">🌙</span>
+  <h1>מזג האוויר והירח</h1>
+</header>
+<p class="subtitle">חם או קר עכשיו בחוץ? מה ללבוש? ואיך הירח נראה הלילה?</p>
+
+<div class="card" id="weather-card">
+  <div id="weather-box"><p class="loading">טוען...</p></div>
+</div>
+
+<div class="card">
+  <h2>🌙 הירח הלילה</h2>
+  <div id="moon-box"><p class="loading">טוען...</p></div>
+</div>
+
+<script>
+const WEATHER_CODES = {
+  0: ["☀️", "שמיים בהירים"], 1: ["🌤️", "בהיר בעיקר"], 2: ["⛅", "מעונן חלקית"], 3: ["☁️", "מעונן"],
+  45: ["🌫️", "ערפל"], 48: ["🌫️", "ערפילי כפור"],
+  51: ["🌦️", "טפטוף קל"], 53: ["🌦️", "טפטוף"], 55: ["🌧️", "טפטוף חזק"],
+  61: ["🌧️", "גשם קל"], 63: ["🌧️", "גשם"], 65: ["🌧️", "גשם חזק"],
+  71: ["🌨️", "שלג קל"], 73: ["🌨️", "שלג"], 75: ["❄️", "שלג כבד"],
+  80: ["🌦️", "ממטרים"], 81: ["🌦️", "ממטרים"], 82: ["⛈️", "ממטרים עזים"],
+  95: ["⛈️", "סופת רעמים"],
+};
+const RAIN_CODES = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95];
+const SNOW_CODES = [71, 73, 75];
+
+// Picture-based cues (thermometer color/height + an outfit checklist) so a
+// child who can't read yet can still tell hot-vs-cold and what to put on.
+// There's no "long sleeve shirt" emoji, so that one row draws a tiny SVG
+// instead - short vs. long rectangles standing in for sleeves.
+function thermoColor(temp) {
+  if (temp >= 32) return "#EB5757";
+  if (temp >= 25) return "#F2994A";
+  if (temp >= 15) return "#F2C94C";
+  if (temp >= 5) return "#56C596";
+  return "#2F80ED";
+}
+function renderThermometer(temp) {
+  const fill = document.getElementById("thermo-fill");
+  const bulb = document.getElementById("thermo-bulb");
+  const frac = Math.min(1, Math.max(0, (temp + 10) / 55)); // scale: -10°C..45°C
+  const height = Math.round(frac * 94);
+  const color = thermoColor(temp);
+  fill.setAttribute("y", 104 - height);
+  fill.setAttribute("height", height);
+  fill.setAttribute("fill", color);
+  bulb.setAttribute("fill", color);
+}
+function shirtIcon(long) {
+  const sleeveH = long ? 26 : 9;
+  return `<svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true">
+    <rect x="9" y="4" width="12" height="28" rx="3" fill="#1E88C7"/>
+    <rect x="1" y="4" width="8" height="${sleeveH}" rx="3" fill="#1E88C7"/>
+    <rect x="21" y="4" width="8" height="${sleeveH}" rx="3" fill="#1E88C7"/>
+  </svg>`;
+}
+function outfitFor(temp, code) {
+  return {
+    shirtLong: temp < 20,
+    pantsLong: temp < 22,
+    sandals: temp >= 24 && !RAIN_CODES.includes(code) && !SNOW_CODES.includes(code),
+    umbrella: RAIN_CODES.includes(code),
+    coat: temp < 10 || SNOW_CODES.includes(code),
+    sweater: temp >= 10 && temp < 16,
+  };
+}
+// Shirt/pants/shoes always show, state told by both the symbol and the word.
+// Umbrella/coat/sweater only show up at all when actually needed.
+function outfitRows(temp, code) {
+  const out = outfitFor(temp, code);
+  const rows = [
+    { icon: shirtIcon(out.shirtLong), text: `חולצה ${out.shirtLong ? "ארוכה" : "קצרה"}` },
+    { icon: out.pantsLong ? "👖" : "🩳", text: `מכנסיים ${out.pantsLong ? "ארוכים" : "קצרים"}` },
+    { icon: out.sandals ? "👡" : "👟", text: out.sandals ? "סנדלים" : "נעליים" },
+  ];
+  if (out.umbrella) rows.push({ icon: "☂️", text: "מטרייה" });
+  if (out.coat) rows.push({ icon: "🧥", text: "מעיל" });
+  if (out.sweater) rows.push({ icon: "🧶", text: "סווצ'ר" });
+  return rows;
+}
+
+async function loadWeather(lat, lon) {
+  const box = document.getElementById("weather-box");
+  try {
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+    if (!res.ok) throw new Error("weather fetch failed");
+    const data = await res.json();
+    const temp = Math.round(data.current_weather.temperature);
+    const code = data.current_weather.weathercode;
+    const [emoji, label] = WEATHER_CODES[code] || ["🌡️", "מזג אוויר"];
+
+    box.innerHTML = `
+      <div class="thermo-row">
+        <svg width="46" height="140" viewBox="0 0 46 140" aria-hidden="true">
+          <rect x="16" y="6" width="14" height="100" rx="7" fill="#fff" stroke="#dbe6ec" stroke-width="2"/>
+          <rect id="thermo-fill" x="18" y="104" width="10" height="0" fill="#2F80ED"/>
+          <circle cx="23" cy="118" r="16" fill="#fff" stroke="#dbe6ec" stroke-width="2"/>
+          <circle id="thermo-bulb" cx="23" cy="118" r="12" fill="#2F80ED"/>
+        </svg>
+        <div>
+          <div class="weather-emoji">${emoji}</div>
+          <div class="weather-temp">${temp}°C</div>
+          <div class="weather-label">${label}</div>
+        </div>
+      </div>
+      <div class="outfit-title">מה ללבוש היום?</div>
+      <div class="outfit-list">${outfitRows(temp, code).map((r) =>
+        `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
+      ).join("")}</div>
+    `;
+    renderThermometer(temp);
+    document.getElementById("weather-card").style.backgroundColor =
+      temp >= 25 ? "#FFF6EC" : temp < 10 ? "#EEF6FC" : "#fff";
+  } catch {
+    box.innerHTML = `<p class="err">לא הצלחנו לטעון את מזג האוויר. נסו שוב מאוחר יותר ☁️</p>`;
+  }
+}
+function initWeather() {
+  const TEL_AVIV = [32.0853, 34.7818];
+  if (!navigator.geolocation) { loadWeather(...TEL_AVIV); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => loadWeather(pos.coords.latitude, pos.coords.longitude),
+    () => loadWeather(...TEL_AVIV),
+    { timeout: 5000 }
+  );
+}
+
+// Local calculation (no API needed) - moon age in days since a known new moon,
+// mapped to one of 8 phase names across the ~29.53-day synodic month.
+// Names follow the Hebrew Wikipedia moon-phase table (he.wikipedia.org/wiki/מופע_הירח).
+function loadMoon() {
+  const box = document.getElementById("moon-box");
+  const synodicMonth = 29.53058867;
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+  const daysSince = (Date.now() - knownNewMoon) / 86400000;
+  const age = ((daysSince % synodicMonth) + synodicMonth) % synodicMonth;
+  const PHASES = [
+    ["🌑", "ירח חדש"], ["🌒", "סהר מתמלא"], ["🌓", "רבע ראשון"], ["🌔", "לקראת מילוא"],
+    ["🌕", "ירח מלא"], ["🌖", "אחרי מילוא"], ["🌗", "רבע אחרון"], ["🌘", "סהר דועך"],
+  ];
+  const idx = Math.round((age / synodicMonth) * 8) % 8;
+  const [emoji, name] = PHASES[idx];
+  box.innerHTML = `<div class="moon-emoji">${emoji}</div><div class="moon-name">${name}</div>`;
+}
+
+initWeather();
+loadMoon();
+</script>
+</body>
+</html>

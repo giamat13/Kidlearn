@@ -62,6 +62,13 @@
       "subtitle": "כלים לתקשורת עם המשפחה",
       "icon": "💌",
       "color": "linear-gradient(90deg, #FB7185, #FDA4AF)"
+    },
+    {
+      "id": "world",
+      "title": "העולם החי",
+      "subtitle": "דברים אמיתיים שקורים עכשיו בעולם",
+      "icon": "🌍",
+      "color": "linear-gradient(90deg, #38BDF8, #22D3EE)"
     }
   ],
   "items": [
@@ -462,7 +469,27 @@
       "icon": "💌",
       "url": "family-mail/index.html",
       "categories": ["family", "games"],
-      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"],
+      "grade": ["kindergarten", "first", "second", "third", "fourth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "world-weather",
+      "title": "מזג האוויר והירח",
+      "description": "חם או קר עכשיו בחוץ? מה ללבוש? ואיך הירח נראה הלילה?",
+      "icon": "☁️",
+      "url": "world-weather/index.html",
+      "categories": ["world"],
+      "grade": ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "zoo-cam",
+      "title": "מצלמת חיות חיה",
+      "description": "שידור חי, ממש עכשיו, מהטבע.",
+      "icon": "🐾",
+      "url": "zoo-cam/index.html",
+      "categories": ["world"],
+      "grade": ["preschool", "kindergarten", "first", "second", "third"],
       "devices": ["mobile", "tablet", "desktop"]
     }
   ]

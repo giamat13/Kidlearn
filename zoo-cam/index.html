@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מצלמת חיות חיה</title>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#EAF6FC; --sky-dark:#D9EEF8; --ink:#22303A; --accent:#1E88C7;
+    --muted:#7B8C97; --shadow:rgba(30,60,80,.12);
+  }
+  *{box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;color:var(--ink);background:var(--sky);
+    margin:0;padding:20px 16px 60px;min-height:100vh}
+  a.back{display:inline-block;margin:0 0 6px;color:var(--muted);text-decoration:none;font-size:.85rem}
+  a.back:hover{color:var(--accent)}
+  header.masthead{max-width:640px;margin:8px auto 6px;display:flex;align-items:center;
+    justify-content:center;gap:14px}
+  .badge{flex:none;width:58px;height:58px;background:var(--sky-dark);
+    border:2px dashed var(--accent);border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:28px;box-shadow:0 3px 0 var(--shadow)}
+  h1{font-family:'Suez One',serif;color:var(--accent);text-align:center;font-size:2rem;margin:0}
+  .subtitle{text-align:center;color:var(--muted);margin:2px 0 22px;font-size:.95rem}
+
+  .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 8px 22px var(--shadow);
+    max-width:640px;margin:0 auto}
+  .card iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:10px;display:block}
+  .credit{color:var(--muted);font-size:12px;margin:8px 2px 0}
+</style>
+</head>
+<body>
+<a class="back" href="../index.html">⟵ חזרה</a>
+<header class="masthead">
+  <span class="badge">🐾</span>
+  <h1>מצלמת חיות חיה</h1>
+</header>
+<p class="subtitle">שידור חי, ממש עכשיו, מהטבע</p>
+
+<div class="card">
+  <!-- youtube.com/embed/live_stream?channel= turned out unreliable (YouTube
+       returned "video unavailable" even while the channel was confirmed live
+       via a direct fetch), so this embeds a specific stream instead: the
+       Brooks Falls bear cam, explore.org's flagship 24/7 nature livestream.
+       If this particular broadcast ever ends for good, swap in whatever
+       video id explore.org/livecams is currently showing live. -->
+  <iframe src="https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=0"
+    title="שידור חי - מפלי Brooks, אלסקה (Explore.org)" loading="lazy" allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <p class="credit">שידור חי של דובים במפלי Brooks באלסקה, מ-Explore.org. אם השידור לא פעיל כרגע, נסו שוב מאוחר יותר.</p>
+</div>
+</body>
+</html>
