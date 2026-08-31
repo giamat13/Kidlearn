@@ -145,26 +145,17 @@
     const messageRef = db.collection("messages").doc();
     const replyLink = "https://giamat13.github.io/Kidlearn/family-mail/reply.html?id=" + messageRef.id;
     const { serviceId, templateId } = window.KIDLEARN_EMAILJS_CONFIG;
-    // Flat pastel colors (no gradients) so the card background still renders in
-    // email clients that don't support CSS gradients (e.g. Outlook desktop).
-    const BG_COLORS = { sky: "#EAF4FB", mint: "#EAF7EF", blush: "#FBEAF0", sun: "#FDF6E3", lav: "#F1EAFB" };
-    const bgColor = BG_COLORS[bgTheme] || "#FFF5F8";
-    // Embedded as a data: URI directly in the email (no Storage bucket to host it) -
-    // most clients render this fine, but some strip inline images, hence the note.
-    const imageHtml = imageData
-      ? `<div style="text-align:center;margin:0 0 16px"><img src="${imageData}" style="max-width:280px;border-radius:8px" alt="תמונה מצורפת">` +
-        `<p style="color:#999;font-size:11px;margin:4px 0 0">(אם התמונה לא מוצגת, לחצו על הכפתור למטה לראות אותה)</p></div>`
-      : "";
+    // The email itself only carries the subject and a link - the body, avatar,
+    // background and image are shown on reply.html, which we fully control
+    // (unlike the EmailJS HTML template, which needs a manual dashboard edit
+    // and doesn't reliably render gradients/inline images across mail clients).
     await window.emailjs.send(serviceId, templateId, {
       to_email: contact.email,
       to_name: contact.name,
       from_username: fromUsername,
       from_avatar: fromAvatar,
       subject: `הודעה מ: ${fromUsername} ${subject || "הודעה חדשה"}`,
-      message: body,
       reply_link: replyLink,
-      bg_color: bgColor,
-      image_html: imageHtml,
     });
 
     await messageRef.set({
