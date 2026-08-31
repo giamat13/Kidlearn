@@ -145,26 +145,18 @@
     const messageRef = db.collection("messages").doc();
     const replyLink = "https://giamat13.github.io/Kidlearn/family-mail/reply.html?id=" + messageRef.id;
     const { serviceId, templateId } = window.KIDLEARN_EMAILJS_CONFIG;
-    // Flat pastel colors (no gradients) so the card background still renders in
-    // email clients that don't support CSS gradients (e.g. Outlook desktop).
-    const BG_COLORS = { sky: "#EAF4FB", mint: "#EAF7EF", blush: "#FBEAF0", sun: "#FDF6E3", lav: "#F1EAFB" };
-    const bgColor = BG_COLORS[bgTheme] || "#FFF5F8";
-    // EmailJS HTML-escapes {{var}} substitutions, so an <img> tag built here
-    // would come out as visible escaped text - the template has a static <img
-    // src="{{image_data}}"> instead, and only the data: URI (no angle brackets,
-    // nothing to escape) is passed as the value. A 1x1 transparent pixel keeps
-    // the tag harmless when there's no attached image.
-    const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7";
+    // The email itself only carries the subject and a link - the body, avatar,
+    // background and image are shown on reply.html, which we fully control.
+    // (Gmail and Outlook both block/strip base64 data: images in HTML email
+    // regardless of escaping, so there's no reliable way to inline the photo
+    // in the email itself without real image hosting.)
     await window.emailjs.send(serviceId, templateId, {
       to_email: contact.email,
       to_name: contact.name,
       from_username: fromUsername,
       from_avatar: fromAvatar,
       subject: `הודעה מ: ${fromUsername} ${subject || "הודעה חדשה"}`,
-      message: body,
       reply_link: replyLink,
-      bg_color: bgColor,
-      image_data: imageData || TRANSPARENT_PIXEL,
     });
 
     await messageRef.set({
