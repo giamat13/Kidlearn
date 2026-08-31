@@ -343,15 +343,20 @@ function renderMessage(m) {
 function renderOpenMessage(m) {
   const div = document.createElement("div");
   div.className = "msg";
+  // The latest reply may be the legacy replyBody field or, for anything
+  // replied to after the `thread` array was introduced, the last family
+  // entry in the thread - see messageEntries().
+  const familyEntries = messageEntries(m).filter((e) => e.from === "family");
+  const latestReply = familyEntries[familyEntries.length - 1];
   div.innerHTML = `<div class="to">ל${m.toName}</div><div class="subject">${m.subject || ""}</div>` +
     `<span class="msg-text">${m.body}</span> <button class="secondary speak-btn" type="button">🔊 הקראת ההודעה</button>` +
-    (m.replied
-      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${m.replyBody}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
+    (latestReply
+      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${latestReply.text}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
       : `<div class="waiting">עוד לא ענו</div>`) +
     `<button class="secondary chat-btn" type="button" style="margin-top:8px">💬 לשיחה המלאה</button>`;
   const [messageBtn, replyBtn] = div.querySelectorAll(".speak-btn");
   messageBtn.addEventListener("click", () => speak(m.body));
-  if (replyBtn) replyBtn.addEventListener("click", () => speak(m.replyBody));
+  if (replyBtn) replyBtn.addEventListener("click", () => speak(latestReply.text));
   div.querySelectorAll(".msg-text").forEach((el) => {
     if (KidLearnNikud.isHebrew(el.textContent)) {
       el.insertAdjacentElement("afterend", KidLearnNikud.attachButton(el));
