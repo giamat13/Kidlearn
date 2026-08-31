@@ -18,8 +18,12 @@ service cloud.firestore {
       allow list: if request.auth != null && resource.data.fromUid == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;
       allow delete: if false;
+      // `thread` carries every message after the first reply (see reply.html) -
+      // an anonymous family member can only ever append to this array field on
+      // a message doc they already know the id of (via their emailed link),
+      // never touch the kid-authored body/subject/fromUid/toEmail.
       allow update: if request.resource.data.diff(resource.data).affectedKeys()
-                      .hasOnly(['replyBody', 'repliedAt', 'replied', 'replySeenByKid']);
+                      .hasOnly(['replyBody', 'repliedAt', 'replied', 'replySeenByKid', 'thread']);
     }
   }
 }

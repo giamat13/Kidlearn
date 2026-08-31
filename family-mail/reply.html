@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>תשובה למכתב</title>
+<title>שיחה מלאה</title>
 <link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -40,6 +40,16 @@
   #mic.on{background:var(--stamp);box-shadow:0 3px 0 #a83f34}
   .muted{color:var(--muted);font-size:13px}
   .row{display:flex;gap:8px;align-items:center;margin-top:4px}
+
+  #thread{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+  .bubble{max-width:82%;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.5}
+  .bubble.kid{align-self:flex-start;background:var(--paper);border:1px solid #E6D6AE;
+    border-start-start-radius:2px}
+  .bubble.family{align-self:flex-end;background:#EAF2E9;border-start-end-radius:2px}
+  .bubble .bubble-meta{font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600}
+  .nikud-btn{padding:4px 12px;font-size:12px;margin-inline-start:8px;margin-top:6px;
+    background:var(--paper);color:var(--postal);box-shadow:0 2px 0 #d8c69c;
+    border:2px solid #E6D6AE}
 </style>
 </head>
 <body>
@@ -49,6 +59,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-nikud.js"></script>
 <script>
 firebase.initializeApp(window.KIDLEARN_FIREBASE_CONFIG);
 const db = firebase.firestore();
@@ -56,38 +67,62 @@ const card = document.getElementById("card");
 const params = new URLSearchParams(location.search);
 const id = params.get("id");
 
+// The full history is kept as: the original letter (body), its legacy
+// single-reply field (replyBody, for messages sent before the `thread` array
+// existed), then every entry appended to `thread` since - see kidlearn-cloud.js
+// and family-mail/index.html's identical flattening for the kid's own view.
+function threadEntries(m) {
+  const entries = [{ from: "kid", text: m.body, at: 0 }];
+  if (m.replyBody) entries.push({ from: "family", text: m.replyBody, at: 1 });
+  (m.thread || []).forEach((e) => entries.push(e));
+  return entries;
+}
+
 async function load() {
   if (!id) { card.textContent = "קישור לא תקין."; return; }
   const doc = await db.collection("messages").doc(id).get();
   if (!doc.exists) { card.textContent = "המכתב לא נמצא."; return; }
   const m = doc.data();
 
+  const entries = threadEntries(m);
+
   card.innerHTML = `
-    <h2>💌 מכתב מ-${m.fromUsername}</h2>
-    <div class="original"><b>${m.subject || ""}</b><br>${m.body}</div>
-    ${m.replied
-      ? `<p class="muted">כבר עניתם למכתב הזה:</p><div class="original">${m.replyBody}</div>`
-      : `<div class="row">
-           <button id="mic">🎤 להקליט</button><span class="muted" id="mic-status"></span>
-         </div>
-         <textarea id="reply-body" placeholder="כתבו כאן את התשובה..."></textarea>
-         <button id="send-reply">שליחת תשובה 💌</button>
-         <p class="muted" id="status"></p>`}
+    <h2>💬 שיחה עם ${m.fromUsername}</h2>
+    <div class="muted">${m.subject || ""}</div>
+    <div id="thread"></div>
+    <div class="row">
+      <button id="mic">🎤 להקליט</button><span class="muted" id="mic-status"></span>
+    </div>
+    <textarea id="reply-body" placeholder="כתבו כאן..."></textarea>
+    <button id="send-reply">שליחת הודעה 💌</button>
+    <p class="muted" id="status"></p>
   `;
 
-  if (!m.replied) {
-    document.getElementById("send-reply").onclick = async () => {
-      const text = document.getElementById("reply-body").value.trim();
-      const status = document.getElementById("status");
-      if (!text) { status.textContent = "כתבו משהו קודם"; return; }
-      await db.collection("messages").doc(id).update({
-        replyBody: text, replied: true, repliedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-      status.textContent = "התשובה נשלחה! 🎉";
-      load();
-    };
-    setupMic();
-  }
+  const thread = document.getElementById("thread");
+  entries.forEach((e) => {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + e.from;
+    bubble.innerHTML = `<div class="bubble-meta">${e.from === "kid" ? m.fromUsername : "אני"}</div><span class="msg-text">${e.text}</span>`;
+    const textEl = bubble.querySelector(".msg-text");
+    if (KidLearnNikud.isHebrew(e.text)) {
+      bubble.appendChild(document.createElement("br"));
+      bubble.appendChild(KidLearnNikud.attachButton(textEl));
+    }
+    thread.appendChild(bubble);
+  });
+
+  document.getElementById("send-reply").onclick = async () => {
+    const text = document.getElementById("reply-body").value.trim();
+    const status = document.getElementById("status");
+    if (!text) { status.textContent = "כתבו משהו קודם"; return; }
+    await db.collection("messages").doc(id).update({
+      thread: firebase.firestore.FieldValue.arrayUnion({ from: "family", text, at: Date.now() }),
+      replied: true, replySeenByKid: false, repliedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    status.textContent = "נשלח! 🎉";
+    load();
+  };
+  setupMic();
 }
 
 function setupMic() {

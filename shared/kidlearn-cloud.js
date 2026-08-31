@@ -128,20 +128,10 @@
     const userSnap = await db.collection("users").doc(uid).get();
     const fromUsername = (userSnap.data() || {}).username || "ילד/ה מ-KidLearn";
 
+    // Send first, and only record the message in history if EmailJS actually
+    // accepted it - otherwise a bad contact address (e.g. corrupted/typo'd
+    // email) would still show up as "sent" even though nothing went out.
     const messageRef = db.collection("messages").doc();
-    await messageRef.set({
-      fromUid: uid,
-      fromUsername,
-      toName: contact.name,
-      toEmail: contact.email,
-      subject: subject || "הודעה חדשה מ-KidLearn",
-      body,
-      replied: false,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-
-    // Hardcoded to the production site so replies sent while testing locally
-    // (e.g. from 127.0.0.1:5500) still link somewhere the family can actually open.
     const replyLink = "https://giamat13.github.io/Kidlearn/family-mail/reply.html?id=" + messageRef.id;
     const { serviceId, templateId } = window.KIDLEARN_EMAILJS_CONFIG;
     await window.emailjs.send(serviceId, templateId, {
@@ -151,6 +141,17 @@
       subject: `הודעה מ: ${fromUsername} ${subject || "הודעה חדשה"}`,
       message: body,
       reply_link: replyLink,
+    });
+
+    await messageRef.set({
+      fromUid: uid,
+      fromUsername,
+      toName: contact.name,
+      toEmail: contact.email,
+      subject: subject || "הודעה חדשה מ-KidLearn",
+      body,
+      replied: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
     return { messageId: messageRef.id };

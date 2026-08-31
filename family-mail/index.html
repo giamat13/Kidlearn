@@ -98,6 +98,7 @@
     animation:replyReveal .5s ease}
   .msg .reply b{color:var(--success)}
   .waiting{color:var(--muted);font-size:13px;margin-top:6px;font-style:italic}
+  .speak-btn,.nikud-btn{padding:4px 12px;font-size:12px;margin-inline-start:8px;box-shadow:0 2px 0 #d8c69c}
   @keyframes replyReveal{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 
   /* Unopened letter envelope */
@@ -111,6 +112,17 @@
     box-shadow:0 3px 0 #a8763a}
   .envelope.opening .icon{animation:openBurst .5s ease forwards}
   @keyframes openBurst{0%{transform:scale(1) rotate(0)}40%{transform:scale(1.4) rotate(-8deg)}100%{transform:scale(0) rotate(20deg);opacity:0}}
+
+  .contact-list .contact-actions{display:flex;gap:6px}
+  .contact-list .chat-btn{padding:6px 12px;font-size:12px}
+
+  /* Conversation history */
+  #conversation-thread{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+  .bubble{max-width:80%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5}
+  .bubble.kid{align-self:flex-end;background:var(--paper);border:1px solid #E6D6AE;
+    border-start-end-radius:2px}
+  .bubble.family{align-self:flex-start;background:#EAF2E9;border-start-start-radius:2px}
+  .bubble .bubble-meta{font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600}
 </style>
 </head>
 <body>
@@ -147,13 +159,24 @@
         <input id="new-email" placeholder="אימייל" type="email">
         <button id="add-contact">הוספה</button>
       </div>
+      <button class="secondary" id="export-contacts" style="margin-top:8px">📇 ייצוא אנשי קשר (לגוגל)</button>
     </div>
   </details>
+
+  <div id="conversation-view" class="sheet" hidden>
+    <button class="secondary" id="close-conversation">← חזרה</button>
+    <h3 id="conversation-title"></h3>
+    <div id="conversation-thread"></div>
+  </div>
 
   <div id="compose-section" class="sheet tilt-r" hidden>
     <h3>✍️ כתיבת מכתב</h3>
     <select id="to-contact"></select>
-    <input id="subject" placeholder="נושא">
+    <div class="row">
+      <input id="subject" placeholder="נושא" style="width:auto;flex:1">
+      <button id="mic-subject">🎤</button>
+    </div>
+    <span class="muted" id="mic-subject-status"></span>
     <div class="row">
       <button id="mic">🎤 להקליט</button>
       <span class="muted" id="mic-status"></span>
@@ -179,12 +202,14 @@
 <script src="../shared/kidlearn-emailjs-config.js"></script>
 <script src="../shared/kidlearn-cloud.js"></script>
 <script src="../shared/kidlearn-widget.js"></script>
+<script src="../shared/kidlearn-nikud.js"></script>
 <script>
 KidLearn.init();
 
 const gate = document.getElementById("gate");
 const app = document.getElementById("app");
 let contacts = [];
+let allMessages = [];
 
 KidLearn.onAuthChange(async (profile) => {
   gate.hidden = !!profile;
@@ -204,11 +229,19 @@ async function loadContacts() {
   contacts.forEach((c) => {
     const li = document.createElement("li");
     li.innerHTML = `<span>👤 ${c.name} — ${c.email}</span>`;
+    const actions = document.createElement("span");
+    actions.className = "contact-actions";
+    const chat = document.createElement("button");
+    chat.textContent = "💬 שיחה";
+    chat.className = "secondary chat-btn";
+    chat.onclick = () => showConversation(c);
     const del = document.createElement("button");
     del.textContent = "מחיקה";
     del.className = "secondary";
     del.onclick = async () => { await KidLearn.contacts.remove(c.id); await loadContacts(); };
-    li.appendChild(del);
+    actions.appendChild(chat);
+    actions.appendChild(del);
+    li.appendChild(actions);
     list.appendChild(li);
 
     const opt = document.createElement("option");
@@ -223,6 +256,19 @@ async function loadContacts() {
   document.getElementById("compose-section").hidden = !hasContacts;
   document.getElementById("sent-section").hidden = !hasContacts;
 }
+
+document.getElementById("export-contacts").onclick = () => {
+  const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
+  const rows = contacts.map((c) => [esc(c.name), esc(c.name), "* Other", esc(c.email)].join(","));
+  const csv = "Name,Given Name,E-mail 1 - Label,E-mail 1 - Value\n" + rows.join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "kidlearn-contacts.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 async function addContact(nameInputId, emailInputId) {
   const name = document.getElementById(nameInputId).value.trim();
@@ -253,10 +299,20 @@ document.getElementById("send").onclick = async () => {
     document.getElementById("subject").value = "";
     await loadSent();
   } catch (e) {
-    status.textContent = "שגיאה: " + (e.message || e);
+    status.textContent = "שגיאה: " + (e.text || e.message || e) + " - בקשו ממבוגר שיעזור לכם.";
+    speak("המכתב לא נשלח. בקשו ממבוגר שיעזור לכם.");
   }
   sendBtn.disabled = false;
 };
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = "he-IL";
+  utt.rate = 0.9;
+  speechSynthesis.speak(utt);
+}
 
 function renderMessage(m) {
   // A reply that hasn't been opened yet shows as a closed envelope;
@@ -287,28 +343,95 @@ function renderMessage(m) {
 function renderOpenMessage(m) {
   const div = document.createElement("div");
   div.className = "msg";
-  div.innerHTML = `<div class="to">ל${m.toName}</div><div class="subject">${m.subject || ""}</div>${m.body}` +
-    (m.replied ? `<div class="reply"><b>תשובה:</b> ${m.replyBody}</div>` : `<div class="waiting">עוד לא ענו</div>`);
+  div.innerHTML = `<div class="to">ל${m.toName}</div><div class="subject">${m.subject || ""}</div>` +
+    `<span class="msg-text">${m.body}</span> <button class="secondary speak-btn" type="button">🔊 הקראת ההודעה</button>` +
+    (m.replied
+      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${m.replyBody}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
+      : `<div class="waiting">עוד לא ענו</div>`) +
+    `<button class="secondary chat-btn" type="button" style="margin-top:8px">💬 לשיחה המלאה</button>`;
+  const [messageBtn, replyBtn] = div.querySelectorAll(".speak-btn");
+  messageBtn.addEventListener("click", () => speak(m.body));
+  if (replyBtn) replyBtn.addEventListener("click", () => speak(m.replyBody));
+  div.querySelectorAll(".msg-text").forEach((el) => {
+    if (KidLearnNikud.isHebrew(el.textContent)) {
+      el.insertAdjacentElement("afterend", KidLearnNikud.attachButton(el));
+    }
+  });
+  div.querySelector(".chat-btn").addEventListener("click", () => showConversation({ name: m.toName, email: m.toEmail }));
   return div;
 }
 
 async function loadSent() {
-  const messages = await KidLearn.listSentMessages();
+  allMessages = await KidLearn.listSentMessages();
   const box = document.getElementById("sent-list");
   box.innerHTML = "";
-  if (!messages.length) {
+  if (!allMessages.length) {
     box.innerHTML = "<p class='muted'>עוד לא נשלחו מכתבים.</p>";
     return;
   }
-  messages.forEach((m) => box.appendChild(renderMessage(m)));
+  allMessages.forEach((m) => box.appendChild(renderMessage(m)));
 }
 document.getElementById("refresh").onclick = loadSent;
 
+// A message doc's history flattened to a chronological list: the original
+// letter, its legacy single-reply field (if it predates the `thread` array),
+// then every entry appended to `thread` since (see reply.html).
+function messageEntries(m) {
+  const millis = (ts) => (ts ? ts.toMillis() : 0);
+  const entries = [{ from: "kid", text: m.body, at: millis(m.createdAt) }];
+  if (m.replyBody) entries.push({ from: "family", text: m.replyBody, at: millis(m.repliedAt) || millis(m.createdAt) });
+  (m.thread || []).forEach((e) => entries.push(e));
+  return entries;
+}
+
+// Organized back-and-forth history with one contact: every kid-authored
+// letter to them, flattened into one chronologically sorted transcript.
+function showConversation(contact) {
+  const thread = document.getElementById("conversation-thread");
+  document.getElementById("conversation-title").textContent = `💬 שיחה עם ${contact.name}`;
+  thread.innerHTML = "";
+
+  const entries = allMessages.filter((m) => m.toEmail === contact.email).flatMap(messageEntries);
+  entries.sort((a, b) => a.at - b.at);
+
+  if (!entries.length) {
+    thread.innerHTML = "<p class='muted'>עוד אין היסטוריית שיחה.</p>";
+  } else {
+    entries.forEach((entry) => {
+      const bubble = document.createElement("div");
+      bubble.className = "bubble " + entry.from;
+      const meta = entry.from === "kid" ? "אני" : contact.name;
+      bubble.innerHTML = `<div class="bubble-meta">${meta}</div><span class="msg-text">${entry.text}</span>`;
+      const textEl = bubble.querySelector(".msg-text");
+      if (KidLearnNikud.isHebrew(entry.text)) {
+        bubble.appendChild(document.createElement("br"));
+        bubble.appendChild(KidLearnNikud.attachButton(textEl));
+      }
+      thread.appendChild(bubble);
+    });
+  }
+
+  ["contacts-onboarding", "contacts-settings", "compose-section", "sent-section"]
+    .forEach((id) => { document.getElementById(id).hidden = true; });
+  document.getElementById("conversation-view").hidden = false;
+}
+document.getElementById("close-conversation").onclick = () => {
+  document.getElementById("conversation-view").hidden = true;
+  loadContacts();
+};
+
 // Speech-to-text dictation (native Web Speech API, Hebrew).
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const micBtn = document.getElementById("mic");
-const micStatus = document.getElementById("mic-status");
-if (SpeechRecognition) {
+
+function attachMic(fieldId, micBtnId, statusId, idleLabel) {
+  const field = document.getElementById(fieldId);
+  const micBtn = document.getElementById(micBtnId);
+  const micStatus = document.getElementById(statusId);
+  if (!SpeechRecognition) {
+    micBtn.disabled = true;
+    micStatus.textContent = "הדפדפן לא תומך בהקלטה";
+    return;
+  }
   const recognition = new SpeechRecognition();
   recognition.lang = "he-IL";
   recognition.continuous = true;
@@ -316,15 +439,14 @@ if (SpeechRecognition) {
   let listening = false;
 
   recognition.onresult = (e) => {
-    const textarea = document.getElementById("body");
     let addition = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
       addition += e.results[i][0].transcript;
     }
-    textarea.value = (textarea.value + " " + addition).trim();
+    field.value = (field.value + " " + addition).trim();
   };
   recognition.onerror = () => { micStatus.textContent = "לא הצלחתי לשמוע, נסו שוב"; };
-  recognition.onend = () => { listening = false; micBtn.classList.remove("on"); micBtn.textContent = "🎤 להקליט"; };
+  recognition.onend = () => { listening = false; micBtn.classList.remove("on"); micBtn.textContent = idleLabel; };
 
   micBtn.onclick = () => {
     if (listening) { recognition.stop(); return; }
@@ -334,10 +456,10 @@ if (SpeechRecognition) {
     micStatus.textContent = "מקשיב...";
     recognition.start();
   };
-} else {
-  micBtn.disabled = true;
-  micStatus.textContent = "הדפדפן לא תומך בהקלטה";
 }
+
+attachMic("body", "mic", "mic-status", "🎤 להקליט");
+attachMic("subject", "mic-subject", "mic-subject-status", "🎤");
 </script>
 </body>
 </html>
