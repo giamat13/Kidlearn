@@ -103,6 +103,20 @@
   .sticker-row button{background:var(--paper);border:2px solid #E6D6AE;border-radius:10px;
     padding:6px 8px;font-size:18px;line-height:1;box-shadow:none}
   .sticker-row button:active{transform:scale(.9)}
+  .avatar-row button.selected{border-color:var(--postal);background:#EAF2F1}
+  #search-sent{margin-bottom:10px}
+  .bg-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+  .bg-row button{width:30px;height:30px;padding:0;border-radius:50%;border:2px solid #E6D6AE;
+    box-shadow:none}
+  .bg-row button.selected{border-color:var(--postal);transform:scale(1.15)}
+  .bg-sky{background:linear-gradient(135deg,#EAF4FB,#D9ECF7)}
+  .bg-mint{background:linear-gradient(135deg,#EAF7EF,#D8F0E0)}
+  .bg-blush{background:linear-gradient(135deg,#FBEAF0,#F6D9E4)}
+  .bg-sun{background:linear-gradient(135deg,#FDF6E3,#FBEAB8)}
+  .bg-lav{background:linear-gradient(135deg,#F1EAFB,#E3D6F5)}
+  .msg-img{max-width:180px;border-radius:10px;display:block;margin-top:8px}
+  #image-preview-wrap{display:flex;align-items:center;gap:6px}
+  #image-preview{max-width:60px;max-height:60px;border-radius:8px;object-fit:cover}
   @keyframes replyReveal{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 
   /* Unopened letter envelope */
@@ -154,6 +168,14 @@
     </div>
   </div>
 
+  <details id="avatar-settings" hidden>
+    <summary>🙂 האווטאר שלי</summary>
+    <div class="sheet">
+      <p class="muted">בחרו איך תיראו ליד השם שלכם במכתבים</p>
+      <span id="avatar-picker" class="sticker-row avatar-row"></span>
+    </div>
+  </details>
+
   <details id="contacts-settings" hidden>
     <summary>👪 ניהול אנשי קשר (הורים)</summary>
     <div class="sheet">
@@ -186,6 +208,15 @@
       <span class="muted" id="mic-status"></span>
     </div>
     <div class="row" style="flex-wrap:wrap"><span class="muted">מדבקות:</span> <span id="stickers" class="sticker-row"></span></div>
+    <div class="row" style="flex-wrap:wrap"><span class="muted">רקע:</span> <span id="bg-picker" class="bg-row"></span></div>
+    <div class="row">
+      <button type="button" class="secondary" id="attach-image-btn">📷 צירוף תמונה</button>
+      <input type="file" id="attach-image" accept="image/*" capture="environment" hidden>
+      <span id="image-preview-wrap" hidden>
+        <img id="image-preview" alt="">
+        <button type="button" class="secondary" id="remove-image">✖</button>
+      </span>
+    </div>
     <textarea id="body" placeholder="כתבו כאן, או לחצו על המיקרופון ותדברו..."></textarea>
     <button id="send">שליחת מכתב 💌</button>
     <p class="muted" id="send-status"></p>
@@ -193,6 +224,7 @@
 
   <div id="sent-section" class="sheet tilt-l" hidden>
     <h3>📬 מכתבים ששלחתי</h3>
+    <input id="search-sent" placeholder="🔍 חיפוש במכתבים...">
     <div id="sent-list"></div>
     <button class="secondary" id="refresh" style="margin-top:12px">רענון</button>
   </div>
@@ -219,10 +251,29 @@ KidLearn.onAuthChange(async (profile) => {
   gate.hidden = !!profile;
   app.hidden = !profile;
   if (profile) {
+    document.getElementById("avatar-settings").hidden = false;
+    renderAvatarPicker(profile.avatarEmoji);
     await loadContacts();
     await loadSent();
   }
 });
+
+const AVATARS = ["🙂", "😄", "🥳", "🦄", "🐶", "🐱", "🦋", "🐻", "🌟", "🌈"];
+function renderAvatarPicker(current) {
+  const picker = document.getElementById("avatar-picker");
+  picker.innerHTML = "";
+  AVATARS.forEach((emoji) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = emoji;
+    if (emoji === current) btn.classList.add("selected");
+    btn.onclick = async () => {
+      await KidLearn.setAvatar(emoji);
+      renderAvatarPicker(emoji);
+    };
+    picker.appendChild(btn);
+  });
+}
 
 async function loadContacts() {
   contacts = await KidLearn.contacts.list();
@@ -297,10 +348,14 @@ document.getElementById("send").onclick = async () => {
   sendBtn.disabled = true;
   status.textContent = "שולח...";
   try {
-    await KidLearn.sendFamilyMessage(contactId, subject, body);
+    await KidLearn.sendFamilyMessage(contactId, subject, body, selectedBg, selectedImage);
     status.textContent = "נשלח! 🎉";
     document.getElementById("body").value = "";
     document.getElementById("subject").value = "";
+    selectedBg = null;
+    bgPicker.querySelectorAll("button").forEach((b) => b.classList.remove("selected"));
+    document.getElementById("compose-section").className = "sheet tilt-r";
+    clearImage();
     await loadSent();
   } catch (e) {
     status.textContent = "שגיאה: " + (e.text || e.message || e) + " - בקשו ממבוגר שיעזור לכם.";
@@ -326,6 +381,57 @@ STICKERS.forEach((emoji) => {
   };
   stickerRow.appendChild(btn);
 });
+
+const BG_THEMES = ["sky", "mint", "blush", "sun", "lav"];
+let selectedBg = null;
+const bgPicker = document.getElementById("bg-picker");
+BG_THEMES.forEach((theme) => {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "bg-" + theme;
+  btn.title = theme;
+  btn.onclick = () => {
+    selectedBg = selectedBg === theme ? null : theme;
+    bgPicker.querySelectorAll("button").forEach((b) => b.classList.toggle("selected", b === btn && selectedBg));
+    document.getElementById("compose-section").className = "sheet tilt-r" + (selectedBg ? " bg-" + selectedBg : "");
+  };
+  bgPicker.appendChild(btn);
+});
+
+// No Cloud Storage bucket on this project (Spark plan), so an attached photo/drawing
+// is downscaled client-side and embedded as a base64 data URL directly on the
+// message doc - see firestore.rules for the size cap this relies on.
+let selectedImage = null;
+function downscaleImage(file, maxDim) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(img.src);
+      resolve(canvas.toDataURL("image/jpeg", 0.6));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+function clearImage() {
+  selectedImage = null;
+  document.getElementById("attach-image").value = "";
+  document.getElementById("image-preview-wrap").hidden = true;
+}
+document.getElementById("attach-image-btn").onclick = () => document.getElementById("attach-image").click();
+document.getElementById("attach-image").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedImage = await downscaleImage(file, 480);
+  document.getElementById("image-preview").src = selectedImage;
+  document.getElementById("image-preview-wrap").hidden = false;
+});
+document.getElementById("remove-image").onclick = clearImage;
 
 function speak(text) {
   if (!("speechSynthesis" in window)) return;
@@ -367,7 +473,7 @@ function renderMessage(m) {
 
 function renderOpenMessage(m) {
   const div = document.createElement("div");
-  div.className = "msg";
+  div.className = "msg" + (m.bgTheme ? " bg-" + m.bgTheme : "");
   // The latest reply may be the legacy replyBody field or, for anything
   // replied to after the `thread` array was introduced, the last family
   // entry in the thread - see messageEntries().
@@ -375,6 +481,7 @@ function renderOpenMessage(m) {
   const latestReply = familyEntries[familyEntries.length - 1];
   div.innerHTML = `<div class="to">ל${m.toName}</div><div class="subject">${m.subject || ""}</div>` +
     `<span class="msg-text">${m.body}</span> <button class="secondary speak-btn" type="button">🔊 הקראת ההודעה</button>` +
+    (m.image ? `<img class="msg-img" src="${m.image}" alt="תמונה מצורפת">` : "") +
     (latestReply
       ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${latestReply.text}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
       : `<div class="waiting">עוד לא ענו</div>`) +
@@ -388,22 +495,36 @@ function renderOpenMessage(m) {
 
 async function loadSent() {
   allMessages = await KidLearn.listSentMessages();
-  const box = document.getElementById("sent-list");
-  box.innerHTML = "";
-  if (!allMessages.length) {
-    box.innerHTML = "<p class='muted'>עוד לא נשלחו מכתבים.</p>";
-    return;
-  }
-  allMessages.forEach((m) => box.appendChild(renderMessage(m)));
+  document.getElementById("search-sent").value = "";
+  renderSentList(allMessages);
 }
 document.getElementById("refresh").onclick = loadSent;
+
+function renderSentList(messages) {
+  const box = document.getElementById("sent-list");
+  box.innerHTML = "";
+  if (!messages.length) {
+    box.innerHTML = "<p class='muted'>לא נמצאו מכתבים.</p>";
+    return;
+  }
+  messages.forEach((m) => box.appendChild(renderMessage(m)));
+}
+
+document.getElementById("search-sent").addEventListener("input", (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) { renderSentList(allMessages); return; }
+  renderSentList(allMessages.filter((m) =>
+    (m.subject || "").toLowerCase().includes(q) ||
+    (m.body || "").toLowerCase().includes(q) ||
+    (m.toName || "").toLowerCase().includes(q)));
+});
 
 // A message doc's history flattened to a chronological list: the original
 // letter, its legacy single-reply field (if it predates the `thread` array),
 // then every entry appended to `thread` since (see reply.html).
 function messageEntries(m) {
   const millis = (ts) => (ts ? ts.toMillis() : 0);
-  const entries = [{ from: "kid", text: m.body, at: millis(m.createdAt) }];
+  const entries = [{ from: "kid", text: m.body, at: millis(m.createdAt), image: m.image || null }];
   if (m.replyBody) entries.push({ from: "family", text: m.replyBody, at: millis(m.repliedAt) || millis(m.createdAt) });
   (m.thread || []).forEach((e) => entries.push(e));
   return entries;
@@ -425,8 +546,9 @@ function showConversation(contact) {
     entries.forEach((entry) => {
       const bubble = document.createElement("div");
       bubble.className = "bubble " + entry.from;
-      const meta = entry.from === "kid" ? "אני" : contact.name;
-      bubble.innerHTML = `<div class="bubble-meta">${meta}</div><span class="msg-text">${entry.text}</span>`;
+      const meta = entry.from === "kid" ? `${KidLearn.currentUser().avatarEmoji || "🙂"} אני` : contact.name;
+      bubble.innerHTML = `<div class="bubble-meta">${meta}</div><span class="msg-text">${entry.text}</span>` +
+        (entry.image ? `<img class="msg-img" src="${entry.image}" alt="תמונה מצורפת">` : "");
       thread.appendChild(bubble);
     });
   }
