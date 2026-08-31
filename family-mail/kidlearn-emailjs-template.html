@@ -8,13 +8,15 @@
   <div style="background:linear-gradient(90deg,#FF6B9D,#FF8AB3);padding:16px;border-radius:12px 12px 0 0;text-align:center">
     <span style="font-size:22px;color:#fff;font-weight:bold">💌 מכתב מ-{{from_avatar}} {{from_username}}</span>
   </div>
-  <div style="background:#FFF5F8;padding:20px;border-radius:0 0 12px 12px">
-    <p style="font-weight:bold;margin:0 0 20px 0">{{subject}}</p>
+  <div style="background:{{bg_color}};padding:20px;border-radius:0 0 12px 12px">
+    <p style="font-weight:bold;margin:0 0 8px 0">{{subject}}</p>
+    <p style="white-space:pre-line;margin:0 0 20px 0">{{message}}</p>
+    {{image_html}}
     <div style="text-align:center">
       <a href="{{reply_link}}"
          style="display:inline-block;padding:12px 24px;background:#FF6B9D;color:#fff;
                 border-radius:8px;text-decoration:none;font-weight:bold">
-        💌 לצפייה במכתב
+        💬 לשיחה המלאה
       </a>
     </div>
     <p style="color:#999;font-size:12px;margin-top:24px;text-align:center">
