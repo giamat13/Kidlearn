@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הרפתקת החשבון - עולמות העיצוב הקסומים</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="../shared/kidlearn-firebase-config.js"></script>
+    <script src="../shared/kidlearn-cloud.js"></script>
+    <script src="../shared/kidlearn-widget.js"></script>
+    <script>
+        KidLearn.init();
+
+        // Global functions for cloud persistence (backed by the KidLearn account system).
+        window.saveGameStateToCloud = async function (data) {
+            if (!KidLearn.currentUser()) return;
+            try {
+                await KidLearn.saveData('math-adventure', data);
+                window.showSaveNotification();
+            } catch (e) {
+                console.error("Error saving game state:", e);
+            }
+        };
+
+        window.loadGameStateFromCloud = async function () {
+            if (!KidLearn.currentUser()) return;
+            try {
+                const data = await KidLearn.loadData('math-adventure');
+                if (data && window.applyLoadedGameState) {
+                    window.applyLoadedGameState(data);
+                }
+            } catch (e) {
+                console.error("Error loading game state:", e);
+            }
+        };
+
+        KidLearn.onAuthChange((profile) => {
+            if (profile) window.loadGameStateFromCloud();
+        });
+    </script>
+
+    <style>
+        * {
+            font-family: 'Rubik', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            overflow-x: hidden;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .ltr-dir {
+            direction: ltr !important;
+            unicode-bidi: isolate;
+        }
+        .rtl-dir {
+            direction: rtl !important;
+            unicode-bidi: isolate;
+        }
+
+        /* World Stage Dynamic Styling */
+        #stage-canvas-area {
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+            transition: background 0.5s ease;
+        }
+
+        /* Stage Background Themes */
+        .stage-theme-1 {
+            background: linear-gradient(to bottom, #fef3c7 0%, #fde68a 60%, #b45309 60%, #78350f 100%);
+        }
+        .stage-theme-2 {
+            background: linear-gradient(to bottom, #7dd3fc 0%, #38bdf8 50%, #4ade80 50%, #15803d 100%);
+        }
+        .stage-theme-3 {
+            background: linear-gradient(to bottom, #064e3b 0%, #047857 55%, #14532d 55%, #022c22 100%);
+        }
+        .stage-theme-4 {
+            background: linear-gradient(to bottom, #38bdf8 0%, #7dd3fc 45%, #fde047 45%, #eab308 100%);
+        }
+        .stage-theme-5 {
+            background: linear-gradient(to bottom, #1e1b4b 0%, #312e81 50%, #e0f2fe 50%, #bae6fd 100%);
+        }
+        .stage-theme-6 {
+            background: linear-gradient(to bottom, #fbcfe8 0%, #f0abfc 40%, #c4b5fd 40%, #a78bfa 70%, #ddd6fe 70%, #f5d0fe 100%);
+        }
+
+        /* Shop Item Card Styling */
+        .shop-item-card {
+            transition: transform 0.15s ease;
+        }
+        .shop-item-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .decor-item {
+            position: absolute;
+            cursor: grab;
+            transition: transform 0.1s ease, filter 0.2s ease;
+            touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .decor-item:active {
+            cursor: grabbing;
+        }
+        .decor-item.selected {
+            outline: 3px dashed #f59e0b;
+            outline-offset: 4px;
+            border-radius: 16px;
+        }
+
+        /* Animations */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,255,255,0.6)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(255,215,0,0.9)); }
+        }
+        @keyframes bounceShort {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .animate-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        .animate-bounce-short { animation: bounceShort 0.5s ease-in-out; }
+
+        .map-node {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .map-node:hover:not(.locked) {
+            transform: scale(1.06) translateY(-4px);
+        }
+
+        .dark-glass {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+        }
+
+        #ambient-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between select-none">
+    <!-- Ambient Particles Canvas -->
+    <canvas id="ambient-canvas"></canvas>
+
+    <header class="relative z-20 w-full px-4 py-3 flex items-center justify-between dark-glass shadow-lg rtl-dir">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button id="btn-map-toggle" onclick="showMapScreen()" class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-extrabold px-3 sm:px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 transition transform active:scale-95 text-sm sm:text-base">
+                <i class="fa-solid fa-map"></i>
+                <span class="hidden sm:inline">מפת השלבים</span>
+            </button>
+            <button id="btn-settings" onclick="openSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold px-3 py-2 rounded-2xl shadow-lg flex items-center gap-2 transition transform active:scale-95 border border-slate-600 text-sm sm:text-base">
+                <i class="fa-solid fa-gear"></i>
+                <span class="hidden sm:inline">הגדרות</span>
+            </button>
+            <div id="current-world-badge" class="bg-white/10 px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 border border-white/10">
+                <span id="world-badge-icon">🏠</span>
+                <span id="world-badge-name">סלון הבית הקסום</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- Save Status Indicator Badge -->
+            <div id="save-status-badge" class="hidden text-xs bg-emerald-950/80 text-emerald-300 font-bold px-2.5 py-1 rounded-xl border border-emerald-500/50 flex items-center gap-1 transition-all">
+                <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                <span>נשמר!</span>
+            </div>
+
+            <div class="bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-black text-lg sm:text-xl px-4 sm:px-5 py-1.5 sm:py-2 rounded-2xl shadow-xl flex items-center gap-2 border-2 border-yellow-200 animate-glow ltr-dir">
+                <i class="fa-solid fa-star text-yellow-100 text-xl"></i>
+                <span id="score-display">0</span>
+                <span class="text-xs text-slate-900 font-bold ml-1 rtl-dir">נק'</span>
+            </div>
+
+            <div class="bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-black text-lg sm:text-xl px-4 sm:px-5 py-1.5 sm:py-2 rounded-2xl shadow-xl flex items-center gap-2 border-2 border-emerald-200 ltr-dir">
+                <i class="fa-solid fa-coins text-yellow-100 text-xl"></i>
+                <span id="coins-display">0</span>
+                <span class="text-xs text-slate-900 font-bold ml-1 rtl-dir">כסף</span>
+            </div>
+
+            <button id="sound-btn" onclick="toggleSound()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-yellow-400 text-lg border border-slate-600 transition">
+                <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center p-2 sm:p-4">
+        
+        <!-- World Map Screen -->
+        <div id="map-screen" class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center py-4 rtl-dir">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-400 drop-shadow-md">
+                    הרפתקת החשבון בעולמות העיצוב
+                </h1>
+                <p class="text-slate-300 font-medium mt-2 text-sm md:text-base">
+                    פותרים תרגילים, פותחים עולמות ומעצבים מגוון מתחמים מרהיבים!
+                </p>
+            </div>
+
+            <div class="relative w-full bg-slate-900/90 border-4 border-slate-700 rounded-3xl p-6 shadow-2xl overflow-hidden min-h-[420px] flex flex-col justify-between">
+                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 my-auto">
+                    
+                    <!-- World 1 -->
+                    <div id="node-1" onclick="selectWorld(1)" class="map-node cursor-pointer bg-amber-500/20 border-2 border-amber-400/60 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative hover:bg-amber-500/30">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg mb-2 p-2" id="node-icon-1"></div>
+                        <h3 class="font-bold text-lg text-amber-200">1. סלון הבית הקסום</h3>
+                        <p class="text-xs text-amber-100/70 mt-1">עיצוב פנים הבית</p>
+                        <span id="node-badge-1" class="mt-2 text-xs bg-amber-400 text-slate-950 font-extrabold px-3 py-1 rounded-full">פתוח!</span>
+                    </div>
+
+                    <!-- World 2 -->
+                    <div id="node-2" onclick="selectWorld(2)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-2">
+                            <div id="lock-icon-2" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-emerald-300">2. הפארק הירוק</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-2" class="mt-2 text-xs bg-emerald-500/30 border border-emerald-400 text-emerald-200 font-extrabold px-3 py-1 rounded-full">10 נקודות</span>
+                    </div>
+
+                    <!-- World 3 -->
+                    <div id="node-3" onclick="selectWorld(3)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-teal-700 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-3">
+                            <div id="lock-icon-3" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-teal-300">3. ג'ונגל ההרפתקאות</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-3" class="mt-2 text-xs bg-teal-500/30 border border-teal-400 text-teal-200 font-extrabold px-3 py-1 rounded-full">24 נקודות</span>
+                    </div>
+
+                    <!-- World 4 -->
+                    <div id="node-4" onclick="selectWorld(4)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-sky-600 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-4">
+                            <div id="lock-icon-4" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-sky-300">4. חוף השמש והגלים</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-4" class="mt-2 text-xs bg-sky-500/30 border border-sky-400 text-sky-200 font-extrabold px-3 py-1 rounded-full">40 נקודות</span>
+                    </div>
+
+                    <!-- World 5 -->
+                    <div id="node-5" onclick="selectWorld(5)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-5">
+                            <div id="lock-icon-5" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-blue-200">5. ארמון השלג</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-5" class="mt-2 text-xs bg-blue-500/30 border border-blue-400 text-blue-200 font-extrabold px-3 py-1 rounded-full">60 נקודות</span>
+                    </div>
+
+                    <!-- World 6 -->
+                    <div id="node-6" onclick="selectWorld(6)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-fuchsia-500 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-6">
+                            <div id="lock-icon-6" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-fuchsia-200">6. עולם חד-הקרן הקסום</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-6" class="mt-2 text-xs bg-fuchsia-500/30 border border-fuchsia-400 text-fuchsia-200 font-extrabold px-3 py-1 rounded-full">80 נקודות</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Stage & Game Screen -->
+        <div id="game-screen" class="hidden w-full max-w-5xl mx-auto flex flex-col gap-4">
+            
+            <div class="w-full bg-slate-900 border-2 border-slate-700 rounded-3xl p-3 md:p-4 shadow-2xl flex flex-col gap-3 rtl-dir">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <span id="stage-title-icon" class="text-2xl">🛋️</span>
+                        <div>
+                            <h2 id="stage-title-text" class="font-black text-lg md:text-xl text-yellow-300">עיצוב סלון הבית הקסום</h2>
+                            <p class="text-xs text-slate-300">ענה על תרגיל כדי לקבל פריט! גרור והעבר פריטים לעיצוב הסצנה!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openShopModal()" class="text-xs bg-emerald-700 hover:bg-emerald-600 text-emerald-100 font-bold px-3 py-1.5 rounded-xl border border-emerald-500 transition">
+                            <i class="fa-solid fa-cart-shopping"></i> חנות פריטים
+                        </button>
+                        <button onclick="resetCurrentWorldItems()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-600 transition">
+                            <i class="fa-solid fa-arrow-rotate-left"></i> איפוס פריטים
+                        </button>
+                    </div>
+                </div>
+
+                <!-- World Interactive Designer Stage Container -->
+                <div id="stage-canvas-area" class="w-full h-[280px] sm:h-[350px] rounded-2xl border-2 border-white/30 shadow-inner relative select-none stage-theme-1">
+                    
+                    <!-- Dynamic Graphic Layers per World -->
+                    <div id="world-graphics-layer" class="absolute inset-0 pointer-events-none"></div>
+
+                    <!-- Container for Dragged Interactive Items -->
+                    <div id="items-container" class="absolute inset-0 z-10"></div>
+                </div>
+
+                <!-- Customizer Popup Controls (When item is clicked) -->
+                <div id="item-controls-bar" class="hidden flex-wrap items-center justify-between gap-2 bg-slate-800/90 p-2.5 rounded-xl border border-amber-400/50">
+                    <div class="flex items-center gap-2">
+                        <span id="selected-item-label" class="text-sm font-bold text-amber-300">עיצוב פריט:</span>
+                        <!-- Color Palette Options -->
+                        <div class="flex items-center gap-1.5 mr-2">
+                            <span class="text-xs text-slate-300">צבע:</span>
+                            <button onclick="setItemColor('none')" class="w-6 h-6 rounded-full border border-white bg-slate-400 text-[10px]">✕</button>
+                            <button onclick="setItemColor('#ef4444')" class="w-6 h-6 rounded-full border border-white bg-red-500"></button>
+                            <button onclick="setItemColor('#3b82f6')" class="w-6 h-6 rounded-full border border-white bg-blue-500"></button>
+                            <button onclick="setItemColor('#22c55e')" class="w-6 h-6 rounded-full border border-white bg-green-500"></button>
+                            <button onclick="setItemColor('#eab308')" class="w-6 h-6 rounded-full border border-white bg-yellow-500"></button>
+                            <button onclick="setItemColor('#a855f7')" class="w-6 h-6 rounded-full border border-white bg-purple-500"></button>
+                            <button onclick="setItemColor('#ec4899')" class="w-6 h-6 rounded-full border border-white bg-pink-500"></button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeItemScale(0.2)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1 rounded-lg border border-slate-500">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> הגדל
+                        </button>
+                        <button onclick="changeItemScale(-0.2)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1 rounded-lg border border-slate-500">
+                            <i class="fa-solid fa-magnifying-glass-minus"></i> הקטן
+                        </button>
+                        <button onclick="deselectItem()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg">
+                            סיום עיצוב ✓
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full dark-glass rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center border-2 border-slate-600/50 relative">
+                
+                <!-- Visual Helper Icons -->
+                <div class="mb-3 w-full flex flex-wrap items-center justify-center gap-2 p-2.5 bg-slate-900/60 rounded-2xl border border-slate-700/60 min-h-[50px] ltr-dir" id="visual-counter-box">
+                </div>
+
+                <!-- Equation Display -->
+                <div class="flex items-center justify-center gap-3 sm:gap-4 text-4xl sm:text-6xl font-black my-2 text-yellow-300 tracking-wider ltr-dir" dir="ltr">
+                    <span id="num1">5</span>
+                    <span id="operator" class="text-amber-400">+</span>
+                    <span id="num2">3</span>
+                    <span class="text-slate-400">=</span>
+                    <span id="answer-placeholder" class="text-white border-b-4 border-yellow-400 px-3 py-0.5 min-w-[65px] text-center">?</span>
+                </div>
+
+                <!-- Feedback Message -->
+                <div id="feedback-message" class="h-7 font-bold text-base sm:text-lg transition-all duration-300 text-center my-1 opacity-0 rtl-dir">
+                    כל הכבוד! +2 נקודות!
+                </div>
+
+                <!-- Answer Choices Grid -->
+                <div id="options-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-xl mt-2 ltr-dir" dir="ltr">
+                </div>
+
+                <!-- Numpad Keyboard Toggle & Info -->
+                <div class="mt-4 flex items-center justify-between w-full border-t border-slate-700/60 pt-3 rtl-dir">
+                    <button onclick="toggleKeypadMode()" class="text-xs text-slate-300 hover:text-amber-300 flex items-center gap-1 transition bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span id="keypad-toggle-text">מצב מקלדת מספרים</span>
+                    </button>
+                    <div class="text-xs text-slate-300 font-medium">
+                        תשובה נכונה = <span class="text-yellow-400 font-bold">+2 נקודות ו-2 כסף לחנות!</span>
+                    </div>
+                </div>
+
+                <!-- Numpad Grid Overlay -->
+                <div id="keypad-container" class="hidden flex-col items-center gap-3 mt-4 w-full max-w-xs ltr-dir" dir="ltr">
+                    <div class="grid grid-cols-3 gap-2 w-full">
+                        <button onclick="pressKey('1')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">1</button>
+                        <button onclick="pressKey('2')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">2</button>
+                        <button onclick="pressKey('3')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">3</button>
+                        <button onclick="pressKey('4')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">4</button>
+                        <button onclick="pressKey('5')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">5</button>
+                        <button onclick="pressKey('6')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">6</button>
+                        <button onclick="pressKey('7')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">7</button>
+                        <button onclick="pressKey('8')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">8</button>
+                        <button onclick="pressKey('9')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">9</button>
+                        <button onclick="clearKeypad()" class="bg-red-900/50 hover:bg-red-800 text-lg font-bold py-3 rounded-xl border border-red-600 text-red-200">C</button>
+                        <button onclick="pressKey('0')" class="bg-slate-800 hover:bg-slate-700 text-2xl font-bold py-3 rounded-xl border border-slate-600">0</button>
+                        <button onclick="submitKeypadAnswer()" class="bg-emerald-600 hover:bg-emerald-500 text-xl font-bold py-3 rounded-xl border border-emerald-400 text-white">✓</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Unlock Modal -->
+    <div id="unlock-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden rtl-dir">
+        <div class="dark-glass max-w-md w-full rounded-3xl p-6 text-center border-2 border-yellow-400 shadow-2xl animate-glow">
+            <div id="unlock-icon" class="text-7xl mb-4 animate-bounce">🎉</div>
+            <h3 class="text-2xl font-black text-yellow-300 mb-2">עולם חדש נפתח!</h3>
+            <p id="unlock-msg" class="text-slate-200 mb-6 font-medium">הגעת לנקודות הנדרשות ופתחת עולם חדש!</p>
+            <button onclick="closeUnlockModal()" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black py-3 rounded-2xl shadow-xl transition transform active:scale-95 text-lg">
+                איזה כיף! לחיצה למשחק בעולם החדש
+            </button>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shop-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden rtl-dir">
+        <div class="dark-glass max-w-2xl w-full rounded-3xl p-5 sm:p-6 text-right border-2 border-emerald-400/80 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <button onclick="closeShopModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-2xl font-black text-emerald-300 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-cart-shopping"></i> חנות הפריטים
+            </h3>
+            <p class="text-sm text-slate-300 mb-4">קנו פריטים עם הכסף שצברתם כדי לעצב את העולם שלכם!</p>
+
+            <div class="bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-black text-lg px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 border-2 border-emerald-200 w-fit mb-4 ltr-dir">
+                <i class="fa-solid fa-coins text-yellow-100"></i>
+                <span id="shop-coins-display">0</span>
+                <span class="text-xs text-slate-900 font-bold ml-1 rtl-dir">כסף זמין</span>
+            </div>
+
+            <div id="shop-items-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-1 flex-1">
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden rtl-dir">
+        <div class="dark-glass max-w-md w-full rounded-3xl p-6 text-right border-2 border-amber-400/80 shadow-2xl relative">
+            <button onclick="closeSettingsModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-2xl font-black text-amber-300 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-gear"></i> הגדרות המשחק
+            </h3>
+            
+            <!-- Number Range Selection -->
+            <div class="mb-5">
+                <label class="block font-bold text-slate-200 mb-2">טווח המספרים בתרגילים:</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="range-btn-default" onclick="setNumberRange('default')" class="range-opt-btn bg-amber-500 text-slate-950 font-bold p-2.5 rounded-xl border border-amber-300 text-xs sm:text-sm">
+                        לפי העולם במשחק
+                    </button>
+                    <button id="range-btn-10" onclick="setNumberRange(10)" class="range-opt-btn bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold p-2.5 rounded-xl border border-slate-700 text-xs sm:text-sm">
+                        עד 10
+                    </button>
+                    <button id="range-btn-100" onclick="setNumberRange(100)" class="range-opt-btn bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold p-2.5 rounded-xl border border-slate-700 text-xs sm:text-sm">
+                        עד 100
+                    </button>
+                    <button id="range-btn-1000" onclick="setNumberRange(1000)" class="range-opt-btn bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold p-2.5 rounded-xl border border-slate-700 text-xs sm:text-sm">
+                        ✨ מ-1 עד 1000!
+                    </button>
+                </div>
+
+                <!-- Custom Range Input Block -->
+                <div class="mt-3 bg-slate-800/90 p-3 rounded-2xl border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <label for="custom-range-input" class="text-xs sm:text-sm font-bold text-amber-200 whitespace-nowrap">
+                        ✏️ הקלד רמה מותאמת אישית:
+                    </label>
+                    <div class="flex items-center gap-2 w-full sm:w-auto ltr-dir">
+                        <input type="number" id="custom-range-input" min="5" max="100000" placeholder="למשל 50" class="w-full sm:w-28 bg-slate-900 border border-amber-400/60 rounded-xl px-2.5 py-1.5 text-center font-bold text-yellow-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                        <button onclick="applyCustomNumberRange()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition transform active:scale-95 shadow-md">
+                            החל
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Operations Filter -->
+            <div class="mb-5">
+                <label class="block font-bold text-slate-200 mb-2">סוגי תרגילים:</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center gap-2 bg-slate-800 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:bg-slate-700 text-sm">
+                        <input type="checkbox" id="op-add" checked onchange="updateOpsFilter()" class="w-4 h-4 accent-amber-500">
+                        <span class="font-bold text-amber-300">חיבור (+)</span>
+                    </label>
+                    <label class="flex items-center gap-2 bg-slate-800 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:bg-slate-700 text-sm">
+                        <input type="checkbox" id="op-sub" checked onchange="updateOpsFilter()" class="w-4 h-4 accent-amber-500">
+                        <span class="font-bold text-amber-300">חיסור (-)</span>
+                    </label>
+                    <label class="flex items-center gap-2 bg-slate-800 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:bg-slate-700 text-sm">
+                        <input type="checkbox" id="op-mul" onchange="updateOpsFilter()" class="w-4 h-4 accent-amber-500">
+                        <span class="font-bold text-amber-300">כפל (×)</span>
+                    </label>
+                    <label class="flex items-center gap-2 bg-slate-800 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:bg-slate-700 text-sm">
+                        <input type="checkbox" id="op-div" onchange="updateOpsFilter()" class="w-4 h-4 accent-amber-500">
+                        <span class="font-bold text-amber-300">חילוק (÷)</span>
+                    </label>
+                </div>
+                <p id="ops-warning" class="text-xs text-red-400 mt-2 hidden font-bold">חובה לבחור לפחות סוג תרגיל אחד!</p>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high text-amber-400"></i> עוצמת שמע:
+                    </label>
+                    <span id="volume-val-text" class="text-amber-400 font-bold text-sm ltr-dir">50%</span>
+                </div>
+                <input type="range" id="volume-range" min="0" max="100" value="50" oninput="updateVolume(this.value)" class="w-full accent-amber-500 cursor-pointer h-2 bg-slate-700 rounded-lg">
+            </div>
+
+            <button onclick="closeSettingsModal()" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black py-3 rounded-2xl shadow-xl transition transform active:scale-95 text-lg">
+                שמור וסגור
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Info -->
+    <footer class="relative z-10 w-full text-center py-2.5 text-xs text-slate-400 dark-glass mt-2 rtl-dir">
+        הרפתקת החשבון • עיצוב עולמות אינטראקטיבי
+    </footer>
+
+    <script>
+        // Game Configuration & Constants
+        const WORLDS_CONFIG = {
+            1: { name: 'סלון הבית הקסום', iconType: 'sofa', reqScore: 0, defaultMax: 10, themeClass: 'stage-theme-1' },
+            2: { name: 'הפארק הירוק', iconType: 'tree', reqScore: 10, defaultMax: 20, themeClass: 'stage-theme-2' },
+            3: { name: "ג'ונגל ההרפתקאות", iconType: 'palm', reqScore: 24, defaultMax: 40, themeClass: 'stage-theme-3' },
+            4: { name: 'חוף השמש והגלים', iconType: 'beach_umbrella', reqScore: 40, defaultMax: 50, themeClass: 'stage-theme-4' },
+            5: { name: 'ארמון השלג', iconType: 'snowman', reqScore: 60, defaultMax: 100, themeClass: 'stage-theme-5' },
+            6: { name: 'עולם חד-הקרן הקסום', iconType: 'unicorn', reqScore: 80, defaultMax: 150, themeClass: 'stage-theme-6' }
+        };
+
+        // Unique decoration item pools using vector SVG keys
+        const WORLD_DECOR_POOL = {
+            1: ['sofa', 'armchair', 'plant', 'tv', 'lamp', 'window', 'clock', 'table'],
+            2: ['tree', 'flower', 'fountain', 'bench', 'bicycle', 'balloon', 'bird', 'rock'],
+            3: ['palm', 'tent', 'gem', 'totem', 'flower_exotic', 'mushroom', 'chest', 'vine'],
+            4: ['beach_umbrella', 'surfboard', 'sailboat', 'sandcastle', 'shell', 'crab', 'coconut', 'ball'],
+            5: ['snowman', 'snowflake', 'ice_castle', 'sleigh', 'pine_tree', 'crown', 'gift', 'candle'],
+            6: ['unicorn', 'rainbow', 'star_sparkle', 'cloud_cute', 'castle_pink', 'flower_magic', 'moon_magic', 'gem_heart']
+        };
+
+        // Coin price for each shop item (used by the item shop)
+        const ITEM_COSTS = {
+            sofa: 6, armchair: 6, plant: 4, tv: 8, lamp: 5, window: 5, clock: 6, table: 5,
+            tree: 5, flower: 4, fountain: 8, bench: 5, bicycle: 6, balloon: 4, bird: 5, rock: 4,
+            palm: 6, tent: 7, gem: 9, totem: 8, flower_exotic: 6, mushroom: 5, chest: 9, vine: 5,
+            beach_umbrella: 6, surfboard: 7, sailboat: 9, sandcastle: 7, shell: 4, crab: 5, coconut: 5, ball: 4,
+            snowman: 8, snowflake: 4, ice_castle: 10, sleigh: 9, pine_tree: 6, crown: 9, gift: 6, candle: 5,
+            unicorn: 12, rainbow: 10, star_sparkle: 6, cloud_cute: 6, castle_pink: 12, flower_magic: 7, moon_magic: 8, gem_heart: 10
+        };
+
+        // Item names translation map for friendly label text
+        const ITEM_NAMES = {
+            sofa: 'ספה קלאסית', armchair: 'כורסה מעוצבת', plant: 'עציץ ירוק', tv: 'טלוויזיה',
+            lamp: 'מנורת עמוד', window: 'חלון לגינה', clock: 'שעון קיר', table: 'שולחן סלון',
+            tree: 'עץ אלון', flower: 'פרח גינה', fountain: 'מזרקת מים', bench: 'ספסל עץ',
+            bicycle: 'אופניים', balloon: 'בלון צבעוני', bird: 'ציפור שיר', rock: 'סלע נוי',
+            palm: 'עץ דקל', tent: 'אוהל הרפתקאות', gem: 'קריסטל קסום', totem: "פסל ג'ונגל",
+            flower_exotic: 'פרח טרופי', mushroom: 'פטרייה מוארת', chest: 'תיבת אוצר', vine: 'צמח מטפס',
+            beach_umbrella: 'שמשיית חוף', surfboard: 'גלשן גלים', sailboat: 'מפרשית', sandcastle: 'ארמון חול',
+            shell: 'קונכייה', crab: 'סרטן חוף', coconut: 'משקה קוקוס', ball: 'כדור ים',
+            snowman: 'איש שלג', snowflake: 'פתית שלג', ice_castle: 'ארמון קרח', sleigh: 'מזחלת מושלגת',
+            pine_tree: 'עץ אשוח', crown: 'כתר קרח', gift: 'קופסת מתנה', candle: 'נר חגיגי',
+            unicorn: 'חד-קרן קסום', rainbow: 'קשת בענן', star_sparkle: 'כוכב נוצץ', cloud_cute: 'עננון חמוד',
+            castle_pink: 'ארמון ורוד', flower_magic: 'פרח קסם', moon_magic: 'ירח קסום', gem_heart: 'קריסטל לב'
+        };
+
+        // SVG Graphics Generator function with color customization support
+        function getSVGForItem(type, primaryColor = 'none', customClass = 'w-12 h-12 md:w-16 md:h-16') {
+            const fill = (primaryColor && primaryColor !== 'none') ? primaryColor : null;
+
+            switch (type) {
+                // World 1 - Living Room
+                case 'sofa':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="8" y="24" width="48" height="24" rx="6" fill="${fill || '#e11d48'}"/>
+                        <rect x="4" y="28" width="8" height="20" rx="4" fill="${fill || '#be123c'}"/>
+                        <rect x="52" y="28" width="8" height="20" rx="4" fill="${fill || '#be123c'}"/>
+                        <rect x="12" y="38" width="40" height="12" rx="3" fill="#9f1239"/>
+                        <rect x="12" y="48" width="6" height="8" rx="2" fill="#475569"/>
+                        <rect x="46" y="48" width="6" height="8" rx="2" fill="#475569"/>
+                    </svg>`;
+                case 'armchair':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="14" y="20" width="36" height="28" rx="6" fill="${fill || '#8b5cf6'}"/>
+                        <rect x="8" y="26" width="10" height="22" rx="4" fill="${fill || '#7c3aed'}"/>
+                        <rect x="46" y="26" width="10" height="22" rx="4" fill="${fill || '#7c3aed'}"/>
+                        <rect x="16" y="48" width="6" height="8" rx="2" fill="#334155"/>
+                        <rect x="42" y="48" width="6" height="8" rx="2" fill="#334155"/>
+                    </svg>`;
+                case 'plant':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M22 42 L26 58 H38 L42 42 Z" fill="${fill || '#d97706'}"/>
+                        <path d="M32 40 C20 30 14 18 24 12 C32 20 32 30 32 40 Z" fill="#22c55e"/>
+                        <path d="M32 40 C44 30 50 18 40 12 C32 20 32 30 32 40 Z" fill="#16a34a"/>
+                        <path d="M32 42 V20" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
+                    </svg>`;
+                case 'tv':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="6" y="12" width="52" height="34" rx="4" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+                        <rect x="10" y="16" width="44" height="26" rx="2" fill="${fill || '#38bdf8'}"/>
+                        <path d="M26 46 L20 56 H44 L38 46 Z" fill="#334155"/>
+                    </svg>`;
+                case 'lamp':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M20 28 L26 12 H38 L44 28 Z" fill="${fill || '#f59e0b'}"/>
+                        <rect x="30" y="28" width="4" height="28" fill="#94a3b8"/>
+                        <ellipse cx="32" cy="56" rx="12" ry="4" fill="#64748b"/>
+                        <circle cx="32" cy="32" r="4" fill="#fef08a"/>
+                    </svg>`;
+                case 'window':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="10" y="10" width="44" height="44" rx="4" fill="${fill || '#60a5fa'}" stroke="#f8fafc" stroke-width="4"/>
+                        <line x1="32" y1="10" x2="32" y2="54" stroke="#f8fafc" stroke-width="4"/>
+                        <line x1="10" y1="32" x2="54" y2="32" stroke="#f8fafc" stroke-width="4"/>
+                    </svg>`;
+                case 'clock':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="24" fill="${fill || '#f8fafc'}" stroke="#3b82f6" stroke-width="4"/>
+                        <circle cx="32" cy="32" r="3" fill="#1e293b"/>
+                        <path d="M32 32 V18 M32 32 L42 32" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+                    </svg>`;
+                case 'table':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="28" rx="26" ry="10" fill="${fill || '#b45309'}"/>
+                        <rect x="18" y="28" width="4" height="24" fill="#78350f"/>
+                        <rect x="42" y="28" width="4" height="24" fill="#78350f"/>
+                    </svg>`;
+
+                // World 2 - Park
+                case 'tree':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="28" y="36" width="8" height="22" fill="#78350f" rx="2"/>
+                        <circle cx="32" cy="24" r="20" fill="${fill || '#22c55e'}"/>
+                        <circle cx="22" cy="28" r="12" fill="${fill || '#16a34a'}"/>
+                        <circle cx="42" cy="28" r="12" fill="${fill || '#15803d'}"/>
+                    </svg>`;
+                case 'flower':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 34 V58" stroke="#16a34a" stroke-width="4"/>
+                        <circle cx="32" cy="22" r="8" fill="#facc15"/>
+                        <circle cx="32" cy="10" r="7" fill="${fill || '#ec4899'}"/>
+                        <circle cx="44" cy="22" r="7" fill="${fill || '#ec4899'}"/>
+                        <circle cx="32" cy="34" r="7" fill="${fill || '#ec4899'}"/>
+                        <circle cx="20" cy="22" r="7" fill="${fill || '#ec4899'}"/>
+                    </svg>`;
+                case 'fountain':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="48" rx="26" ry="10" fill="#94a3b8"/>
+                        <ellipse cx="32" cy="46" rx="22" ry="7" fill="${fill || '#38bdf8'}"/>
+                        <rect x="28" y="26" width="8" height="20" fill="#cbd5e1"/>
+                        <path d="M32 26 C24 16 18 10 18 6 C28 6 30 18 32 26 Z" fill="#7dd3fc"/>
+                        <path d="M32 26 C40 16 46 10 46 6 C36 6 34 18 32 26 Z" fill="#7dd3fc"/>
+                    </svg>`;
+                case 'bench':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="8" y="24" width="48" height="8" rx="2" fill="${fill || '#92400e'}"/>
+                        <rect x="8" y="34" width="48" height="8" rx="2" fill="${fill || '#b45309'}"/>
+                        <rect x="12" y="20" width="4" height="34" fill="#334155"/>
+                        <rect x="48" y="20" width="4" height="34" fill="#334155"/>
+                    </svg>`;
+                case 'bicycle':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="18" cy="42" r="12" fill="none" stroke="${fill || '#ef4444'}" stroke-width="4"/>
+                        <circle cx="46" cy="42" r="12" fill="none" stroke="${fill || '#ef4444'}" stroke-width="4"/>
+                        <path d="M18 42 L30 42 L38 26 L46 42 M30 42 L26 26 H34" stroke="${fill || '#ef4444'}" stroke-width="3" fill="none"/>
+                    </svg>`;
+                case 'balloon':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 8 C20 8 16 20 16 30 C16 40 28 46 32 48 C36 46 48 40 48 30 C48 20 44 8 32 8 Z" fill="${fill || '#f43f5e'}"/>
+                        <path d="M32 48 L30 52 H34 Z" fill="#e11d48"/>
+                        <path d="M32 52 Q28 58 32 62" stroke="#f8fafc" stroke-width="2" fill="none"/>
+                    </svg>`;
+                case 'bird':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M12 32 Q24 16 38 24 Q50 16 56 20 Q44 32 36 36 Q22 42 12 32 Z" fill="${fill || '#3b82f6'}"/>
+                        <circle cx="44" cy="24" r="2" fill="#0f172a"/>
+                        <path d="M52 22 L60 25 L51 28 Z" fill="#f59e0b"/>
+                    </svg>`;
+                case 'rock':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M10 48 L18 24 L38 18 L54 30 L50 50 Z" fill="${fill || '#64748b'}"/>
+                        <path d="M18 24 L32 34 L50 50 Z" fill="#475569"/>
+                    </svg>`;
+
+                // World 3 - Jungle
+                case 'palm':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M28 58 C30 40 26 28 32 18" stroke="#78350f" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        <path d="M32 18 C20 10 10 14 6 22 C16 24 26 22 32 18 Z" fill="${fill || '#15803d'}"/>
+                        <path d="M32 18 C44 10 54 14 58 22 C48 24 38 22 32 18 Z" fill="${fill || '#22c55e'}"/>
+                        <path d="M32 18 C32 6 24 2 16 2 C20 10 26 16 32 18 Z" fill="${fill || '#16a34a'}"/>
+                    </svg>`;
+                case 'tent':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <polygon points="32,10 6,52 58,52" fill="${fill || '#ea580c'}"/>
+                        <polygon points="32,10 24,52 40,52" fill="#c2410c"/>
+                        <polygon points="32,24 28,52 36,52" fill="#0f172a"/>
+                    </svg>`;
+                case 'gem':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <polygon points="20,14 44,14 56,28 32,56 8,28" fill="${fill || '#06b6d4'}"/>
+                        <polygon points="20,14 32,28 8,28" fill="#22d3ee"/>
+                        <polygon points="44,14 56,28 32,28" fill="#0891b2"/>
+                        <polygon points="20,14 44,14 32,28" fill="#67e8f9"/>
+                    </svg>`;
+                case 'totem':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="20" y="10" width="24" height="46" rx="4" fill="${fill || '#b45309'}"/>
+                        <circle cx="26" cy="22" r="3" fill="#fef08a"/>
+                        <circle cx="38" cy="22" r="3" fill="#fef08a"/>
+                        <rect x="26" y="32" width="12" height="4" fill="#78350f"/>
+                        <polygon points="32,40 26,48 38,48" fill="#ef4444"/>
+                    </svg>`;
+                case 'flower_exotic':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 30 V58" stroke="#15803d" stroke-width="4"/>
+                        <path d="M32 6 C20 16 20 28 32 34 C44 28 44 16 32 6 Z" fill="${fill || '#a855f7'}"/>
+                        <path d="M12 20 C22 24 28 30 32 34 C28 20 20 12 12 20 Z" fill="${fill || '#c084fc'}"/>
+                        <path d="M52 20 C42 24 36 30 32 34 C36 20 44 12 52 20 Z" fill="${fill || '#9333ea'}"/>
+                    </svg>`;
+                case 'mushroom':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M24 36 C24 52 40 52 40 36 Z" fill="#f8fafc"/>
+                        <path d="M8 36 C8 16 56 16 56 36 Z" fill="${fill || '#ef4444'}"/>
+                        <circle cx="22" cy="24" r="4" fill="#ffffff"/>
+                        <circle cx="42" cy="24" r="4" fill="#ffffff"/>
+                        <circle cx="32" cy="30" r="3" fill="#ffffff"/>
+                    </svg>`;
+                case 'chest':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="10" y="28" width="44" height="26" rx="3" fill="${fill || '#b45309'}"/>
+                        <path d="M10 28 C10 16 54 16 54 28 Z" fill="${fill || '#d97706'}"/>
+                        <rect x="28" y="28" width="8" height="26" fill="#f59e0b"/>
+                        <circle cx="32" cy="36" r="3" fill="#0f172a"/>
+                    </svg>`;
+                case 'vine':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M10 8 Q32 20 18 36 T48 56" stroke="#16a34a" stroke-width="5" fill="none"/>
+                        <path d="M18 20 C8 16 12 8 20 12 Z" fill="${fill || '#22c55e'}"/>
+                        <path d="M26 36 C36 32 32 24 24 28 Z" fill="${fill || '#4ade80'}"/>
+                    </svg>`;
+
+                // World 4 - Beach
+                case 'beach_umbrella':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <line x1="32" y1="20" x2="32" y2="58" stroke="#cbd5e1" stroke-width="4"/>
+                        <path d="M8 26 C8 12 56 12 56 26 Z" fill="${fill || '#f43f5e'}"/>
+                        <path d="M20 26 C20 12 44 12 44 26 Z" fill="#ffffff"/>
+                        <path d="M28 26 C28 12 36 12 36 26 Z" fill="${fill || '#f43f5e'}"/>
+                    </svg>`;
+                case 'surfboard':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 6 C18 20 18 44 32 58 C46 44 46 20 32 6 Z" fill="${fill || '#06b6d4'}"/>
+                        <path d="M32 6 V58" stroke="#ffffff" stroke-width="3"/>
+                        <path d="M20 32 Q32 24 44 32" stroke="#f59e0b" stroke-width="4" fill="none"/>
+                    </svg>`;
+                case 'sailboat':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M10 42 L20 54 H44 L54 42 Z" fill="#b45309"/>
+                        <line x1="32" y1="10" x2="32" y2="42" stroke="#64748b" stroke-width="3"/>
+                        <polygon points="32,10 50,38 32,38" fill="${fill || '#38bdf8'}"/>
+                    </svg>`;
+                case 'sandcastle':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="12" y="30" width="40" height="24" fill="${fill || '#fde047'}"/>
+                        <rect x="10" y="24" width="10" height="10" fill="${fill || '#eab308'}"/>
+                        <rect x="27" y="20" width="10" height="14" fill="${fill || '#eab308'}"/>
+                        <rect x="44" y="24" width="10" height="10" fill="${fill || '#eab308'}"/>
+                        <path d="M28 42 A4 4 0 0 1 36 42 V54 H28 Z" fill="#78350f"/>
+                    </svg>`;
+                case 'shell':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 12 C14 12 8 32 18 48 L32 52 L46 48 C56 32 50 12 32 12 Z" fill="${fill || '#fda4af'}"/>
+                        <line x1="32" y1="12" x2="32" y2="52" stroke="#f43f5e" stroke-width="2"/>
+                        <line x1="32" y1="12" x2="22" y2="50" stroke="#f43f5e" stroke-width="2"/>
+                        <line x1="32" y1="12" x2="42" y2="50" stroke="#f43f5e" stroke-width="2"/>
+                    </svg>`;
+                case 'crab':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="36" rx="18" ry="12" fill="${fill || '#ef4444'}"/>
+                        <circle cx="24" cy="22" r="3" fill="#0f172a"/>
+                        <circle cx="40" cy="22" r="3" fill="#0f172a"/>
+                        <path d="M14 30 C4 20 6 10 14 16 Z" fill="${fill || '#dc2626'}"/>
+                        <path d="M50 30 C60 20 58 10 50 16 Z" fill="${fill || '#dc2626'}"/>
+                    </svg>`;
+                case 'coconut':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="38" r="18" fill="#78350f"/>
+                        <ellipse cx="32" cy="24" rx="14" ry="6" fill="#f8fafc"/>
+                        <line x1="36" y1="24" x2="48" y2="8" stroke="${fill || '#ec4899'}" stroke-width="4" stroke-linecap="round"/>
+                    </svg>`;
+                case 'ball':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+                        <path d="M32 10 A22 22 0 0 0 32 54 A22 22 0 0 0 32 10" fill="${fill || '#3b82f6'}"/>
+                        <path d="M10 32 A22 22 0 0 0 54 32" stroke="#eab308" stroke-width="6" fill="none"/>
+                    </svg>`;
+
+                // World 5 - Snow Palace
+                case 'snowman':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="44" r="16" fill="#f8fafc"/>
+                        <circle cx="32" cy="22" r="11" fill="#f8fafc"/>
+                        <circle cx="28" cy="19" r="2" fill="#0f172a"/>
+                        <circle cx="36" cy="19" r="2" fill="#0f172a"/>
+                        <polygon points="32,22 44,24 32,25" fill="#f97316"/>
+                        <rect x="20" y="8" width="24" height="4" fill="${fill || '#e11d48'}"/>
+                        <rect x="24" y="2" width="16" height="8" fill="${fill || '#e11d48'}"/>
+                    </svg>`;
+                case 'snowflake':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 6 V58 M6 32 H58 M14 14 L50 50 M14 50 L50 14" stroke="${fill || '#38bdf8'}" stroke-width="4" stroke-linecap="round"/>
+                    </svg>`;
+                case 'ice_castle':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="14" y="24" width="36" height="32" fill="${fill || '#7dd3fc'}"/>
+                        <polygon points="14,24 8,10 20,24" fill="#a5f3fc"/>
+                        <polygon points="50,24 44,10 56,24" fill="#a5f3fc"/>
+                        <polygon points="32,6 22,24 42,24" fill="#38bdf8"/>
+                        <path d="M26 42 A6 6 0 0 1 38 42 V56 H26 Z" fill="#0284c7"/>
+                    </svg>`;
+                case 'sleigh':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 50 H56 C58 50 60 46 56 42 L48 42" stroke="#cbd5e1" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <path d="M12 24 L20 42 H48 L54 24 Z" fill="${fill || '#b91c1c'}"/>
+                    </svg>`;
+                case 'pine_tree':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="28" y="48" width="8" height="10" fill="#78350f"/>
+                        <polygon points="32,6 12,26 52,26" fill="${fill || '#0284c7'}"/>
+                        <polygon points="32,20 10,38 54,38" fill="${fill || '#0369a1'}"/>
+                        <polygon points="32,30 8,50 56,50" fill="${fill || '#075985'}"/>
+                    </svg>`;
+                case 'crown':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <polygon points="10,48 54,48 58,20 42,32 32,12 22,32 6,20" fill="${fill || '#eab308'}"/>
+                        <circle cx="32" cy="48" r="3" fill="#ef4444"/>
+                    </svg>`;
+                case 'gift':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="12" y="24" width="40" height="32" rx="3" fill="${fill || '#ec4899'}"/>
+                        <rect x="8" y="18" width="48" height="8" rx="2" fill="${fill || '#db2777'}"/>
+                        <rect x="28" y="18" width="8" height="38" fill="#facc15"/>
+                    </svg>`;
+                case 'candle':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="22" y="24" width="20" height="34" rx="2" fill="${fill || '#f8fafc'}"/>
+                        <line x1="32" y1="24" x2="32" y2="16" stroke="#475569" stroke-width="2"/>
+                        <path d="M32 4 C28 10 28 16 32 18 C36 16 36 10 32 4 Z" fill="#f97316"/>
+                    </svg>`;
+
+                // World 6 - Unicorn Magic World
+                case 'unicorn':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="30" cy="38" rx="18" ry="13" fill="${fill || '#f8fafc'}"/>
+                        <path d="M46 30 L58 24 L50 36 Z" fill="${fill || '#f8fafc'}"/>
+                        <circle cx="46" cy="28" r="9" fill="${fill || '#f8fafc'}"/>
+                        <polygon points="46,10 50,22 42,22" fill="#fde047"/>
+                        <circle cx="49" cy="26" r="1.6" fill="#0f172a"/>
+                        <path d="M40 16 C34 12 26 14 24 20 C32 18 38 20 40 16 Z" fill="#f472b6"/>
+                        <path d="M38 20 C32 18 24 22 24 28 C32 24 36 24 38 20 Z" fill="#a855f7"/>
+                        <path d="M38 24 C32 24 26 30 28 36 C34 30 38 28 38 24 Z" fill="#60a5fa"/>
+                        <rect x="18" y="48" width="4" height="10" fill="#e5e7eb"/>
+                        <rect x="38" y="48" width="4" height="10" fill="#e5e7eb"/>
+                    </svg>`;
+                case 'rainbow':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M6 52 A26 26 0 0 1 58 52" stroke="${fill || '#ef4444'}" stroke-width="6" fill="none"/>
+                        <path d="M12 52 A20 20 0 0 1 52 52" stroke="#f59e0b" stroke-width="6" fill="none"/>
+                        <path d="M18 52 A14 14 0 0 1 46 52" stroke="#22c55e" stroke-width="6" fill="none"/>
+                        <path d="M24 52 A8 8 0 0 1 40 52" stroke="#3b82f6" stroke-width="6" fill="none"/>
+                        <ellipse cx="8" cy="54" rx="8" ry="5" fill="#f1f5f9"/>
+                        <ellipse cx="56" cy="54" rx="8" ry="5" fill="#f1f5f9"/>
+                    </svg>`;
+                case 'star_sparkle':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 6 L39 26 L60 26 L43 38 L49 58 L32 46 L15 58 L21 38 L4 26 L25 26 Z" fill="${fill || '#fde047'}"/>
+                        <circle cx="14" cy="12" r="3" fill="#fef9c3"/>
+                        <circle cx="52" cy="16" r="2" fill="#fef9c3"/>
+                    </svg>`;
+                case 'cloud_cute':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="24" cy="38" rx="14" ry="11" fill="${fill || '#f8fafc'}"/>
+                        <ellipse cx="40" cy="34" rx="17" ry="14" fill="${fill || '#f8fafc'}"/>
+                        <ellipse cx="52" cy="42" rx="11" ry="9" fill="${fill || '#f8fafc'}"/>
+                        <circle cx="20" cy="30" r="2" fill="#0f172a"/>
+                        <circle cx="30" cy="30" r="2" fill="#0f172a"/>
+                        <path d="M22 36 Q25 39 28 36" stroke="#0f172a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    </svg>`;
+                case 'castle_pink':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="14" y="30" width="36" height="26" fill="${fill || '#f0abfc'}"/>
+                        <rect x="8" y="20" width="10" height="14" fill="${fill || '#e879f9'}"/>
+                        <rect x="46" y="20" width="10" height="14" fill="${fill || '#e879f9'}"/>
+                        <polygon points="13,20 18,10 23,20" fill="#c026d3"/>
+                        <polygon points="41,20 46,10 51,20" fill="#c026d3"/>
+                        <polygon points="22,30 32,16 42,30" fill="#a21caf"/>
+                        <path d="M26 44 A6 6 0 0 1 38 44 V56 H26 Z" fill="#86198f"/>
+                    </svg>`;
+                case 'flower_magic':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 32 V58" stroke="#16a34a" stroke-width="4"/>
+                        <circle cx="32" cy="20" r="7" fill="#facc15"/>
+                        <circle cx="32" cy="8" r="6.5" fill="${fill || '#f472b6'}"/>
+                        <circle cx="43" cy="20" r="6.5" fill="${fill || '#c084fc'}"/>
+                        <circle cx="32" cy="32" r="6.5" fill="${fill || '#60a5fa'}"/>
+                        <circle cx="21" cy="20" r="6.5" fill="${fill || '#f472b6'}"/>
+                    </svg>`;
+                case 'moon_magic':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M40 8 C22 8 12 22 12 34 C12 48 24 58 38 56 C24 52 18 40 22 28 C26 16 36 10 40 8 Z" fill="${fill || '#fde047'}"/>
+                        <circle cx="48" cy="16" r="2.4" fill="#fef9c3"/>
+                        <circle cx="54" cy="26" r="1.6" fill="#fef9c3"/>
+                    </svg>`;
+                case 'gem_heart':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 54 C16 42 8 32 8 22 C8 12 18 8 24 14 C28 18 30 20 32 24 C34 20 36 18 40 14 C46 8 56 12 56 22 C56 32 48 42 32 54 Z" fill="${fill || '#f472b6'}"/>
+                        <path d="M32 24 C30 20 28 18 24 14 C18 8 8 12 8 22 C8 26 9 30 12 34 L32 24 Z" fill="#fbcfe8"/>
+                    </svg>`;
+
+                default:
+                    return `<svg viewBox="0 0 64 64" class="${customClass}"><circle cx="32" cy="32" r="20" fill="${fill || '#f59e0b'}"/></svg>`;
+            }
+        }
+
+        // Game State Variables
+        let score = 0;
+        let coins = 0;
+        let soundEnabled = true;
+        let soundVolume = 0.5;
+        let allowedOps = ['+', '-'];
+        let customMaxRange = null; // null ('default'), 10, 100, 1000 or custom integer
+        let currentWorldId = 1;
+        let currentProblem = { num1: 0, num2: 0, operator: '+', answer: 0 };
+        let keypadValue = '';
+        let isKeypadMode = false;
+        let audioCtx = null;
+        let saveNotificationTimer = null;
+        let activeDrag = null;
+        let selectedItemId = null;
+        let unlockedWorldAlerted = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false };
+
+        // Separate Placed Items storage for EACH World
+        let worldItemsMap = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: []
+        };
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                gain.gain.setValueAtTime(soundVolume * 0.4, now);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.25);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(130, now + 0.3);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'unlock') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+            } catch (e) {
+                console.warn("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                playSound('pop');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+            triggerSave();
+        }
+
+        function triggerSave() {
+            const saveData = {
+                score: score,
+                coins: coins,
+                worldItemsMap: worldItemsMap,
+                customMaxRange: customMaxRange,
+                allowedOps: allowedOps,
+                soundVolume: soundVolume,
+                soundEnabled: soundEnabled,
+                currentWorldId: currentWorldId
+            };
+
+            if (window.saveGameStateToCloud) {
+                window.saveGameStateToCloud(saveData);
+            }
+        }
+
+        function showSaveNotification() {
+            const badge = document.getElementById('save-status-badge');
+            if (!badge) return;
+            badge.classList.remove('hidden');
+            if (saveNotificationTimer) clearTimeout(saveNotificationTimer);
+            saveNotificationTimer = setTimeout(() => {
+                badge.classList.add('hidden');
+            }, 2000);
+        }
+
+        function applyLoadedGameState(data) {
+            if (!data) return;
+            if (typeof data.score === 'number') score = data.score;
+            if (typeof data.coins === 'number') coins = data.coins;
+            if (data.worldItemsMap) worldItemsMap = data.worldItemsMap;
+            if (data.customMaxRange !== undefined) customMaxRange = data.customMaxRange;
+            if (Array.isArray(data.allowedOps) && data.allowedOps.length > 0) allowedOps = data.allowedOps;
+            if (typeof data.soundVolume === 'number') soundVolume = data.soundVolume;
+            if (typeof data.soundEnabled === 'boolean') soundEnabled = data.soundEnabled;
+            if (data.currentWorldId) currentWorldId = data.currentWorldId;
+
+            document.getElementById('score-display').innerText = score;
+            updateCoinDisplay();
+            
+            if (customMaxRange !== null) {
+                if ([10, 100, 1000].includes(customMaxRange)) {
+                    setNumberRangeUI(customMaxRange);
+                } else {
+                    document.getElementById('custom-range-input').value = customMaxRange;
+                    setNumberRangeUI('custom');
+                }
+            } else {
+                setNumberRangeUI('default');
+            }
+
+            document.getElementById('op-add').checked = allowedOps.includes('+');
+            document.getElementById('op-sub').checked = allowedOps.includes('-');
+            document.getElementById('op-mul').checked = allowedOps.includes('×');
+            document.getElementById('op-div').checked = allowedOps.includes('÷');
+
+            document.getElementById('volume-range').value = soundVolume * 100;
+            document.getElementById('volume-val-text').innerText = `${Math.round(soundVolume * 100)}%`;
+
+            updateMapNodes();
+            selectWorld(currentWorldId);
+        }
+
+        function showMapScreen() {
+            playSound('pop');
+            updateMapNodes();
+            document.getElementById('map-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+        }
+
+        function updateMapNodes() {
+            for (let id = 1; id <= 6; id++) {
+                const node = document.getElementById(`node-${id}`);
+                const lockIcon = document.getElementById(`lock-icon-${id}`);
+                const badge = document.getElementById(`node-badge-${id}`);
+                const iconContainer = document.getElementById(`node-icon-${id}`);
+                const config = WORLDS_CONFIG[id];
+
+                if (iconContainer) {
+                    iconContainer.innerHTML = getSVGForItem(config.iconType, 'none', 'w-10 h-10');
+                }
+
+                if (score >= config.reqScore) {
+                    node.classList.remove('locked', 'opacity-75');
+                    if (lockIcon) lockIcon.classList.add('hidden');
+                    if (badge) {
+                        badge.innerText = 'פתוח!';
+                        badge.className = 'mt-2 text-xs bg-amber-400 text-slate-950 font-extrabold px-3 py-1 rounded-full';
+                    }
+                } else {
+                    node.classList.add('locked', 'opacity-75');
+                    if (lockIcon) lockIcon.classList.remove('hidden');
+                    if (badge) {
+                        badge.innerText = `${config.reqScore} נקודות`;
+                        badge.className = 'mt-2 text-xs bg-slate-700 text-slate-300 font-extrabold px-3 py-1 rounded-full border border-slate-600';
+                    }
+                }
+            }
+        }
+
+        function selectWorld(worldId) {
+            const config = WORLDS_CONFIG[worldId];
+            if (score < config.reqScore) {
+                playSound('wrong');
+                return;
+            }
+
+            playSound('pop');
+            currentWorldId = worldId;
+            document.getElementById('world-badge-icon').innerHTML = getSVGForItem(config.iconType, 'none', 'w-6 h-6 inline-block');
+            document.getElementById('world-badge-name').innerText = config.name;
+            document.getElementById('stage-title-icon').innerHTML = getSVGForItem(config.iconType, 'none', 'w-8 h-8 inline-block');
+            document.getElementById('stage-title-text').innerText = `עיצוב ${config.name}`;
+
+            const stageArea = document.getElementById('stage-canvas-area');
+            stageArea.className = `w-full h-[280px] sm:h-[350px] rounded-2xl border-2 border-white/30 shadow-inner relative select-none ${config.themeClass}`;
+
+            renderWorldBackgroundGraphics(worldId);
+            renderStageItems();
+            
+            // Ensure at least 2 default items exist in the world if empty
+            if (!worldItemsMap[worldId] || worldItemsMap[worldId].length === 0) {
+                addNewDecorItem();
+                addNewDecorItem();
+            }
+
+            document.getElementById('map-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            generateProblem();
+        }
+
+        function checkNewWorldUnlocks() {
+            for (let id = 1; id <= 6; id++) {
+                const config = WORLDS_CONFIG[id];
+                if (score >= config.reqScore && !unlockedWorldAlerted[id]) {
+                    unlockedWorldAlerted[id] = true;
+                    if (id > 1) {
+                        playSound('unlock');
+                        document.getElementById('unlock-icon').innerHTML = getSVGForItem(config.iconType, 'none', 'w-20 h-20 mx-auto');
+                        document.getElementById('unlock-msg').innerText = `כל הכבוד! הגעת ל-${score} נקודות ופתחת את ${config.name}!`;
+                        document.getElementById('unlock-modal').classList.remove('hidden');
+                    }
+                }
+            }
+            updateMapNodes();
+        }
+
+        function closeUnlockModal() {
+            playSound('pop');
+            document.getElementById('unlock-modal').classList.add('hidden');
+        }
+
+        function getMaxNumberLimit() {
+            if (customMaxRange !== null) return customMaxRange;
+            return WORLDS_CONFIG[currentWorldId].defaultMax;
+        }
+
+        function generateProblem() {
+            const maxVal = getMaxNumberLimit();
+            const op = allowedOps[Math.floor(Math.random() * allowedOps.length)] || '+';
+
+            let n1 = 0, n2 = 0, ans = 0;
+
+            if (op === '+') {
+                n1 = Math.floor(Math.random() * (maxVal / 2)) + 1;
+                n2 = Math.floor(Math.random() * (maxVal / 2)) + 1;
+                ans = n1 + n2;
+            } else if (op === '-') {
+                n1 = Math.floor(Math.random() * maxVal) + 2;
+                n2 = Math.floor(Math.random() * n1) + 1;
+                ans = n1 - n2;
+            } else if (op === '×') {
+                const limit = Math.min(12, Math.floor(Math.sqrt(maxVal)) + 2);
+                n1 = Math.floor(Math.random() * limit) + 1;
+                n2 = Math.floor(Math.random() * limit) + 1;
+                ans = n1 * n2;
+            } else if (op === '÷') {
+                n2 = Math.floor(Math.random() * 10) + 1;
+                ans = Math.floor(Math.random() * 10) + 1;
+                n1 = n2 * ans;
+            }
+
+            currentProblem = { num1: n1, num2: n2, operator: op, answer: ans };
+
+            document.getElementById('num1').innerText = n1;
+            document.getElementById('num2').innerText = n2;
+            document.getElementById('operator').innerText = op;
+            document.getElementById('answer-placeholder').innerText = '?';
+
+            renderVisualCounter(n1, n2, op);
+            renderAnswerOptions(ans);
+            clearKeypad();
+        }
+
+        function renderVisualCounter(n1, n2, op) {
+            const box = document.getElementById('visual-counter-box');
+            box.innerHTML = '';
+            
+            // Only render counter icons if total <= 30 for clear UI
+            if (n1 + n2 > 30) {
+                box.innerHTML = `<span class="text-xs text-slate-400 font-bold rtl-dir">תרגיל ברמה מתקדמת - פתור לפי החישוב!</span>`;
+                return;
+            }
+
+            const iconType = WORLDS_CONFIG[currentWorldId].iconType;
+
+            let html = '<div class="flex items-center gap-1 bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-700">';
+            for (let i = 0; i < n1; i++) html += getSVGForItem(iconType, 'none', 'w-5 h-5');
+            html += `</div><span class="text-yellow-400 font-black text-lg mx-1">${op}</span>`;
+            html += '<div class="flex items-center gap-1 bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-700">';
+            for (let i = 0; i < n2; i++) html += getSVGForItem(iconType, 'none', 'w-5 h-5');
+            html += '</div>';
+
+            box.innerHTML = html;
+        }
+
+        function renderAnswerOptions(correctAns) {
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+
+            let choices = new Set([correctAns]);
+            while (choices.size < 4) {
+                let offset = (Math.floor(Math.random() * 7) + 1) * (Math.random() < 0.5 ? 1 : -1);
+                let wrong = correctAns + offset;
+                if (wrong >= 0 && wrong !== correctAns) {
+                    choices.add(wrong);
+                }
+            }
+
+            const choicesArray = Array.from(choices).sort(() => Math.random() - 0.5);
+
+            choicesArray.forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = 'bg-slate-800 hover:bg-slate-700 text-yellow-300 font-extrabold text-2xl py-3.5 rounded-2xl border-2 border-slate-600 shadow-lg transition transform active:scale-95 ltr-dir';
+                btn.innerText = val;
+                btn.onclick = () => checkAnswer(val, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedVal, btnElement) {
+            const isCorrect = selectedVal === currentProblem.answer;
+            const feedback = document.getElementById('feedback-message');
+            document.getElementById('answer-placeholder').innerText = currentProblem.answer;
+
+            if (isCorrect) {
+                playSound('correct');
+                score += 2;
+                coins += 2;
+                document.getElementById('score-display').innerText = score;
+                updateCoinDisplay();
+
+                if (btnElement) {
+                    btnElement.className = 'bg-emerald-500 text-white font-extrabold text-2xl py-3.5 rounded-2xl border-2 border-emerald-300 shadow-xl animate-bounce ltr-dir';
+                }
+
+                feedback.innerText = 'כל הכבוד! קיבלת +2 נקודות ו-2 כסף! 🎉';
+                feedback.className = 'h-7 font-bold text-base sm:text-lg transition-all duration-300 text-center my-1 text-emerald-400 opacity-100 rtl-dir';
+
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 35, spread: 65, origin: { y: 0.7 } });
+                }
+
+                checkNewWorldUnlocks();
+                triggerSave();
+
+                setTimeout(() => {
+                    feedback.classList.add('opacity-0');
+                    generateProblem();
+                }, 1400);
+
+            } else {
+                playSound('wrong');
+                if (btnElement) {
+                    btnElement.className = 'bg-red-600 text-white font-extrabold text-2xl py-3.5 rounded-2xl border-2 border-red-400 shadow-xl ltr-dir';
+                }
+
+                feedback.innerText = 'לא נורא, נסה שוב בתרגיל הבא!';
+                feedback.className = 'h-7 font-bold text-base sm:text-lg transition-all duration-300 text-center my-1 text-red-400 opacity-100 rtl-dir';
+
+                setTimeout(() => {
+                    feedback.classList.add('opacity-0');
+                    generateProblem();
+                }, 1600);
+            }
+        }
+
+        function toggleKeypadMode() {
+            playSound('pop');
+            isKeypadMode = !isKeypadMode;
+            const optionsGrid = document.getElementById('options-grid');
+            const keypadContainer = document.getElementById('keypad-container');
+            const toggleText = document.getElementById('keypad-toggle-text');
+
+            if (isKeypadMode) {
+                optionsGrid.classList.add('hidden');
+                keypadContainer.classList.remove('hidden');
+                keypadContainer.classList.add('flex');
+                toggleText.innerText = 'מצב 4 אפשרויות';
+            } else {
+                optionsGrid.classList.remove('hidden');
+                keypadContainer.classList.add('hidden');
+                keypadContainer.classList.remove('flex');
+                toggleText.innerText = 'מצב מקלדת מספרים';
+            }
+        }
+
+        function pressKey(digit) {
+            playSound('pop');
+            if (keypadValue.length < 5) {
+                keypadValue += digit;
+                document.getElementById('answer-placeholder').innerText = keypadValue;
+            }
+        }
+
+        function clearKeypad() {
+            keypadValue = '';
+            document.getElementById('answer-placeholder').innerText = '?';
+        }
+
+        function submitKeypadAnswer() {
+            if (!keypadValue) return;
+            const num = parseInt(keypadValue, 10);
+            checkAnswer(num, null);
+        }
+
+        function renderWorldBackgroundGraphics(worldId) {
+            const layer = document.getElementById('world-graphics-layer');
+            layer.innerHTML = '';
+            
+            // Add decorative thematic elements in the background layer
+            if (worldId === 1) {
+                layer.innerHTML = `
+                    <div class="absolute bottom-0 inset-x-0 h-16 bg-amber-900/40 border-t-2 border-amber-800/60"></div>
+                    <div class="absolute top-6 left-12 text-4xl opacity-80">🖼️</div>
+                    <div class="absolute top-8 right-16 text-4xl opacity-80">🪟</div>
+                `;
+            } else if (worldId === 2) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 right-10 text-5xl opacity-90 animate-pulse">☀️</div>
+                    <div class="absolute top-8 left-16 text-4xl opacity-60">☁️</div>
+                    <div class="absolute top-12 left-64 text-3xl opacity-60">☁️</div>
+                `;
+            } else if (worldId === 3) {
+                layer.innerHTML = `
+                    <div class="absolute top-2 left-6 text-5xl opacity-70">🌿</div>
+                    <div class="absolute top-2 right-6 text-5xl opacity-70">🌴</div>
+                `;
+            } else if (worldId === 4) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 left-10 text-5xl text-yellow-300">☀️</div>
+                    <div class="absolute bottom-12 inset-x-0 h-10 bg-blue-500/30"></div>
+                `;
+            } else if (worldId === 5) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 right-12 text-4xl opacity-80">🌙</div>
+                    <div class="absolute top-10 left-10 text-3xl opacity-70">✨</div>
+                `;
+            }
+        }
+
+        function addNewDecorItem() {
+            const fullPool = WORLD_DECOR_POOL[currentWorldId] || ['sofa'];
+            const uniquePool = Array.from(new Set(fullPool));
+            
+            // Get item types already present on the current stage
+            const existingItems = worldItemsMap[currentWorldId] || [];
+            const existingTypes = existingItems.map(item => item.itemType || item.emoji);
+
+            // Filter out items that are already added to the stage
+            const unplacedPool = uniquePool.filter(type => !existingTypes.includes(type));
+
+            // Prefer adding an unplaced unique item. If all are placed, pick from full unique pool.
+            const targetPool = unplacedPool.length > 0 ? unplacedPool : uniquePool;
+            const itemType = targetPool[Math.floor(Math.random() * targetPool.length)];
+
+            const item = {
+                id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                itemType: itemType,
+                x: 20 + Math.random() * 60, // percentage
+                y: 25 + Math.random() * 50, // percentage
+                scale: 1.0,
+                color: 'none'
+            };
+
+            if (!worldItemsMap[currentWorldId]) {
+                worldItemsMap[currentWorldId] = [];
+            }
+
+            worldItemsMap[currentWorldId].push(item);
+            renderStageItems();
+            triggerSave();
+        }
+
+        function renderStageItems() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+
+            const items = worldItemsMap[currentWorldId] || [];
+
+            items.forEach(item => {
+                const el = document.createElement('div');
+                el.id = item.id;
+                el.className = `decor-item ${selectedItemId === item.id ? 'selected' : ''}`;
+                
+                // Fallback support for older save files with emoji
+                const itemKey = item.itemType || 'sofa';
+                el.innerHTML = getSVGForItem(itemKey, item.color, 'w-14 h-14 md:w-20 md:h-20');
+
+                el.style.left = `${item.x}%`;
+                el.style.top = `${item.y}%`;
+                el.style.transform = `scale(${item.scale || 1.0})`;
+
+                // Event Listeners for Touch and Mouse Dragging
+                el.onmousedown = (e) => startDrag(e, item);
+                el.ontouchstart = (e) => startDrag(e, item);
+
+                container.appendChild(el);
+            });
+        }
+
+        function startDrag(e, item) {
+            e.preventDefault();
+            playSound('pop');
+            selectedItemId = item.id;
+            
+            const itemKey = item.itemType || 'sofa';
+            const friendlyName = ITEM_NAMES[itemKey] || 'פריט';
+
+            document.getElementById('item-controls-bar').classList.remove('hidden');
+            document.getElementById('item-controls-bar').classList.add('flex');
+            document.getElementById('selected-item-label').innerText = `פריט: ${friendlyName}`;
+
+            renderStageItems();
+
+            const stageArea = document.getElementById('stage-canvas-area');
+            const rect = stageArea.getBoundingClientRect();
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            activeDrag = {
+                item: item,
+                startX: clientX,
+                startY: clientY,
+                origX: item.x,
+                origY: item.y,
+                rectWidth: rect.width,
+                rectHeight: rect.height
+            };
+
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('touchmove', onDragMove, { passive: false });
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('touchend', endDrag);
+        }
+
+        function onDragMove(e) {
+            if (!activeDrag) return;
+            if (e.cancelable) e.preventDefault();
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const deltaX = clientX - activeDrag.startX;
+            const deltaY = clientY - activeDrag.startY;
+
+            const deltaPctX = (deltaX / activeDrag.rectWidth) * 100;
+            const deltaPctY = (deltaY / activeDrag.rectHeight) * 100;
+
+            activeDrag.item.x = Math.max(5, Math.min(85, activeDrag.origX + deltaPctX));
+            activeDrag.item.y = Math.max(5, Math.min(80, activeDrag.origY + deltaPctY));
+
+            const el = document.getElementById(activeDrag.item.id);
+            if (el) {
+                el.style.left = `${activeDrag.item.x}%`;
+                el.style.top = `${activeDrag.item.y}%`;
+            }
+        }
+
+        function endDrag() {
+            if (activeDrag) {
+                triggerSave();
+            }
+            activeDrag = null;
+            window.removeEventListener('mousemove', onDragMove);
+            window.removeEventListener('touchmove', onDragMove);
+            window.removeEventListener('mouseup', endDrag);
+            window.removeEventListener('touchend', endDrag);
+        }
+
+        function deselectItem() {
+            playSound('pop');
+            selectedItemId = null;
+            document.getElementById('item-controls-bar').classList.add('hidden');
+            renderStageItems();
+        }
+
+        function setItemColor(colorHex) {
+            if (!selectedItemId) return;
+            const currentItems = worldItemsMap[currentWorldId] || [];
+            const item = currentItems.find(i => i.id === selectedItemId);
+            if (item) {
+                item.color = colorHex;
+                renderStageItems();
+                playSound('pop');
+                triggerSave();
+            }
+        }
+
+        function changeItemScale(delta) {
+            if (!selectedItemId) return;
+            const currentItems = worldItemsMap[currentWorldId] || [];
+            const item = currentItems.find(i => i.id === selectedItemId);
+            if (item) {
+                item.scale = Math.max(0.6, Math.min(2.5, (item.scale || 1.0) + delta));
+                renderStageItems();
+                triggerSave();
+            }
+        }
+
+        function resetCurrentWorldItems() {
+            playSound('pop');
+            worldItemsMap[currentWorldId] = [];
+            selectedItemId = null;
+            document.getElementById('item-controls-bar').classList.add('hidden');
+            renderStageItems();
+            addNewDecorItem();
+            addNewDecorItem();
+            triggerSave();
+        }
+
+        function updateCoinDisplay() {
+            const headerEl = document.getElementById('coins-display');
+            const shopEl = document.getElementById('shop-coins-display');
+            if (headerEl) headerEl.innerText = coins;
+            if (shopEl) shopEl.innerText = coins;
+        }
+
+        function openShopModal() {
+            playSound('pop');
+            renderShopItems();
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+
+        function closeShopModal() {
+            playSound('pop');
+            document.getElementById('shop-modal').classList.add('hidden');
+        }
+
+        function renderShopItems() {
+            updateCoinDisplay();
+            const grid = document.getElementById('shop-items-grid');
+            grid.innerHTML = '';
+
+            const pool = WORLD_DECOR_POOL[currentWorldId] || [];
+
+            pool.forEach(itemType => {
+                const cost = ITEM_COSTS[itemType] || 5;
+                const name = ITEM_NAMES[itemType] || 'פריט';
+                const canAfford = coins >= cost;
+
+                const card = document.createElement('div');
+                card.className = 'shop-item-card bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-3 flex flex-col items-center text-center gap-1';
+
+                card.innerHTML = `
+                    <div class="w-14 h-14 flex items-center justify-center">${getSVGForItem(itemType, 'none', 'w-12 h-12')}</div>
+                    <span class="text-xs font-bold text-slate-200">${name}</span>
+                    <span class="text-xs font-black flex items-center gap-1 ${canAfford ? 'text-emerald-400' : 'text-red-400'}">
+                        <i class="fa-solid fa-coins"></i> ${cost}
+                    </span>
+                `;
+
+                const buyBtn = document.createElement('button');
+                buyBtn.className = canAfford
+                    ? 'w-full mt-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-1.5 rounded-xl border border-emerald-400 transition transform active:scale-95'
+                    : 'w-full mt-1 bg-slate-700 text-slate-500 font-bold text-xs py-1.5 rounded-xl border border-slate-600 cursor-not-allowed';
+                buyBtn.innerText = canAfford ? 'קנה' : 'אין מספיק כסף';
+                buyBtn.disabled = !canAfford;
+                if (canAfford) {
+                    buyBtn.onclick = () => buyDecorItem(itemType, cost);
+                }
+
+                card.appendChild(buyBtn);
+                grid.appendChild(card);
+            });
+        }
+
+        function buyDecorItem(itemType, cost) {
+            if (coins < cost) {
+                playSound('wrong');
+                return;
+            }
+
+            coins -= cost;
+            updateCoinDisplay();
+            playSound('unlock');
+
+            const item = {
+                id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                itemType: itemType,
+                x: 20 + Math.random() * 60,
+                y: 25 + Math.random() * 50,
+                scale: 1.0,
+                color: 'none'
+            };
+
+            if (!worldItemsMap[currentWorldId]) {
+                worldItemsMap[currentWorldId] = [];
+            }
+            worldItemsMap[currentWorldId].push(item);
+
+            renderStageItems();
+            renderShopItems();
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 25, spread: 55, origin: { y: 0.5 } });
+            }
+
+            triggerSave();
+        }
+
+        function openSettingsModal() {
+            playSound('pop');
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            playSound('pop');
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function setNumberRangeUI(val) {
+            document.querySelectorAll('.range-opt-btn').forEach(btn => {
+                btn.className = 'range-opt-btn bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold p-2.5 rounded-xl border border-slate-700 text-xs sm:text-sm';
+            });
+
+            if (val !== 'custom') {
+                const activeBtn = document.getElementById(`range-btn-${val}`);
+                if (activeBtn) {
+                    activeBtn.className = 'range-opt-btn bg-amber-500 text-slate-950 font-bold p-2.5 rounded-xl border border-amber-300 text-xs sm:text-sm';
+                }
+            }
+        }
+
+        function setNumberRange(val) {
+            customMaxRange = val === 'default' ? null : val;
+            document.getElementById('custom-range-input').value = '';
+            setNumberRangeUI(val);
+            generateProblem();
+            triggerSave();
+        }
+
+        function applyCustomNumberRange() {
+            const inputEl = document.getElementById('custom-range-input');
+            const val = parseInt(inputEl.value, 10);
+
+            if (isNaN(val) || val < 5) {
+                playSound('wrong');
+                inputEl.classList.add('border-red-500');
+                setTimeout(() => inputEl.classList.remove('border-red-500'), 1000);
+                return;
+            }
+
+            customMaxRange = val;
+            setNumberRangeUI('custom');
+            generateProblem();
+            triggerSave();
+            playSound('pop');
+        }
+
+        function updateVolume(val) {
+            soundVolume = val / 100;
+            document.getElementById('volume-val-text').innerText = `${val}%`;
+            triggerSave();
+        }
+
+        function updateOpsFilter() {
+            const add = document.getElementById('op-add').checked;
+            const sub = document.getElementById('op-sub').checked;
+            const mul = document.getElementById('op-mul').checked;
+            const div = document.getElementById('op-div').checked;
+
+            const selected = [];
+            if (add) selected.push('+');
+            if (sub) selected.push('-');
+            if (mul) selected.push('×');
+            if (div) selected.push('÷');
+
+            const warning = document.getElementById('ops-warning');
+            if (selected.length === 0) {
+                warning.classList.remove('hidden');
+                document.getElementById('op-add').checked = true;
+                allowedOps = ['+'];
+            } else {
+                warning.classList.add('hidden');
+                allowedOps = selected;
+            }
+            generateProblem();
+            triggerSave();
+        }
+
+        function initAmbientCanvas() {
+            const canvas = document.getElementById('ambient-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const particles = [];
+            for (let i = 0; i < 25; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1,
+                    speedY: Math.random() * 0.5 + 0.2,
+                    opacity: Math.random() * 0.5 + 0.2
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.globalAlpha = p.opacity;
+                    ctx.fill();
+
+                    p.y -= p.speedY;
+                    if (p.y < 0) {
+                        p.y = canvas.height;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        window.onload = function() {
+            initAmbientCanvas();
+            updateMapNodes();
+            showMapScreen();
+        };
+    </script>
+</body>
+</html>

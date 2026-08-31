@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /saves/{gameId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /contacts/{contactId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    match /messages/{messageId} {
+      allow get: if true;
+      allow list: if request.auth != null && resource.data.fromUid == request.auth.uid;
+      // `image` is a base64 data URL embedded directly in the doc (no Cloud Storage
+      // bucket - this project stays on the free Spark plan), capped well under
+      // Firestore's 1MB document limit so a bypassed/oversized client write can't
+      // blow out the doc.
+      allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid
+                      && (!('image' in request.resource.data) || request.resource.data.image == null
+                          || request.resource.data.image.size() < 700000);
+      allow delete: if false;
+      // `thread` carries every message after the first reply (see reply.html) -
+      // an anonymous family member can only ever append to this array field on
+      // a message doc they already know the id of (via their emailed link),
+      // never touch the kid-authored body/subject/fromUid/toEmail.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['replyBody', 'repliedAt', 'replied', 'replySeenByKid', 'thread']);
+    }
+  }
+}

@@ -1,0 +1,26 @@
+<!--
+  EmailJS template body for the family-mail feature (serviceId/templateId in
+  shared/kidlearn-emailjs-config.js). EmailJS doesn't read this file directly —
+  it's kept here for reference/version history; paste it into the template's
+  HTML editor at dashboard.emailjs.com whenever it changes.
+-->
+<div dir="rtl" style="font-family:Arial,sans-serif;font-size:16px;line-height:1.7;color:#333;max-width:480px;margin:0 auto">
+  <div style="background:linear-gradient(90deg,#FF6B9D,#FF8AB3);padding:16px;border-radius:12px 12px 0 0;text-align:center">
+    <span style="font-size:22px;color:#fff;font-weight:bold">💌 מכתב מ-{{from_avatar}} {{from_username}}</span>
+  </div>
+  <div style="background:{{bg_color}};padding:20px;border-radius:0 0 12px 12px">
+    <p style="font-weight:bold;margin:0 0 8px 0">{{subject}}</p>
+    <p style="white-space:pre-line;margin:0 0 20px 0">{{message}}</p>
+    {{image_html}}
+    <div style="text-align:center">
+      <a href="{{reply_link}}"
+         style="display:inline-block;padding:12px 24px;background:#FF6B9D;color:#fff;
+                border-radius:8px;text-decoration:none;font-weight:bold">
+        💬 לשיחה המלאה
+      </a>
+    </div>
+    <p style="color:#999;font-size:12px;margin-top:24px;text-align:center">
+      נשלח דרך KidLearn
+    </p>
+  </div>
+</div>
