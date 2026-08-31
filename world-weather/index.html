@@ -109,7 +109,7 @@ function shirtIcon(long) {
     <rect x="21" y="4" width="8" height="${sleeveH}" rx="3" fill="#1E88C7"/>
   </svg>`;
 }
-function outfitFor(temp, code) {
+function outfitFor(temp, code, uvMax) {
   return {
     shirtLong: temp < 20,
     pantsLong: temp < 22,
@@ -117,17 +117,20 @@ function outfitFor(temp, code) {
     umbrella: RAIN_CODES.includes(code),
     coat: temp < 10 || SNOW_CODES.includes(code),
     sweater: temp >= 10 && temp < 16,
+    // UV index scale (WHO): 3+ is "moderate" and up - sunscreen recommended.
+    sunscreen: uvMax >= 3,
   };
 }
 // Shirt/pants/shoes always show, state told by both the symbol and the word.
-// Umbrella/coat/sweater only show up at all when actually needed.
-function outfitRows(temp, code) {
-  const out = outfitFor(temp, code);
+// Umbrella/coat/sweater/sunscreen only show up at all when actually needed.
+function outfitRows(temp, code, uvMax) {
+  const out = outfitFor(temp, code, uvMax);
   const rows = [
     { icon: shirtIcon(out.shirtLong), text: `חולצה ${out.shirtLong ? "ארוכה" : "קצרה"}` },
     { icon: out.pantsLong ? "👖" : "🩳", text: `מכנסיים ${out.pantsLong ? "ארוכים" : "קצרים"}` },
     { icon: out.sandals ? "👡" : "👟", text: out.sandals ? "סנדלים" : "נעליים" },
   ];
+  if (out.sunscreen) rows.push({ icon: "🧴", text: "קרם הגנה" });
   if (out.umbrella) rows.push({ icon: "☂️", text: "מטרייה" });
   if (out.coat) rows.push({ icon: "🧥", text: "מעיל" });
   if (out.sweater) rows.push({ icon: "🧶", text: "סווצ'ר" });
@@ -137,11 +140,12 @@ function outfitRows(temp, code) {
 async function loadWeather(lat, lon) {
   const box = document.getElementById("weather-box");
   try {
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=uv_index_max&timezone=auto`);
     if (!res.ok) throw new Error("weather fetch failed");
     const data = await res.json();
     const temp = Math.round(data.current_weather.temperature);
     const code = data.current_weather.weathercode;
+    const uvMax = data.daily?.uv_index_max?.[0];
     const [emoji, label] = WEATHER_CODES[code] || ["🌡️", "מזג אוויר"];
 
     box.innerHTML = `
@@ -159,7 +163,7 @@ async function loadWeather(lat, lon) {
         </div>
       </div>
       <div class="outfit-title">מה ללבוש היום?</div>
-      <div class="outfit-list">${outfitRows(temp, code).map((r) =>
+      <div class="outfit-list">${outfitRows(temp, code, uvMax).map((r) =>
         `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
       ).join("")}</div>
     `;
