@@ -99,6 +99,10 @@
   .msg .reply b{color:var(--success)}
   .waiting{color:var(--muted);font-size:13px;margin-top:6px;font-style:italic}
   .speak-btn,.nikud-btn{padding:4px 12px;font-size:12px;margin-inline-start:8px;box-shadow:0 2px 0 #d8c69c}
+  .sticker-row{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
+  .sticker-row button{background:var(--paper);border:2px solid #E6D6AE;border-radius:10px;
+    padding:6px 8px;font-size:18px;line-height:1;box-shadow:none}
+  .sticker-row button:active{transform:scale(.9)}
   @keyframes replyReveal{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 
   /* Unopened letter envelope */
@@ -181,6 +185,7 @@
       <button id="mic">🎤 להקליט</button>
       <span class="muted" id="mic-status"></span>
     </div>
+    <div class="row" style="flex-wrap:wrap"><span class="muted">מדבקות:</span> <span id="stickers" class="sticker-row"></span></div>
     <textarea id="body" placeholder="כתבו כאן, או לחצו על המיקרופון ותדברו..."></textarea>
     <button id="send">שליחת מכתב 💌</button>
     <p class="muted" id="send-status"></p>
@@ -304,6 +309,24 @@ document.getElementById("send").onclick = async () => {
   sendBtn.disabled = false;
 };
 
+const STICKERS = ["☀️", "🌈", "❤️", "🐻", "🎈", "⭐", "🍀", "🦄", "🐶", "🌸",
+  "🐱", "🐰", "🦋", "🌻", "🍎", "🍭", "🎨", "🎵", "😊", "😍", "🥳", "👍", "💐", "🍕",
+  "🐬", "🚀", "🎁"];
+const stickerRow = document.getElementById("stickers");
+STICKERS.forEach((emoji) => {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = emoji;
+  btn.onclick = () => {
+    const body = document.getElementById("body");
+    const pos = body.selectionStart ?? body.value.length;
+    body.value = body.value.slice(0, pos) + emoji + body.value.slice(pos);
+    body.focus();
+    body.selectionStart = body.selectionEnd = pos + emoji.length;
+  };
+  stickerRow.appendChild(btn);
+});
+
 function speak(text) {
   if (!("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
@@ -332,6 +355,9 @@ function renderMessage(m) {
       setTimeout(() => {
         const div = renderOpenMessage(m);
         envelope.replaceWith(div);
+        const familyEntries = messageEntries(m).filter((e) => e.from === "family");
+        const latestReply = familyEntries[familyEntries.length - 1];
+        if (latestReply) speak(latestReply.text);
       }, 450);
     };
     return envelope;
