@@ -149,12 +149,12 @@
     // email clients that don't support CSS gradients (e.g. Outlook desktop).
     const BG_COLORS = { sky: "#EAF4FB", mint: "#EAF7EF", blush: "#FBEAF0", sun: "#FDF6E3", lav: "#F1EAFB" };
     const bgColor = BG_COLORS[bgTheme] || "#FFF5F8";
-    // Embedded as a data: URI directly in the email (no Storage bucket to host it) -
-    // most clients render this fine, but some strip inline images, hence the note.
-    const imageHtml = imageData
-      ? `<div style="text-align:center;margin:0 0 16px"><img src="${imageData}" style="max-width:280px;border-radius:8px" alt="תמונה מצורפת">` +
-        `<p style="color:#999;font-size:11px;margin:4px 0 0">(אם התמונה לא מוצגת, לחצו על הכפתור למטה לראות אותה)</p></div>`
-      : "";
+    // EmailJS HTML-escapes {{var}} substitutions, so an <img> tag built here
+    // would come out as visible escaped text - the template has a static <img
+    // src="{{image_data}}"> instead, and only the data: URI (no angle brackets,
+    // nothing to escape) is passed as the value. A 1x1 transparent pixel keeps
+    // the tag harmless when there's no attached image.
+    const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7";
     await window.emailjs.send(serviceId, templateId, {
       to_email: contact.email,
       to_name: contact.name,
@@ -164,7 +164,7 @@
       message: body,
       reply_link: replyLink,
       bg_color: bgColor,
-      image_html: imageHtml,
+      image_data: imageData || TRANSPARENT_PIXEL,
     });
 
     await messageRef.set({
