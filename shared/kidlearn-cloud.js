@@ -35,8 +35,12 @@
         return;
       }
       const snap = await db.collection("users").doc(user.uid).get();
-      const storedUsername = (snap.data() || {}).username;
-      currentProfile = { uid: user.uid, username: storedUsername || (user.email || "").split("@")[0] };
+      const stored = snap.data() || {};
+      currentProfile = {
+        uid: user.uid,
+        username: stored.username || (user.email || "").split("@")[0],
+        avatarEmoji: stored.avatarEmoji || "🙂",
+      };
       authListeners.forEach((cb) => cb(currentProfile));
     });
   }
@@ -77,6 +81,12 @@
     await db.collection("users").doc(auth.currentUser.uid).set({ recoveryEmail: email }, { merge: true });
   }
 
+  async function setAvatar(emoji) {
+    requireAuth();
+    await db.collection("users").doc(auth.currentUser.uid).set({ avatarEmoji: emoji }, { merge: true });
+    if (currentProfile) currentProfile.avatarEmoji = emoji;
+  }
+
   function requireAuth() {
     if (!auth.currentUser) throw new Error("צריך להתחבר קודם");
   }
@@ -115,7 +125,7 @@
   // Sends straight from the browser via EmailJS (no server/Cloud Function needed,
   // works on Firebase's free Spark plan). Requires shared/kidlearn-emailjs-config.js
   // and the EmailJS SDK script to be loaded before KidLearn.init().
-  async function sendFamilyMessage(contactId, subject, body) {
+  async function sendFamilyMessage(contactId, subject, body, bgTheme, imageData) {
     requireAuth();
     if (!window.emailjs || !window.KIDLEARN_EMAILJS_CONFIG) {
       throw new Error("EmailJS לא הוגדר - ראו shared/kidlearn-emailjs-config.js");
@@ -127,6 +137,7 @@
 
     const userSnap = await db.collection("users").doc(uid).get();
     const fromUsername = (userSnap.data() || {}).username || "ילד/ה מ-KidLearn";
+    const fromAvatar = (userSnap.data() || {}).avatarEmoji || "🙂";
 
     // Send first, and only record the message in history if EmailJS actually
     // accepted it - otherwise a bad contact address (e.g. corrupted/typo'd
@@ -134,22 +145,30 @@
     const messageRef = db.collection("messages").doc();
     const replyLink = "https://giamat13.github.io/Kidlearn/family-mail/reply.html?id=" + messageRef.id;
     const { serviceId, templateId } = window.KIDLEARN_EMAILJS_CONFIG;
+    // The email itself only carries the subject and a link - the body, avatar,
+    // background and image are shown on reply.html, which we fully control.
+    // (Gmail and Outlook both block/strip base64 data: images in HTML email
+    // regardless of escaping, so there's no reliable way to inline the photo
+    // in the email itself without real image hosting.)
     await window.emailjs.send(serviceId, templateId, {
       to_email: contact.email,
       to_name: contact.name,
       from_username: fromUsername,
+      from_avatar: fromAvatar,
       subject: `הודעה מ: ${fromUsername} ${subject || "הודעה חדשה"}`,
-      message: body,
       reply_link: replyLink,
     });
 
     await messageRef.set({
       fromUid: uid,
       fromUsername,
+      fromAvatar,
       toName: contact.name,
       toEmail: contact.email,
       subject: subject || "הודעה חדשה מ-KidLearn",
       body,
+      bgTheme: bgTheme || null,
+      image: imageData || null,
       replied: false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
@@ -193,7 +212,7 @@
   window.KidLearn = {
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
     saveData, loadData, contacts, sendFamilyMessage, listSentMessages,
-    getUnseenReplies, markReplySeen,
+    getUnseenReplies, markReplySeen, setAvatar,
     _internal: { usernameToAuthEmail, isValidUsername },
   };
 })();

@@ -50,6 +50,12 @@
   .nikud-btn{padding:4px 12px;font-size:12px;margin-inline-start:8px;margin-top:6px;
     background:var(--paper);color:var(--postal);box-shadow:0 2px 0 #d8c69c;
     border:2px solid #E6D6AE}
+  .bg-sky{background:linear-gradient(135deg,#EAF4FB,#D9ECF7)}
+  .bg-mint{background:linear-gradient(135deg,#EAF7EF,#D8F0E0)}
+  .bg-blush{background:linear-gradient(135deg,#FBEAF0,#F6D9E4)}
+  .bg-sun{background:linear-gradient(135deg,#FDF6E3,#FBEAB8)}
+  .bg-lav{background:linear-gradient(135deg,#F1EAFB,#E3D6F5)}
+  .msg-img{max-width:200px;border-radius:10px;display:block;margin-top:8px}
 </style>
 </head>
 <body>
@@ -71,7 +77,7 @@ const id = params.get("id");
 // existed), then every entry appended to `thread` since - see kidlearn-cloud.js
 // and family-mail/index.html's identical flattening for the kid's own view.
 function threadEntries(m) {
-  const entries = [{ from: "kid", text: m.body, at: 0 }];
+  const entries = [{ from: "kid", text: m.body, at: 0, image: m.image || null }];
   if (m.replyBody) entries.push({ from: "family", text: m.replyBody, at: 1 });
   (m.thread || []).forEach((e) => entries.push(e));
   return entries;
@@ -84,9 +90,11 @@ async function load() {
   const m = doc.data();
 
   const entries = threadEntries(m);
+  const kidLabel = `${m.fromAvatar || "🙂"} ${m.fromUsername}`;
 
+  card.className = "sheet" + (m.bgTheme ? " bg-" + m.bgTheme : "");
   card.innerHTML = `
-    <h2>💬 שיחה עם ${m.fromUsername}</h2>
+    <h2>💬 שיחה עם ${kidLabel}</h2>
     <div class="muted">${m.subject || ""}</div>
     <div id="thread"></div>
     <div class="row">
@@ -101,7 +109,8 @@ async function load() {
   entries.forEach((e) => {
     const bubble = document.createElement("div");
     bubble.className = "bubble " + e.from;
-    bubble.innerHTML = `<div class="bubble-meta">${e.from === "kid" ? m.fromUsername : "אני"}</div><span class="msg-text">${e.text}</span>`;
+    bubble.innerHTML = `<div class="bubble-meta">${e.from === "kid" ? kidLabel : "אני"}</div><span class="msg-text">${e.text}</span>` +
+      (e.image ? `<img class="msg-img" src="${e.image}" alt="תמונה מצורפת">` : "");
     thread.appendChild(bubble);
   });
 
