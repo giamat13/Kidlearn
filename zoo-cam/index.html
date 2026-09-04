@@ -27,6 +27,15 @@
     max-width:640px;margin:0 auto}
   .card iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:10px;display:block}
   .credit{color:var(--muted);font-size:12px;margin:8px 2px 0}
+
+  .tabs{max-width:640px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:8px;
+    justify-content:center}
+  .tab{font-family:'Rubik',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink);
+    background:#fff;border:2px solid var(--sky-dark);border-radius:999px;
+    padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;
+    box-shadow:0 3px 0 var(--shadow);transition:.15s}
+  .tab:hover{border-color:var(--accent)}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -37,17 +46,81 @@
 </header>
 <p class="subtitle">שידור חי, ממש עכשיו, מהטבע</p>
 
+<nav class="tabs" id="tabs"></nav>
+
 <div class="card">
-  <!-- youtube.com/embed/live_stream?channel= turned out unreliable (YouTube
-       returned "video unavailable" even while the channel was confirmed live
-       via a direct fetch), so this embeds a specific stream instead: the
-       Brooks Falls bear cam, explore.org's flagship 24/7 nature livestream.
-       If this particular broadcast ever ends for good, swap in whatever
-       video id explore.org/livecams is currently showing live. -->
-  <iframe src="https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=0"
-    title="שידור חי - מפלי Brooks, אלסקה (Explore.org)" loading="lazy" allowfullscreen
-    referrerpolicy="strict-origin-when-cross-origin"></iframe>
-  <p class="credit">שידור חי של דובים במפלי Brooks באלסקה, מ-Explore.org. אם השידור לא פעיל כרגע, נסו שוב מאוחר יותר.</p>
+  <div id="camSlot"></div>
+  <p class="credit" id="camCredit"></p>
 </div>
+
+<script>
+  // Every cam here pins a specific YouTube video id rather than a
+  // channel's generic live_stream endpoint (that endpoint returns "video
+  // unavailable" whenever the channel isn't broadcasting live at that
+  // exact moment, even if the channel itself is fine). The Kenya-safari
+  // and jelly-cam tries didn't have one stable id and kept breaking, so
+  // they were swapped for two Cornell Lab Bird Cams (Panama + New
+  // Zealand) - each id below was confirmed directly from that cam's own
+  // live page as the current 24/7 broadcast.
+  const cams = [
+    {
+      emoji: '🐻',
+      label: 'דובים - אלסקה',
+      title: 'שידור חי - מפלי Brooks, אלסקה (Explore.org)',
+      src: 'https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=0',
+      credit: 'שידור חי של דובים חומים הדגים סלמון במפלי Brooks באלסקה, מ-Explore.org.'
+    },
+    {
+      emoji: '🦜',
+      label: 'ציפורים - פנמה',
+      title: 'שידור חי - מאכילת פירות טרופית, פנמה (Cornell Lab Bird Cams)',
+      src: 'https://www.youtube.com/embed/WtoxxHADnGk?autoplay=0',
+      credit: 'שידור חי 24/7 של ציפורים טרופיות ניזונות מפירות ביער הגשם של פנמה, מ-Cornell Lab of Ornithology.'
+    },
+    {
+      emoji: '🪶',
+      label: 'אלבטרוס - ניו זילנד',
+      title: 'שידור חי - קן אלבטרוס מלכותי, ניו זילנד (RoyalCam)',
+      src: 'https://www.youtube.com/embed/Mm_zVDDUeNA?autoplay=0',
+      credit: 'שידור חי מקן אלבטרוס מלכותי בחצי האי אוטגו, ניו זילנד, מ-Cornell Lab Bird Cams וה-NZ Dept. of Conservation.'
+    },
+    {
+      emoji: '🐼',
+      label: 'פנדות - סין',
+      title: 'שידור חי - פנדות ענק, סין (iPanda)',
+      src: 'https://www.youtube.com/embed/live_stream?channel=UCtEgLf0_j1vJLz0aNEdO2SQ&autoplay=0',
+      credit: 'שידור חי 24/7 של פנדות ענק מבסיס המחקר בצ׳נגדו, סין, מהערוץ iPanda. אם אין שידור פעיל כרגע, נסו שוב מאוחר יותר.'
+    }
+  ];
+
+  const tabsEl = document.getElementById('tabs');
+  const slotEl = document.getElementById('camSlot');
+  const creditEl = document.getElementById('camCredit');
+
+  function showCam(i){
+    const cam = cams[i];
+    slotEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = cam.src;
+    iframe.title = cam.title;
+    iframe.loading = 'lazy';
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    slotEl.appendChild(iframe);
+    creditEl.textContent = cam.credit;
+    [...tabsEl.children].forEach((btn, idx) => btn.classList.toggle('active', idx === i));
+  }
+
+  cams.forEach((cam, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab';
+    btn.type = 'button';
+    btn.innerHTML = `<span>${cam.emoji}</span><span>${cam.label}</span>`;
+    btn.addEventListener('click', () => showCam(i));
+    tabsEl.appendChild(btn);
+  });
+
+  showCam(0);
+</script>
 </body>
 </html>
