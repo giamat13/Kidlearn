@@ -181,13 +181,50 @@
       src: 'https://www.youtube.com/embed/B4-L2nfGcuE?autoplay=0',
       credit: 'שידור חי 24/7 מקן עיט קירח באגם ביג בר, קליפורניה, מ-Friends of Big Bear Valley. המצלמה כוללת זום פי 10 ומופעלת ע״י צוות שמזיז ומקרב אותה בזמן אמת.'
     },
+    // Old "ספארי - קניה" (Mpala Research Centre) cam removed: its pinned video id
+    // resolved (per YouTube's own oembed title) to a recorded "Highlights" reel,
+    // not a live stream - failed verification, so it was dropped rather than fixed.
     {
-      emoji: '🦁',
-      label: 'ספארי - קניה',
-      title: 'שידור חי - Safari Camera, מרכז המחקר Mpala, קניה (Explore.org)',
-      src: 'https://www.youtube.com/embed/qO9Z4RX6ae8?autoplay=0',
-      credit: 'שידור חי מנהר ליד מרכז המחקר Mpala בקניה, שם ניתן לראות פילים, אריות, קופים ובעלי חיים נוספים. המצלמה מופעלת ומוזזת ע״י צוות מתנדבים אנושי.',
-      activeHours: { start: 6, end: 20, tz: 3 } // Explore.org's own volunteer program page: cam operators work 6am-8pm Kenya time (UTC+3)
+      emoji: '🐘',
+      label: 'פילים - פארק טמבה, דרום אפריקה',
+      title: 'שידור חי - בור מים Mahlasela, פארק פילי טמבה, דרום אפריקה (Africam)',
+      src: 'https://www.youtube.com/embed/0P_LBKqVbfs?autoplay=0',
+      credit: 'שידור חי מבור המים Mahlasela בפארק הפילים טמבה, דרום אפריקה, מרשת Africam בשיתוף Explore.org. המצלמה מופעלת מרחוק ע״י צוות מתנדבים אנושי ("Zoomies") שמסובב ומזאזם אותה בזמן אמת כדי לעקוב אחרי הפילים.'
+    },
+    {
+      emoji: '🐆',
+      label: 'בור מים - Djuma, דרום אפריקה',
+      title: 'שידור חי - בור המים ב-Djuma, שמורת Sabi Sand, דרום אפריקה',
+      src: 'https://www.youtube.com/embed/aS6ToUKfpLk?autoplay=0',
+      credit: 'שידור חי מבור מים ותיק בשמורת Sabi Sand, דרום אפריקה, שם מגיעים לשתות פילים, אריות, נמרים וקרנפים. המצלמה מופעלת ידנית 24/7 ע״י צוות מתנדבים אנושי ("Zoomies") שמסובב ומזאזם אותה.'
+    },
+    {
+      emoji: '🐋',
+      label: 'אורקות - האנסון איילנד, קנדה',
+      title: 'שידור חי - תצפית אורקות, OrcaLab, קנדה',
+      src: 'https://www.youtube.com/embed/hTOmWcmr2Tc?autoplay=0',
+      credit: 'שידור חי ממעבדת המחקר OrcaLab באי Hanson שבבריטיש קולומביה, קנדה. הצוות המדעי מפעיל את המצלמות מרחוק מהמעבדה ומחליף בין כמה עמדות תצפית כדי לאתר אורקות, אריות ים ולווייתני humpback.'
+    },
+    {
+      emoji: '🦓',
+      label: 'הגירת האנו - נהר מארה, קניה',
+      title: 'שידור חי - מעברת נהר מארה, ההגירה הגדולה (Africam)',
+      src: 'https://www.youtube.com/embed/BaEFc79IMCA?autoplay=0',
+      credit: 'שידור חי ממעברת נהר מארה במשולש מארה, קניה, שם חוצות מדי שנה מיליוני אנו וזברות בהגירה הגדולה. המצלמה מופעלת ע״י צוות מתנדבים אנושי ("Zoomies") של Africam שמסובב ומזאזם אותה כדי לעקוב אחרי החציות.'
+    },
+    {
+      emoji: '🚙',
+      label: 'ספארי - Sabi Sands, דרום אפריקה',
+      title: 'שידור חי - נהיגת ספארי, Sabi Sands, דרום אפריקה (WildEarth)',
+      src: 'https://www.youtube.com/embed/live_stream?channel=UCV6HJBZD_hZcIX9JVJ3dCXQ&autoplay=0',
+      credit: 'שידור חי מנהיגת ספארי אמיתית בשמורת Sabi Sands, דרום אפריקה, מהערוץ WildEarth. מדריך שטח וצלם-נהג נוסעים ברכב ספארי פתוח בזמן אמת, כשהצלם מפעיל את המצלמה תוך כדי נסיעה.',
+      // Two daily drive windows (Sunrise + Sunset safari), CAT = UTC+2 fixed;
+      // outside these the channel falls back to a non-live recap, so both
+      // windows are listed rather than one broad range that would include the gap.
+      activeHours: [
+        { start: 5, end: 9, tz: 2 },
+        { start: 15, end: 19, tz: 2 }
+      ]
     }
   ];
 
@@ -200,12 +237,16 @@
   // regardless of the viewer's own timezone.
   function isWithinActiveHours(cam){
     if(!cam.activeHours) return true;
-    const { start, end, tz } = cam.activeHours;
+    // activeHours may be a single {start,end,tz} window or an array of them
+    // (e.g. a cam with separate morning/evening operator windows).
+    const windows = Array.isArray(cam.activeHours) ? cam.activeHours : [cam.activeHours];
     const utcHour = new Date().getUTCHours();
-    const localHour = ((utcHour + tz) % 24 + 24) % 24;
-    return start <= end
-      ? (localHour >= start && localHour < end)
-      : (localHour >= start || localHour < end); // handles ranges that cross midnight
+    return windows.some(({ start, end, tz }) => {
+      const localHour = ((utcHour + tz) % 24 + 24) % 24;
+      return start <= end
+        ? (localHour >= start && localHour < end)
+        : (localHour >= start || localHour < end); // handles ranges that cross midnight
+    });
   }
 
   const visibleCams = cams.filter(cam =>
