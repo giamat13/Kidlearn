@@ -124,20 +124,35 @@
   // an aquarium tank cam) were tried and dropped for this reason, even
   // though they were confirmed genuine 24/7 broadcasts - they just sit
   // on one static frame with no camera movement of their own.
+  // RULE FOR SEASONAL/HOURS-LIMITED CAMS: some genuinely-live,
+  // actively-operated cams still only have anything worth watching
+  // during part of the year (e.g. a migration or breeding season) -
+  // outside that window the operators stop actively working the
+  // camera and/or the source switches to a recorded highlights reel.
+  // Rather than skip such cams entirely, give them an "activeMonths"
+  // array (1-12, the months where the cam is genuinely live and
+  // interesting) and the code below will only show them during those
+  // months, so the list never lands the user on a dead/recorded feed.
+  // Cams with no activeMonths field are assumed year-round (verified
+  // as such - e.g. iPanda and the Big Bear eagle cam run 24/7/365,
+  // even if activity is quieter outside nesting season, the feed
+  // itself is always a genuine live view of the nest/territory).
   const cams = [
     {
       emoji: '🐻',
       label: 'דובים - אלסקה',
       title: 'שידור חי - מפלי Brooks, אלסקה (Explore.org)',
       src: 'https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=0',
-      credit: 'שידור חי של דובים חומים הדגים סלמון במפלי Brooks באלסקה, מ-Explore.org. המצלמה מופעלת בזמן אמת ע״י צוות אנושי שעוקב אחרי הדובים.'
+      credit: 'שידור חי של דובים חומים הדגים סלמון במפלי Brooks באלסקה, מ-Explore.org. המצלמה מופעלת בזמן אמת ע״י צוות אנושי שעוקב אחרי הדובים.',
+      activeMonths: [6, 7, 8, 9, 10] // solar-powered, season runs mid-June to mid-October; off-season shows recorded highlights instead
     },
     {
       emoji: '🪶',
       label: 'אלבטרוס - ניו זילנד',
       title: 'שידור חי - קן אלבטרוס מלכותי, ניו זילנד (RoyalCam)',
       src: 'https://www.youtube.com/embed/Mm_zVDDUeNA?autoplay=0',
-      credit: 'שידור חי מקן אלבטרוס מלכותי בחצי האי אוטגו, ניו זילנד, מ-Cornell Lab Bird Cams וה-NZ Dept. of Conservation. המצלמה מופעלת ומזוזת ע״י צוות אנושי.'
+      credit: 'שידור חי מקן אלבטרוס מלכותי בחצי האי אוטגו, ניו זילנד, מ-Cornell Lab Bird Cams וה-NZ Dept. of Conservation. המצלמה מופעלת ומזוזת ע״י צוות אנושי.',
+      activeMonths: [11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9] // breeding season: eggs laid Nov, chicks fledge Sep; adults away at sea through October
     },
     {
       emoji: '🐼',
@@ -151,7 +166,8 @@
       label: 'דובים - נהר בקטמאי',
       title: 'שידור חי - River Watch, קטמאי, אלסקה (Explore.org)',
       src: 'https://www.youtube.com/embed/wkVLYfU-Kew?autoplay=0',
-      credit: 'שידור חי לאורך קטע נהר בפארק הלאומי קטמאי, אלסקה, שם דובים חומים דגים סלמון בקיץ, מ-Explore.org. הערוץ עובר בין כמה זוויות מצלמה סביב הנהר.'
+      credit: 'שידור חי לאורך קטע נהר בפארק הלאומי קטמאי, אלסקה, שם דובים חומים דגים סלמון בקיץ, מ-Explore.org. הערוץ עובר בין כמה זוויות מצלמה סביב הנהר.',
+      activeMonths: [6, 7, 8, 9, 10] // same Brooks Camp season as the Brooks Falls cam above
     },
     {
       emoji: '🦅',
@@ -162,6 +178,13 @@
     }
   ];
 
+  // Only show cams that are in-season right now (see activeMonths above).
+  // Cams without an activeMonths field are always shown.
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  const visibleCams = cams.filter(cam =>
+    !cam.activeMonths || cam.activeMonths.includes(currentMonth)
+  );
+
   const favbarEl = document.getElementById('favbar');
   const slotEl = document.getElementById('camSlot');
   const creditEl = document.getElementById('camCredit');
@@ -171,6 +194,12 @@
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
 
+  // Cams are identified by their YouTube video id (stable across
+  // seasons) rather than array position, since visibleCams changes
+  // month to month and a saved index could point at the wrong cam
+  // (or an out-of-season one) after the in-season list shifts.
+  function camId(cam){ return cam.src; }
+
   const FAV_KEY = 'camFavorites';
   function saveFavorites(){
     localStorage.setItem(FAV_KEY, [...favorites].join(','));
@@ -178,16 +207,17 @@
   }
   function loadFavorites(){
     favorites.clear();
+    const validIds = new Set(visibleCams.map(camId));
     (localStorage.getItem(FAV_KEY) || '')
       .split(',')
-      .map(s => parseInt(s, 10))
-      .filter(n => Number.isInteger(n) && n >= 0 && n < cams.length)
-      .forEach(n => favorites.add(n));
+      .map(s => s.trim())
+      .filter(id => validIds.has(id))
+      .forEach(id => favorites.add(id));
   }
 
-  let current = 0;
-  const history = []; // channels actually viewed before the current one, for "הקודם"
-  const favorites = new Set();
+  let current = 0; // index into visibleCams
+  const history = []; // indices into visibleCams actually viewed before the current one, for "הקודם"
+  const favorites = new Set(); // set of camId()
   loadFavorites();
 
   KidLearn.onAuthChange(async (profile) => {
@@ -199,7 +229,7 @@
 
   function showCam(i){
     current = i;
-    const cam = cams[i];
+    const cam = visibleCams[i];
     slotEl.innerHTML = '';
     const iframe = document.createElement('iframe');
     iframe.src = cam.src;
@@ -211,16 +241,15 @@
     creditEl.textContent = cam.credit;
     emojiEl.textContent = cam.emoji;
     labelEl.textContent = cam.label;
-    starBtn.classList.toggle('active', favorites.has(i));
+    starBtn.classList.toggle('active', favorites.has(camId(cam)));
     renderFavbar();
   }
 
   function renderFavbar(){
-    const list = [...favorites].sort((a,b) => a - b);
     favbarEl.innerHTML = '';
-    favbarEl.classList.toggle('show', list.length > 0);
-    list.forEach(i => {
-      const cam = cams[i];
+    favbarEl.classList.toggle('show', favorites.size > 0);
+    visibleCams.forEach((cam, i) => {
+      if(!favorites.has(camId(cam))) return;
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'favchip' + (i === current ? ' active' : '');
@@ -244,15 +273,16 @@
     prevBtn.disabled = history.length === 0;
   });
   nextBtn.addEventListener('click', () => {
-    if(cams.length <= 1) return;
+    if(visibleCams.length <= 1) return;
     let next;
-    do { next = Math.floor(Math.random() * cams.length); } while(next === current);
+    do { next = Math.floor(Math.random() * visibleCams.length); } while(next === current);
     goTo(next);
   });
   starBtn.addEventListener('click', () => {
-    if(favorites.has(current)) favorites.delete(current);
-    else favorites.add(current);
-    starBtn.classList.toggle('active', favorites.has(current));
+    const id = camId(visibleCams[current]);
+    if(favorites.has(id)) favorites.delete(id);
+    else favorites.add(id);
+    starBtn.classList.toggle('active', favorites.has(id));
     saveFavorites();
     renderFavbar();
   });
