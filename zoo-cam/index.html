@@ -126,17 +126,22 @@
   // on one static frame with no camera movement of their own.
   // RULE FOR SEASONAL/HOURS-LIMITED CAMS: some genuinely-live,
   // actively-operated cams still only have anything worth watching
-  // during part of the year (e.g. a migration or breeding season) -
+  // during part of the year (e.g. a migration or breeding season), or
+  // only have an active human operator during specific daily hours -
   // outside that window the operators stop actively working the
   // camera and/or the source switches to a recorded highlights reel.
-  // Rather than skip such cams entirely, give them an "activeMonths"
-  // array (1-12, the months where the cam is genuinely live and
-  // interesting) and the code below will only show them during those
-  // months, so the list never lands the user on a dead/recorded feed.
-  // Cams with no activeMonths field are assumed year-round (verified
-  // as such - e.g. iPanda and the Big Bear eagle cam run 24/7/365,
-  // even if activity is quieter outside nesting season, the feed
-  // itself is always a genuine live view of the nest/territory).
+  // Rather than skip such cams entirely:
+  //   - "activeMonths": array of months (1-12) the cam is in season.
+  //   - "activeHours": { start, end, tz } the LOCAL hour range (0-23)
+  //     the operator is actively working the camera, plus the site's
+  //     UTC offset in hours (tz), so the code below can check it
+  //     against the current UTC time regardless of the viewer's clock.
+  // The code below only shows a cam when both checks (if present) pass,
+  // so the list never lands the user on a dead/unmanned/recorded feed.
+  // Cams with neither field are assumed always-on (verified as such -
+  // e.g. iPanda and the Big Bear eagle cam run 24/7/365, even if
+  // activity is quieter outside nesting season, the feed itself is
+  // always a genuine live view of the nest/territory).
   const cams = [
     {
       emoji: '🐻',
@@ -175,14 +180,37 @@
       title: 'שידור חי - קן עיט הקירח, ביג בר, קליפורניה (Friends of Big Bear Valley)',
       src: 'https://www.youtube.com/embed/B4-L2nfGcuE?autoplay=0',
       credit: 'שידור חי 24/7 מקן עיט קירח באגם ביג בר, קליפורניה, מ-Friends of Big Bear Valley. המצלמה כוללת זום פי 10 ומופעלת ע״י צוות שמזיז ומקרב אותה בזמן אמת.'
+    },
+    {
+      emoji: '🦁',
+      label: 'ספארי - קניה',
+      title: 'שידור חי - Safari Camera, מרכז המחקר Mpala, קניה (Explore.org)',
+      src: 'https://www.youtube.com/embed/qO9Z4RX6ae8?autoplay=0',
+      credit: 'שידור חי מנהר ליד מרכז המחקר Mpala בקניה, שם ניתן לראות פילים, אריות, קופים ובעלי חיים נוספים. המצלמה מופעלת ומוזזת ע״י צוות מתנדבים אנושי.',
+      activeHours: { start: 6, end: 20, tz: 3 } // Explore.org's own volunteer program page: cam operators work 6am-8pm Kenya time (UTC+3)
     }
   ];
 
   // Only show cams that are in-season right now (see activeMonths above).
   // Cams without an activeMonths field are always shown.
   const currentMonth = new Date().getMonth() + 1; // 1-12
+
+  // Only show cams whose human operator is actively working the camera
+  // right now (see activeHours above). Computed from UTC so it's correct
+  // regardless of the viewer's own timezone.
+  function isWithinActiveHours(cam){
+    if(!cam.activeHours) return true;
+    const { start, end, tz } = cam.activeHours;
+    const utcHour = new Date().getUTCHours();
+    const localHour = ((utcHour + tz) % 24 + 24) % 24;
+    return start <= end
+      ? (localHour >= start && localHour < end)
+      : (localHour >= start || localHour < end); // handles ranges that cross midnight
+  }
+
   const visibleCams = cams.filter(cam =>
-    !cam.activeMonths || cam.activeMonths.includes(currentMonth)
+    (!cam.activeMonths || cam.activeMonths.includes(currentMonth)) &&
+    isWithinActiveHours(cam)
   );
 
   const favbarEl = document.getElementById('favbar');
