@@ -28,14 +28,43 @@
   .card iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:10px;display:block}
   .credit{color:var(--muted);font-size:12px;margin:8px 2px 0}
 
-  .tabs{max-width:640px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:8px;
-    justify-content:center}
-  .tab{font-family:'Rubik',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink);
+  /* favorites strip - only rendered when at least one cam is favorited */
+  .favbar{max-width:640px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;
+    justify-content:center;max-height:0;opacity:0;overflow:hidden;
+    transition:max-height .3s ease,opacity .25s ease,margin .3s ease}
+  .favbar.show{max-height:120px;opacity:1;margin:0 auto 14px}
+  .favchip{font-family:'Rubik',sans-serif;font-size:.85rem;font-weight:600;color:var(--ink);
     background:#fff;border:2px solid var(--sky-dark);border-radius:999px;
-    padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;
+    padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;
     box-shadow:0 3px 0 var(--shadow);transition:.15s}
-  .tab:hover{border-color:var(--accent)}
-  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .favchip:hover{border-color:var(--accent)}
+  .favchip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* current-channel header row above the iframe */
+  .channel-head{display:flex;align-items:center;justify-content:space-between;
+    gap:10px;margin:0 2px 10px}
+  .channel-head .who{display:flex;align-items:center;gap:8px;font-weight:600}
+  .channel-head .who .emoji{font-size:1.4rem}
+  .channel-head .who .label{font-size:1.02rem}
+  .starbtn{flex:none;width:38px;height:38px;border-radius:50%;background:var(--sky);
+    border:2px solid var(--sky-dark);cursor:pointer;font-size:18px;color:var(--muted);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--shadow);
+    transition:.15s}
+  .starbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .starbtn.active{background:#FFF6DE;border-color:#E8B93A;color:#E8B93A}
+
+  /* prev / random / next controls */
+  .controls{max-width:640px;margin:16px auto 0;display:flex;gap:10px;
+    justify-content:center;flex-wrap:wrap}
+  .ctl{font-family:'Rubik',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink);
+    background:#fff;border:2px solid var(--sky-dark);border-radius:999px;
+    padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;
+    box-shadow:0 3px 0 var(--shadow);transition:.15s}
+  .ctl:hover{border-color:var(--accent)}
+  .ctl.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .ctl.primary:hover{filter:brightness(1.05)}
+  .ctl:disabled{opacity:.4;cursor:default;box-shadow:none}
+  .ctl:disabled:hover{border-color:var(--sky-dark)}
 </style>
 </head>
 <body>
@@ -46,13 +75,29 @@
 </header>
 <p class="subtitle">שידור חי, ממש עכשיו, מהטבע</p>
 
-<nav class="tabs" id="tabs"></nav>
+<nav class="favbar" id="favbar"></nav>
 
 <div class="card">
+  <div class="channel-head">
+    <span class="who"><span class="emoji" id="camEmoji"></span><span class="label" id="camLabel"></span></span>
+    <button class="starbtn" id="starBtn" type="button" title="סמן כמועדף">★</button>
+  </div>
   <div id="camSlot"></div>
   <p class="credit" id="camCredit"></p>
 </div>
 
+<div class="controls">
+  <button class="ctl" id="prevBtn" type="button">⟵ הקודם</button>
+  <button class="ctl primary" id="nextBtn" type="button">🔀 הבא</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
 <script>
   // Every cam here pins a specific YouTube video id rather than a
   // channel's generic live_stream endpoint (that endpoint returns "video
@@ -93,11 +138,43 @@
     }
   ];
 
-  const tabsEl = document.getElementById('tabs');
+  const favbarEl = document.getElementById('favbar');
   const slotEl = document.getElementById('camSlot');
   const creditEl = document.getElementById('camCredit');
+  const emojiEl = document.getElementById('camEmoji');
+  const labelEl = document.getElementById('camLabel');
+  const starBtn = document.getElementById('starBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  const FAV_KEY = 'camFavorites';
+  function saveFavorites(){
+    localStorage.setItem(FAV_KEY, [...favorites].join(','));
+    if(window.KidLearn && KidLearn.currentUser()) KidLearn.pushLocalStorageKey(FAV_KEY);
+  }
+  function loadFavorites(){
+    favorites.clear();
+    (localStorage.getItem(FAV_KEY) || '')
+      .split(',')
+      .map(s => parseInt(s, 10))
+      .filter(n => Number.isInteger(n) && n >= 0 && n < cams.length)
+      .forEach(n => favorites.add(n));
+  }
+
+  let current = 0;
+  const history = []; // channels actually viewed before the current one, for "הקודם"
+  const favorites = new Set();
+  loadFavorites();
+
+  KidLearn.onAuthChange(async (profile) => {
+    if(!profile) return;
+    await KidLearn.pullLocalStorageKey(FAV_KEY);
+    loadFavorites();
+    showCam(current);
+  });
 
   function showCam(i){
+    current = i;
     const cam = cams[i];
     slotEl.innerHTML = '';
     const iframe = document.createElement('iframe');
@@ -108,16 +185,52 @@
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     slotEl.appendChild(iframe);
     creditEl.textContent = cam.credit;
-    [...tabsEl.children].forEach((btn, idx) => btn.classList.toggle('active', idx === i));
+    emojiEl.textContent = cam.emoji;
+    labelEl.textContent = cam.label;
+    starBtn.classList.toggle('active', favorites.has(i));
+    renderFavbar();
   }
 
-  cams.forEach((cam, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'tab';
-    btn.type = 'button';
-    btn.innerHTML = `<span>${cam.emoji}</span><span>${cam.label}</span>`;
-    btn.addEventListener('click', () => showCam(i));
-    tabsEl.appendChild(btn);
+  function renderFavbar(){
+    const list = [...favorites].sort((a,b) => a - b);
+    favbarEl.innerHTML = '';
+    favbarEl.classList.toggle('show', list.length > 0);
+    list.forEach(i => {
+      const cam = cams[i];
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'favchip' + (i === current ? ' active' : '');
+      chip.innerHTML = `<span>${cam.emoji}</span><span>${cam.label}</span>`;
+      chip.addEventListener('click', () => goTo(i));
+      favbarEl.appendChild(chip);
+    });
+  }
+
+  function goTo(i){
+    if(i === current) return;
+    history.push(current);
+    prevBtn.disabled = false;
+    showCam(i);
+  }
+
+  prevBtn.disabled = true;
+  prevBtn.addEventListener('click', () => {
+    if(history.length === 0) return;
+    showCam(history.pop());
+    prevBtn.disabled = history.length === 0;
+  });
+  nextBtn.addEventListener('click', () => {
+    if(cams.length <= 1) return;
+    let next;
+    do { next = Math.floor(Math.random() * cams.length); } while(next === current);
+    goTo(next);
+  });
+  starBtn.addEventListener('click', () => {
+    if(favorites.has(current)) favorites.delete(current);
+    else favorites.add(current);
+    starBtn.classList.toggle('active', favorites.has(current));
+    saveFavorites();
+    renderFavbar();
   });
 
   showCam(0);
