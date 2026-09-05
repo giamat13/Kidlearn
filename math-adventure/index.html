@@ -1492,10 +1492,16 @@
                 rectHeight: rect.height
             };
 
+            // Guard against a previous drag that never reached endDrag (e.g. a
+            // touchcancel from the OS interrupting the gesture) leaving stale
+            // listeners registered, which would otherwise stack up on every touch.
+            removeDragListeners();
+
             window.addEventListener('mousemove', onDragMove);
             window.addEventListener('touchmove', onDragMove, { passive: false });
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
+            window.addEventListener('touchcancel', endDrag);
         }
 
         function onDragMove(e) {
@@ -1526,10 +1532,15 @@
                 triggerSave();
             }
             activeDrag = null;
+            removeDragListeners();
+        }
+
+        function removeDragListeners() {
             window.removeEventListener('mousemove', onDragMove);
             window.removeEventListener('touchmove', onDragMove);
             window.removeEventListener('mouseup', endDrag);
             window.removeEventListener('touchend', endDrag);
+            window.removeEventListener('touchcancel', endDrag);
         }
 
         function deselectItem() {
