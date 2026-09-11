@@ -313,6 +313,16 @@
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
+      "id": "hachaim-series",
+      "title": "החיים",
+      "description": "סדרת וידאו חינוכית על מערכות הגוף לילדים.",
+      "icon": "💉",
+      "url": "https://www.youtube.com/playlist?list=PL7s3QxO6wm48st6XALJqSP1iQHbd4ghGW",
+      "categories": ["series"],
+      "grade": ["kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
       "id": "memory-game",
       "title": "משחק הזיכרון",
       "description": "תרגל את הזיכרון שלך עם משחק זכרון קלאסי!",
