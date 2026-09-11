@@ -99,6 +99,18 @@
         .stage-theme-6 {
             background: linear-gradient(to bottom, #fbcfe8 0%, #f0abfc 40%, #c4b5fd 40%, #a78bfa 70%, #ddd6fe 70%, #f5d0fe 100%);
         }
+        .stage-theme-7 {
+            background: linear-gradient(to bottom, #7dd3fc 0%, #fde68a 45%, #eab308 45%, #b45309 100%);
+        }
+        .stage-theme-8 {
+            background: linear-gradient(to bottom, #93c5fd 0%, #fdba74 45%, #ea580c 45%, #7c2d12 100%);
+        }
+        .stage-theme-9 {
+            background: linear-gradient(to bottom, #0f172a 0%, #1e1b4b 50%, #312e81 50%, #4c1d95 100%);
+        }
+        .stage-theme-10 {
+            background: linear-gradient(to bottom, #451a03 0%, #c2410c 45%, #9a3412 45%, #451a03 100%);
+        }
 
         /* Shop Item Card Styling */
         .shop-item-card {
@@ -290,6 +302,54 @@
                         <h3 class="font-bold text-lg text-fuchsia-200">6. עולם חד-הקרן הקסום</h3>
                         <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
                         <span id="node-badge-6" class="mt-2 text-xs bg-fuchsia-500/30 border border-fuchsia-400 text-fuchsia-200 font-extrabold px-3 py-1 rounded-full">80 נקודות</span>
+                    </div>
+
+                    <!-- World 7 -->
+                    <div id="node-7" onclick="selectWorld(7)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-600 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-7">
+                            <div id="lock-icon-7" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-amber-300">7. הסוואנה הפראית</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-7" class="mt-2 text-xs bg-amber-500/30 border border-amber-400 text-amber-200 font-extrabold px-3 py-1 rounded-full">100 נקודות</span>
+                    </div>
+
+                    <!-- World 8 -->
+                    <div id="node-8" onclick="selectWorld(8)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-orange-600 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-8">
+                            <div id="lock-icon-8" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-orange-300">8. המדבר הזהוב</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-8" class="mt-2 text-xs bg-orange-500/30 border border-orange-400 text-orange-200 font-extrabold px-3 py-1 rounded-full">130 נקודות</span>
+                    </div>
+
+                    <!-- World 9 -->
+                    <div id="node-9" onclick="selectWorld(9)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-indigo-700 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-9">
+                            <div id="lock-icon-9" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-indigo-300">9. תחנת החלל</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-9" class="mt-2 text-xs bg-indigo-500/30 border border-indigo-400 text-indigo-200 font-extrabold px-3 py-1 rounded-full">165 נקודות</span>
+                    </div>
+
+                    <!-- World 10 -->
+                    <div id="node-10" onclick="selectWorld(10)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-red-700 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-10">
+                            <div id="lock-icon-10" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-red-300">10. כוכב מאדים</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-10" class="mt-2 text-xs bg-red-500/30 border border-red-400 text-red-200 font-extrabold px-3 py-1 rounded-full">200 נקודות</span>
                     </div>
 
                 </div>
@@ -548,7 +608,11 @@
             3: { name: "ג'ונגל ההרפתקאות", iconType: 'palm', reqScore: 24, defaultMax: 40, themeClass: 'stage-theme-3' },
             4: { name: 'חוף השמש והגלים', iconType: 'beach_umbrella', reqScore: 40, defaultMax: 50, themeClass: 'stage-theme-4' },
             5: { name: 'ארמון השלג', iconType: 'snowman', reqScore: 60, defaultMax: 100, themeClass: 'stage-theme-5' },
-            6: { name: 'עולם חד-הקרן הקסום', iconType: 'unicorn', reqScore: 80, defaultMax: 150, themeClass: 'stage-theme-6' }
+            6: { name: 'עולם חד-הקרן הקסום', iconType: 'unicorn', reqScore: 80, defaultMax: 150, themeClass: 'stage-theme-6' },
+            7: { name: 'הסוואנה הפראית', iconType: 'lion', reqScore: 100, defaultMax: 200, themeClass: 'stage-theme-7' },
+            8: { name: 'המדבר הזהוב', iconType: 'cactus', reqScore: 130, defaultMax: 300, themeClass: 'stage-theme-8' },
+            9: { name: 'תחנת החלל', iconType: 'rocket', reqScore: 165, defaultMax: 500, themeClass: 'stage-theme-9' },
+            10: { name: 'כוכב מאדים', iconType: 'mars_rover', reqScore: 200, defaultMax: 1000, themeClass: 'stage-theme-10' }
         };
 
         // Unique decoration item pools using vector SVG keys
@@ -558,7 +622,11 @@
             3: ['palm', 'tent', 'gem', 'totem', 'flower_exotic', 'mushroom', 'chest', 'vine'],
             4: ['beach_umbrella', 'surfboard', 'sailboat', 'sandcastle', 'shell', 'crab', 'coconut', 'ball'],
             5: ['snowman', 'snowflake', 'ice_castle', 'sleigh', 'pine_tree', 'crown', 'gift', 'candle'],
-            6: ['unicorn', 'rainbow', 'star_sparkle', 'cloud_cute', 'castle_pink', 'flower_magic', 'moon_magic', 'gem_heart']
+            6: ['unicorn', 'rainbow', 'star_sparkle', 'cloud_cute', 'castle_pink', 'flower_magic', 'moon_magic', 'gem_heart'],
+            7: ['lion', 'giraffe', 'elephant', 'zebra', 'acacia', 'watering_hole', 'vulture', 'sun_savanna'],
+            8: ['cactus', 'camel', 'pyramid', 'oasis', 'dune', 'scorpion', 'desert_sun', 'tumbleweed'],
+            9: ['rocket', 'planet_ringed', 'ufo', 'astronaut', 'satellite', 'comet', 'moon_crater', 'alien'],
+            10: ['mars_rover', 'mars_flag', 'mars_crater', 'mars_rock', 'mars_dome', 'mars_moon', 'mars_alien', 'satellite_dish']
         };
 
         // Coin price for each shop item (used by the item shop)
@@ -568,7 +636,11 @@
             palm: 6, tent: 7, gem: 9, totem: 8, flower_exotic: 6, mushroom: 5, chest: 9, vine: 5,
             beach_umbrella: 6, surfboard: 7, sailboat: 9, sandcastle: 7, shell: 4, crab: 5, coconut: 5, ball: 4,
             snowman: 8, snowflake: 4, ice_castle: 10, sleigh: 9, pine_tree: 6, crown: 9, gift: 6, candle: 5,
-            unicorn: 12, rainbow: 10, star_sparkle: 6, cloud_cute: 6, castle_pink: 12, flower_magic: 7, moon_magic: 8, gem_heart: 10
+            unicorn: 12, rainbow: 10, star_sparkle: 6, cloud_cute: 6, castle_pink: 12, flower_magic: 7, moon_magic: 8, gem_heart: 10,
+            lion: 11, giraffe: 10, elephant: 12, zebra: 9, acacia: 6, watering_hole: 7, vulture: 6, sun_savanna: 5,
+            cactus: 6, camel: 10, pyramid: 12, oasis: 8, dune: 5, scorpion: 7, desert_sun: 5, tumbleweed: 4,
+            rocket: 13, planet_ringed: 11, ufo: 10, astronaut: 12, satellite: 9, comet: 7, moon_crater: 6, alien: 9,
+            mars_rover: 14, mars_flag: 8, mars_crater: 6, mars_rock: 5, mars_dome: 13, mars_moon: 8, mars_alien: 10, satellite_dish: 9
         };
 
         // Item names translation map for friendly label text
@@ -584,7 +656,15 @@
             snowman: 'איש שלג', snowflake: 'פתית שלג', ice_castle: 'ארמון קרח', sleigh: 'מזחלת מושלגת',
             pine_tree: 'עץ אשוח', crown: 'כתר קרח', gift: 'קופסת מתנה', candle: 'נר חגיגי',
             unicorn: 'חד-קרן קסום', rainbow: 'קשת בענן', star_sparkle: 'כוכב נוצץ', cloud_cute: 'עננון חמוד',
-            castle_pink: 'ארמון ורוד', flower_magic: 'פרח קסם', moon_magic: 'ירח קסום', gem_heart: 'קריסטל לב'
+            castle_pink: 'ארמון ורוד', flower_magic: 'פרח קסם', moon_magic: 'ירח קסום', gem_heart: 'קריסטל לב',
+            lion: 'אריה מלך', giraffe: 'ג\'ירפה', elephant: 'פיל ענק', zebra: 'זברה פסים',
+            acacia: 'עץ שיטה', watering_hole: 'בריכת מים', vulture: 'עוף דורס', sun_savanna: 'שמש הסוואנה',
+            cactus: 'קקטוס', camel: 'גמל המדבר', pyramid: 'פירמידה', oasis: 'נווה מדבר',
+            dune: 'דיונת חול', scorpion: 'עקרב', desert_sun: 'שמש לוהטת', tumbleweed: 'שיח נודד',
+            rocket: 'טיל חלל', planet_ringed: 'כוכב לכת עם טבעת', ufo: 'צלחת מעופפת', astronaut: 'אסטרונאוט',
+            satellite: 'לוויין', comet: 'שביט', moon_crater: 'ירח מכתשים', alien: 'חייזר',
+            mars_rover: 'רכב חלליות', mars_flag: 'דגל על מאדים', mars_crater: 'מכתש מאדים', mars_rock: 'סלע אדום',
+            mars_dome: 'כיפת מגורים', mars_moon: 'פובוס הירח', mars_alien: 'מאדימון', satellite_dish: 'צלחת קליטה'
         };
 
         // SVG Graphics Generator function with color customization support
@@ -941,6 +1021,243 @@
                         <path d="M32 24 C30 20 28 18 24 14 C18 8 8 12 8 22 C8 26 9 30 12 34 L32 24 Z" fill="#fbcfe8"/>
                     </svg>`;
 
+                // World 7 - Savanna
+                case 'lion':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="20" fill="${fill || '#b45309'}"/>
+                        <circle cx="32" cy="32" r="12" fill="#fbbf24"/>
+                        <circle cx="24" cy="28" r="2" fill="#0f172a"/>
+                        <circle cx="40" cy="28" r="2" fill="#0f172a"/>
+                        <path d="M32 32 L28 38 H36 Z" fill="#78350f"/>
+                    </svg>`;
+                case 'giraffe':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="30" cy="48" rx="14" ry="8" fill="${fill || '#fbbf24'}"/>
+                        <rect x="24" y="16" width="8" height="34" rx="3" fill="${fill || '#fbbf24'}"/>
+                        <circle cx="28" cy="12" r="8" fill="${fill || '#fbbf24'}"/>
+                        <rect x="18" y="50" width="4" height="8" fill="#78350f"/>
+                        <rect x="38" y="50" width="4" height="8" fill="#78350f"/>
+                        <circle cx="25" cy="4" r="2" fill="#78350f"/>
+                        <circle cx="31" cy="4" r="2" fill="#78350f"/>
+                        <circle cx="25" cy="18" r="1.5" fill="#92400e"/>
+                        <circle cx="30" cy="28" r="1.5" fill="#92400e"/>
+                    </svg>`;
+                case 'elephant':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="30" cy="34" rx="20" ry="16" fill="${fill || '#94a3b8'}"/>
+                        <circle cx="16" cy="24" r="10" fill="${fill || '#94a3b8'}"/>
+                        <path d="M14 40 C10 48 12 56 18 56 C16 48 16 44 20 40 Z" fill="${fill || '#94a3b8'}"/>
+                        <circle cx="14" cy="22" r="1.6" fill="#0f172a"/>
+                        <ellipse cx="8" cy="30" rx="6" ry="8" fill="#64748b"/>
+                        <rect x="20" y="48" width="5" height="10" fill="#64748b"/>
+                        <rect x="40" y="48" width="5" height="10" fill="#64748b"/>
+                    </svg>`;
+                case 'zebra':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="30" cy="36" rx="20" ry="12" fill="#f8fafc"/>
+                        <circle cx="12" cy="24" r="8" fill="#f8fafc"/>
+                        <path d="M16 30 L14 40 M22 28 L20 42 M28 28 L27 44 M36 30 L36 44" stroke="${fill || '#0f172a'}" stroke-width="3"/>
+                        <rect x="14" y="46" width="4" height="10" fill="#334155"/>
+                        <rect x="40" y="46" width="4" height="10" fill="#334155"/>
+                        <path d="M8 18 L4 10 L10 20 Z" fill="${fill || '#0f172a'}"/>
+                    </svg>`;
+                case 'acacia':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="29" y="34" width="6" height="24" fill="#78350f"/>
+                        <path d="M10 34 C10 24 54 24 54 34 C40 30 24 30 10 34 Z" fill="${fill || '#65a30d'}"/>
+                        <ellipse cx="32" cy="30" rx="24" ry="8" fill="${fill || '#84cc16'}"/>
+                    </svg>`;
+                case 'watering_hole':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="42" rx="26" ry="12" fill="${fill || '#38bdf8'}"/>
+                        <ellipse cx="32" cy="40" rx="20" ry="8" fill="#7dd3fc"/>
+                        <path d="M14 30 Q10 24 16 20" stroke="#22c55e" stroke-width="3" fill="none"/>
+                        <path d="M50 30 Q54 24 48 20" stroke="#22c55e" stroke-width="3" fill="none"/>
+                    </svg>`;
+                case 'vulture':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 30 Q24 12 32 22 Q40 12 56 20 Q44 32 34 34 Q22 40 8 30 Z" fill="${fill || '#44403c'}"/>
+                        <circle cx="34" cy="22" r="3" fill="#dc2626"/>
+                        <path d="M40 20 L48 24 L39 26 Z" fill="#facc15"/>
+                    </svg>`;
+                case 'sun_savanna':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="14" fill="${fill || '#fbbf24'}"/>
+                        <path d="M32 6 V16 M32 48 V58 M6 32 H16 M48 32 H58 M14 14 L21 21 M43 43 L50 50 M50 14 L43 21 M21 43 L14 50" stroke="${fill || '#f59e0b'}" stroke-width="4" stroke-linecap="round"/>
+                    </svg>`;
+
+                // World 8 - Desert
+                case 'cactus':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="26" y="20" width="12" height="38" rx="6" fill="${fill || '#16a34a'}"/>
+                        <path d="M26 30 C14 30 14 42 22 42 C26 42 26 38 26 34 Z" fill="${fill || '#16a34a'}"/>
+                        <path d="M38 26 C50 26 50 38 42 38 C38 38 38 34 38 30 Z" fill="${fill || '#16a34a'}"/>
+                        <circle cx="32" cy="18" r="4" fill="#f472b6"/>
+                    </svg>`;
+                case 'camel':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M14 46 C14 34 22 34 26 40 C28 32 38 32 38 40 C44 34 52 38 50 46 Z" fill="${fill || '#d6a15b'}"/>
+                        <rect x="12" y="46" width="40" height="8" rx="4" fill="${fill || '#d6a15b'}"/>
+                        <path d="M12 30 L8 20 L16 32 Z" fill="${fill || '#d6a15b'}"/>
+                        <circle cx="10" cy="24" r="1.6" fill="#0f172a"/>
+                        <rect x="16" y="54" width="4" height="6" fill="#92400e"/>
+                        <rect x="44" y="54" width="4" height="6" fill="#92400e"/>
+                    </svg>`;
+                case 'pyramid':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <polygon points="32,10 56,54 8,54" fill="${fill || '#eab308'}"/>
+                        <polygon points="32,10 56,54 32,54" fill="#ca8a04"/>
+                    </svg>`;
+                case 'oasis':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="48" rx="24" ry="10" fill="${fill || '#38bdf8'}"/>
+                        <path d="M20 48 C20 30 12 22 16 14 C24 22 24 34 24 48 Z" fill="#15803d"/>
+                        <path d="M20 20 C10 18 8 10 14 8 C20 12 22 16 20 20 Z" fill="#22c55e"/>
+                        <path d="M20 20 C30 18 32 10 26 8 C20 12 18 16 20 20 Z" fill="#16a34a"/>
+                    </svg>`;
+                case 'dune':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M4 46 C16 30 24 48 34 34 C44 22 52 40 60 32 V58 H4 Z" fill="${fill || '#f59e0b'}"/>
+                        <path d="M4 50 C20 42 30 54 44 44 C50 40 56 46 60 44 V58 H4 Z" fill="#d97706"/>
+                    </svg>`;
+                case 'scorpion':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="26" cy="38" rx="14" ry="9" fill="${fill || '#78350f'}"/>
+                        <path d="M38 34 C48 30 54 22 50 16 C54 22 46 26 40 32 Z" fill="${fill || '#92400e'}"/>
+                        <circle cx="52" cy="14" r="3" fill="#0f172a"/>
+                        <path d="M14 34 C6 30 4 22 10 20 M14 40 C6 42 4 48 10 50" stroke="#78350f" stroke-width="3" fill="none"/>
+                    </svg>`;
+                case 'desert_sun':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="16" fill="${fill || '#f97316'}"/>
+                        <path d="M32 4 V14 M32 50 V60 M4 32 H14 M50 32 H60" stroke="${fill || '#ea580c'}" stroke-width="4" stroke-linecap="round"/>
+                    </svg>`;
+                case 'tumbleweed':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="20" fill="none" stroke="${fill || '#92400e'}" stroke-width="3"/>
+                        <circle cx="32" cy="32" r="12" fill="none" stroke="${fill || '#b45309'}" stroke-width="3"/>
+                        <path d="M12 32 Q32 12 52 32 Q32 52 12 32 Z" fill="none" stroke="#a16207" stroke-width="2"/>
+                    </svg>`;
+
+                // World 9 - Space Station
+                case 'rocket':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 4 C42 14 44 30 42 42 H22 C20 30 22 14 32 4 Z" fill="${fill || '#e2e8f0'}"/>
+                        <circle cx="32" cy="24" r="6" fill="#38bdf8"/>
+                        <path d="M22 42 L12 54 L22 50 Z" fill="#dc2626"/>
+                        <path d="M42 42 L52 54 L42 50 Z" fill="#dc2626"/>
+                        <path d="M26 46 L32 60 L38 46 Z" fill="#f97316"/>
+                    </svg>`;
+                case 'planet_ringed':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="34" rx="26" ry="8" fill="none" stroke="${fill || '#fbbf24'}" stroke-width="3" transform="rotate(-15 32 34)"/>
+                        <circle cx="32" cy="32" r="16" fill="${fill || '#f97316'}"/>
+                        <path d="M18 26 C26 30 38 30 46 26" stroke="#c2410c" stroke-width="2" fill="none"/>
+                    </svg>`;
+                case 'ufo':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="36" rx="26" ry="8" fill="${fill || '#94a3b8'}"/>
+                        <path d="M18 36 C18 22 46 22 46 36 Z" fill="${fill || '#cbd5e1'}"/>
+                        <circle cx="24" cy="36" r="2" fill="#facc15"/>
+                        <circle cx="32" cy="38" r="2" fill="#facc15"/>
+                        <circle cx="40" cy="36" r="2" fill="#facc15"/>
+                    </svg>`;
+                case 'astronaut':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="24" r="14" fill="#f8fafc"/>
+                        <circle cx="32" cy="24" r="10" fill="${fill || '#38bdf8'}"/>
+                        <rect x="20" y="36" width="24" height="22" rx="8" fill="#f8fafc"/>
+                        <rect x="14" y="40" width="6" height="14" rx="3" fill="#cbd5e1"/>
+                        <rect x="44" y="40" width="6" height="14" rx="3" fill="#cbd5e1"/>
+                    </svg>`;
+                case 'satellite':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="24" y="24" width="16" height="16" rx="2" fill="${fill || '#cbd5e1'}"/>
+                        <rect x="4" y="20" width="16" height="24" fill="#38bdf8"/>
+                        <rect x="44" y="20" width="16" height="24" fill="#38bdf8"/>
+                        <line x1="20" y1="30" x2="24" y2="30" stroke="#94a3b8" stroke-width="3"/>
+                        <line x1="40" y1="30" x2="44" y2="30" stroke="#94a3b8" stroke-width="3"/>
+                        <line x1="32" y1="24" x2="32" y2="12" stroke="#94a3b8" stroke-width="2"/>
+                        <circle cx="32" cy="10" r="2" fill="#f8fafc"/>
+                    </svg>`;
+                case 'comet':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M48 16 L8 48 L20 36 L4 44 L26 24 L14 30 Z" fill="${fill || '#38bdf8'}" opacity="0.7"/>
+                        <circle cx="48" cy="16" r="9" fill="${fill || '#7dd3fc'}"/>
+                    </svg>`;
+                case 'moon_crater':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="24" fill="${fill || '#cbd5e1'}"/>
+                        <circle cx="24" cy="24" r="5" fill="#94a3b8"/>
+                        <circle cx="40" cy="34" r="4" fill="#94a3b8"/>
+                        <circle cx="28" cy="42" r="3" fill="#94a3b8"/>
+                    </svg>`;
+                case 'alien':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="26" rx="16" ry="18" fill="${fill || '#4ade80'}"/>
+                        <ellipse cx="24" cy="26" rx="5" ry="8" fill="#0f172a" transform="rotate(-15 24 26)"/>
+                        <ellipse cx="40" cy="26" rx="5" ry="8" fill="#0f172a" transform="rotate(15 40 26)"/>
+                        <path d="M24 44 C24 52 40 52 40 44 Z" fill="${fill || '#4ade80'}"/>
+                    </svg>`;
+
+                // World 10 - Mars
+                case 'mars_rover':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="14" y="28" width="36" height="16" rx="3" fill="${fill || '#cbd5e1'}"/>
+                        <circle cx="20" cy="48" r="6" fill="#334155"/>
+                        <circle cx="32" cy="48" r="6" fill="#334155"/>
+                        <circle cx="44" cy="48" r="6" fill="#334155"/>
+                        <rect x="26" y="14" width="12" height="4" fill="#94a3b8"/>
+                        <line x1="32" y1="14" x2="32" y2="28" stroke="#94a3b8" stroke-width="3"/>
+                        <rect x="16" y="20" width="14" height="8" fill="${fill || '#38bdf8'}"/>
+                    </svg>`;
+                case 'mars_flag':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <line x1="20" y1="8" x2="20" y2="56" stroke="#94a3b8" stroke-width="3"/>
+                        <path d="M20 10 H48 L40 20 L48 30 H20 Z" fill="${fill || '#dc2626'}"/>
+                        <ellipse cx="20" cy="58" rx="14" ry="4" fill="#7c2d12"/>
+                    </svg>`;
+                case 'mars_crater':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="40" rx="26" ry="10" fill="${fill || '#9a3412'}"/>
+                        <ellipse cx="32" cy="38" rx="18" ry="6" fill="#451a03"/>
+                    </svg>`;
+                case 'mars_rock':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 46 L18 22 L38 16 L56 30 L50 50 Z" fill="${fill || '#c2410c'}"/>
+                        <path d="M18 22 L34 32 L50 50 Z" fill="#9a3412"/>
+                    </svg>`;
+                case 'mars_dome':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 50 C8 26 56 26 56 50 Z" fill="${fill || '#7dd3fc'}" opacity="0.85"/>
+                        <rect x="4" y="50" width="56" height="6" fill="#94a3b8"/>
+                        <circle cx="32" cy="38" r="5" fill="#38bdf8"/>
+                    </svg>`;
+                case 'mars_moon':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M22 20 C10 24 8 40 20 46 C34 52 50 44 48 30 C46 16 32 14 22 20 Z" fill="${fill || '#a8a29e'}"/>
+                        <circle cx="24" cy="28" r="3" fill="#78716c"/>
+                        <circle cx="36" cy="36" r="4" fill="#78716c"/>
+                    </svg>`;
+                case 'mars_alien':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="26" r="14" fill="${fill || '#dc2626'}"/>
+                        <circle cx="27" cy="24" r="3" fill="#0f172a"/>
+                        <circle cx="37" cy="24" r="3" fill="#0f172a"/>
+                        <line x1="24" y1="12" x2="20" y2="4" stroke="${fill || '#dc2626'}" stroke-width="2"/>
+                        <line x1="40" y1="12" x2="44" y2="4" stroke="${fill || '#dc2626'}" stroke-width="2"/>
+                        <circle cx="20" cy="4" r="2" fill="#facc15"/>
+                        <circle cx="44" cy="4" r="2" fill="#facc15"/>
+                        <path d="M20 40 C20 52 44 52 44 40 Z" fill="${fill || '#dc2626'}"/>
+                    </svg>`;
+                case 'satellite_dish':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 40 C8 20 40 12 52 30 C40 26 16 30 8 40 Z" fill="${fill || '#e2e8f0'}"/>
+                        <circle cx="30" cy="34" r="3" fill="#64748b"/>
+                        <line x1="30" y1="34" x2="30" y2="52" stroke="#64748b" stroke-width="3"/>
+                        <rect x="20" y="52" width="20" height="6" fill="#475569"/>
+                    </svg>`;
+
                 default:
                     return `<svg viewBox="0 0 64 64" class="${customClass}"><circle cx="32" cy="32" r="20" fill="${fill || '#f59e0b'}"/></svg>`;
             }
@@ -961,7 +1278,7 @@
         let saveNotificationTimer = null;
         let activeDrag = null;
         let selectedItemId = null;
-        let unlockedWorldAlerted = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false };
+        let unlockedWorldAlerted = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false, 9: false, 10: false };
 
         // Separate Placed Items storage for EACH World
         let worldItemsMap = {
@@ -970,7 +1287,11 @@
             3: [],
             4: [],
             5: [],
-            6: []
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
         };
 
         function playSound(type) {
@@ -1111,7 +1432,7 @@
         }
 
         function updateMapNodes() {
-            for (let id = 1; id <= 6; id++) {
+            for (let id = 1; id <= 10; id++) {
                 const node = document.getElementById(`node-${id}`);
                 const lockIcon = document.getElementById(`lock-icon-${id}`);
                 const badge = document.getElementById(`node-badge-${id}`);
@@ -1173,7 +1494,7 @@
         }
 
         function checkNewWorldUnlocks() {
-            for (let id = 1; id <= 6; id++) {
+            for (let id = 1; id <= 10; id++) {
                 const config = WORLDS_CONFIG[id];
                 if (score >= config.reqScore && !unlockedWorldAlerted[id]) {
                     unlockedWorldAlerted[id] = true;
@@ -1399,6 +1720,28 @@
                     <div class="absolute top-4 right-12 text-4xl opacity-80">🌙</div>
                     <div class="absolute top-10 left-10 text-3xl opacity-70">✨</div>
                 `;
+            } else if (worldId === 7) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 right-10 text-5xl opacity-90">☀️</div>
+                    <div class="absolute bottom-14 inset-x-0 h-6 bg-amber-800/30"></div>
+                `;
+            } else if (worldId === 8) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 left-10 text-5xl opacity-90">🔥</div>
+                    <div class="absolute bottom-16 inset-x-0 h-8 bg-orange-800/20"></div>
+                `;
+            } else if (worldId === 9) {
+                layer.innerHTML = `
+                    <div class="absolute top-3 left-8 text-2xl opacity-80">✨</div>
+                    <div class="absolute top-8 right-14 text-xl opacity-70">✨</div>
+                    <div class="absolute top-16 left-1/2 text-lg opacity-60">✨</div>
+                    <div class="absolute bottom-20 right-10 text-3xl opacity-70">🌍</div>
+                `;
+            } else if (worldId === 10) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 right-12 text-3xl opacity-80">🌑</div>
+                    <div class="absolute bottom-10 inset-x-0 h-14 bg-red-950/30"></div>
+                `;
             }
         }
 
@@ -1492,10 +1835,16 @@
                 rectHeight: rect.height
             };
 
+            // Guard against a previous drag that never reached endDrag (e.g. a
+            // touchcancel from the OS interrupting the gesture) leaving stale
+            // listeners registered, which would otherwise stack up on every touch.
+            removeDragListeners();
+
             window.addEventListener('mousemove', onDragMove);
             window.addEventListener('touchmove', onDragMove, { passive: false });
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
+            window.addEventListener('touchcancel', endDrag);
         }
 
         function onDragMove(e) {
@@ -1526,10 +1875,15 @@
                 triggerSave();
             }
             activeDrag = null;
+            removeDragListeners();
+        }
+
+        function removeDragListeners() {
             window.removeEventListener('mousemove', onDragMove);
             window.removeEventListener('touchmove', onDragMove);
             window.removeEventListener('mouseup', endDrag);
             window.removeEventListener('touchend', endDrag);
+            window.removeEventListener('touchcancel', endDrag);
         }
 
         function deselectItem() {
