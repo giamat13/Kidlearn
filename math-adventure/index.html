@@ -691,7 +691,7 @@
             1: ['sofa', 'armchair', 'plant', 'tv', 'lamp', 'window', 'clock', 'table'],
             2: ['tree', 'flower', 'fountain', 'bench', 'bicycle', 'balloon', 'bird', 'rock'],
             3: ['palm', 'tent', 'gem', 'totem', 'flower_exotic', 'mushroom', 'chest', 'vine'],
-            4: ['beach_umbrella', 'surfboard', 'sailboat', 'sandcastle', 'shell', 'crab', 'coconut', 'ball'],
+            4: ['beach_umbrella', 'beach_chair', 'surfboard', 'sailboat', 'sandcastle', 'shell', 'crab', 'coconut', 'ball'],
             5: ['snowman', 'snowflake', 'ice_castle', 'sleigh', 'pine_tree', 'crown', 'gift', 'candle'],
             6: ['unicorn', 'rainbow', 'star_sparkle', 'cloud_cute', 'castle_pink', 'flower_magic', 'moon_magic', 'gem_heart'],
             7: ['lion', 'giraffe', 'elephant', 'zebra', 'acacia', 'watering_hole', 'vulture', 'sun_savanna'],
@@ -710,7 +710,7 @@
             sofa: 6, armchair: 6, plant: 4, tv: 8, lamp: 5, window: 5, clock: 6, table: 5,
             tree: 5, flower: 4, fountain: 8, bench: 5, bicycle: 6, balloon: 4, bird: 5, rock: 4,
             palm: 6, tent: 7, gem: 9, totem: 8, flower_exotic: 6, mushroom: 5, chest: 9, vine: 5,
-            beach_umbrella: 6, surfboard: 7, sailboat: 9, sandcastle: 7, shell: 4, crab: 5, coconut: 5, ball: 4,
+            beach_umbrella: 6, beach_chair: 7, surfboard: 7, sailboat: 9, sandcastle: 7, shell: 4, crab: 5, coconut: 5, ball: 4,
             snowman: 8, snowflake: 4, ice_castle: 10, sleigh: 9, pine_tree: 6, crown: 9, gift: 6, candle: 5,
             unicorn: 12, rainbow: 10, star_sparkle: 6, cloud_cute: 6, castle_pink: 12, flower_magic: 7, moon_magic: 8, gem_heart: 10,
             lion: 11, giraffe: 10, elephant: 12, zebra: 9, acacia: 6, watering_hole: 7, vulture: 6, sun_savanna: 5,
@@ -727,7 +727,7 @@
             bicycle: 'אופניים', balloon: 'בלון צבעוני', bird: 'ציפור שיר', rock: 'סלע נוי',
             palm: 'עץ דקל', tent: 'אוהל הרפתקאות', gem: 'קריסטל קסום', totem: "פסל ג'ונגל",
             flower_exotic: 'פרח טרופי', mushroom: 'פטרייה מוארת', chest: 'תיבת אוצר', vine: 'צמח מטפס',
-            beach_umbrella: 'שמשיית חוף', surfboard: 'גלשן גלים', sailboat: 'מפרשית', sandcastle: 'ארמון חול',
+            beach_umbrella: 'שמשיית חוף', beach_chair: 'כיסא ים', surfboard: 'גלשן גלים', sailboat: 'מפרשית', sandcastle: 'ארמון חול',
             shell: 'קונכייה', crab: 'סרטן חוף', coconut: 'משקה קוקוס', ball: 'כדור ים',
             snowman: 'איש שלג', snowflake: 'פתית שלג', ice_castle: 'ארמון קרח', sleigh: 'מזחלת מושלגת',
             pine_tree: 'עץ אשוח', crown: 'כתר קרח', gift: 'קופסת מתנה', candle: 'נר חגיגי',
@@ -926,6 +926,13 @@
                         <path d="M8 26 C8 12 56 12 56 26 Z" fill="${fill || '#f43f5e'}"/>
                         <path d="M20 26 C20 12 44 12 44 26 Z" fill="#ffffff"/>
                         <path d="M28 26 C28 12 36 12 36 26 Z" fill="${fill || '#f43f5e'}"/>
+                    </svg>`;
+                case 'beach_chair':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M16 12 L48 12 L42 38 L22 38 Z" fill="${fill || '#f97316'}"/>
+                        <path d="M22 38 L14 58 M42 38 L50 58" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M18 42 H46" stroke="#f8fafc" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M16 12 L10 6 M48 12 L54 6" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
                     </svg>`;
                 case 'surfboard':
                     return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
@@ -1691,7 +1698,8 @@
             if (isCorrect) {
                 playSound('correct');
                 score += 2;
-                coins += 2;
+                const coinReward = currentWorldId + 1;
+                coins += coinReward;
                 document.getElementById('score-display').innerText = score;
                 updateCoinDisplay();
 
@@ -1699,7 +1707,7 @@
                     btnElement.className = 'bg-emerald-500 text-white font-extrabold text-2xl py-3.5 rounded-2xl border-2 border-emerald-300 shadow-xl animate-bounce ltr-dir';
                 }
 
-                feedback.innerText = 'כל הכבוד! קיבלת +2 נקודות ו-2 כסף! 🎉';
+                feedback.innerText = `כל הכבוד! קיבלת +2 נקודות ו-${coinReward} כסף! 🎉`;
                 feedback.className = 'h-7 font-bold text-base sm:text-lg transition-all duration-300 text-center my-1 text-emerald-400 opacity-100 rtl-dir';
 
                 if (typeof confetti === 'function') {
