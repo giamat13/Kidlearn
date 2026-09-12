@@ -572,7 +572,54 @@
                 <span class="text-xs text-slate-900 font-bold ml-1 rtl-dir">כסף זמין</span>
             </div>
 
+            <button onclick="openDrawModal()" class="mb-4 w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-black text-sm py-2.5 rounded-2xl border-2 border-purple-300 shadow-lg flex items-center justify-center gap-2 transition transform active:scale-95">
+                <i class="fa-solid fa-paintbrush"></i> צייר ציור משלך!
+            </button>
+
             <div id="shop-items-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-1 flex-1">
+            </div>
+        </div>
+    </div>
+
+    <!-- Draw Modal -->
+    <div id="draw-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden rtl-dir">
+        <div class="dark-glass max-w-2xl w-full rounded-3xl p-5 sm:p-6 text-right border-2 border-purple-400/80 shadow-2xl relative max-h-[90vh] flex flex-col">
+            <button onclick="closeDrawModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-2xl font-black text-purple-300 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-paintbrush"></i> צייר ציור משלך
+            </h3>
+            <p class="text-sm text-slate-300 mb-2">צייר חופשי עם המברשת או הטביעו צורות, ואז שמרו בעולם שלכם!</p>
+
+            <div class="bg-gradient-to-r from-purple-400 to-pink-500 text-slate-950 font-black text-sm px-4 py-1.5 rounded-2xl shadow-lg flex items-center gap-2 border-2 border-purple-200 w-fit mb-3 ltr-dir">
+                <i class="fa-solid fa-coins text-yellow-100"></i>
+                <span id="draw-coins-display">0</span>
+                <span class="text-xs text-slate-900 font-bold ml-1 rtl-dir">עלות שמירה: <span id="draw-cost-display"></span></span>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-3" id="draw-shape-palette">
+                <!-- shape buttons injected by JS -->
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 mb-3" id="draw-color-palette">
+                <!-- color swatches injected by JS -->
+            </div>
+
+            <div class="rounded-2xl overflow-hidden border-2 border-slate-700 bg-white mb-3" style="touch-action:none;">
+                <svg id="draw-svg-canvas" viewBox="0 0 300 220" class="w-full" style="aspect-ratio:300/220; display:block; cursor:crosshair;" onmousedown="drawCanvasPointerDown(event)" ontouchstart="drawCanvasPointerDown(event)"></svg>
+            </div>
+
+            <div class="flex flex-wrap gap-2 justify-between">
+                <button onclick="undoDrawShape()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm py-2 px-4 rounded-xl border border-slate-600">
+                    <i class="fa-solid fa-rotate-left"></i> בטל צורה
+                </button>
+                <button onclick="clearDrawCanvas()" class="bg-red-700 hover:bg-red-600 text-white font-bold text-xs sm:text-sm py-2 px-4 rounded-xl border border-red-500">
+                    <i class="fa-solid fa-trash"></i> נקה הכל
+                </button>
+                <button onclick="saveDrawing()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm py-2 px-5 rounded-xl border border-emerald-300">
+                    <i class="fa-solid fa-check"></i> שמור בעולם שלי
+                </button>
             </div>
         </div>
     </div>
@@ -1880,7 +1927,11 @@
                 
                 // Fallback support for older save files with emoji
                 const itemKey = item.itemType || 'sofa';
-                el.innerHTML = getSVGForItem(itemKey, item.color, 'w-14 h-14 md:w-20 md:h-20');
+                if (itemKey === 'custom_drawing' && item.customSvg) {
+                    el.innerHTML = `<svg viewBox="0 0 300 220" class="w-20 h-16 md:w-28 md:h-20">${item.customSvg}</svg>`;
+                } else {
+                    el.innerHTML = getSVGForItem(itemKey, item.color, 'w-14 h-14 md:w-20 md:h-20');
+                }
 
                 el.style.left = `${item.x}%`;
                 el.style.top = `${item.y}%`;
@@ -2019,8 +2070,10 @@
         function updateCoinDisplay() {
             const headerEl = document.getElementById('coins-display');
             const shopEl = document.getElementById('shop-coins-display');
+            const drawEl = document.getElementById('draw-coins-display');
             if (headerEl) headerEl.innerText = coins;
             if (shopEl) shopEl.innerText = coins;
+            if (drawEl) drawEl.innerText = coins;
         }
 
         function openShopModal() {
@@ -2104,6 +2157,202 @@
             }
 
             triggerSave();
+        }
+
+        // --- Custom drawing tool: freehand brush + stampable shapes ---
+        const DRAW_TOOLS = ['brush', 'circle', 'square', 'triangle', 'star', 'heart'];
+        const DRAW_COLORS = ['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#1e293b'];
+        const DRAW_COST = 5;
+        let drawSelectedTool = 'brush';
+        let drawSelectedColor = DRAW_COLORS[0];
+        let drawActions = []; // ordered list of { type: 'shape'|'stroke', ... } so undo removes the true last action
+        let drawActiveStroke = null;
+
+        function openDrawModal() {
+            playSound('pop');
+            drawActions = [];
+            drawActiveStroke = null;
+            renderDrawToolPalette();
+            renderDrawColorPalette();
+            renderDrawCanvas();
+            document.getElementById('draw-cost-display').innerText = DRAW_COST;
+            updateCoinDisplay();
+            document.getElementById('draw-modal').classList.remove('hidden');
+        }
+
+        function closeDrawModal() {
+            playSound('pop');
+            document.getElementById('draw-modal').classList.add('hidden');
+        }
+
+        function renderDrawToolPalette() {
+            const el = document.getElementById('draw-shape-palette');
+            const icons = { brush: 'fa-paintbrush', circle: 'fa-circle', square: 'fa-square', triangle: 'fa-play', star: 'fa-star', heart: 'fa-heart' };
+            el.innerHTML = DRAW_TOOLS.map(tool => `
+                <button onclick="selectDrawTool('${tool}')" id="draw-shape-btn-${tool}"
+                    class="draw-tool-btn ${tool === drawSelectedTool ? 'bg-purple-500 border-purple-300 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'} border-2 rounded-xl w-11 h-11 flex items-center justify-center text-lg">
+                    <i class="fa-solid ${icons[tool]} ${tool === 'triangle' ? 'rotate-90' : ''}"></i>
+                </button>
+            `).join('');
+        }
+
+        function renderDrawColorPalette() {
+            const el = document.getElementById('draw-color-palette');
+            el.innerHTML = DRAW_COLORS.map(color => `
+                <button onclick="selectDrawColor('${color}')"
+                    class="w-8 h-8 rounded-full border-2 ${color === drawSelectedColor ? 'border-white scale-110' : 'border-slate-600'}"
+                    style="background:${color};"></button>
+            `).join('');
+        }
+
+        function selectDrawTool(tool) {
+            playSound('pop');
+            drawSelectedTool = tool;
+            renderDrawToolPalette();
+        }
+
+        function selectDrawColor(color) {
+            playSound('pop');
+            drawSelectedColor = color;
+            renderDrawColorPalette();
+        }
+
+        function drawShapeMarkup(shape, x, y, color) {
+            const s = 18;
+            switch (shape) {
+                case 'circle':
+                    return `<circle cx="${x}" cy="${y}" r="${s}" fill="${color}"/>`;
+                case 'square':
+                    return `<rect x="${x - s}" y="${y - s}" width="${s * 2}" height="${s * 2}" fill="${color}"/>`;
+                case 'triangle':
+                    return `<polygon points="${x},${y - s} ${x + s},${y + s} ${x - s},${y + s}" fill="${color}"/>`;
+                case 'star': {
+                    const pts = [];
+                    for (let i = 0; i < 10; i++) {
+                        const r = i % 2 === 0 ? s : s / 2.4;
+                        const ang = (Math.PI / 5) * i - Math.PI / 2;
+                        pts.push(`${x + r * Math.cos(ang)},${y + r * Math.sin(ang)}`);
+                    }
+                    return `<polygon points="${pts.join(' ')}" fill="${color}"/>`;
+                }
+                case 'heart':
+                    return `<path d="M ${x} ${y + s * 0.7} C ${x - s * 1.4} ${y - s * 0.6}, ${x - s * 0.4} ${y - s * 1.3}, ${x} ${y - s * 0.4} C ${x + s * 0.4} ${y - s * 1.3}, ${x + s * 1.4} ${y - s * 0.6}, ${x} ${y + s * 0.7} Z" fill="${color}"/>`;
+                default:
+                    return '';
+            }
+        }
+
+        function drawStrokeMarkup(stroke) {
+            if (!stroke.points || stroke.points.length < 2) return '';
+            const d = stroke.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+            return `<path d="${d}" fill="none" stroke="${stroke.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+        }
+
+        function drawFullMarkup() {
+            return drawActions.map(a => a.type === 'stroke'
+                ? drawStrokeMarkup(a)
+                : drawShapeMarkup(a.shape, a.x, a.y, a.color)
+            ).join('');
+        }
+
+        function renderDrawCanvas() {
+            const svg = document.getElementById('draw-svg-canvas');
+            svg.innerHTML = drawFullMarkup();
+        }
+
+        function drawCanvasPointToSvg(e) {
+            const svg = document.getElementById('draw-svg-canvas');
+            const rect = svg.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: ((clientX - rect.left) / rect.width) * 300,
+                y: ((clientY - rect.top) / rect.height) * 220
+            };
+        }
+
+        function drawCanvasPointerDown(e) {
+            e.preventDefault();
+            const point = drawCanvasPointToSvg(e);
+            playSound('pop');
+
+            if (drawSelectedTool === 'brush') {
+                drawActiveStroke = { type: 'stroke', color: drawSelectedColor, points: [point] };
+                drawActions.push(drawActiveStroke);
+                renderDrawCanvas();
+                window.addEventListener('mousemove', drawCanvasPointerMove);
+                window.addEventListener('touchmove', drawCanvasPointerMove, { passive: false });
+                window.addEventListener('mouseup', drawCanvasPointerUp);
+                window.addEventListener('touchend', drawCanvasPointerUp);
+            } else {
+                drawActions.push({ type: 'shape', shape: drawSelectedTool, x: point.x, y: point.y, color: drawSelectedColor });
+                renderDrawCanvas();
+            }
+        }
+
+        function drawCanvasPointerMove(e) {
+            if (!drawActiveStroke) return;
+            if (e.cancelable) e.preventDefault();
+            drawActiveStroke.points.push(drawCanvasPointToSvg(e));
+            renderDrawCanvas();
+        }
+
+        function drawCanvasPointerUp() {
+            drawActiveStroke = null;
+            window.removeEventListener('mousemove', drawCanvasPointerMove);
+            window.removeEventListener('touchmove', drawCanvasPointerMove);
+            window.removeEventListener('mouseup', drawCanvasPointerUp);
+            window.removeEventListener('touchend', drawCanvasPointerUp);
+        }
+
+        function undoDrawShape() {
+            playSound('pop');
+            drawActions.pop();
+            renderDrawCanvas();
+        }
+
+        function clearDrawCanvas() {
+            playSound('pop');
+            drawActions = [];
+            renderDrawCanvas();
+        }
+
+        function saveDrawing() {
+            if (drawActions.length === 0) {
+                playSound('wrong');
+                return;
+            }
+            if (coins < DRAW_COST) {
+                playSound('wrong');
+                return;
+            }
+
+            coins -= DRAW_COST;
+            updateCoinDisplay();
+
+            const innerSvg = drawFullMarkup();
+            const item = {
+                id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                itemType: 'custom_drawing',
+                customSvg: innerSvg,
+                x: 20 + Math.random() * 60,
+                y: 25 + Math.random() * 50,
+                scale: 1.0,
+                color: 'none'
+            };
+
+            if (!worldItemsMap[currentWorldId]) {
+                worldItemsMap[currentWorldId] = [];
+            }
+            worldItemsMap[currentWorldId].push(item);
+
+            renderStageItems();
+            playSound('unlock');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.5 } });
+            }
+            triggerSave();
+            closeDrawModal();
         }
 
         function openSettingsModal() {
