@@ -620,7 +620,8 @@ function renderOpenMessage(m) {
     `<span class="msg-text">${escapeHtml(m.body)}</span> <button class="secondary speak-btn" type="button">🔊 הקראת ההודעה</button>` +
     (m.image ? `<img class="msg-img" src="${m.image}" alt="תמונה מצורפת">` : "") +
     (latestReply
-      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${escapeHtml(latestReply.text)}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button></div>`
+      ? `<div class="reply"><b>תשובה:</b> <span class="msg-text">${escapeHtml(latestReply.text)}</span> <button class="secondary speak-btn" type="button">🔊 הקראת התשובה</button>` +
+        (latestReply.image ? `<img class="msg-img" src="${latestReply.image}" alt="תמונה מצורפת">` : "") + `</div>`
       : `<div class="waiting">עוד לא ענו</div>`) +
     `<button class="secondary chat-btn" type="button" style="margin-top:8px">💬 לשיחה המלאה</button>`;
   const [messageBtn, replyBtn] = div.querySelectorAll(".speak-btn");
