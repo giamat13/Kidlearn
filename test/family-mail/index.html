@@ -240,6 +240,7 @@
 <script src="../shared/kidlearn-emailjs-config.js"></script>
 <script src="../shared/kidlearn-cloud.js"></script>
 <script src="../shared/kidlearn-widget.js"></script>
+<script src="../shared/kidlearn-wallet.js"></script>
 <script>
 KidLearn.init();
 
@@ -360,6 +361,7 @@ document.getElementById("send").onclick = async () => {
   try {
     await KidLearn.sendFamilyMessage(contactId, subject, body, selectedBg, selectedImage);
     status.textContent = "נשלח! 🎉";
+    window.KidLearnWallet && KidLearnWallet.earn(5,{reason:'מכתב נשלח'});
     document.getElementById("body").value = "";
     document.getElementById("subject").value = "";
     selectedBg = null;

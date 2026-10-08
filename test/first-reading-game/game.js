@@ -151,6 +151,7 @@ function checkSentenceAnswer() {
         streak++;
         if (streak > maxStreak) maxStreak = streak;
         correctCount++;
+        window.KidLearnWallet && KidLearnWallet.earn(2, { reason: 'משפט נכון' });
         showFeedback('sFeedbackArea', true);
     } else {
         slots.forEach(s => s.classList.add('wrong-flash'));
@@ -195,6 +196,8 @@ function endGame() {
     document.getElementById('recordBadge').style.display = isRecord ? 'inline-block' : 'none';
 
     const pct = correctCount / roundItems.length;
+    if (pct === 1) window.KidLearnWallet && KidLearnWallet.earn(10, { reason: 'סיבוב מושלם!' });
+    else if (pct >= 0.8) window.KidLearnWallet && KidLearnWallet.earn(5, { reason: 'סיום סיבוב' });
     const title = pct === 1 ? '🏆 מושלם!' : pct >= 0.8 ? '🌟 כל הכבוד!' : pct >= 0.6 ? '😊 יפה!' : '💪 נסה שוב!';
     document.getElementById('endTitle').textContent = title;
 
