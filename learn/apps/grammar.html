@@ -397,6 +397,7 @@
         </div>
     </div>
 
+    <script src="../../shared/kidlearn-wallet.js"></script>
     <script>
         // EXPANDED SMART SCENARIOS DATABASE
         const scenarios = [
@@ -714,6 +715,7 @@
             if (el) el.classList.add('correct');
             document.getElementById('feedback').innerText = "EXCELLENT! 🔥";
             document.getElementById('feedback').className = "h-10 font-bold text-green-500 text-xl animate-bounce";
+            window.KidLearnWallet && KidLearnWallet.earn(2, { reason: 'תשובה נכונה' });
             updateScoreUI(); showPostAnswerActions();
         }
 
@@ -761,7 +763,13 @@
             document.getElementById('finalScore').innerText = score;
             const rank = document.getElementById('rankText');
             if (lives <= 0) { document.getElementById('resultEmoji').innerText = "😵"; document.getElementById('resultTitle').innerText = "Game Over!"; rank.innerText = "Rank: Training Needed"; }
-            else { document.getElementById('resultEmoji').innerText = "🏆"; document.getElementById('resultTitle').innerText = "Mission Accomplished!"; rank.innerText = "Rank: Grammar Master 👑"; }
+            else {
+                document.getElementById('resultEmoji').innerText = "🏆"; document.getElementById('resultTitle').innerText = "Mission Accomplished!"; rank.innerText = "Rank: Grammar Master 👑";
+                if (window.KidLearnWallet && currentActiveQuestions.length >= 5) {
+                    KidLearnWallet.earn(8, { reason: 'סיימת סבב' });
+                    if (score === currentActiveQuestions.length * 10) KidLearnWallet.earn(10, { reason: 'סבב מושלם' });
+                }
+            }
         }
 
         function resetGame() { document.getElementById('resultScreen').classList.add('hidden'); document.getElementById('welcomeScreen').classList.remove('hidden'); score = 0; updateScoreUI(); }

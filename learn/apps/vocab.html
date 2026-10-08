@@ -67,6 +67,7 @@
     <script src="../../shared/kidlearn-cloud.js"></script>
     <script src="../../shared/kidlearn-widget.js"></script>
     <script>KidLearn.init();</script>
+    <script src="../../shared/kidlearn-wallet.js"></script>
     <script>
         class VocabApp {
             constructor() {
@@ -241,6 +242,8 @@
                 const word = this.words[this.currentWordIndex];
                 
                 if (correct) {
+                    // pay only while the word is not yet fully mastered (prevents farming)
+                    if ((word.mastery || 0) < 100) window.KidLearnWallet && KidLearnWallet.earn(1, { reason: 'ידעת מילה' });
                     word.mastery = Math.min(100, (word.mastery || 0) + 20);
                 } else {
                     word.mastery = Math.max(0, (word.mastery || 0) - 10);
@@ -256,6 +259,7 @@
                     this.currentWordIndex++;
                 } else {
                     this.practiceMode = null;
+                    if (this.words.length >= 5) window.KidLearnWallet && KidLearnWallet.earn(5, { reason: 'סיימת תרגול' });
                     alert('סיימת את התרגול! כל הכבוד!');
                 }
                 

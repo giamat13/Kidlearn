@@ -19,6 +19,7 @@
     <script src="../shared/kidlearn-firebase-config.js"></script>
     <script src="../shared/kidlearn-cloud.js"></script>
     <script src="../shared/kidlearn-widget.js"></script>
+    <script src="../shared/kidlearn-wallet.js"></script>
     <script>
         KidLearn.init();
 
@@ -1395,7 +1396,8 @@
 
         // Game State Variables
         let score = 0;
-        let coins = 0;
+        let coins = 0; // mirrors the shared "כסף Kidlearn" wallet
+        KidLearnWallet.onChange(b => { coins = b; updateCoinDisplay(); });
         let soundEnabled = true;
         let soundVolume = 0.5;
         let allowedOps = ['+', '-'];
@@ -1525,7 +1527,8 @@
         function applyLoadedGameState(data) {
             if (!data) return;
             if (typeof data.score === 'number') score = data.score;
-            if (typeof data.coins === 'number') coins = data.coins;
+            // coins used to be private to this game: move them into the shared wallet once
+            if (typeof data.coins === 'number') KidLearnWallet.migrateLegacy('math-adventure', data.coins);
             if (data.worldItemsMap) worldItemsMap = data.worldItemsMap;
             if (data.customMaxRange !== undefined) customMaxRange = data.customMaxRange;
             if (Array.isArray(data.allowedOps) && data.allowedOps.length > 0) allowedOps = data.allowedOps;
@@ -1746,7 +1749,7 @@
                 playSound('correct');
                 score += 2;
                 const coinReward = currentWorldId + 1;
-                coins += coinReward;
+                KidLearnWallet.earn(coinReward, { silent: true });
                 document.getElementById('score-display').innerText = score;
                 updateCoinDisplay();
 
@@ -2131,8 +2134,7 @@
                 return;
             }
 
-            coins -= cost;
-            updateCoinDisplay();
+            if (!KidLearnWallet.spend(cost)) { playSound('wrong'); return; }
             playSound('unlock');
 
             const item = {
@@ -2327,8 +2329,7 @@
                 return;
             }
 
-            coins -= DRAW_COST;
-            updateCoinDisplay();
+            if (!KidLearnWallet.spend(DRAW_COST)) { playSound('wrong'); return; }
 
             const innerSvg = drawFullMarkup();
             const item = {

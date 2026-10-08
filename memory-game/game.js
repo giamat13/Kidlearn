@@ -147,9 +147,15 @@ function checkMatch() {
             matchedPairs++;
             flippedCards = [];
             updateStats();
+            if (matchedPairs < CONFIG.pairsCount) {
+                window.KidLearnWallet && KidLearnWallet.earn(1, { reason: 'זוג!' });
+            }
             
             // בדיקת ניצחון
             if (matchedPairs === CONFIG.pairsCount) {
+                // 1 לכל זוג שנמצא, ובסיום: 5 + בונוס על מעט מהלכים
+                const bonus = moves <= CONFIG.pairsCount * 1.5 ? 5 : moves <= CONFIG.pairsCount * 2 ? 2 : 0;
+                window.KidLearnWallet && KidLearnWallet.earn(1 + 5 + bonus, { reason: 'סיימת את הלוח!' });
                 setTimeout(showVictory, 500);
             }
         }, 500);

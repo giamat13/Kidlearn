@@ -79,6 +79,7 @@ button.btn:hover{background:#ff4f8a;}
 </div>
 <div class="credit">התמונות מ-Wikimedia Commons, Openverse ו-Openclipart (רישיונות חופשיים) · תרגום אוטומטי</div>
 
+<script src="../shared/kidlearn-wallet.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const COMMONS='https://commons.wikimedia.org/w/api.php';
@@ -296,7 +297,12 @@ $('more').onclick=loadMore;
     rec.start();
   };
 })();
-$('print').onclick=()=>window.print();
+const printedPics=new Set(); // reward each picture's first print only
+$('print').onclick=()=>{
+  const u=$('pic').src;
+  if(u&&!printedPics.has(u)){ printedPics.add(u); window.KidLearnWallet&&KidLearnWallet.earn(3,{reason:'הדפסת דף צביעה'}); }
+  window.print();
+};
 </script>
 </body>
 </html>
