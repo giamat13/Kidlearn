@@ -77,7 +77,7 @@ button.btn:hover{background:#ff4f8a;}
     <button class="btn print-btn" id="print" disabled>🖨️ הדפסה</button>
   </div>
 </div>
-<div class="credit">התמונות מ-Wikimedia Commons (רישיונות חופשיים) · תרגום אוטומטי</div>
+<div class="credit">התמונות מ-Wikimedia Commons, Openverse ו-Openclipart (רישיונות חופשיים) · תרגום אוטומטי</div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -101,7 +101,9 @@ async function toEnglish(text){
   return text;
 }
 
-const SUFFIXES=['coloring page','coloring book','line art','outline black and white','black and white drawing','clipart outline'];
+const COMMONS_SUFFIXES=['coloring page','coloring book','coloring sheet','line art','outline black and white','black and white drawing','clipart outline','sketch outline','kids drawing outline'];
+const OPENVERSE_SUFFIXES=['coloring page','coloring book','line art','outline drawing','black and white illustration'];
+const CLIPART_SUFFIXES=['coloring','outline','line art','black white','bw'];
 let state=null;
 
 async function commonsSearch(term,offset){
@@ -112,6 +114,31 @@ async function commonsSearch(term,offset){
     .map(i=>({thumb:i.thumburl,full:i.url}));
   const next=j.continue&&j.continue.gsroffset;
   return {items,next:next===undefined?null:next};
+}
+
+// Openverse: aggregates many open-licence collections (anonymous, no key).
+async function openverseSearch(term,page){
+  const p=new URLSearchParams({q:term,page:String(page),page_size:'20',category:'illustration'});
+  const j=await (await fetch('https://api.openverse.org/v1/images/?'+p)).json();
+  const items=(j.results||[]).filter(r=>r.thumbnail&&r.url&&!/gif$/i.test(r.url)).map(r=>({thumb:r.thumbnail,full:r.url,fallback:r.thumbnail}));
+  return {items,next:(j.page_count&&page<j.page_count)?page+1:null};
+}
+
+// Openclipart: public-domain SVG clipart.
+async function clipartSearch(term,page){
+  const p=new URLSearchParams({query:term,amount:'50',page:String(page)});
+  const j=await (await fetch('https://openclipart.org/search/json/?'+p)).json();
+  const items=(j.payload||[]).filter(r=>r.svg&&(r.svg.png_thumb||r.svg.url)).map(r=>({thumb:r.svg.png_thumb||r.svg.url,full:r.svg.url||r.svg.png_full_lossy,fallback:r.svg.png_full_lossy||r.svg.png_thumb}));
+  const total=+(j.info&&j.info.pages)||0;
+  return {items,next:page<total?page+1:null};
+}
+
+function makeQueries(en){
+  return [
+    ...COMMONS_SUFFIXES.map(sf=>({fetch:commonsSearch,term:en+' '+sf,next:0})),
+    ...OPENVERSE_SUFFIXES.map(sf=>({fetch:openverseSearch,term:en+' '+sf,next:1})),
+    ...CLIPART_SUFFIXES.map(sf=>({fetch:clipartSearch,term:en+' '+sf,next:1}))
+  ];
 }
 
 // Loads the thumbnail, drops it if it failed to load or is already coloured / a photo.
@@ -141,7 +168,7 @@ function checkImage(r){
 function addResult(r){
   const b=document.createElement('button'); r.img.alt='';
   b.appendChild(r.img);
-  b.onclick=()=>{ document.querySelectorAll('.results .sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); choose(r.full); };
+  b.onclick=()=>{ document.querySelectorAll('.results .sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); choose(r.full,r.fallback||r.thumb); };
   $('results').appendChild(b);
 }
 
@@ -154,7 +181,7 @@ async function loadMore(){
     if(!active.length) break;
     $('status').textContent='טוען תמונות…';
     const batches=await Promise.all(active.map(async q=>{
-      try{ const r=await commonsSearch(q.term,q.next); q.next=r.next; return r.items; }
+      try{ const r=await q.fetch(q.term,q.next); q.next=r.next; return r.items; }
       catch(e){ q.next=null; return []; }
     }));
     const fresh=[];
@@ -174,12 +201,14 @@ async function search(raw){
   const q=raw.trim(); if(!q) return;
   $('results').innerHTML=''; $('more').style.display='none'; $('status').textContent='מחפש…';
   const en=await toEnglish(q);
-  state={q,en,seen:new Set(),total:0,busy:false,queries:SUFFIXES.map(sf=>({term:en+' '+sf,next:0}))};
+  state={q,en,seen:new Set(),total:0,busy:false,queries:makeQueries(en)};
   loadMore();
 }
 
-function choose(url){
-  const pic=$('pic'); pic.referrerPolicy='no-referrer'; pic.src=url;
+function choose(url,fallback){
+  const pic=$('pic'); pic.referrerPolicy='no-referrer';
+  pic.onerror=()=>{ pic.onerror=null; if(fallback) pic.src=fallback; };
+  pic.src=url;
   pic.style.display='block'; $('hint').style.display='none'; $('print').disabled=false;
 }
 
