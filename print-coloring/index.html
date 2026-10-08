@@ -102,7 +102,8 @@ async function toEnglish(text){
 }
 
 const COMMONS_SUFFIXES=['coloring page','coloring book','coloring sheet','line art','outline black and white','black and white drawing','clipart outline','sketch outline','kids drawing outline'];
-const OPENVERSE_SUFFIXES=['coloring page','coloring book','line art','outline drawing','black and white illustration'];
+const OPENVERSE_SUFFIXES=['coloring page','line art']; // anonymous Openverse quota is small
+const COMMONS_CATEGORIES=['Coloring pages','Coloring books','Line drawings','Outline drawings','Black and white drawings','Black and white line drawings','Clip art in black and white'];
 const CLIPART_SUFFIXES=['coloring','outline','line art','black white','bw'];
 let state=null;
 
@@ -136,6 +137,7 @@ async function clipartSearch(term,page){
 function makeQueries(en){
   return [
     ...COMMONS_SUFFIXES.map(sf=>({fetch:commonsSearch,term:en+' '+sf,next:0})),
+    ...COMMONS_CATEGORIES.map(c=>({fetch:commonsSearch,term:`${en} incategory:"${c}"`,next:0})),
     ...OPENVERSE_SUFFIXES.map(sf=>({fetch:openverseSearch,term:en+' '+sf,next:1})),
     ...CLIPART_SUFFIXES.map(sf=>({fetch:clipartSearch,term:en+' '+sf,next:1}))
   ];
@@ -172,36 +174,49 @@ function addResult(r){
   $('results').appendChild(b);
 }
 
-async function loadMore(){
-  if(!state||state.busy) return;
-  state.busy=true; $('more').style.display='none';
-  let added=0;
-  for(let round=0;round<8&&added<48;round++){
-    const active=state.queries.filter(q=>q.next!==null);
-    if(!active.length) break;
-    $('status').textContent='טוען תמונות…';
-    const batches=await Promise.all(active.map(async q=>{
-      try{ const r=await q.fetch(q.term,q.next); q.next=r.next; return r.items; }
-      catch(e){ q.next=null; return []; }
-    }));
-    const fresh=[];
-    for(const it of batches.flat()){ if(!state.seen.has(it.full)){ state.seen.add(it.full); fresh.push(it); } }
+function statusText(st,busy){
+  if(!st.total) return busy?'מחפש…':'לא נמצאו תמונות. נסו מילה אחרת 🙂';
+  return (st.en!==st.q?`חיפוש: "${st.en}" · `:'')+`${st.total} תוצאות`+(busy?' · ממשיך לחפש ברקע…':'');
+}
+
+// Every source/query runs on its own: results appear as soon as they arrive,
+// slow or failing sources never hold the others back.
+async function runQuery(st,q){
+  q.running=true; st.running++;
+  while(st===state && q.next!==null && st.total<st.goal){
+    let r;
+    try{ r=await q.fetch(q.term,q.next); q.next=r.next; }
+    catch(e){ q.next=null; break; }
+    if(st!==state) break;
+    const fresh=r.items.filter(it=>!st.seen.has(it.full));
+    fresh.forEach(it=>st.seen.add(it.full));
     await Promise.all(fresh.map(async f=>{
-      const r=await checkImage(f);
-      if(r){ addResult(r); added++; state.total++; $('status').textContent=`${state.total} תוצאות… טוען עוד`; }
+      const c=await checkImage(f);
+      if(c&&st===state){ addResult(c); st.total++; $('status').textContent=statusText(st,true); }
     }));
   }
-  state.busy=false;
-  const more=state.queries.some(q=>q.next!==null);
-  $('status').textContent=state.total?(state.en!==state.q?`חיפוש: "${state.en}" · `:'')+`${state.total} תוצאות`:'לא נמצאו תמונות. נסו מילה אחרת 🙂';
-  $('more').style.display=more&&state.total?'block':'none';
+  q.running=false; st.running--;
+  if(st===state && st.running===0){
+    $('status').textContent=statusText(st,false);
+    $('more').style.display=st.total&&st.queries.some(x=>x.next!==null)?'block':'none';
+  }
+}
+
+function loadMore(){
+  const st=state; if(!st||st.running>0) return;
+  $('more').style.display='none';
+  st.goal=st.total+48;
+  $('status').textContent=statusText(st,true);
+  const todo=st.queries.filter(q=>q.next!==null);
+  if(!todo.length){ $('status').textContent=statusText(st,false); return; }
+  todo.forEach(q=>runQuery(st,q));
 }
 
 async function search(raw){
   const q=raw.trim(); if(!q) return;
   $('results').innerHTML=''; $('more').style.display='none'; $('status').textContent='מחפש…';
   const en=await toEnglish(q);
-  state={q,en,seen:new Set(),total:0,busy:false,queries:makeQueries(en)};
+  state={q,en,seen:new Set(),total:0,goal:0,running:0,queries:makeQueries(en)};
   loadMore();
 }
 
