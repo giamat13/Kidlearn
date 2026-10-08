@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דפי צביעה להדפסה 🖨️</title>
+<link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{min-height:100vh;background:linear-gradient(135deg,#FFF0E6,#E6F0FF);font-family:'Varela Round','Assistant',Arial,sans-serif;direction:rtl;display:flex;flex-direction:column;align-items:center;}
+.header{width:100%;background:linear-gradient(90deg,#FF6B9D,#FF8AB3);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 10px rgba(0,0,0,.15);}
+.back-btn{background:rgba(255,255,255,.3);border:none;color:#fff;font-size:1.4rem;padding:6px 14px;border-radius:10px;cursor:pointer;font-family:inherit;}
+.back-btn:hover{background:rgba(255,255,255,.5);}
+.header h1{color:#fff;font-size:1.6rem;flex:1;text-align:center;text-shadow:1px 2px 4px rgba(0,0,0,.2);}
+.layout{display:flex;gap:20px;padding:16px;width:100%;max-width:1100px;align-items:flex-start;flex-wrap:wrap;justify-content:center;}
+.panel{background:#fff;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(0,0,0,.1);flex:1 1 320px;min-width:280px;}
+.search-row{display:flex;gap:8px;}
+.search-row input{flex:1;font-size:1.2rem;padding:10px 12px;border:2px solid #FFB3CC;border-radius:12px;font-family:inherit;min-width:0;}
+button.btn{background:#FF6B9D;color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:1.1rem;font-family:inherit;cursor:pointer;}
+button.btn:hover{background:#ff4f8a;}
+.status{margin:10px 0;color:#555;min-height:1.4em;font-size:.95rem;}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;max-height:60vh;overflow-y:auto;}
+.results button{border:2px solid #eee;background:#fff;border-radius:10px;padding:4px;cursor:pointer;aspect-ratio:1;}
+.results button.sel,.results button:hover{border-color:#FF6B9D;}
+.results img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;}
+.preview-col{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1 1 360px;}
+.controls{display:flex;gap:10px;align-items:center;background:#fff;padding:8px 14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.1);flex-wrap:wrap;justify-content:center;}
+.controls button{width:42px;height:42px;font-size:1.5rem;border:none;border-radius:50%;background:#60A5FA;color:#fff;cursor:pointer;}
+.controls input[type=range]{width:160px;direction:ltr;}
+.controls span{min-width:3.2em;text-align:center;font-weight:bold;}
+#page{background:#fff;width:min(100%,420px);aspect-ratio:210/297;box-shadow:0 4px 18px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+#page img{width:70%;height:70%;object-fit:contain;mix-blend-mode:multiply;display:none;}
+#page .hint{color:#aaa;font-size:1.1rem;text-align:center;padding:20px;}
+.print-btn{font-size:1.3rem;padding:12px 28px;background:#34D399;}
+.print-btn:hover{background:#10b981;}
+.print-btn:disabled{background:#ccc;cursor:not-allowed;}
+.credit{font-size:.75rem;color:#777;margin:8px 0 16px;text-align:center;}
+@page{size:A4 portrait;margin:0;}
+@media print{
+  html,body{background:#fff !important;margin:0;padding:0;min-height:0;display:block;}
+  body *{visibility:hidden;}
+  #page,#page *{visibility:visible;}
+  #page .hint{display:none;}
+  #page{position:fixed;top:0;left:0;width:210mm;height:297mm;box-shadow:none;margin:0;}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <button class="back-btn" onclick="location.href='../index.html'">→</button>
+  <h1>דפי צביעה להדפסה 🖨️</h1>
+  <span style="width:50px"></span>
+</div>
+
+<div class="layout">
+  <div class="panel">
+    <form class="search-row" id="form">
+      <input id="q" type="search" placeholder="חפשו: חד קרן, חללית, כלבלב..." autocomplete="off">
+      <button class="btn" type="submit">🔍</button>
+    </form>
+    <div class="status" id="status"></div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <div class="preview-col">
+    <div id="page"><div class="hint" id="hint">חפשו תמונה ובחרו אותה 🎨</div><img id="pic" alt=""></div>
+    <div class="controls">
+      <button id="minus" aria-label="הקטן">−</button>
+      <input id="zoom" type="range" min="20" max="100" step="5" value="70" aria-label="גודל">
+      <button id="plus" aria-label="הגדל">+</button>
+      <span id="zoomVal">70%</span>
+    </div>
+    <button class="btn print-btn" id="print" disabled>🖨️ הדפסה</button>
+  </div>
+</div>
+<div class="credit">התמונות מ-Wikimedia Commons (רישיונות חופשיים) · תרגום אוטומטי</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const COMMONS='https://commons.wikimedia.org/w/api.php';
+
+// Translate any language -> English. Latin-only input is used as is.
+async function toEnglish(text){
+  if(/^[\x00-\x7F]+$/.test(text)) return text;
+  try{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q='+encodeURIComponent(text));
+    const j=await r.json();
+    const t=j[0].map(s=>s[0]).join('').trim();
+    if(t) return t;
+  }catch(e){}
+  try{
+    const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=autodetect|en');
+    const j=await r.json();
+    const t=(j.responseData&&j.responseData.translatedText||'').trim();
+    if(t) return t;
+  }catch(e){}
+  return text;
+}
+
+async function commonsSearch(term){
+  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'30',gsrsearch:term,prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'1200'});
+  const j=await (await fetch(COMMONS+'?'+p)).json();
+  const pages=Object.values((j.query&&j.query.pages)||{}).sort((a,b)=>a.index-b.index);
+  return pages.map(pg=>pg.imageinfo&&pg.imageinfo[0]).filter(i=>i&&/^image\/(png|jpeg|svg\+xml|gif)/.test(i.mime)&&i.thumburl)
+    .map(i=>({thumb:i.thumburl.replace(/\/\d+px-/,'/300px-'),full:i.thumburl}));
+}
+
+async function search(raw){
+  const q=raw.trim(); if(!q) return;
+  $('results').innerHTML=''; $('status').textContent='מחפש…';
+  const en=await toEnglish(q);
+  const seen=new Set(), out=[];
+  for(const suffix of ['coloring page','line art','outline black and white drawing']){
+    try{
+      for(const r of await commonsSearch(en+' '+suffix)){ if(!seen.has(r.full)){seen.add(r.full);out.push(r);} }
+    }catch(e){}
+    if(out.length>=24) break;
+  }
+  if(!out.length){ $('status').textContent='לא נמצאו תמונות. נסו מילה אחרת 🙂'; return; }
+  $('status').textContent=(en!==q?`חיפוש: "${en}" · `:'')+`${out.length} תוצאות`;
+  for(const r of out){
+    const b=document.createElement('button'), im=document.createElement('img');
+    im.src=r.thumb; im.loading='lazy'; im.alt=''; im.referrerPolicy='no-referrer';
+    b.appendChild(im);
+    b.onclick=()=>{ document.querySelectorAll('.results .sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); choose(r.full); };
+    $('results').appendChild(b);
+  }
+}
+
+function choose(url){
+  const pic=$('pic'); pic.referrerPolicy='no-referrer'; pic.src=url;
+  pic.style.display='block'; $('hint').style.display='none'; $('print').disabled=false;
+}
+
+function setZoom(v){
+  v=Math.max(20,Math.min(100,v));
+  $('zoom').value=v; $('zoomVal').textContent=v+'%';
+  $('pic').style.width=v+'%'; $('pic').style.height=v+'%';
+}
+$('zoom').oninput=e=>setZoom(+e.target.value);
+$('plus').onclick=()=>setZoom(+$('zoom').value+5);
+$('minus').onclick=()=>setZoom(+$('zoom').value-5);
+$('form').onsubmit=e=>{e.preventDefault();search($('q').value);};
+$('print').onclick=()=>window.print();
+</script>
+</body>
+</html>

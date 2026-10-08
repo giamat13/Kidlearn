@@ -363,6 +363,16 @@
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
+      "id": "print-coloring",
+      "title": "דפי צביעה להדפסה",
+      "description": "חפשו כל נושא בכל שפה, בחרו דף צביעה, התאימו גודל והדפיסו על A4.",
+      "icon": "🖨️",
+      "url": "print-coloring/index.html",
+      "categories": ["games"],
+      "grade": ["preschool", "kindergarten", "first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
       "id": "ruler-design",
       "title": "עיצוב סרגל מתקפל",
       "description": "צובעים ומקשטים סרגל מתקפל בדרך יצירתית ומהנה.",
