@@ -424,6 +424,7 @@
   </div>
 </div>
 
+<script src="../shared/kidlearn-wallet.js"></script>
 <script>
 // ========= STATE =========
 const COLORS = [
@@ -506,7 +507,9 @@ function setupTools() {
 const rc = document.getElementById('rulerCanvas');
 const rctx = rc.getContext('2d');
 
+let rulerRewarded = false; // one reward per ruler design (reset when the design is cleared)
 function initRuler() {
+  rulerRewarded = false;
   drawRulerBase(rctx, rc.width, rc.height);
 }
 
@@ -763,6 +766,10 @@ function handleCut(x) {
     document.getElementById('cutProgress').textContent = '✅ הסרגל נגזר!';
     document.getElementById('cutDoneBtn').style.display = 'inline-block';
     confettiPop();
+    if (!rulerRewarded) {
+      rulerRewarded = true;
+      window.KidLearnWallet && KidLearnWallet.earn(10,{reason:'הסרגל מוכן'});
+    }
   }
 }
 

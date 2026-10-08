@@ -65,6 +65,7 @@ button{padding:12px 24px;font-size:18px;margin:5px;color:white;border:none;borde
   </div>
 </div>
 
+<script src="../shared/kidlearn-wallet.js"></script>
 <script>
 // ---- רקעים ----
 const backgrounds = ['#6a6fd5','#ff6b6b','#44a08d','#f6e58d','#cd7f32','#c0c0c0','#ffd700','rainbow'];
@@ -216,6 +217,7 @@ function finishRound(points){
     new Audio('../effects/Confetti.mp3').play().catch(()=>{});
     new Audio('../effects/newlevel.mp3').play().catch(()=>{});
     clickCounterForConfetti = 0;
+    if(gameMode==="find") window.KidLearnWallet && KidLearnWallet.earn(5,{reason:'שלב חדש'});
     updateProgressBar();
   }
   startRound();
@@ -230,6 +232,7 @@ document.getElementById('foundButton').onclick = () => {
   let totalPoints = basePoints + bonus;
 
   if(foundCount===totalItems){
+    window.KidLearnWallet && KidLearnWallet.earn(5,{reason:'מצאת הכל'});
     finishRound(totalPoints);
     document.getElementById('message').innerText='סיימת את הסיבוב!';
   }
@@ -237,6 +240,8 @@ document.getElementById('foundButton').onclick = () => {
 document.getElementById('foundAllButton').onclick = () => {
   let basePoints = Math.max(10 - Math.floor((new Date() - startTime)/1000),1);
   let bonus = Math.min(Math.max(previousDigit - totalItems,0),2);
+  // לחיצה "מצאתי הכל" מדווחת בעצמה - מתגמלים רק אם עבר זמן סביר מתחילת הסיבוב
+  if(new Date() - startTime >= 2000) window.KidLearnWallet && KidLearnWallet.earn(3,{reason:'סיימת סיבוב'});
   finishRound(basePoints + bonus);
   document.getElementById('message').innerText='סיימת את הסיבוב!';
 };
@@ -295,4 +300,4 @@ loadFonts().then(() => {
 </script>
 <script src="../effects/gamepad-ui.js"></script>
 </body>
-</html>
+</html>
