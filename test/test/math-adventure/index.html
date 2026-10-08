@@ -19,6 +19,7 @@
     <script src="../shared/kidlearn-firebase-config.js"></script>
     <script src="../shared/kidlearn-cloud.js"></script>
     <script src="../shared/kidlearn-widget.js"></script>
+    <script src="../shared/kidlearn-wallet.js"></script>
     <script>
         KidLearn.init();
 
@@ -98,6 +99,33 @@
         }
         .stage-theme-6 {
             background: linear-gradient(to bottom, #fbcfe8 0%, #f0abfc 40%, #c4b5fd 40%, #a78bfa 70%, #ddd6fe 70%, #f5d0fe 100%);
+        }
+        .stage-theme-7 {
+            background: linear-gradient(to bottom, #7dd3fc 0%, #fde68a 45%, #eab308 45%, #b45309 100%);
+        }
+        .stage-theme-8 {
+            background: linear-gradient(to bottom, #93c5fd 0%, #fdba74 45%, #ea580c 45%, #7c2d12 100%);
+        }
+        .stage-theme-9 {
+            background: linear-gradient(to bottom, #0f172a 0%, #1e1b4b 50%, #312e81 50%, #4c1d95 100%);
+        }
+        .stage-theme-10 {
+            background: linear-gradient(to bottom, #451a03 0%, #c2410c 45%, #9a3412 45%, #451a03 100%);
+        }
+        .stage-theme-11 {
+            background: linear-gradient(to bottom, #0f766e 0%, #14b8a6 52%, #164e63 52%, #083344 100%);
+        }
+        .stage-theme-12 {
+            background: linear-gradient(to bottom, #312e81 0%, #6366f1 48%, #581c87 48%, #3b0764 100%);
+        }
+        .stage-theme-13 {
+            background: linear-gradient(to bottom, #fbbf24 0%, #f59e0b 48%, #92400e 48%, #451a03 100%);
+        }
+        .stage-theme-14 {
+            background: linear-gradient(to bottom, #172554 0%, #1d4ed8 50%, #0f172a 50%, #020617 100%);
+        }
+        .stage-theme-15 {
+            background: linear-gradient(to bottom, #7e22ce 0%, #c026d3 45%, #701a75 45%, #3b0764 100%);
         }
 
         /* Shop Item Card Styling */
@@ -241,7 +269,7 @@
                         </div>
                         <h3 class="font-bold text-lg text-emerald-300">2. הפארק הירוק</h3>
                         <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
-                        <span id="node-badge-2" class="mt-2 text-xs bg-emerald-500/30 border border-emerald-400 text-emerald-200 font-extrabold px-3 py-1 rounded-full">10 נקודות</span>
+                        <span id="node-badge-2" class="mt-2 text-xs bg-emerald-500/30 border border-emerald-400 text-emerald-200 font-extrabold px-3 py-1 rounded-full">20 נקודות</span>
                     </div>
 
                     <!-- World 3 -->
@@ -253,7 +281,7 @@
                         </div>
                         <h3 class="font-bold text-lg text-teal-300">3. ג'ונגל ההרפתקאות</h3>
                         <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
-                        <span id="node-badge-3" class="mt-2 text-xs bg-teal-500/30 border border-teal-400 text-teal-200 font-extrabold px-3 py-1 rounded-full">24 נקודות</span>
+                        <span id="node-badge-3" class="mt-2 text-xs bg-teal-500/30 border border-teal-400 text-teal-200 font-extrabold px-3 py-1 rounded-full">50 נקודות</span>
                     </div>
 
                     <!-- World 4 -->
@@ -265,7 +293,7 @@
                         </div>
                         <h3 class="font-bold text-lg text-sky-300">4. חוף השמש והגלים</h3>
                         <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
-                        <span id="node-badge-4" class="mt-2 text-xs bg-sky-500/30 border border-sky-400 text-sky-200 font-extrabold px-3 py-1 rounded-full">40 נקודות</span>
+                        <span id="node-badge-4" class="mt-2 text-xs bg-sky-500/30 border border-sky-400 text-sky-200 font-extrabold px-3 py-1 rounded-full">90 נקודות</span>
                     </div>
 
                     <!-- World 5 -->
@@ -277,7 +305,7 @@
                         </div>
                         <h3 class="font-bold text-lg text-blue-200">5. ארמון השלג</h3>
                         <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
-                        <span id="node-badge-5" class="mt-2 text-xs bg-blue-500/30 border border-blue-400 text-blue-200 font-extrabold px-3 py-1 rounded-full">60 נקודות</span>
+                        <span id="node-badge-5" class="mt-2 text-xs bg-blue-500/30 border border-blue-400 text-blue-200 font-extrabold px-3 py-1 rounded-full">140 נקודות</span>
                     </div>
 
                     <!-- World 6 -->
@@ -289,7 +317,105 @@
                         </div>
                         <h3 class="font-bold text-lg text-fuchsia-200">6. עולם חד-הקרן הקסום</h3>
                         <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
-                        <span id="node-badge-6" class="mt-2 text-xs bg-fuchsia-500/30 border border-fuchsia-400 text-fuchsia-200 font-extrabold px-3 py-1 rounded-full">80 נקודות</span>
+                        <span id="node-badge-6" class="mt-2 text-xs bg-fuchsia-500/30 border border-fuchsia-400 text-fuchsia-200 font-extrabold px-3 py-1 rounded-full">200 נקודות</span>
+                    </div>
+
+                    <!-- World 7 -->
+                    <div id="node-7" onclick="selectWorld(7)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-600 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-7">
+                            <div id="lock-icon-7" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-amber-300">7. הסוואנה הפראית</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-7" class="mt-2 text-xs bg-amber-500/30 border border-amber-400 text-amber-200 font-extrabold px-3 py-1 rounded-full">270 נקודות</span>
+                    </div>
+
+                    <!-- World 8 -->
+                    <div id="node-8" onclick="selectWorld(8)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-orange-600 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-8">
+                            <div id="lock-icon-8" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-orange-300">8. המדבר הזהוב</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-8" class="mt-2 text-xs bg-orange-500/30 border border-orange-400 text-orange-200 font-extrabold px-3 py-1 rounded-full">350 נקודות</span>
+                    </div>
+
+                    <!-- World 9 -->
+                    <div id="node-9" onclick="selectWorld(9)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-indigo-700 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-9">
+                            <div id="lock-icon-9" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-indigo-300">9. תחנת החלל</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-9" class="mt-2 text-xs bg-indigo-500/30 border border-indigo-400 text-indigo-200 font-extrabold px-3 py-1 rounded-full">450 נקודות</span>
+                    </div>
+
+                    <!-- World 10 -->
+                    <div id="node-10" onclick="selectWorld(10)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-red-700 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-10">
+                            <div id="lock-icon-10" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-red-300">10. כוכב מאדים</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-10" class="mt-2 text-xs bg-red-500/30 border border-red-400 text-red-200 font-extrabold px-3 py-1 rounded-full">600 נקודות</span>
+                    </div>
+
+                    <!-- World 11 -->
+                    <div id="node-11" onclick="selectWorld(11)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-teal-500 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-11">
+                            <div id="lock-icon-11" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl"><i class="fa-solid fa-lock"></i></div>
+                        </div>
+                        <h3 class="font-bold text-lg text-teal-200">11. ממלכת העננים</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-11" class="mt-2 text-xs bg-teal-500/30 border border-teal-400 text-teal-200 font-extrabold px-3 py-1 rounded-full">800 נקודות</span>
+                    </div>
+
+                    <!-- World 12 -->
+                    <div id="node-12" onclick="selectWorld(12)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-12">
+                            <div id="lock-icon-12" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl"><i class="fa-solid fa-lock"></i></div>
+                        </div>
+                        <h3 class="font-bold text-lg text-indigo-200">12. ארמון הקסמים</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-12" class="mt-2 text-xs bg-indigo-500/30 border border-indigo-400 text-indigo-200 font-extrabold px-3 py-1 rounded-full">1,000 נקודות</span>
+                    </div>
+
+                    <!-- World 13 -->
+                    <div id="node-13" onclick="selectWorld(13)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-yellow-500 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-13">
+                            <div id="lock-icon-13" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl"><i class="fa-solid fa-lock"></i></div>
+                        </div>
+                        <h3 class="font-bold text-lg text-yellow-200">13. עמק האוצרות</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-13" class="mt-2 text-xs bg-yellow-500/30 border border-yellow-400 text-yellow-200 font-extrabold px-3 py-1 rounded-full">1,200 נקודות</span>
+                    </div>
+
+                    <!-- World 14 -->
+                    <div id="node-14" onclick="selectWorld(14)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-blue-700 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-14">
+                            <div id="lock-icon-14" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl"><i class="fa-solid fa-lock"></i></div>
+                        </div>
+                        <h3 class="font-bold text-lg text-blue-200">14. גלקסיית הכוכבים</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-14" class="mt-2 text-xs bg-blue-500/30 border border-blue-400 text-blue-200 font-extrabold px-3 py-1 rounded-full">1,350 נקודות</span>
+                    </div>
+
+                    <!-- World 15 -->
+                    <div id="node-15" onclick="selectWorld(15)" class="map-node cursor-pointer locked bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-4 flex flex-col items-center text-center shadow-xl relative opacity-75">
+                        <div class="w-16 h-16 rounded-2xl bg-fuchsia-600 flex items-center justify-center shadow-lg mb-2 relative p-2" id="node-icon-15">
+                            <div id="lock-icon-15" class="lock-icon absolute inset-0 bg-slate-950/80 rounded-2xl flex items-center justify-center text-yellow-400 text-xl"><i class="fa-solid fa-lock"></i></div>
+                        </div>
+                        <h3 class="font-bold text-lg text-fuchsia-200">15. יהלום החלומות</h3>
+                        <p class="text-xs text-slate-400 mt-1">נדרש לפתוח:</p>
+                        <span id="node-badge-15" class="mt-2 text-xs bg-fuchsia-500/30 border border-fuchsia-400 text-fuchsia-200 font-extrabold px-3 py-1 rounded-full">1,500 נקודות</span>
                     </div>
 
                 </div>
@@ -447,7 +573,54 @@
                 <span class="text-xs text-slate-900 font-bold ml-1 rtl-dir">כסף זמין</span>
             </div>
 
+            <button onclick="openDrawModal()" class="mb-4 w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-black text-sm py-2.5 rounded-2xl border-2 border-purple-300 shadow-lg flex items-center justify-center gap-2 transition transform active:scale-95">
+                <i class="fa-solid fa-paintbrush"></i> צייר ציור משלך!
+            </button>
+
             <div id="shop-items-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-1 flex-1">
+            </div>
+        </div>
+    </div>
+
+    <!-- Draw Modal -->
+    <div id="draw-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden rtl-dir">
+        <div class="dark-glass max-w-2xl w-full rounded-3xl p-5 sm:p-6 text-right border-2 border-purple-400/80 shadow-2xl relative max-h-[90vh] flex flex-col">
+            <button onclick="closeDrawModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-2xl font-black text-purple-300 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-paintbrush"></i> צייר ציור משלך
+            </h3>
+            <p class="text-sm text-slate-300 mb-2">צייר חופשי עם המברשת או הטביעו צורות, ואז שמרו בעולם שלכם!</p>
+
+            <div class="bg-gradient-to-r from-purple-400 to-pink-500 text-slate-950 font-black text-sm px-4 py-1.5 rounded-2xl shadow-lg flex items-center gap-2 border-2 border-purple-200 w-fit mb-3 ltr-dir">
+                <i class="fa-solid fa-coins text-yellow-100"></i>
+                <span id="draw-coins-display">0</span>
+                <span class="text-xs text-slate-900 font-bold ml-1 rtl-dir">עלות שמירה: <span id="draw-cost-display"></span></span>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-3" id="draw-shape-palette">
+                <!-- shape buttons injected by JS -->
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 mb-3" id="draw-color-palette">
+                <!-- color swatches injected by JS -->
+            </div>
+
+            <div class="rounded-2xl overflow-hidden border-2 border-slate-700 bg-white mb-3" style="touch-action:none;">
+                <svg id="draw-svg-canvas" viewBox="0 0 300 220" class="w-full" style="aspect-ratio:300/220; display:block; cursor:crosshair;" onmousedown="drawCanvasPointerDown(event)" ontouchstart="drawCanvasPointerDown(event)"></svg>
+            </div>
+
+            <div class="flex flex-wrap gap-2 justify-between">
+                <button onclick="undoDrawShape()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm py-2 px-4 rounded-xl border border-slate-600">
+                    <i class="fa-solid fa-rotate-left"></i> בטל צורה
+                </button>
+                <button onclick="clearDrawCanvas()" class="bg-red-700 hover:bg-red-600 text-white font-bold text-xs sm:text-sm py-2 px-4 rounded-xl border border-red-500">
+                    <i class="fa-solid fa-trash"></i> נקה הכל
+                </button>
+                <button onclick="saveDrawing()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm py-2 px-5 rounded-xl border border-emerald-300">
+                    <i class="fa-solid fa-check"></i> שמור בעולם שלי
+                </button>
             </div>
         </div>
     </div>
@@ -544,21 +717,40 @@
         // Game Configuration & Constants
         const WORLDS_CONFIG = {
             1: { name: 'סלון הבית הקסום', iconType: 'sofa', reqScore: 0, defaultMax: 10, themeClass: 'stage-theme-1' },
-            2: { name: 'הפארק הירוק', iconType: 'tree', reqScore: 10, defaultMax: 20, themeClass: 'stage-theme-2' },
-            3: { name: "ג'ונגל ההרפתקאות", iconType: 'palm', reqScore: 24, defaultMax: 40, themeClass: 'stage-theme-3' },
-            4: { name: 'חוף השמש והגלים', iconType: 'beach_umbrella', reqScore: 40, defaultMax: 50, themeClass: 'stage-theme-4' },
-            5: { name: 'ארמון השלג', iconType: 'snowman', reqScore: 60, defaultMax: 100, themeClass: 'stage-theme-5' },
-            6: { name: 'עולם חד-הקרן הקסום', iconType: 'unicorn', reqScore: 80, defaultMax: 150, themeClass: 'stage-theme-6' }
+            2: { name: 'הפארק הירוק', iconType: 'tree', reqScore: 20, defaultMax: 20, themeClass: 'stage-theme-2' },
+            3: { name: "ג'ונגל ההרפתקאות", iconType: 'palm', reqScore: 50, defaultMax: 40, themeClass: 'stage-theme-3' },
+            4: { name: 'חוף השמש והגלים', iconType: 'beach_umbrella', reqScore: 90, defaultMax: 50, themeClass: 'stage-theme-4' },
+            5: { name: 'ארמון השלג', iconType: 'snowman', reqScore: 140, defaultMax: 100, themeClass: 'stage-theme-5' },
+            6: { name: 'עולם חד-הקרן הקסום', iconType: 'unicorn', reqScore: 200, defaultMax: 150, themeClass: 'stage-theme-6' },
+            7: { name: 'הסוואנה הפראית', iconType: 'lion', reqScore: 270, defaultMax: 200, themeClass: 'stage-theme-7' },
+            8: { name: 'המדבר הזהוב', iconType: 'cactus', reqScore: 350, defaultMax: 300, themeClass: 'stage-theme-8' },
+            9: { name: 'תחנת החלל', iconType: 'rocket', reqScore: 450, defaultMax: 500, themeClass: 'stage-theme-9' },
+            10: { name: 'כוכב מאדים', iconType: 'mars_rover', reqScore: 600, defaultMax: 1000, themeClass: 'stage-theme-10' },
+            11: { name: 'ממלכת העננים', iconType: 'cloud_cute', reqScore: 800, defaultMax: 1200, themeClass: 'stage-theme-11' },
+            12: { name: 'ארמון הקסמים', iconType: 'castle_pink', reqScore: 1000, defaultMax: 1500, themeClass: 'stage-theme-12' },
+            13: { name: 'עמק האוצרות', iconType: 'pyramid', reqScore: 1200, defaultMax: 2000, themeClass: 'stage-theme-13' },
+            14: { name: 'גלקסיית הכוכבים', iconType: 'ufo', reqScore: 1350, defaultMax: 2500, themeClass: 'stage-theme-14' },
+            15: { name: 'יהלום החלומות', iconType: 'gem_heart', reqScore: 1500, defaultMax: 3000, themeClass: 'stage-theme-15' }
         };
+        const WORLD_COUNT = Object.keys(WORLDS_CONFIG).length;
 
         // Unique decoration item pools using vector SVG keys
         const WORLD_DECOR_POOL = {
             1: ['sofa', 'armchair', 'plant', 'tv', 'lamp', 'window', 'clock', 'table'],
             2: ['tree', 'flower', 'fountain', 'bench', 'bicycle', 'balloon', 'bird', 'rock'],
             3: ['palm', 'tent', 'gem', 'totem', 'flower_exotic', 'mushroom', 'chest', 'vine'],
-            4: ['beach_umbrella', 'surfboard', 'sailboat', 'sandcastle', 'shell', 'crab', 'coconut', 'ball'],
+            4: ['beach_umbrella', 'beach_chair', 'surfboard', 'sailboat', 'sandcastle', 'shell', 'crab', 'coconut', 'ball'],
             5: ['snowman', 'snowflake', 'ice_castle', 'sleigh', 'pine_tree', 'crown', 'gift', 'candle'],
-            6: ['unicorn', 'rainbow', 'star_sparkle', 'cloud_cute', 'castle_pink', 'flower_magic', 'moon_magic', 'gem_heart']
+            6: ['unicorn', 'rainbow', 'star_sparkle', 'cloud_cute', 'castle_pink', 'flower_magic', 'moon_magic', 'gem_heart'],
+            7: ['lion', 'giraffe', 'elephant', 'zebra', 'acacia', 'watering_hole', 'vulture', 'sun_savanna'],
+            8: ['cactus', 'camel', 'pyramid', 'oasis', 'dune', 'scorpion', 'desert_sun', 'tumbleweed'],
+            9: ['rocket', 'planet_ringed', 'ufo', 'astronaut', 'satellite', 'comet', 'moon_crater', 'alien'],
+            10: ['mars_rover', 'mars_flag', 'mars_crater', 'mars_rock', 'mars_dome', 'mars_moon', 'mars_alien', 'satellite_dish'],
+            11: ['cloud_cute', 'rainbow', 'star_sparkle', 'moon_magic', 'flower_magic', 'gem_heart', 'bird', 'comet'],
+            12: ['castle_pink', 'crown', 'gem', 'rainbow', 'moon_magic', 'star_sparkle', 'flower_magic', 'gem_heart'],
+            13: ['pyramid', 'chest', 'gem', 'camel', 'oasis', 'cactus', 'mars_rock', 'crown'],
+            14: ['ufo', 'planet_ringed', 'rocket', 'astronaut', 'satellite', 'comet', 'alien', 'moon_crater'],
+            15: ['gem_heart', 'star_sparkle', 'rainbow', 'castle_pink', 'unicorn', 'moon_magic', 'crown', 'gem']
         };
 
         // Coin price for each shop item (used by the item shop)
@@ -566,9 +758,13 @@
             sofa: 6, armchair: 6, plant: 4, tv: 8, lamp: 5, window: 5, clock: 6, table: 5,
             tree: 5, flower: 4, fountain: 8, bench: 5, bicycle: 6, balloon: 4, bird: 5, rock: 4,
             palm: 6, tent: 7, gem: 9, totem: 8, flower_exotic: 6, mushroom: 5, chest: 9, vine: 5,
-            beach_umbrella: 6, surfboard: 7, sailboat: 9, sandcastle: 7, shell: 4, crab: 5, coconut: 5, ball: 4,
+            beach_umbrella: 6, beach_chair: 7, surfboard: 7, sailboat: 9, sandcastle: 7, shell: 4, crab: 5, coconut: 5, ball: 4,
             snowman: 8, snowflake: 4, ice_castle: 10, sleigh: 9, pine_tree: 6, crown: 9, gift: 6, candle: 5,
-            unicorn: 12, rainbow: 10, star_sparkle: 6, cloud_cute: 6, castle_pink: 12, flower_magic: 7, moon_magic: 8, gem_heart: 10
+            unicorn: 12, rainbow: 10, star_sparkle: 6, cloud_cute: 6, castle_pink: 12, flower_magic: 7, moon_magic: 8, gem_heart: 10,
+            lion: 11, giraffe: 10, elephant: 12, zebra: 9, acacia: 6, watering_hole: 7, vulture: 6, sun_savanna: 5,
+            cactus: 6, camel: 10, pyramid: 12, oasis: 8, dune: 5, scorpion: 7, desert_sun: 5, tumbleweed: 4,
+            rocket: 13, planet_ringed: 11, ufo: 10, astronaut: 12, satellite: 9, comet: 7, moon_crater: 6, alien: 9,
+            mars_rover: 14, mars_flag: 8, mars_crater: 6, mars_rock: 5, mars_dome: 13, mars_moon: 8, mars_alien: 10, satellite_dish: 9
         };
 
         // Item names translation map for friendly label text
@@ -579,12 +775,20 @@
             bicycle: 'אופניים', balloon: 'בלון צבעוני', bird: 'ציפור שיר', rock: 'סלע נוי',
             palm: 'עץ דקל', tent: 'אוהל הרפתקאות', gem: 'קריסטל קסום', totem: "פסל ג'ונגל",
             flower_exotic: 'פרח טרופי', mushroom: 'פטרייה מוארת', chest: 'תיבת אוצר', vine: 'צמח מטפס',
-            beach_umbrella: 'שמשיית חוף', surfboard: 'גלשן גלים', sailboat: 'מפרשית', sandcastle: 'ארמון חול',
+            beach_umbrella: 'שמשיית חוף', beach_chair: 'כיסא ים', surfboard: 'גלשן גלים', sailboat: 'מפרשית', sandcastle: 'ארמון חול',
             shell: 'קונכייה', crab: 'סרטן חוף', coconut: 'משקה קוקוס', ball: 'כדור ים',
             snowman: 'איש שלג', snowflake: 'פתית שלג', ice_castle: 'ארמון קרח', sleigh: 'מזחלת מושלגת',
             pine_tree: 'עץ אשוח', crown: 'כתר קרח', gift: 'קופסת מתנה', candle: 'נר חגיגי',
             unicorn: 'חד-קרן קסום', rainbow: 'קשת בענן', star_sparkle: 'כוכב נוצץ', cloud_cute: 'עננון חמוד',
-            castle_pink: 'ארמון ורוד', flower_magic: 'פרח קסם', moon_magic: 'ירח קסום', gem_heart: 'קריסטל לב'
+            castle_pink: 'ארמון ורוד', flower_magic: 'פרח קסם', moon_magic: 'ירח קסום', gem_heart: 'קריסטל לב',
+            lion: 'אריה מלך', giraffe: 'ג\'ירפה', elephant: 'פיל ענק', zebra: 'זברה פסים',
+            acacia: 'עץ שיטה', watering_hole: 'בריכת מים', vulture: 'עוף דורס', sun_savanna: 'שמש הסוואנה',
+            cactus: 'קקטוס', camel: 'גמל המדבר', pyramid: 'פירמידה', oasis: 'נווה מדבר',
+            dune: 'דיונת חול', scorpion: 'עקרב', desert_sun: 'שמש לוהטת', tumbleweed: 'שיח נודד',
+            rocket: 'טיל חלל', planet_ringed: 'כוכב לכת עם טבעת', ufo: 'צלחת מעופפת', astronaut: 'אסטרונאוט',
+            satellite: 'לוויין', comet: 'שביט', moon_crater: 'ירח מכתשים', alien: 'חייזר',
+            mars_rover: 'רכב חלליות', mars_flag: 'דגל על מאדים', mars_crater: 'מכתש מאדים', mars_rock: 'סלע אדום',
+            mars_dome: 'כיפת מגורים', mars_moon: 'פובוס הירח', mars_alien: 'מאדימון', satellite_dish: 'צלחת קליטה'
         };
 
         // SVG Graphics Generator function with color customization support
@@ -771,6 +975,13 @@
                         <path d="M20 26 C20 12 44 12 44 26 Z" fill="#ffffff"/>
                         <path d="M28 26 C28 12 36 12 36 26 Z" fill="${fill || '#f43f5e'}"/>
                     </svg>`;
+                case 'beach_chair':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M16 12 L48 12 L42 38 L22 38 Z" fill="${fill || '#f97316'}"/>
+                        <path d="M22 38 L14 58 M42 38 L50 58" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M18 42 H46" stroke="#f8fafc" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M16 12 L10 6 M48 12 L54 6" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
+                    </svg>`;
                 case 'surfboard':
                     return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
                         <path d="M32 6 C18 20 18 44 32 58 C46 44 46 20 32 6 Z" fill="${fill || '#06b6d4'}"/>
@@ -941,6 +1152,243 @@
                         <path d="M32 24 C30 20 28 18 24 14 C18 8 8 12 8 22 C8 26 9 30 12 34 L32 24 Z" fill="#fbcfe8"/>
                     </svg>`;
 
+                // World 7 - Savanna
+                case 'lion':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="20" fill="${fill || '#b45309'}"/>
+                        <circle cx="32" cy="32" r="12" fill="#fbbf24"/>
+                        <circle cx="24" cy="28" r="2" fill="#0f172a"/>
+                        <circle cx="40" cy="28" r="2" fill="#0f172a"/>
+                        <path d="M32 32 L28 38 H36 Z" fill="#78350f"/>
+                    </svg>`;
+                case 'giraffe':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="30" cy="48" rx="14" ry="8" fill="${fill || '#fbbf24'}"/>
+                        <rect x="24" y="16" width="8" height="34" rx="3" fill="${fill || '#fbbf24'}"/>
+                        <circle cx="28" cy="12" r="8" fill="${fill || '#fbbf24'}"/>
+                        <rect x="18" y="50" width="4" height="8" fill="#78350f"/>
+                        <rect x="38" y="50" width="4" height="8" fill="#78350f"/>
+                        <circle cx="25" cy="4" r="2" fill="#78350f"/>
+                        <circle cx="31" cy="4" r="2" fill="#78350f"/>
+                        <circle cx="25" cy="18" r="1.5" fill="#92400e"/>
+                        <circle cx="30" cy="28" r="1.5" fill="#92400e"/>
+                    </svg>`;
+                case 'elephant':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="30" cy="34" rx="20" ry="16" fill="${fill || '#94a3b8'}"/>
+                        <circle cx="16" cy="24" r="10" fill="${fill || '#94a3b8'}"/>
+                        <path d="M14 40 C10 48 12 56 18 56 C16 48 16 44 20 40 Z" fill="${fill || '#94a3b8'}"/>
+                        <circle cx="14" cy="22" r="1.6" fill="#0f172a"/>
+                        <ellipse cx="8" cy="30" rx="6" ry="8" fill="#64748b"/>
+                        <rect x="20" y="48" width="5" height="10" fill="#64748b"/>
+                        <rect x="40" y="48" width="5" height="10" fill="#64748b"/>
+                    </svg>`;
+                case 'zebra':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="30" cy="36" rx="20" ry="12" fill="#f8fafc"/>
+                        <circle cx="12" cy="24" r="8" fill="#f8fafc"/>
+                        <path d="M16 30 L14 40 M22 28 L20 42 M28 28 L27 44 M36 30 L36 44" stroke="${fill || '#0f172a'}" stroke-width="3"/>
+                        <rect x="14" y="46" width="4" height="10" fill="#334155"/>
+                        <rect x="40" y="46" width="4" height="10" fill="#334155"/>
+                        <path d="M8 18 L4 10 L10 20 Z" fill="${fill || '#0f172a'}"/>
+                    </svg>`;
+                case 'acacia':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="29" y="34" width="6" height="24" fill="#78350f"/>
+                        <path d="M10 34 C10 24 54 24 54 34 C40 30 24 30 10 34 Z" fill="${fill || '#65a30d'}"/>
+                        <ellipse cx="32" cy="30" rx="24" ry="8" fill="${fill || '#84cc16'}"/>
+                    </svg>`;
+                case 'watering_hole':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="42" rx="26" ry="12" fill="${fill || '#38bdf8'}"/>
+                        <ellipse cx="32" cy="40" rx="20" ry="8" fill="#7dd3fc"/>
+                        <path d="M14 30 Q10 24 16 20" stroke="#22c55e" stroke-width="3" fill="none"/>
+                        <path d="M50 30 Q54 24 48 20" stroke="#22c55e" stroke-width="3" fill="none"/>
+                    </svg>`;
+                case 'vulture':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 30 Q24 12 32 22 Q40 12 56 20 Q44 32 34 34 Q22 40 8 30 Z" fill="${fill || '#44403c'}"/>
+                        <circle cx="34" cy="22" r="3" fill="#dc2626"/>
+                        <path d="M40 20 L48 24 L39 26 Z" fill="#facc15"/>
+                    </svg>`;
+                case 'sun_savanna':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="14" fill="${fill || '#fbbf24'}"/>
+                        <path d="M32 6 V16 M32 48 V58 M6 32 H16 M48 32 H58 M14 14 L21 21 M43 43 L50 50 M50 14 L43 21 M21 43 L14 50" stroke="${fill || '#f59e0b'}" stroke-width="4" stroke-linecap="round"/>
+                    </svg>`;
+
+                // World 8 - Desert
+                case 'cactus':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="26" y="20" width="12" height="38" rx="6" fill="${fill || '#16a34a'}"/>
+                        <path d="M26 30 C14 30 14 42 22 42 C26 42 26 38 26 34 Z" fill="${fill || '#16a34a'}"/>
+                        <path d="M38 26 C50 26 50 38 42 38 C38 38 38 34 38 30 Z" fill="${fill || '#16a34a'}"/>
+                        <circle cx="32" cy="18" r="4" fill="#f472b6"/>
+                    </svg>`;
+                case 'camel':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M14 46 C14 34 22 34 26 40 C28 32 38 32 38 40 C44 34 52 38 50 46 Z" fill="${fill || '#d6a15b'}"/>
+                        <rect x="12" y="46" width="40" height="8" rx="4" fill="${fill || '#d6a15b'}"/>
+                        <path d="M12 30 L8 20 L16 32 Z" fill="${fill || '#d6a15b'}"/>
+                        <circle cx="10" cy="24" r="1.6" fill="#0f172a"/>
+                        <rect x="16" y="54" width="4" height="6" fill="#92400e"/>
+                        <rect x="44" y="54" width="4" height="6" fill="#92400e"/>
+                    </svg>`;
+                case 'pyramid':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <polygon points="32,10 56,54 8,54" fill="${fill || '#eab308'}"/>
+                        <polygon points="32,10 56,54 32,54" fill="#ca8a04"/>
+                    </svg>`;
+                case 'oasis':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="48" rx="24" ry="10" fill="${fill || '#38bdf8'}"/>
+                        <path d="M20 48 C20 30 12 22 16 14 C24 22 24 34 24 48 Z" fill="#15803d"/>
+                        <path d="M20 20 C10 18 8 10 14 8 C20 12 22 16 20 20 Z" fill="#22c55e"/>
+                        <path d="M20 20 C30 18 32 10 26 8 C20 12 18 16 20 20 Z" fill="#16a34a"/>
+                    </svg>`;
+                case 'dune':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M4 46 C16 30 24 48 34 34 C44 22 52 40 60 32 V58 H4 Z" fill="${fill || '#f59e0b'}"/>
+                        <path d="M4 50 C20 42 30 54 44 44 C50 40 56 46 60 44 V58 H4 Z" fill="#d97706"/>
+                    </svg>`;
+                case 'scorpion':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="26" cy="38" rx="14" ry="9" fill="${fill || '#78350f'}"/>
+                        <path d="M38 34 C48 30 54 22 50 16 C54 22 46 26 40 32 Z" fill="${fill || '#92400e'}"/>
+                        <circle cx="52" cy="14" r="3" fill="#0f172a"/>
+                        <path d="M14 34 C6 30 4 22 10 20 M14 40 C6 42 4 48 10 50" stroke="#78350f" stroke-width="3" fill="none"/>
+                    </svg>`;
+                case 'desert_sun':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="16" fill="${fill || '#f97316'}"/>
+                        <path d="M32 4 V14 M32 50 V60 M4 32 H14 M50 32 H60" stroke="${fill || '#ea580c'}" stroke-width="4" stroke-linecap="round"/>
+                    </svg>`;
+                case 'tumbleweed':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="20" fill="none" stroke="${fill || '#92400e'}" stroke-width="3"/>
+                        <circle cx="32" cy="32" r="12" fill="none" stroke="${fill || '#b45309'}" stroke-width="3"/>
+                        <path d="M12 32 Q32 12 52 32 Q32 52 12 32 Z" fill="none" stroke="#a16207" stroke-width="2"/>
+                    </svg>`;
+
+                // World 9 - Space Station
+                case 'rocket':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M32 4 C42 14 44 30 42 42 H22 C20 30 22 14 32 4 Z" fill="${fill || '#e2e8f0'}"/>
+                        <circle cx="32" cy="24" r="6" fill="#38bdf8"/>
+                        <path d="M22 42 L12 54 L22 50 Z" fill="#dc2626"/>
+                        <path d="M42 42 L52 54 L42 50 Z" fill="#dc2626"/>
+                        <path d="M26 46 L32 60 L38 46 Z" fill="#f97316"/>
+                    </svg>`;
+                case 'planet_ringed':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="34" rx="26" ry="8" fill="none" stroke="${fill || '#fbbf24'}" stroke-width="3" transform="rotate(-15 32 34)"/>
+                        <circle cx="32" cy="32" r="16" fill="${fill || '#f97316'}"/>
+                        <path d="M18 26 C26 30 38 30 46 26" stroke="#c2410c" stroke-width="2" fill="none"/>
+                    </svg>`;
+                case 'ufo':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="36" rx="26" ry="8" fill="${fill || '#94a3b8'}"/>
+                        <path d="M18 36 C18 22 46 22 46 36 Z" fill="${fill || '#cbd5e1'}"/>
+                        <circle cx="24" cy="36" r="2" fill="#facc15"/>
+                        <circle cx="32" cy="38" r="2" fill="#facc15"/>
+                        <circle cx="40" cy="36" r="2" fill="#facc15"/>
+                    </svg>`;
+                case 'astronaut':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="24" r="14" fill="#f8fafc"/>
+                        <circle cx="32" cy="24" r="10" fill="${fill || '#38bdf8'}"/>
+                        <rect x="20" y="36" width="24" height="22" rx="8" fill="#f8fafc"/>
+                        <rect x="14" y="40" width="6" height="14" rx="3" fill="#cbd5e1"/>
+                        <rect x="44" y="40" width="6" height="14" rx="3" fill="#cbd5e1"/>
+                    </svg>`;
+                case 'satellite':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="24" y="24" width="16" height="16" rx="2" fill="${fill || '#cbd5e1'}"/>
+                        <rect x="4" y="20" width="16" height="24" fill="#38bdf8"/>
+                        <rect x="44" y="20" width="16" height="24" fill="#38bdf8"/>
+                        <line x1="20" y1="30" x2="24" y2="30" stroke="#94a3b8" stroke-width="3"/>
+                        <line x1="40" y1="30" x2="44" y2="30" stroke="#94a3b8" stroke-width="3"/>
+                        <line x1="32" y1="24" x2="32" y2="12" stroke="#94a3b8" stroke-width="2"/>
+                        <circle cx="32" cy="10" r="2" fill="#f8fafc"/>
+                    </svg>`;
+                case 'comet':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M48 16 L8 48 L20 36 L4 44 L26 24 L14 30 Z" fill="${fill || '#38bdf8'}" opacity="0.7"/>
+                        <circle cx="48" cy="16" r="9" fill="${fill || '#7dd3fc'}"/>
+                    </svg>`;
+                case 'moon_crater':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="32" r="24" fill="${fill || '#cbd5e1'}"/>
+                        <circle cx="24" cy="24" r="5" fill="#94a3b8"/>
+                        <circle cx="40" cy="34" r="4" fill="#94a3b8"/>
+                        <circle cx="28" cy="42" r="3" fill="#94a3b8"/>
+                    </svg>`;
+                case 'alien':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="26" rx="16" ry="18" fill="${fill || '#4ade80'}"/>
+                        <ellipse cx="24" cy="26" rx="5" ry="8" fill="#0f172a" transform="rotate(-15 24 26)"/>
+                        <ellipse cx="40" cy="26" rx="5" ry="8" fill="#0f172a" transform="rotate(15 40 26)"/>
+                        <path d="M24 44 C24 52 40 52 40 44 Z" fill="${fill || '#4ade80'}"/>
+                    </svg>`;
+
+                // World 10 - Mars
+                case 'mars_rover':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <rect x="14" y="28" width="36" height="16" rx="3" fill="${fill || '#cbd5e1'}"/>
+                        <circle cx="20" cy="48" r="6" fill="#334155"/>
+                        <circle cx="32" cy="48" r="6" fill="#334155"/>
+                        <circle cx="44" cy="48" r="6" fill="#334155"/>
+                        <rect x="26" y="14" width="12" height="4" fill="#94a3b8"/>
+                        <line x1="32" y1="14" x2="32" y2="28" stroke="#94a3b8" stroke-width="3"/>
+                        <rect x="16" y="20" width="14" height="8" fill="${fill || '#38bdf8'}"/>
+                    </svg>`;
+                case 'mars_flag':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <line x1="20" y1="8" x2="20" y2="56" stroke="#94a3b8" stroke-width="3"/>
+                        <path d="M20 10 H48 L40 20 L48 30 H20 Z" fill="${fill || '#dc2626'}"/>
+                        <ellipse cx="20" cy="58" rx="14" ry="4" fill="#7c2d12"/>
+                    </svg>`;
+                case 'mars_crater':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <ellipse cx="32" cy="40" rx="26" ry="10" fill="${fill || '#9a3412'}"/>
+                        <ellipse cx="32" cy="38" rx="18" ry="6" fill="#451a03"/>
+                    </svg>`;
+                case 'mars_rock':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 46 L18 22 L38 16 L56 30 L50 50 Z" fill="${fill || '#c2410c'}"/>
+                        <path d="M18 22 L34 32 L50 50 Z" fill="#9a3412"/>
+                    </svg>`;
+                case 'mars_dome':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 50 C8 26 56 26 56 50 Z" fill="${fill || '#7dd3fc'}" opacity="0.85"/>
+                        <rect x="4" y="50" width="56" height="6" fill="#94a3b8"/>
+                        <circle cx="32" cy="38" r="5" fill="#38bdf8"/>
+                    </svg>`;
+                case 'mars_moon':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M22 20 C10 24 8 40 20 46 C34 52 50 44 48 30 C46 16 32 14 22 20 Z" fill="${fill || '#a8a29e'}"/>
+                        <circle cx="24" cy="28" r="3" fill="#78716c"/>
+                        <circle cx="36" cy="36" r="4" fill="#78716c"/>
+                    </svg>`;
+                case 'mars_alien':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <circle cx="32" cy="26" r="14" fill="${fill || '#dc2626'}"/>
+                        <circle cx="27" cy="24" r="3" fill="#0f172a"/>
+                        <circle cx="37" cy="24" r="3" fill="#0f172a"/>
+                        <line x1="24" y1="12" x2="20" y2="4" stroke="${fill || '#dc2626'}" stroke-width="2"/>
+                        <line x1="40" y1="12" x2="44" y2="4" stroke="${fill || '#dc2626'}" stroke-width="2"/>
+                        <circle cx="20" cy="4" r="2" fill="#facc15"/>
+                        <circle cx="44" cy="4" r="2" fill="#facc15"/>
+                        <path d="M20 40 C20 52 44 52 44 40 Z" fill="${fill || '#dc2626'}"/>
+                    </svg>`;
+                case 'satellite_dish':
+                    return `<svg viewBox="0 0 64 64" class="${customClass} filter drop-shadow-md">
+                        <path d="M8 40 C8 20 40 12 52 30 C40 26 16 30 8 40 Z" fill="${fill || '#e2e8f0'}"/>
+                        <circle cx="30" cy="34" r="3" fill="#64748b"/>
+                        <line x1="30" y1="34" x2="30" y2="52" stroke="#64748b" stroke-width="3"/>
+                        <rect x="20" y="52" width="20" height="6" fill="#475569"/>
+                    </svg>`;
+
                 default:
                     return `<svg viewBox="0 0 64 64" class="${customClass}"><circle cx="32" cy="32" r="20" fill="${fill || '#f59e0b'}"/></svg>`;
             }
@@ -948,7 +1396,8 @@
 
         // Game State Variables
         let score = 0;
-        let coins = 0;
+        let coins = 0; // mirrors the shared "כסף Kidlearn" wallet
+        KidLearnWallet.onChange(b => { coins = b; updateCoinDisplay(); });
         let soundEnabled = true;
         let soundVolume = 0.5;
         let allowedOps = ['+', '-'];
@@ -961,7 +1410,7 @@
         let saveNotificationTimer = null;
         let activeDrag = null;
         let selectedItemId = null;
-        let unlockedWorldAlerted = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false };
+        let unlockedWorldAlerted = { 1: true };
 
         // Separate Placed Items storage for EACH World
         let worldItemsMap = {
@@ -970,7 +1419,16 @@
             3: [],
             4: [],
             5: [],
-            6: []
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: [],
+            11: [],
+            12: [],
+            13: [],
+            14: [],
+            15: []
         };
 
         function playSound(type) {
@@ -1069,7 +1527,8 @@
         function applyLoadedGameState(data) {
             if (!data) return;
             if (typeof data.score === 'number') score = data.score;
-            if (typeof data.coins === 'number') coins = data.coins;
+            // coins used to be private to this game: move them into the shared wallet once
+            if (typeof data.coins === 'number') KidLearnWallet.migrateLegacy('math-adventure', data.coins);
             if (data.worldItemsMap) worldItemsMap = data.worldItemsMap;
             if (data.customMaxRange !== undefined) customMaxRange = data.customMaxRange;
             if (Array.isArray(data.allowedOps) && data.allowedOps.length > 0) allowedOps = data.allowedOps;
@@ -1111,7 +1570,7 @@
         }
 
         function updateMapNodes() {
-            for (let id = 1; id <= 6; id++) {
+            for (let id = 1; id <= WORLD_COUNT; id++) {
                 const node = document.getElementById(`node-${id}`);
                 const lockIcon = document.getElementById(`lock-icon-${id}`);
                 const badge = document.getElementById(`node-badge-${id}`);
@@ -1173,7 +1632,7 @@
         }
 
         function checkNewWorldUnlocks() {
-            for (let id = 1; id <= 6; id++) {
+            for (let id = 1; id <= WORLD_COUNT; id++) {
                 const config = WORLDS_CONFIG[id];
                 if (score >= config.reqScore && !unlockedWorldAlerted[id]) {
                     unlockedWorldAlerted[id] = true;
@@ -1289,7 +1748,8 @@
             if (isCorrect) {
                 playSound('correct');
                 score += 2;
-                coins += 2;
+                const coinReward = currentWorldId + 1;
+                KidLearnWallet.earn(coinReward, { silent: true });
                 document.getElementById('score-display').innerText = score;
                 updateCoinDisplay();
 
@@ -1297,7 +1757,7 @@
                     btnElement.className = 'bg-emerald-500 text-white font-extrabold text-2xl py-3.5 rounded-2xl border-2 border-emerald-300 shadow-xl animate-bounce ltr-dir';
                 }
 
-                feedback.innerText = 'כל הכבוד! קיבלת +2 נקודות ו-2 כסף! 🎉';
+                feedback.innerText = `כל הכבוד! קיבלת +2 נקודות ו-${coinReward} כסף! 🎉`;
                 feedback.className = 'h-7 font-bold text-base sm:text-lg transition-all duration-300 text-center my-1 text-emerald-400 opacity-100 rtl-dir';
 
                 if (typeof confetti === 'function') {
@@ -1399,6 +1859,28 @@
                     <div class="absolute top-4 right-12 text-4xl opacity-80">🌙</div>
                     <div class="absolute top-10 left-10 text-3xl opacity-70">✨</div>
                 `;
+            } else if (worldId === 7) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 right-10 text-5xl opacity-90">☀️</div>
+                    <div class="absolute bottom-14 inset-x-0 h-6 bg-amber-800/30"></div>
+                `;
+            } else if (worldId === 8) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 left-10 text-5xl opacity-90">🔥</div>
+                    <div class="absolute bottom-16 inset-x-0 h-8 bg-orange-800/20"></div>
+                `;
+            } else if (worldId === 9) {
+                layer.innerHTML = `
+                    <div class="absolute top-3 left-8 text-2xl opacity-80">✨</div>
+                    <div class="absolute top-8 right-14 text-xl opacity-70">✨</div>
+                    <div class="absolute top-16 left-1/2 text-lg opacity-60">✨</div>
+                    <div class="absolute bottom-20 right-10 text-3xl opacity-70">🌍</div>
+                `;
+            } else if (worldId === 10) {
+                layer.innerHTML = `
+                    <div class="absolute top-4 right-12 text-3xl opacity-80">🌑</div>
+                    <div class="absolute bottom-10 inset-x-0 h-14 bg-red-950/30"></div>
+                `;
             }
         }
 
@@ -1448,7 +1930,11 @@
                 
                 // Fallback support for older save files with emoji
                 const itemKey = item.itemType || 'sofa';
-                el.innerHTML = getSVGForItem(itemKey, item.color, 'w-14 h-14 md:w-20 md:h-20');
+                if (itemKey === 'custom_drawing' && item.customSvg) {
+                    el.innerHTML = `<svg viewBox="0 0 300 220" class="w-20 h-16 md:w-28 md:h-20">${item.customSvg}</svg>`;
+                } else {
+                    el.innerHTML = getSVGForItem(itemKey, item.color, 'w-14 h-14 md:w-20 md:h-20');
+                }
 
                 el.style.left = `${item.x}%`;
                 el.style.top = `${item.y}%`;
@@ -1492,10 +1978,16 @@
                 rectHeight: rect.height
             };
 
+            // Guard against a previous drag that never reached endDrag (e.g. a
+            // touchcancel from the OS interrupting the gesture) leaving stale
+            // listeners registered, which would otherwise stack up on every touch.
+            removeDragListeners();
+
             window.addEventListener('mousemove', onDragMove);
             window.addEventListener('touchmove', onDragMove, { passive: false });
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
+            window.addEventListener('touchcancel', endDrag);
         }
 
         function onDragMove(e) {
@@ -1526,10 +2018,15 @@
                 triggerSave();
             }
             activeDrag = null;
+            removeDragListeners();
+        }
+
+        function removeDragListeners() {
             window.removeEventListener('mousemove', onDragMove);
             window.removeEventListener('touchmove', onDragMove);
             window.removeEventListener('mouseup', endDrag);
             window.removeEventListener('touchend', endDrag);
+            window.removeEventListener('touchcancel', endDrag);
         }
 
         function deselectItem() {
@@ -1576,8 +2073,10 @@
         function updateCoinDisplay() {
             const headerEl = document.getElementById('coins-display');
             const shopEl = document.getElementById('shop-coins-display');
+            const drawEl = document.getElementById('draw-coins-display');
             if (headerEl) headerEl.innerText = coins;
             if (shopEl) shopEl.innerText = coins;
+            if (drawEl) drawEl.innerText = coins;
         }
 
         function openShopModal() {
@@ -1635,8 +2134,7 @@
                 return;
             }
 
-            coins -= cost;
-            updateCoinDisplay();
+            if (!KidLearnWallet.spend(cost)) { playSound('wrong'); return; }
             playSound('unlock');
 
             const item = {
@@ -1661,6 +2159,201 @@
             }
 
             triggerSave();
+        }
+
+        // --- Custom drawing tool: freehand brush + stampable shapes ---
+        const DRAW_TOOLS = ['brush', 'circle', 'square', 'triangle', 'star', 'heart'];
+        const DRAW_COLORS = ['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#1e293b'];
+        const DRAW_COST = 5;
+        let drawSelectedTool = 'brush';
+        let drawSelectedColor = DRAW_COLORS[0];
+        let drawActions = []; // ordered list of { type: 'shape'|'stroke', ... } so undo removes the true last action
+        let drawActiveStroke = null;
+
+        function openDrawModal() {
+            playSound('pop');
+            drawActions = [];
+            drawActiveStroke = null;
+            renderDrawToolPalette();
+            renderDrawColorPalette();
+            renderDrawCanvas();
+            document.getElementById('draw-cost-display').innerText = DRAW_COST;
+            updateCoinDisplay();
+            document.getElementById('draw-modal').classList.remove('hidden');
+        }
+
+        function closeDrawModal() {
+            playSound('pop');
+            document.getElementById('draw-modal').classList.add('hidden');
+        }
+
+        function renderDrawToolPalette() {
+            const el = document.getElementById('draw-shape-palette');
+            const icons = { brush: 'fa-paintbrush', circle: 'fa-circle', square: 'fa-square', triangle: 'fa-play', star: 'fa-star', heart: 'fa-heart' };
+            el.innerHTML = DRAW_TOOLS.map(tool => `
+                <button onclick="selectDrawTool('${tool}')" id="draw-shape-btn-${tool}"
+                    class="draw-tool-btn ${tool === drawSelectedTool ? 'bg-purple-500 border-purple-300 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'} border-2 rounded-xl w-11 h-11 flex items-center justify-center text-lg">
+                    <i class="fa-solid ${icons[tool]} ${tool === 'triangle' ? 'rotate-90' : ''}"></i>
+                </button>
+            `).join('');
+        }
+
+        function renderDrawColorPalette() {
+            const el = document.getElementById('draw-color-palette');
+            el.innerHTML = DRAW_COLORS.map(color => `
+                <button onclick="selectDrawColor('${color}')"
+                    class="w-8 h-8 rounded-full border-2 ${color === drawSelectedColor ? 'border-white scale-110' : 'border-slate-600'}"
+                    style="background:${color};"></button>
+            `).join('');
+        }
+
+        function selectDrawTool(tool) {
+            playSound('pop');
+            drawSelectedTool = tool;
+            renderDrawToolPalette();
+        }
+
+        function selectDrawColor(color) {
+            playSound('pop');
+            drawSelectedColor = color;
+            renderDrawColorPalette();
+        }
+
+        function drawShapeMarkup(shape, x, y, color) {
+            const s = 18;
+            switch (shape) {
+                case 'circle':
+                    return `<circle cx="${x}" cy="${y}" r="${s}" fill="${color}"/>`;
+                case 'square':
+                    return `<rect x="${x - s}" y="${y - s}" width="${s * 2}" height="${s * 2}" fill="${color}"/>`;
+                case 'triangle':
+                    return `<polygon points="${x},${y - s} ${x + s},${y + s} ${x - s},${y + s}" fill="${color}"/>`;
+                case 'star': {
+                    const pts = [];
+                    for (let i = 0; i < 10; i++) {
+                        const r = i % 2 === 0 ? s : s / 2.4;
+                        const ang = (Math.PI / 5) * i - Math.PI / 2;
+                        pts.push(`${x + r * Math.cos(ang)},${y + r * Math.sin(ang)}`);
+                    }
+                    return `<polygon points="${pts.join(' ')}" fill="${color}"/>`;
+                }
+                case 'heart':
+                    return `<path d="M ${x} ${y + s * 0.7} C ${x - s * 1.4} ${y - s * 0.6}, ${x - s * 0.4} ${y - s * 1.3}, ${x} ${y - s * 0.4} C ${x + s * 0.4} ${y - s * 1.3}, ${x + s * 1.4} ${y - s * 0.6}, ${x} ${y + s * 0.7} Z" fill="${color}"/>`;
+                default:
+                    return '';
+            }
+        }
+
+        function drawStrokeMarkup(stroke) {
+            if (!stroke.points || stroke.points.length < 2) return '';
+            const d = stroke.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+            return `<path d="${d}" fill="none" stroke="${stroke.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+        }
+
+        function drawFullMarkup() {
+            return drawActions.map(a => a.type === 'stroke'
+                ? drawStrokeMarkup(a)
+                : drawShapeMarkup(a.shape, a.x, a.y, a.color)
+            ).join('');
+        }
+
+        function renderDrawCanvas() {
+            const svg = document.getElementById('draw-svg-canvas');
+            svg.innerHTML = drawFullMarkup();
+        }
+
+        function drawCanvasPointToSvg(e) {
+            const svg = document.getElementById('draw-svg-canvas');
+            const rect = svg.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: ((clientX - rect.left) / rect.width) * 300,
+                y: ((clientY - rect.top) / rect.height) * 220
+            };
+        }
+
+        function drawCanvasPointerDown(e) {
+            e.preventDefault();
+            const point = drawCanvasPointToSvg(e);
+            playSound('pop');
+
+            if (drawSelectedTool === 'brush') {
+                drawActiveStroke = { type: 'stroke', color: drawSelectedColor, points: [point] };
+                drawActions.push(drawActiveStroke);
+                renderDrawCanvas();
+                window.addEventListener('mousemove', drawCanvasPointerMove);
+                window.addEventListener('touchmove', drawCanvasPointerMove, { passive: false });
+                window.addEventListener('mouseup', drawCanvasPointerUp);
+                window.addEventListener('touchend', drawCanvasPointerUp);
+            } else {
+                drawActions.push({ type: 'shape', shape: drawSelectedTool, x: point.x, y: point.y, color: drawSelectedColor });
+                renderDrawCanvas();
+            }
+        }
+
+        function drawCanvasPointerMove(e) {
+            if (!drawActiveStroke) return;
+            if (e.cancelable) e.preventDefault();
+            drawActiveStroke.points.push(drawCanvasPointToSvg(e));
+            renderDrawCanvas();
+        }
+
+        function drawCanvasPointerUp() {
+            drawActiveStroke = null;
+            window.removeEventListener('mousemove', drawCanvasPointerMove);
+            window.removeEventListener('touchmove', drawCanvasPointerMove);
+            window.removeEventListener('mouseup', drawCanvasPointerUp);
+            window.removeEventListener('touchend', drawCanvasPointerUp);
+        }
+
+        function undoDrawShape() {
+            playSound('pop');
+            drawActions.pop();
+            renderDrawCanvas();
+        }
+
+        function clearDrawCanvas() {
+            playSound('pop');
+            drawActions = [];
+            renderDrawCanvas();
+        }
+
+        function saveDrawing() {
+            if (drawActions.length === 0) {
+                playSound('wrong');
+                return;
+            }
+            if (coins < DRAW_COST) {
+                playSound('wrong');
+                return;
+            }
+
+            if (!KidLearnWallet.spend(DRAW_COST)) { playSound('wrong'); return; }
+
+            const innerSvg = drawFullMarkup();
+            const item = {
+                id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                itemType: 'custom_drawing',
+                customSvg: innerSvg,
+                x: 20 + Math.random() * 60,
+                y: 25 + Math.random() * 50,
+                scale: 1.0,
+                color: 'none'
+            };
+
+            if (!worldItemsMap[currentWorldId]) {
+                worldItemsMap[currentWorldId] = [];
+            }
+            worldItemsMap[currentWorldId].push(item);
+
+            renderStageItems();
+            playSound('unlock');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.5 } });
+            }
+            triggerSave();
+            closeDrawModal();
         }
 
         function openSettingsModal() {

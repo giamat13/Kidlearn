@@ -213,6 +213,7 @@
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
     saveData, loadData, contacts, sendFamilyMessage, listSentMessages,
     getUnseenReplies, markReplySeen, setAvatar,
+    pullLocalStorageKey, pushLocalStorageKey,
     _internal: { usernameToAuthEmail, isValidUsername },
   };
 })();
