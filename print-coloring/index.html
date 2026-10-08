@@ -101,9 +101,9 @@ async function toEnglish(text){
   return text;
 }
 
-const COMMONS_SUFFIXES=['coloring page','coloring book','coloring sheet','line art','outline black and white','black and white drawing','clipart outline','sketch outline','kids drawing outline'];
+const COMMONS_SUFFIXES=['coloring page','coloring book','coloring sheet','line art','outline black and white','black and white drawing','clipart outline','sketch outline','kids drawing outline','cartoon outline','vector outline','silhouette','svg drawing','printable'];
 const OPENVERSE_SUFFIXES=['coloring page','line art']; // anonymous Openverse quota is small
-const COMMONS_CATEGORIES=['Coloring pages','Coloring books','Line drawings','Outline drawings','Black and white drawings','Black and white line drawings','Clip art in black and white'];
+const COMMONS_CATEGORIES=['Coloring pages','Coloring books','Line drawings','Outline drawings','Black and white drawings','Black and white line drawings','Clip art in black and white','Cartoon drawings','Vector drawings','Drawings of animals','Children\'s drawings','SVG black and white'];
 const CLIPART_SUFFIXES=['coloring','outline','line art','black white','bw'];
 let state=null;
 
@@ -134,13 +134,22 @@ async function clipartSearch(term,page){
   return {items,next:page<total?page+1:null};
 }
 
-function makeQueries(en){
-  return [
-    ...COMMONS_SUFFIXES.map(sf=>({fetch:commonsSearch,term:en+' '+sf,next:0})),
-    ...COMMONS_CATEGORIES.map(c=>({fetch:commonsSearch,term:`${en} incategory:"${c}"`,next:0})),
-    ...OPENVERSE_SUFFIXES.map(sf=>({fetch:openverseSearch,term:en+' '+sf,next:1})),
-    ...CLIPART_SUFFIXES.map(sf=>({fetch:clipartSearch,term:en+' '+sf,next:1}))
-  ];
+function makeQueries(en,orig){
+  const words=[en];
+  if(!/\s/.test(en)) words.push(/s$/i.test(en)?en.slice(0,-1):en+'s');          // singular / plural
+  const qs=[];
+  const C=(term)=>qs.push({fetch:commonsSearch,term,next:0});
+  for(const w of words){
+    COMMONS_SUFFIXES.forEach(sf=>C(w+' '+sf));
+    COMMONS_CATEGORIES.forEach(c=>{ C(`${w} incategory:"${c}"`); C(`${w} deepcat:"${c}"`); });
+    C(w+' filetype:drawing'); C(w+' filetype:bitmap line');
+  }
+  if(orig&&orig!==en){ ['','coloring','line art','outline'].forEach(sf=>C((orig+' '+sf).trim())); }
+  words.forEach(w=>{
+    OPENVERSE_SUFFIXES.forEach(sf=>qs.push({fetch:openverseSearch,term:w+' '+sf,next:1}));
+    CLIPART_SUFFIXES.forEach(sf=>qs.push({fetch:clipartSearch,term:w+' '+sf,next:1}));
+  });
+  return qs;
 }
 
 // Loads the thumbnail, drops it if it failed to load or is already coloured / a photo.
@@ -182,42 +191,59 @@ function statusText(st,busy){
 
 // Every source/query runs on its own: results appear as soon as they arrive,
 // slow or failing sources never hold the others back.
+const MAX_PARALLEL=8;
+function finish(st){
+  if(st!==state) return;
+  $('status').textContent=statusText(st,false);
+  $('more').style.display=st.total&&st.queries.some(x=>x.next!==null)?'block':'none';
+  maybeAutoLoad();
+}
+function pump(st){
+  while(st===state && st.running<MAX_PARALLEL && st.pending.length && st.total<st.goal) runQuery(st,st.pending.shift());
+  if(st===state && st.running===0) finish(st);
+}
 async function runQuery(st,q){
-  q.running=true; st.running++;
-  while(st===state && q.next!==null && st.total<st.goal){
-    let r;
-    try{ r=await q.fetch(q.term,q.next); q.next=r.next; }
-    catch(e){ q.next=null; break; }
-    if(st!==state) break;
-    const fresh=r.items.filter(it=>!st.seen.has(it.full));
-    fresh.forEach(it=>st.seen.add(it.full));
-    await Promise.all(fresh.map(async f=>{
-      const c=await checkImage(f);
-      if(c&&st===state){ addResult(c); st.total++; $('status').textContent=statusText(st,true); }
-    }));
-  }
-  q.running=false; st.running--;
-  if(st===state && st.running===0){
-    $('status').textContent=statusText(st,false);
-    $('more').style.display=st.total&&st.queries.some(x=>x.next!==null)?'block':'none';
-  }
+  st.running++;
+  try{
+    while(st===state && q.next!==null && st.total<st.goal){
+      let r;
+      try{ r=await q.fetch(q.term,q.next); q.next=r.next; }
+      catch(e){ q.next=null; break; }
+      if(st!==state) break;
+      const fresh=r.items.filter(it=>!st.seen.has(it.full));
+      fresh.forEach(it=>st.seen.add(it.full));
+      await Promise.all(fresh.map(async f=>{
+        const c=await checkImage(f);
+        if(c&&st===state){ addResult(c); st.total++; $('status').textContent=statusText(st,true); }
+      }));
+    }
+  }finally{ st.running--; }
+  pump(st);
 }
 
 function loadMore(){
   const st=state; if(!st||st.running>0) return;
   $('more').style.display='none';
-  st.goal=st.total+48;
+  st.goal=st.total+100;
+  st.pending=st.queries.filter(q=>q.next!==null);
+  if(!st.pending.length){ finish(st); return; }
   $('status').textContent=statusText(st,true);
-  const todo=st.queries.filter(q=>q.next!==null);
-  if(!todo.length){ $('status').textContent=statusText(st,false); return; }
-  todo.forEach(q=>runQuery(st,q));
+  pump(st);
 }
+
+// infinite scroll: keep loading while the end of the list is visible
+function maybeAutoLoad(){
+  if($('more').style.display==='none') return;
+  const r=$('results');
+  if(r.scrollTop+r.clientHeight>=r.scrollHeight-400) loadMore();
+}
+$('results').addEventListener('scroll',maybeAutoLoad);
 
 async function search(raw){
   const q=raw.trim(); if(!q) return;
   $('results').innerHTML=''; $('more').style.display='none'; $('status').textContent='מחפש…';
   const en=await toEnglish(q);
-  state={q,en,seen:new Set(),total:0,goal:0,running:0,queries:makeQueries(en)};
+  state={q,en,seen:new Set(),total:0,goal:0,running:0,pending:[],queries:makeQueries(en,q)};
   loadMore();
 }
 
