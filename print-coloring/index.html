@@ -17,6 +17,8 @@ body{min-height:100vh;background:linear-gradient(135deg,#FFF0E6,#E6F0FF);font-fa
 .search-row{display:flex;gap:8px;}
 .search-row input{flex:1;font-size:1.2rem;padding:10px 12px;border:2px solid #FFB3CC;border-radius:12px;font-family:inherit;min-width:0;}
 button.btn{background:#FF6B9D;color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:1.1rem;font-family:inherit;cursor:pointer;}
+button.btn.rec{background:#ef4444;animation:pulse 1s infinite;}
+@keyframes pulse{50%{opacity:.6}}
 button.btn:hover{background:#ff4f8a;}
 .status{margin:10px 0;color:#555;min-height:1.4em;font-size:.95rem;}
 .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;max-height:60vh;overflow-y:auto;}
@@ -56,6 +58,7 @@ button.btn:hover{background:#ff4f8a;}
   <div class="panel">
     <form class="search-row" id="form">
       <input id="q" type="search" placeholder="חפשו: חד קרן, חללית, כלבלב..." autocomplete="off">
+      <button class="btn" type="button" id="mic" title="חיפוש בקול" style="display:none">🎤</button>
       <button class="btn" type="submit">🔍</button>
     </form>
     <div class="status" id="status"></div>
@@ -102,7 +105,7 @@ const SUFFIXES=['coloring page','coloring book','line art','outline black and wh
 let state=null;
 
 async function commonsSearch(term,offset){
-  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'50',gsroffset:String(offset),gsrsearch:term,prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'300'});
+  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'50',gsroffset:String(offset),gsrsearch:term,prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'200'});
   const j=await (await fetch(COMMONS+'?'+p)).json();
   const pages=Object.values((j.query&&j.query.pages)||{}).sort((a,b)=>a.index-b.index);
   const items=pages.map(pg=>pg.imageinfo&&pg.imageinfo[0]).filter(i=>i&&/^image\/(png|svg\+xml|gif)/.test(i.mime)&&i.thumburl)
@@ -127,7 +130,7 @@ function checkImage(r){
           if(mx-mn>40) color++;
           if(mn>235) white++;
         }
-        if(color/n>0.04 || white/n<0.45) return res(null);
+        if(color/n>0.08 || white/n<0.3) return res(null);
       }catch(e){} // canvas tainted: keep the image
       res({...r,img:im});
     };
@@ -146,7 +149,7 @@ async function loadMore(){
   if(!state||state.busy) return;
   state.busy=true; $('more').style.display='none';
   let added=0;
-  for(let round=0;round<4&&added<20;round++){
+  for(let round=0;round<8&&added<48;round++){
     const active=state.queries.filter(q=>q.next!==null);
     if(!active.length) break;
     $('status').textContent='טוען תמונות…';
@@ -156,8 +159,10 @@ async function loadMore(){
     }));
     const fresh=[];
     for(const it of batches.flat()){ if(!state.seen.has(it.full)){ state.seen.add(it.full); fresh.push(it); } }
-    const ok=(await Promise.all(fresh.map(checkImage))).filter(Boolean);
-    ok.forEach(addResult); added+=ok.length; state.total+=ok.length;
+    await Promise.all(fresh.map(async f=>{
+      const r=await checkImage(f);
+      if(r){ addResult(r); added++; state.total++; $('status').textContent=`${state.total} תוצאות… טוען עוד`; }
+    }));
   }
   state.busy=false;
   const more=state.queries.some(q=>q.next!==null);
@@ -188,6 +193,22 @@ $('plus').onclick=()=>setZoom(+$('zoom').value+5);
 $('minus').onclick=()=>setZoom(+$('zoom').value-5);
 $('form').onsubmit=e=>{e.preventDefault();search($('q').value);};
 $('more').onclick=loadMore;
+(function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  const mic=$('mic'); mic.style.display='';
+  let rec=null;
+  mic.onclick=()=>{
+    if(rec){ rec.stop(); return; }
+    rec=new SR(); rec.lang=(navigator.language&&!/^en/.test(navigator.language))?navigator.language:'he-IL';
+    rec.interimResults=false; rec.maxAlternatives=1;
+    mic.classList.add('rec'); $('status').textContent='מקשיב… דברו עכשיו 🎤';
+    rec.onresult=e=>{ const t=e.results[0][0].transcript.trim(); $('q').value=t; search(t); };
+    rec.onerror=e=>{ $('status').textContent=e.error==='not-allowed'?'אין הרשאה למיקרופון':'לא שמעתי, נסו שוב'; };
+    rec.onend=()=>{ mic.classList.remove('rec'); rec=null; };
+    rec.start();
+  };
+})();
 $('print').onclick=()=>window.print();
 </script>
 </body>
