@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>קטגוריה - KidLearn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5B21B6;
+            --bg: #FFF8F9;
+            --card-bg: #FFFFFF;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Varela Round', 'Fredoka', sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(181, 148, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease-out;
+            gap: 20px;
+        }
+
+        .back-button {
+            background: #7C3AED;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Varela Round', sans-serif;
+            font-weight: 600;
+        }
+
+        .back-button:hover {
+            background: #9333EA;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        .header p {
+            color: #666;
+            margin-top: 8px;
+            font-size: 1rem;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .app-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px var(--shadow);
+            border-top: 4px solid var(--primary);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(124, 58, 237, 0.2);
+        }
+
+        .app-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .app-description {
+            font-size: 0.95rem;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        .message {
+            color: #444;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-button" onclick="window.location.href='index.html'" data-gamepad-back>← חזור</button>
+            <div>
+                <h1 id="categoryTitle">קטגוריה</h1>
+                <p id="categorySubtitle"></p>
+            </div>
+        </div>
+
+        <div class="apps-grid" id="appsGrid"></div>
+        <div class="message" id="categoryMessage"></div>
+    </div>
+
+    <script>
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            const isMobile = /Mobi|Android|iPhone|iPod/.test(ua);
+            const isTablet = /iPad|Tablet/.test(ua) || (isMobile && Math.min(screen.width, screen.height) >= 600);
+            if (isTablet) return 'tablet';
+            if (isMobile) return 'mobile';
+            return 'desktop';
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.indexOf(nameEQ) === 0) {
+                    return cookie.substring(nameEQ.length);
+                }
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+
+        function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
+
+        function buildCard(item) {
+            const card = document.createElement('a');
+            card.href = item.url;
+            card.className = 'app-card';
+            card.target = item.url.startsWith('http') ? '_blank' : '_self';
+            card.innerHTML = `
+                <span class="app-icon">${item.icon}</span>
+                <div class="app-title">${item.title}</div>
+                <div class="app-description">${item.description}</div>
+            `;
+            return card;
+        }
+
+        async function renderCategory() {
+            const categoryId = getQueryParam('category');
+            const grade = getCookie('studentGrade');
+            const titleEl = document.getElementById('categoryTitle');
+            const subtitleEl = document.getElementById('categorySubtitle');
+            const appsGrid = document.getElementById('appsGrid');
+            const categoryMessage = document.getElementById('categoryMessage');
+
+            try {
+                const response = await fetch('games.json');
+                const data = await response.json();
+                const category = data.categories.find(cat => cat.id === categoryId);
+                if (!category) {
+                    titleEl.textContent = 'קטגוריה לא נמצאה';
+                    subtitleEl.textContent = '';
+                    categoryMessage.textContent = 'הקטגוריה שבחרת אינה קיימת או הועתקה קישור שגוי.';
+                    return;
+                }
+
+                titleEl.textContent = category.title;
+                subtitleEl.textContent = category.subtitle;
+
+                const grade = getCookie('studentGrade');
+                const device = detectDevice();
+
+                const visibleItems = data.items.filter(item =>
+                    item.categories.includes(category.id) &&
+                    (!grade || item.grade.includes(grade)) &&
+                    (!item.devices || item.devices.includes(device))
+                );
+
+                if (visibleItems.length === 0) {
+                    categoryMessage.textContent = 'כרגע אין כלים זמינים עבור כיתה זו בקטגוריה הזו.';
+                    return;
+                }
+
+                for (const item of visibleItems) {
+                    appsGrid.appendChild(buildCard(item));
+                }
+            } catch (error) {
+                categoryMessage.textContent = 'שגיאה בטעינת הנתונים. נא לנסות שוב מאוחר יותר.';
+            }
+        }
+
+        renderCategory();
+    </script>
+    <script src="effects/gamepad-ui.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
+    <script src="shared/kidlearn-firebase-config.js"></script>
+    <script src="shared/kidlearn-cloud.js"></script>
+    <script src="shared/kidlearn-widget.js"></script>
+    <script>KidLearn.init();</script>
+</body>
+</html>
