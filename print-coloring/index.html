@@ -108,11 +108,12 @@ const CLIPART_SUFFIXES=['coloring','outline','line art','black white','bw'];
 let state=null;
 
 async function commonsSearch(term,offset){
-  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'50',gsroffset:String(offset),gsrsearch:term,prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'200'});
+  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'50',gsroffset:String(offset),gsrsearch:term,prop:'imageinfo',iiprop:'url|mime|extmetadata',iiextmetadatafilter:'ImageDescription|Categories|ObjectName',iiurlwidth:'200'});
   const j=await (await fetch(COMMONS+'?'+p)).json();
   const pages=Object.values((j.query&&j.query.pages)||{}).sort((a,b)=>a.index-b.index);
-  const items=pages.map(pg=>pg.imageinfo&&pg.imageinfo[0]).filter(i=>i&&/^image\/(png|svg\+xml|gif)/.test(i.mime)&&i.thumburl)
-    .map(i=>({thumb:i.thumburl,full:i.url}));
+  const items=pages.filter(pg=>{const i=pg.imageinfo&&pg.imageinfo[0];return i&&/^image\/(png|svg\+xml|gif)/.test(i.mime)&&i.thumburl;})
+    .map(pg=>{const i=pg.imageinfo[0], m=i.extmetadata||{}, v=k=>(m[k]&&m[k].value)||'';
+      return {thumb:i.thumburl,full:i.url,text:(pg.title+' '+v('ObjectName')+' '+v('ImageDescription')+' '+v('Categories')).replace(/<[^>]*>/g,' ').replace(/[_|]/g,' ')};});
   const next=j.continue&&j.continue.gsroffset;
   return {items,next:next===undefined?null:next};
 }
@@ -121,7 +122,7 @@ async function commonsSearch(term,offset){
 async function openverseSearch(term,page){
   const p=new URLSearchParams({q:term,page:String(page),page_size:'20',category:'illustration'});
   const j=await (await fetch('https://api.openverse.org/v1/images/?'+p)).json();
-  const items=(j.results||[]).filter(r=>r.thumbnail&&r.url&&!/gif$/i.test(r.url)).map(r=>({thumb:r.thumbnail,full:r.url,fallback:r.thumbnail}));
+  const items=(j.results||[]).filter(r=>r.thumbnail&&r.url&&!/gif$/i.test(r.url)).map(r=>({thumb:r.thumbnail,full:r.url,fallback:r.thumbnail,text:(r.title||'')+' '+(r.tags||[]).map(t=>t.name).join(' ')}));
   return {items,next:(j.page_count&&page<j.page_count)?page+1:null};
 }
 
@@ -129,9 +130,24 @@ async function openverseSearch(term,page){
 async function clipartSearch(term,page){
   const p=new URLSearchParams({query:term,amount:'50',page:String(page)});
   const j=await (await fetch('https://openclipart.org/search/json/?'+p)).json();
-  const items=(j.payload||[]).filter(r=>r.svg&&(r.svg.png_thumb||r.svg.url)).map(r=>({thumb:r.svg.png_thumb||r.svg.url,full:r.svg.url||r.svg.png_full_lossy,fallback:r.svg.png_full_lossy||r.svg.png_thumb}));
+  const items=(j.payload||[]).filter(r=>r.svg&&(r.svg.png_thumb||r.svg.url)).map(r=>({thumb:r.svg.png_thumb||r.svg.url,full:r.svg.url||r.svg.png_full_lossy,fallback:r.svg.png_full_lossy||r.svg.png_thumb,text:(r.title||'')+' '+(Array.isArray(r.tags)?r.tags.join(' '):(r.tags||''))}));
   const total=+(j.info&&j.info.pages)||0;
   return {items,next:page<total?page+1:null};
+}
+
+// Relevance: every word of the (translated or original) query must appear in the item's title/description/tags.
+const STOP=new Set(['a','an','the','of','and','with','in','on','for','to']);
+const stem=w=>w.toLowerCase().replace(/(ies)$/,'y').replace(/(es|s)$/,'');
+function makeRelevance(...phrases){
+  const sets=phrases.filter(Boolean).map(ph=>{
+    const ws=ph.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w=>w&&!STOP.has(w)).map(stem);
+    return {ws,joined:ph.toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'')};
+  }).filter(x=>x.ws.length);
+  return it=>{
+    const t=(it.text||'').toLowerCase(), tj=t.replace(/[^\p{L}\p{N}]+/gu,'');
+    if(!sets.length||!it.text) return true;
+    return sets.some(x=>x.ws.every(w=>t.includes(w))||tj.includes(x.joined));
+  };
 }
 
 function makeQueries(en,orig){
@@ -210,7 +226,7 @@ async function runQuery(st,q){
       try{ r=await q.fetch(q.term,q.next); q.next=r.next; }
       catch(e){ q.next=null; break; }
       if(st!==state) break;
-      const fresh=r.items.filter(it=>!st.seen.has(it.full));
+      const fresh=r.items.filter(it=>!st.seen.has(it.full)&&st.relevant(it));
       fresh.forEach(it=>st.seen.add(it.full));
       await Promise.all(fresh.map(async f=>{
         const c=await checkImage(f);
@@ -243,7 +259,7 @@ async function search(raw){
   const q=raw.trim(); if(!q) return;
   $('results').innerHTML=''; $('more').style.display='none'; $('status').textContent='מחפש…';
   const en=await toEnglish(q);
-  state={q,en,seen:new Set(),total:0,goal:0,running:0,pending:[],queries:makeQueries(en,q)};
+  state={q,en,seen:new Set(),total:0,goal:0,running:0,pending:[],queries:makeQueries(en,q),relevant:makeRelevance(en,q)};
   loadMore();
 }
 
