@@ -60,6 +60,7 @@ button.btn:hover{background:#ff4f8a;}
     </form>
     <div class="status" id="status"></div>
     <div class="results" id="results"></div>
+    <button class="btn" id="more" style="display:none;margin:10px auto 0;">עוד תוצאות</button>
   </div>
 
   <div class="preview-col">
@@ -97,34 +98,79 @@ async function toEnglish(text){
   return text;
 }
 
-async function commonsSearch(term){
-  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'30',gsrsearch:term,prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'1200'});
+const SUFFIXES=['coloring page','coloring book','line art','outline black and white','black and white drawing','clipart outline'];
+let state=null;
+
+async function commonsSearch(term,offset){
+  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'50',gsroffset:String(offset),gsrsearch:term,prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'300'});
   const j=await (await fetch(COMMONS+'?'+p)).json();
   const pages=Object.values((j.query&&j.query.pages)||{}).sort((a,b)=>a.index-b.index);
-  return pages.map(pg=>pg.imageinfo&&pg.imageinfo[0]).filter(i=>i&&/^image\/(png|jpeg|svg\+xml|gif)/.test(i.mime)&&i.thumburl)
-    .map(i=>({thumb:i.thumburl.replace(/\/\d+px-/,'/300px-'),full:i.thumburl}));
+  const items=pages.map(pg=>pg.imageinfo&&pg.imageinfo[0]).filter(i=>i&&/^image\/(png|svg\+xml|gif)/.test(i.mime)&&i.thumburl)
+    .map(i=>({thumb:i.thumburl,full:i.url}));
+  const next=j.continue&&j.continue.gsroffset;
+  return {items,next:next===undefined?null:next};
+}
+
+// Loads the thumbnail, drops it if it failed to load or is already coloured / a photo.
+function checkImage(r){
+  return new Promise(res=>{
+    const im=new Image(); im.crossOrigin='anonymous'; im.referrerPolicy='no-referrer';
+    im.onerror=()=>res(null);
+    im.onload=()=>{
+      try{
+        const w=40,h=Math.max(1,Math.round(40*im.naturalHeight/im.naturalWidth)||40);
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(im,0,0,w,h);
+        const d=x.getImageData(0,0,w,h).data; let color=0,white=0,n=w*h;
+        for(let i=0;i<d.length;i+=4){
+          const mx=Math.max(d[i],d[i+1],d[i+2]), mn=Math.min(d[i],d[i+1],d[i+2]);
+          if(mx-mn>40) color++;
+          if(mn>235) white++;
+        }
+        if(color/n>0.04 || white/n<0.45) return res(null);
+      }catch(e){} // canvas tainted: keep the image
+      res({...r,img:im});
+    };
+    im.src=r.thumb;
+  });
+}
+
+function addResult(r){
+  const b=document.createElement('button'); r.img.alt='';
+  b.appendChild(r.img);
+  b.onclick=()=>{ document.querySelectorAll('.results .sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); choose(r.full); };
+  $('results').appendChild(b);
+}
+
+async function loadMore(){
+  if(!state||state.busy) return;
+  state.busy=true; $('more').style.display='none';
+  let added=0;
+  for(let round=0;round<4&&added<20;round++){
+    const active=state.queries.filter(q=>q.next!==null);
+    if(!active.length) break;
+    $('status').textContent='טוען תמונות…';
+    const batches=await Promise.all(active.map(async q=>{
+      try{ const r=await commonsSearch(q.term,q.next); q.next=r.next; return r.items; }
+      catch(e){ q.next=null; return []; }
+    }));
+    const fresh=[];
+    for(const it of batches.flat()){ if(!state.seen.has(it.full)){ state.seen.add(it.full); fresh.push(it); } }
+    const ok=(await Promise.all(fresh.map(checkImage))).filter(Boolean);
+    ok.forEach(addResult); added+=ok.length; state.total+=ok.length;
+  }
+  state.busy=false;
+  const more=state.queries.some(q=>q.next!==null);
+  $('status').textContent=state.total?(state.en!==state.q?`חיפוש: "${state.en}" · `:'')+`${state.total} תוצאות`:'לא נמצאו תמונות. נסו מילה אחרת 🙂';
+  $('more').style.display=more&&state.total?'block':'none';
 }
 
 async function search(raw){
   const q=raw.trim(); if(!q) return;
-  $('results').innerHTML=''; $('status').textContent='מחפש…';
+  $('results').innerHTML=''; $('more').style.display='none'; $('status').textContent='מחפש…';
   const en=await toEnglish(q);
-  const seen=new Set(), out=[];
-  for(const suffix of ['coloring page','line art','outline black and white drawing']){
-    try{
-      for(const r of await commonsSearch(en+' '+suffix)){ if(!seen.has(r.full)){seen.add(r.full);out.push(r);} }
-    }catch(e){}
-    if(out.length>=24) break;
-  }
-  if(!out.length){ $('status').textContent='לא נמצאו תמונות. נסו מילה אחרת 🙂'; return; }
-  $('status').textContent=(en!==q?`חיפוש: "${en}" · `:'')+`${out.length} תוצאות`;
-  for(const r of out){
-    const b=document.createElement('button'), im=document.createElement('img');
-    im.src=r.thumb; im.loading='lazy'; im.alt=''; im.referrerPolicy='no-referrer';
-    b.appendChild(im);
-    b.onclick=()=>{ document.querySelectorAll('.results .sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); choose(r.full); };
-    $('results').appendChild(b);
-  }
+  state={q,en,seen:new Set(),total:0,busy:false,queries:SUFFIXES.map(sf=>({term:en+' '+sf,next:0}))};
+  loadMore();
 }
 
 function choose(url){
@@ -141,6 +187,7 @@ $('zoom').oninput=e=>setZoom(+e.target.value);
 $('plus').onclick=()=>setZoom(+$('zoom').value+5);
 $('minus').onclick=()=>setZoom(+$('zoom').value-5);
 $('form').onsubmit=e=>{e.preventDefault();search($('q').value);};
+$('more').onclick=loadMore;
 $('print').onclick=()=>window.print();
 </script>
 </body>
