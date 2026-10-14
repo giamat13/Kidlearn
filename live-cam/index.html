@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מצלמות בשידור חי - KidLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="../shared/live-cam.css" rel="stylesheet">
+</head>
+<body tabindex="-1">
+  <a class="back" href="../index.html">⟵ חזרה</a>
+  <header class="masthead">
+    <span class="badge" id="pageEmoji">📹</span>
+    <h1 id="pageTitle">מצלמות בשידור חי</h1>
+  </header>
+  <p class="subtitle" id="pageSubtitle"></p>
+
+  <nav class="favbar" id="favbar"></nav>
+
+  <main class="card">
+    <div class="channel-head">
+      <span class="who"><span class="emoji" id="camEmoji">📹</span><span class="label" id="camLabel"></span></span>
+      <button class="starbtn" id="starBtn" type="button" title="סמן כמועדף" aria-label="סמן כמועדף" disabled>★</button>
+    </div>
+    <div id="camSlot" class="video-stage">
+      <div class="stage-tools" id="stageTools" hidden>
+        <button id="fullscreenBtn" type="button" title="מסך מלא" aria-label="מסך מלא">⛶</button>
+        <button id="fullscreenNextBtn" type="button" title="העברה לשידור אקראי (R)" aria-label="העברה לשידור אקראי">🔀</button>
+      </div>
+      <div class="switch-overlay" id="switchOverlay" aria-live="polite" hidden>
+        <img class="country-flag" id="switchFlag" alt="">
+        <span id="switchCountry"></span>
+      </div>
+      <div class="empty-state" id="emptyState">
+        <span class="empty-icon" id="emptyIcon" aria-hidden="true">📹</span>
+        <p id="emptyMessage">טוענים ערוצי שידור…</p>
+      </div>
+    </div>
+    <p class="credit" id="camCredit"></p>
+  </main>
+
+  <div class="controls">
+    <button class="ctl" id="prevBtn" type="button" disabled>⟵ הקודם</button>
+    <button class="ctl" id="playPauseBtn" type="button" title="ניגון או השהיה (רווח)">⏯ ניגון / השהיה</button>
+    <button class="ctl primary" id="nextBtn" type="button" title="העברה לשידור אקראי (R)" disabled>🔀 הבא</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="../shared/kidlearn-firebase-config.js"></script>
+  <script src="../shared/kidlearn-cloud.js"></script>
+  <script src="../shared/kidlearn-widget.js"></script>
+  <script>KidLearn.init();</script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="../shared/live-cam.js"></script>
+</body>
+</html>

@@ -16,6 +16,7 @@
 | `index.html` | דף הבית: מציג את הקטגוריות והמשחקים |
 | `games.json` | רשימת הקטגוריות והפריטים. כל משחק חדש מתווסף כאן |
 | `shared/` | קוד משותף: ארנק "כסף Kidlearn", ענן (שמירה לחשבון), ווידג'ט, הגדרות Firebase ו-EmailJS |
+| `live-cam/`, `shared/live-cam.*` | תבנית משותפת לעמודי מצלמות בשידור חי; לכל נושא קובץ JSON עם הערוצים |
 | `effects/` | צלילי אפקט, גופנים וקובץ `gamepad-ui.js` |
 | `learn/` | אפליקציות לימוד: דקדוק, אוצר מילים, חידון וכו' |
 | `<שם-משחק>/` | כל משחק נמצא בתיקייה משלו עם `index.html` |
@@ -45,6 +46,17 @@
 1. צרו תיקייה חדשה עם `index.html` בשורש המאגר.
 2. הוסיפו פריט ל-`items` ב-`games.json` עם `id`, `title`, `description`, `icon`, `url` ו-`categories` (לפי `id` של הקטגוריה).
 3. אם המשחק מזכה בכסף, השתמשו בארנק המשותף (ראו למעלה).
+
+## הוספת מצלמת שידור חי
+
+כל עמודי המצלמות משתמשים באותה תבנית: `live-cam/index.html`, `shared/live-cam.css` ו-`shared/live-cam.js`.
+כדי להוסיף נושא, צרו קובץ JSON (למשל `zoo-cam/cams.json`) עם הגדרות העמוד ורשימת הערוצים,
+והוסיפו פריט ל-`games.json` שמפנה אל `live-cam/index.html?config=../zoo-cam/cams.json`.
+בכל ערוץ נדרשים `label`, `title` ו-`src` של הטמעת YouTube מאובטחת ב-HTTPS; אפשר להוסיף גם
+`emoji`, `country`, `flagCode` ו-`credit`. בעמוד נדרשים `title`, `favoriteKey` ייחודי ו-`channels`;
+`subtitle`, `emoji` ו-`emptyMessage` הם שדות אופציונליים. לערוצים עונתיים או שמשודרים בשעות
+מסוימות אפשר להוסיף `activeMonths` (חודשים 1–12) או `activeHours` (טווחי שעות מקומיות עם `start`,
+`end` ו-`tz`, הפרש אזור הזמן מ-UTC). כך שינוי בתבנית המשותפת חל על כל הנושאים.
 
 ## Firebase ו-EmailJS (אופציונלי)
 
