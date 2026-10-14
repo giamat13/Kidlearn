@@ -25,7 +25,23 @@
 
   .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 8px 22px var(--shadow);
     max-width:640px;margin:0 auto}
-  .card iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:10px;display:block}
+  .video-stage{position:relative}
+  .video-stage iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:10px;display:block}
+  .video-stage:fullscreen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;
+    border-radius:0;background:#000;display:flex;align-items:center}
+  .video-stage:fullscreen iframe{width:100%;height:100%;aspect-ratio:auto;border-radius:0}
+  .stage-tools{position:absolute;z-index:2;top:10px;left:10px;display:flex;gap:8px;direction:ltr}
+  .stage-tools[hidden]{display:none}
+  .stage-tools button{width:40px;height:40px;border:1px solid rgba(255,255,255,.45);
+    border-radius:8px;background:rgba(20,30,40,.82);color:#fff;font-size:20px;cursor:pointer}
+  .stage-tools button:hover{background:var(--accent)}
+  .switch-overlay{position:absolute;z-index:2;bottom:16px;left:50%;transform:translateX(-50%);
+    max-width:calc(100% - 32px);padding:10px 16px;border-radius:8px;background:rgba(20,30,40,.88);
+    display:flex;align-items:center;gap:10px;color:#fff;text-align:center;font-size:1rem;font-weight:600;pointer-events:none;
+    opacity:1;transition:opacity .3s ease}
+  .switch-overlay[hidden]{display:none}
+  .switch-overlay.fade{opacity:0}
+  .country-flag{display:block;width:36px;height:24px;object-fit:cover;border-radius:2px}
   .credit{color:var(--muted);font-size:12px;margin:8px 2px 0}
 
   /* favorites strip - only rendered when at least one cam is favorited */
@@ -67,7 +83,7 @@
   .ctl:disabled:hover{border-color:var(--sky-dark)}
 </style>
 </head>
-<body>
+<body tabindex="-1">
 <a class="back" href="../index.html">⟵ חזרה</a>
 <header class="masthead">
   <span class="badge">🐾</span>
@@ -82,13 +98,23 @@
     <span class="who"><span class="emoji" id="camEmoji"></span><span class="label" id="camLabel"></span></span>
     <button class="starbtn" id="starBtn" type="button" title="סמן כמועדף">★</button>
   </div>
-  <div id="camSlot"></div>
+  <div id="camSlot" class="video-stage">
+    <div class="stage-tools" id="stageTools" hidden>
+      <button id="fullscreenBtn" type="button" title="מסך מלא" aria-label="מסך מלא">⛶</button>
+      <button id="fullscreenNextBtn" type="button" title="העברה לשידור אקראי (R)" aria-label="העברה לשידור אקראי">🔀</button>
+    </div>
+    <div class="switch-overlay" id="switchOverlay" aria-live="polite" hidden>
+      <img class="country-flag" id="switchFlag" alt="">
+      <span id="switchCountry"></span>
+    </div>
+  </div>
   <p class="credit" id="camCredit"></p>
 </div>
 
 <div class="controls">
   <button class="ctl" id="prevBtn" type="button">⟵ הקודם</button>
-  <button class="ctl primary" id="nextBtn" type="button">🔀 הבא</button>
+  <button class="ctl" id="playPauseBtn" type="button" title="ניגון או השהיה (רווח)">⏯ ניגון / השהיה</button>
+  <button class="ctl primary" id="nextBtn" type="button" title="העברה לשידור אקראי (R)">🔀 הבא</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -98,6 +124,7 @@
 <script src="../shared/kidlearn-cloud.js"></script>
 <script src="../shared/kidlearn-widget.js"></script>
 <script>KidLearn.init();</script>
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
   // RULE FOR ADDING NEW CAMS: do NOT add a fixed/static single-camera
   // feed, even if it's a genuine 24/7 broadcast. Every cam in this list
@@ -145,7 +172,9 @@
   const cams = [
     {
       emoji: '🐻',
-      label: 'דובים - אלסקה',
+      label: 'דובים - אלסקה, ארצות הברית',
+      country: 'ארצות הברית',
+      flagCode: 'us',
       title: 'שידור חי - מפלי Brooks, אלסקה (Explore.org)',
       src: 'https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=0',
       credit: 'שידור חי של דובים חומים הדגים סלמון במפלי Brooks באלסקה, מ-Explore.org. המצלמה מופעלת בזמן אמת ע״י צוות אנושי שעוקב אחרי הדובים.',
@@ -154,6 +183,8 @@
     {
       emoji: '🪶',
       label: 'אלבטרוס - ניו זילנד',
+      country: 'ניו זילנד',
+      flagCode: 'nz',
       title: 'שידור חי - קן אלבטרוס מלכותי, ניו זילנד (RoyalCam)',
       src: 'https://www.youtube.com/embed/Mm_zVDDUeNA?autoplay=0',
       credit: 'שידור חי מקן אלבטרוס מלכותי בחצי האי אוטגו, ניו זילנד, מ-Cornell Lab Bird Cams וה-NZ Dept. of Conservation. המצלמה מופעלת ומזוזת ע״י צוות אנושי.',
@@ -162,13 +193,17 @@
     {
       emoji: '🐼',
       label: 'פנדות - סין',
+      country: 'סין',
+      flagCode: 'cn',
       title: 'שידור חי - פנדות ענק, סין (iPanda)',
       src: 'https://www.youtube.com/embed/live_stream?channel=UCtEgLf0_j1vJLz0aNEdO2SQ&autoplay=0',
       credit: 'שידור חי 24/7 של פנדות ענק מבסיס המחקר בצ׳נגדו, סין, מהערוץ iPanda. חדר בקרה עובר בין כעשרים מצלמות ברחבי הבסיס כדי לתפוס תמיד את הפנדה המעניינת. אם אין שידור פעיל כרגע, נסו שוב מאוחר יותר.'
     },
     {
       emoji: '🐻',
-      label: 'דובים - נהר בקטמאי',
+      label: 'דובים - קטמאי, אלסקה, ארצות הברית',
+      country: 'ארצות הברית',
+      flagCode: 'us',
       title: 'שידור חי - River Watch, קטמאי, אלסקה (Explore.org)',
       src: 'https://www.youtube.com/embed/wkVLYfU-Kew?autoplay=0',
       credit: 'שידור חי לאורך קטע נהר בפארק הלאומי קטמאי, אלסקה, שם דובים חומים דגים סלמון בקיץ, מ-Explore.org. הערוץ עובר בין כמה זוויות מצלמה סביב הנהר.',
@@ -176,7 +211,9 @@
     },
     {
       emoji: '🦅',
-      label: 'עיטים - קליפורניה',
+      label: 'עיטים - קליפורניה, ארצות הברית',
+      country: 'ארצות הברית',
+      flagCode: 'us',
       title: 'שידור חי - קן עיט הקירח, ביג בר, קליפורניה (Friends of Big Bear Valley)',
       src: 'https://www.youtube.com/embed/B4-L2nfGcuE?autoplay=0',
       credit: 'שידור חי 24/7 מקן עיט קירח באגם ביג בר, קליפורניה, מ-Friends of Big Bear Valley. המצלמה כוללת זום פי 10 ומופעלת ע״י צוות שמזיז ומקרב אותה בזמן אמת.'
@@ -187,6 +224,8 @@
     {
       emoji: '🐘',
       label: 'פילים - פארק טמבה, דרום אפריקה',
+      country: 'דרום אפריקה',
+      flagCode: 'za',
       title: 'שידור חי - בור מים Mahlasela, פארק פילי טמבה, דרום אפריקה (Africam)',
       src: 'https://www.youtube.com/embed/0P_LBKqVbfs?autoplay=0',
       credit: 'שידור חי מבור המים Mahlasela בפארק הפילים טמבה, דרום אפריקה, מרשת Africam בשיתוף Explore.org. המצלמה מופעלת מרחוק ע״י צוות מתנדבים אנושי ("Zoomies") שמסובב ומזאזם אותה בזמן אמת כדי לעקוב אחרי הפילים.'
@@ -194,6 +233,8 @@
     {
       emoji: '🐆',
       label: 'בור מים - Djuma, דרום אפריקה',
+      country: 'דרום אפריקה',
+      flagCode: 'za',
       title: 'שידור חי - בור המים ב-Djuma, שמורת Sabi Sand, דרום אפריקה',
       src: 'https://www.youtube.com/embed/aS6ToUKfpLk?autoplay=0',
       credit: 'שידור חי מבור מים ותיק בשמורת Sabi Sand, דרום אפריקה, שם מגיעים לשתות פילים, אריות, נמרים וקרנפים. המצלמה מופעלת ידנית 24/7 ע״י צוות מתנדבים אנושי ("Zoomies") שמסובב ומזאזם אותה.'
@@ -201,6 +242,8 @@
     {
       emoji: '🐋',
       label: 'אורקות - האנסון איילנד, קנדה',
+      country: 'קנדה',
+      flagCode: 'ca',
       title: 'שידור חי - תצפית אורקות, OrcaLab, קנדה',
       src: 'https://www.youtube.com/embed/hTOmWcmr2Tc?autoplay=0',
       credit: 'שידור חי ממעבדת המחקר OrcaLab באי Hanson שבבריטיש קולומביה, קנדה. הצוות המדעי מפעיל את המצלמות מרחוק מהמעבדה ומחליף בין כמה עמדות תצפית כדי לאתר אורקות, אריות ים ולווייתני humpback.'
@@ -208,6 +251,8 @@
     {
       emoji: '🦓',
       label: 'הגירת האנו - נהר מארה, קניה',
+      country: 'קניה',
+      flagCode: 'ke',
       title: 'שידור חי - מעברת נהר מארה, ההגירה הגדולה (Africam)',
       src: 'https://www.youtube.com/embed/BaEFc79IMCA?autoplay=0',
       credit: 'שידור חי ממעברת נהר מארה במשולש מארה, קניה, שם חוצות מדי שנה מיליוני אנו וזברות בהגירה הגדולה. המצלמה מופעלת ע״י צוות מתנדבים אנושי ("Zoomies") של Africam שמסובב ומזאזם אותה כדי לעקוב אחרי החציות.'
@@ -215,6 +260,8 @@
     {
       emoji: '🚙',
       label: 'ספארי - Sabi Sands, דרום אפריקה',
+      country: 'דרום אפריקה',
+      flagCode: 'za',
       title: 'שידור חי - נהיגת ספארי, Sabi Sands, דרום אפריקה (WildEarth)',
       src: 'https://www.youtube.com/embed/live_stream?channel=UCV6HJBZD_hZcIX9JVJ3dCXQ&autoplay=0',
       credit: 'שידור חי מנהיגת ספארי אמיתית בשמורת Sabi Sands, דרום אפריקה, מהערוץ WildEarth. מדריך שטח וצלם-נהג נוסעים ברכב ספארי פתוח בזמן אמת, כשהצלם מפעיל את המצלמה תוך כדי נסיעה.',
@@ -262,6 +309,15 @@
   const starBtn = document.getElementById('starBtn');
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const stageTools = document.getElementById('stageTools');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const fullscreenNextBtn = document.getElementById('fullscreenNextBtn');
+  const switchOverlay = document.getElementById('switchOverlay');
+  const switchFlag = document.getElementById('switchFlag');
+  const switchCountry = document.getElementById('switchCountry');
+  let switchOverlayTimer;
+  let switchOverlayHideTimer;
 
   // Cams are identified by their YouTube video id (stable across
   // seasons) rather than array position, since visibleCams changes
@@ -287,6 +343,27 @@
   let current = 0; // index into visibleCams
   const history = []; // indices into visibleCams actually viewed before the current one, for "הקודם"
   const favorites = new Set(); // set of camId()
+  let resolveYoutubeApi;
+  const youtubeApiReady = new Promise(resolve => { resolveYoutubeApi = resolve; });
+  let youtubePlayer = null;
+  let youtubePlayerState = -1;
+  let playerGeneration = 0;
+  let playerReady = false;
+  let pendingPlaybackToggle = false;
+  window.addEventListener('blur', () => {
+    if(document.visibilityState !== 'visible') return;
+    if(document.activeElement instanceof HTMLIFrameElement && document.activeElement.closest('#camSlot')){
+      setTimeout(() => document.body.focus({ preventScroll: true }), 0);
+    }
+  });
+  if(window.YT && window.YT.Player) resolveYoutubeApi(window.YT);
+  else {
+    const previousYoutubeReady = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if(typeof previousYoutubeReady === 'function') previousYoutubeReady();
+      resolveYoutubeApi(window.YT);
+    };
+  }
   loadFavorites();
 
   KidLearn.onAuthChange(async (profile) => {
@@ -299,17 +376,59 @@
   function showCam(i){
     current = i;
     const cam = visibleCams[i];
-    slotEl.innerHTML = '';
+    playerGeneration++;
+    if(youtubePlayer){
+      youtubePlayer.destroy();
+      youtubePlayer = null;
+    }
+    playerReady = false;
+    pendingPlaybackToggle = false;
+    youtubePlayerState = -1;
+    playPauseBtn.textContent = '⏳ טוען נגן';
+    slotEl.querySelector('iframe')?.remove();
     const iframe = document.createElement('iframe');
-    iframe.src = cam.src;
+    const embedUrl = new URL(cam.src);
+    embedUrl.searchParams.set('fs', '0');
+    embedUrl.searchParams.set('enablejsapi', '1');
+    if(window.location.protocol === 'http:' || window.location.protocol === 'https:'){
+      embedUrl.searchParams.set('origin', window.location.origin);
+    }
+    iframe.src = embedUrl.toString();
     iframe.title = cam.title;
     iframe.loading = 'lazy';
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; web-share';
     iframe.allowFullscreen = true;
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     slotEl.appendChild(iframe);
+    const generation = playerGeneration;
+    youtubeApiReady.then(YT => {
+      if(!iframe.isConnected || generation !== playerGeneration) return;
+      youtubePlayer = new YT.Player(iframe, {
+        events: {
+          onReady: event => {
+            if(generation !== playerGeneration) return;
+            youtubePlayer = event.target;
+            playerReady = true;
+            if(pendingPlaybackToggle){
+              pendingPlaybackToggle = false;
+              toggleVideoPlayback();
+            } else {
+              updatePlaybackButton(youtubePlayer.getPlayerState());
+            }
+          },
+          onStateChange: event => {
+            if(generation !== playerGeneration) return;
+            youtubePlayerState = event.data;
+            updatePlaybackButton(event.data);
+          }
+        }
+      });
+    });
+    stageTools.hidden = false;
     creditEl.textContent = cam.credit;
     emojiEl.textContent = cam.emoji;
     labelEl.textContent = cam.label;
+    showChannelOverlay(cam);
     starBtn.classList.toggle('active', favorites.has(camId(cam)));
     renderFavbar();
   }
@@ -342,11 +461,66 @@
     prevBtn.disabled = history.length === 0;
   });
   nextBtn.addEventListener('click', () => {
+    showRandomCam();
+  });
+  fullscreenNextBtn.addEventListener('click', showRandomCam);
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
+  playPauseBtn.addEventListener('click', toggleVideoPlayback);
+  document.addEventListener('keydown', event => {
+    const key = event.code === 'KeyF' ? 'f'
+      : event.code === 'KeyR' ? 'r'
+      : event.key.toLowerCase();
+    if(event.code === 'Space' || event.key === ' '){
+      if(event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+      if(event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+      event.preventDefault();
+      toggleVideoPlayback();
+      return;
+    }
+    if(!['f', 'r'].includes(key) || event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+    if(event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+    event.preventDefault();
+    if(key === 'f') toggleFullscreen();
+    else showRandomCam();
+  });
+  function toggleVideoPlayback(){
+    if(!youtubePlayer || !playerReady){
+      pendingPlaybackToggle = !pendingPlaybackToggle;
+      playPauseBtn.textContent = pendingPlaybackToggle ? '⏳ הניגון יתחיל כשהנגן יהיה מוכן' : '⏳ טוען נגן';
+      return;
+    }
+    const state = youtubePlayer.getPlayerState();
+    if(state === YT.PlayerState.PLAYING) youtubePlayer.pauseVideo();
+    else youtubePlayer.playVideo();
+  }
+  function updatePlaybackButton(state){
+    if(state === YT.PlayerState.PLAYING) playPauseBtn.textContent = '⏸ השהיה';
+    else if(state === YT.PlayerState.BUFFERING) playPauseBtn.textContent = '⏳ טוען נגן';
+    else playPauseBtn.textContent = '▶ ניגון';
+  }
+  function toggleFullscreen(){
+    if(document.fullscreenElement === slotEl) return document.exitFullscreen();
+    if(!document.fullscreenElement) return slotEl.requestFullscreen();
+  }
+  function showChannelOverlay(cam){
+    clearTimeout(switchOverlayTimer);
+    clearTimeout(switchOverlayHideTimer);
+    switchFlag.src = `https://flagcdn.com/w80/${cam.flagCode}.png`;
+    switchFlag.alt = cam.country;
+    switchCountry.textContent = cam.country;
+    switchOverlay.classList.remove('fade');
+    switchOverlay.hidden = false;
+    switchOverlayTimer = setTimeout(() => {
+      switchOverlay.classList.add('fade');
+      switchOverlayHideTimer = setTimeout(() => { switchOverlay.hidden = true; }, 300);
+    }, 2400);
+  }
+  function showRandomCam(){
     if(visibleCams.length <= 1) return;
     let next;
     do { next = Math.floor(Math.random() * visibleCams.length); } while(next === current);
     goTo(next);
-  });
+  }
   starBtn.addEventListener('click', () => {
     const id = camId(visibleCams[current]);
     if(favorites.has(id)) favorites.delete(id);

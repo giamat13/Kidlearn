@@ -511,6 +511,16 @@
       "categories": ["world"],
       "grade": ["preschool", "kindergarten", "first", "second", "third"],
       "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "airplane-cam",
+      "title": "מטוסים בשידור חי",
+      "description": "צופים במטוסים ממריאים ונוחתים ברחבי העולם.",
+      "icon": "✈️",
+      "url": "airplane-cam/index.html",
+      "categories": ["world"],
+      "grade": ["preschool", "kindergarten", "first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
     }
   ]
 }

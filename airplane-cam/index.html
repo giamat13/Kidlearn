@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מטוסים בשידור חי</title>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#EAF6FC; --sky-dark:#D9EEF8; --ink:#22303A; --accent:#1E88C7;
+    --muted:#7B8C97; --shadow:rgba(30,60,80,.12);
+  }
+  *{box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;color:var(--ink);background:var(--sky);
+    margin:0;padding:20px 16px 60px;min-height:100vh}
+  a.back{display:inline-block;margin:0 0 6px;color:var(--muted);text-decoration:none;font-size:.85rem}
+  a.back:hover{color:var(--accent)}
+  header.masthead{max-width:640px;margin:8px auto 6px;display:flex;align-items:center;
+    justify-content:center;gap:14px}
+  .badge{flex:none;width:58px;height:58px;background:var(--sky-dark);
+    border:2px dashed var(--accent);border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:28px;box-shadow:0 3px 0 var(--shadow)}
+  h1{font-family:'Suez One',serif;color:var(--accent);text-align:center;font-size:2rem;margin:0}
+  .subtitle{text-align:center;color:var(--muted);margin:2px 0 22px;font-size:.95rem}
+
+  .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 8px 22px var(--shadow);
+    max-width:640px;margin:0 auto}
+  .video-stage{position:relative}
+  .video-stage iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:10px;display:block}
+  .video-stage:fullscreen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;
+    border-radius:0;background:#000;display:flex;align-items:center}
+  .video-stage:fullscreen iframe{width:100%;height:100%;aspect-ratio:auto;border-radius:0}
+  .stage-tools{position:absolute;z-index:2;top:10px;left:10px;display:flex;gap:8px;direction:ltr}
+  .stage-tools[hidden]{display:none}
+  .stage-tools button{width:40px;height:40px;border:1px solid rgba(255,255,255,.45);
+    border-radius:8px;background:rgba(20,30,40,.82);color:#fff;font-size:20px;cursor:pointer}
+  .stage-tools button:hover{background:var(--accent)}
+  .switch-overlay{position:absolute;z-index:2;bottom:16px;left:50%;transform:translateX(-50%);
+    max-width:calc(100% - 32px);padding:10px 16px;border-radius:8px;background:rgba(20,30,40,.88);
+    display:flex;align-items:center;gap:10px;color:#fff;text-align:center;font-size:1rem;font-weight:600;
+    pointer-events:none;opacity:1;transition:opacity .3s ease}
+  .switch-overlay[hidden]{display:none}
+  .switch-overlay.fade{opacity:0}
+  .country-flag{display:block;width:36px;height:24px;object-fit:cover;border-radius:2px}
+  .empty-state{aspect-ratio:16/9;border-radius:10px;background:var(--sky);display:flex;
+    flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+  .empty-state[hidden]{display:none}
+  .empty-state .plane{font-size:48px;margin-bottom:10px}
+  .empty-state p{margin:0;color:var(--muted);font-size:1rem}
+  .credit{color:var(--muted);font-size:12px;margin:8px 2px 0}
+
+  .favbar{max-width:640px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;
+    justify-content:center;max-height:0;opacity:0;overflow:hidden;
+    transition:max-height .3s ease,opacity .25s ease,margin .3s ease}
+  .favbar.show{max-height:120px;opacity:1;margin:0 auto 14px}
+  .favchip{font-family:'Rubik',sans-serif;font-size:.85rem;font-weight:600;color:var(--ink);
+    background:#fff;border:2px solid var(--sky-dark);border-radius:999px;
+    padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;
+    box-shadow:0 3px 0 var(--shadow);transition:.15s}
+  .favchip:hover{border-color:var(--accent)}
+  .favchip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .channel-head{display:flex;align-items:center;justify-content:space-between;
+    gap:10px;margin:0 2px 10px}
+  .channel-head .who{display:flex;align-items:center;gap:8px;font-weight:600}
+  .channel-head .who .emoji{font-size:1.4rem}
+  .channel-head .who .label{font-size:1.02rem}
+  .starbtn{flex:none;width:38px;height:38px;border-radius:50%;background:var(--sky);
+    border:2px solid var(--sky-dark);cursor:pointer;font-size:18px;color:var(--muted);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--shadow);
+    transition:.15s}
+  .starbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .starbtn.active{background:#FFF6DE;border-color:#E8B93A;color:#E8B93A}
+  .starbtn:disabled{opacity:.4;cursor:default;box-shadow:none}
+
+  .controls{max-width:640px;margin:16px auto 0;display:flex;gap:10px;
+    justify-content:center;flex-wrap:wrap}
+  .ctl{font-family:'Rubik',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink);
+    background:#fff;border:2px solid var(--sky-dark);border-radius:999px;
+    padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;
+    box-shadow:0 3px 0 var(--shadow);transition:.15s}
+  .ctl:hover{border-color:var(--accent)}
+  .ctl.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .ctl.primary:hover{filter:brightness(1.05)}
+  .ctl:disabled{opacity:.4;cursor:default;box-shadow:none}
+  .ctl:disabled:hover{border-color:var(--sky-dark)}
+</style>
+</head>
+<body tabindex="-1">
+<a class="back" href="../index.html">⟵ חזרה</a>
+<header class="masthead">
+  <span class="badge">✈️</span>
+  <h1>מטוסים בשידור חי</h1>
+</header>
+<p class="subtitle">ממריאים לתצפית על מטוסים ברחבי העולם</p>
+
+<nav class="favbar" id="favbar"></nav>
+
+<div class="card">
+  <div class="channel-head">
+    <span class="who"><span class="emoji" id="camEmoji">✈️</span><span class="label" id="camLabel">ערוצי מטוסים</span></span>
+    <button class="starbtn" id="starBtn" type="button" title="סמן כמועדף" aria-label="סמן כמועדף" disabled>★</button>
+  </div>
+  <div id="camSlot" class="video-stage">
+    <div class="stage-tools" id="stageTools" hidden>
+      <button id="fullscreenBtn" type="button" title="מסך מלא" aria-label="מסך מלא">⛶</button>
+      <button id="fullscreenNextBtn" type="button" title="העברה לשידור אקראי (R)" aria-label="העברה לשידור אקראי">🔀</button>
+    </div>
+    <div class="switch-overlay" id="switchOverlay" aria-live="polite" hidden>
+      <img class="country-flag" id="switchFlag" alt="">
+      <span id="switchCountry"></span>
+    </div>
+    <div class="empty-state" id="emptyState">
+      <span class="plane" aria-hidden="true">🛫</span>
+      <p>ערוצי השידור יתווספו בקרוב</p>
+    </div>
+  </div>
+  <p class="credit" id="camCredit"></p>
+</div>
+
+<div class="controls">
+  <button class="ctl" id="prevBtn" type="button" disabled>⟵ הקודם</button>
+  <button class="ctl" id="playPauseBtn" type="button" title="ניגון או השהיה (רווח)">⏯ ניגון / השהיה</button>
+  <button class="ctl primary" id="nextBtn" type="button" title="העברה לשידור אקראי (R)" disabled>🔀 הבא</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  const cams = [
+    {
+      emoji: '✈️',
+      label: 'סנט מארטן, ממלכת הולנד - SXM',
+      country: 'סנט מארטן (ממלכת הולנד)',
+      flagCode: 'sx',
+      title: 'שדה התעופה סנט מארטן ומאהו ביץ׳ - שידור חי',
+      src: 'https://www.youtube.com/embed/2IQmpCXbOmM?autoplay=0',
+      credit: 'שידור חי 24/7 מנמל התעופה Princess Juliana בחוף מאהו, סנט מארטן.'
+    },
+    {
+      emoji: '🛬',
+      label: 'רינו, ארצות הברית - RNO',
+      country: 'ארצות הברית',
+      flagCode: 'us',
+      title: 'נמל התעופה רינו - שידור חי',
+      src: 'https://www.youtube.com/embed/fFl0qD108sk?autoplay=0',
+      credit: 'שידור חי 24/7 מנמל התעופה רינו, נבדה.'
+    },
+    {
+      emoji: '🛫',
+      label: 'לאס וגאס, ארצות הברית - LAS',
+      country: 'ארצות הברית',
+      flagCode: 'us',
+      title: 'נמל התעופה לאס וגאס - מסלולים 26R ו-26L',
+      src: 'https://www.youtube.com/embed/V7_orOtu-oo?autoplay=0',
+      credit: 'שידור חי 24/7 עם מבט על מסלולים 26R ו-26L בנמל התעופה לאס וגאס.'
+    },
+    {
+      emoji: '✈️',
+      label: 'לנזרוטה, ספרד - ACE',
+      country: 'ספרד',
+      flagCode: 'es',
+      title: 'נמל התעופה לנזרוטה - האיים הקנריים',
+      src: 'https://www.youtube.com/embed/4nC8r5neaow?autoplay=0',
+      credit: 'שידור חי 24/7 מנמל התעופה לנזרוטה באיים הקנריים, ספרד.'
+    },
+    {
+      emoji: '🛬',
+      label: 'מילווקי, ארצות הברית - MKE',
+      country: 'ארצות הברית',
+      flagCode: 'us',
+      title: 'נמל התעופה מילווקי - שידור חי',
+      src: 'https://www.youtube.com/embed/sJl7PsdHxWM?autoplay=0',
+      credit: 'שידור חי 24/7 מנמל התעופה מילווקי, ויסקונסין.'
+    },
+    {
+      emoji: '🛫',
+      label: 'ניו אורלינס, ארצות הברית - MSY',
+      country: 'ארצות הברית',
+      flagCode: 'us',
+      title: 'נמל התעופה ניו אורלינס - שידור חי',
+      src: 'https://www.youtube.com/embed/iZRbml7fnXI?autoplay=0',
+      credit: 'שידור חי 24/7 מנמל התעופה ניו אורלינס.'
+    },
+    {
+      emoji: '✈️',
+      label: 'לונדון הית׳רו, הממלכה המאוחדת - LHR',
+      country: 'הממלכה המאוחדת',
+      flagCode: 'gb',
+      title: 'נמל התעופה הית׳רו, לונדון - שידור חי',
+      src: 'https://www.youtube.com/embed/SgvpyjQX_HM?autoplay=0',
+      credit: 'שידור חי 24/7 מנמל התעופה הית׳רו בלונדון.'
+    },
+    {
+      emoji: '🛫',
+      label: 'ליסבון, פורטוגל - LIS',
+      country: 'פורטוגל',
+      flagCode: 'pt',
+      title: '🔴 LIVE 24/7 Lisbon Airport Live Cam 14.10.2026 • Plane Spotting • Direto Aeroporto Lisboa Ao Vivo',
+      src: 'https://www.youtube.com/embed/foDQnWodDUM?autoplay=0',
+      credit: 'שידור חי 24/7 מתצפית מטוסים בנמל התעופה ליסבון, פורטוגל.'
+    },
+    {
+      emoji: '🛬',
+      label: 'סן פרנסיסקו, ארצות הברית - SFO',
+      country: 'ארצות הברית',
+      flagCode: 'us',
+      title: '🔴 Live SFO Plane Spotting | Real-Time Aircraft Tracking and ATC Audio at San Francisco Airport (KSFO)',
+      src: 'https://www.youtube.com/embed/TSISjkPA-E0?autoplay=1&mute=1',
+      credit: 'תצפית מטוסים חיה בנמל התעופה סן פרנסיסקו, עם מעקב אחר מטוסים ושמע קשר אווירי.'
+    }
+  ];
+  const favbarEl = document.getElementById('favbar');
+  const slotEl = document.getElementById('camSlot');
+  const creditEl = document.getElementById('camCredit');
+  const emojiEl = document.getElementById('camEmoji');
+  const labelEl = document.getElementById('camLabel');
+  const starBtn = document.getElementById('starBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const emptyState = document.getElementById('emptyState');
+  const stageTools = document.getElementById('stageTools');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const fullscreenNextBtn = document.getElementById('fullscreenNextBtn');
+  const switchOverlay = document.getElementById('switchOverlay');
+  const switchFlag = document.getElementById('switchFlag');
+  const switchCountry = document.getElementById('switchCountry');
+  let switchOverlayTimer;
+  let switchOverlayHideTimer;
+  const FAV_KEY = 'airplaneCamFavorites';
+  const favorites = new Set();
+  let current = 0;
+  const history = [];
+  let resolveYoutubeApi;
+  const youtubeApiReady = new Promise(resolve => { resolveYoutubeApi = resolve; });
+  let youtubePlayer = null;
+  let youtubePlayerState = -1;
+  let playerGeneration = 0;
+  let playerReady = false;
+  let pendingPlaybackToggle = false;
+  window.addEventListener('blur', () => {
+    if(document.visibilityState !== 'visible') return;
+    if(document.activeElement instanceof HTMLIFrameElement && document.activeElement.closest('#camSlot')){
+      setTimeout(() => document.body.focus({ preventScroll: true }), 0);
+    }
+  });
+  if(window.YT && window.YT.Player) resolveYoutubeApi(window.YT);
+  else {
+    const previousYoutubeReady = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if(typeof previousYoutubeReady === 'function') previousYoutubeReady();
+      resolveYoutubeApi(window.YT);
+    };
+  }
+
+  function camId(cam){ return cam.src; }
+
+  function saveFavorites(){
+    localStorage.setItem(FAV_KEY, [...favorites].join(','));
+    if(window.KidLearn && KidLearn.currentUser()) KidLearn.pushLocalStorageKey(FAV_KEY);
+  }
+
+  function loadFavorites(){
+    favorites.clear();
+    const validIds = new Set(cams.map(camId));
+    (localStorage.getItem(FAV_KEY) || '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(id => validIds.has(id))
+      .forEach(id => favorites.add(id));
+  }
+
+  function showCam(index){
+    current = index;
+    if(cams.length === 0){
+      emptyState.hidden = false;
+      starBtn.disabled = true;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      renderFavbar();
+      return;
+    }
+
+    const cam = cams[index];
+    emptyState.hidden = true;
+    playerGeneration++;
+    if(youtubePlayer){
+      youtubePlayer.destroy();
+      youtubePlayer = null;
+    }
+    playerReady = false;
+    pendingPlaybackToggle = false;
+    youtubePlayerState = -1;
+    playPauseBtn.textContent = '⏳ טוען נגן';
+    slotEl.querySelector('iframe')?.remove();
+    const iframe = document.createElement('iframe');
+    const embedUrl = new URL(cam.src);
+    embedUrl.searchParams.set('fs', '0');
+    embedUrl.searchParams.set('enablejsapi', '1');
+    if(window.location.protocol === 'http:' || window.location.protocol === 'https:'){
+      embedUrl.searchParams.set('origin', window.location.origin);
+    }
+    iframe.src = embedUrl.toString();
+    iframe.title = cam.title;
+    iframe.loading = 'lazy';
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    slotEl.appendChild(iframe);
+    const generation = playerGeneration;
+    youtubeApiReady.then(YT => {
+      if(!iframe.isConnected || generation !== playerGeneration) return;
+      youtubePlayer = new YT.Player(iframe, {
+        events: {
+          onReady: event => {
+            if(generation !== playerGeneration) return;
+            youtubePlayer = event.target;
+            playerReady = true;
+            if(pendingPlaybackToggle){
+              pendingPlaybackToggle = false;
+              toggleVideoPlayback();
+            } else {
+              updatePlaybackButton(youtubePlayer.getPlayerState());
+            }
+          },
+          onStateChange: event => {
+            if(generation !== playerGeneration) return;
+            youtubePlayerState = event.data;
+            updatePlaybackButton(event.data);
+          }
+        }
+      });
+    });
+    stageTools.hidden = false;
+    creditEl.textContent = cam.credit;
+    emojiEl.textContent = cam.emoji;
+    labelEl.textContent = cam.label;
+    showChannelOverlay(cam);
+    starBtn.disabled = false;
+    starBtn.classList.toggle('active', favorites.has(camId(cam)));
+    prevBtn.disabled = history.length === 0;
+    nextBtn.disabled = cams.length <= 1;
+    renderFavbar();
+  }
+
+  function renderFavbar(){
+    favbarEl.innerHTML = '';
+    favbarEl.classList.toggle('show', favorites.size > 0);
+    cams.forEach((cam, index) => {
+      if(!favorites.has(camId(cam))) return;
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'favchip' + (index === current ? ' active' : '');
+      chip.innerHTML = `<span>${cam.emoji}</span><span>${cam.label}</span>`;
+      chip.addEventListener('click', () => goTo(index));
+      favbarEl.appendChild(chip);
+    });
+  }
+
+  function goTo(index){
+    if(index === current) return;
+    history.push(current);
+    showCam(index);
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if(history.length === 0) return;
+    showCam(history.pop());
+  });
+  nextBtn.addEventListener('click', () => {
+    showRandomCam();
+  });
+  fullscreenNextBtn.addEventListener('click', showRandomCam);
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
+  playPauseBtn.addEventListener('click', toggleVideoPlayback);
+  document.addEventListener('keydown', event => {
+    const key = event.code === 'KeyF' ? 'f'
+      : event.code === 'KeyR' ? 'r'
+      : event.key.toLowerCase();
+    if(event.code === 'Space' || event.key === ' '){
+      if(event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+      if(event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+      event.preventDefault();
+      toggleVideoPlayback();
+      return;
+    }
+    if(!['f', 'r'].includes(key) || event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+    if(event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+    event.preventDefault();
+    if(key === 'f') toggleFullscreen();
+    else showRandomCam();
+  });
+  function toggleVideoPlayback(){
+    if(!youtubePlayer || !playerReady){
+      pendingPlaybackToggle = !pendingPlaybackToggle;
+      playPauseBtn.textContent = pendingPlaybackToggle ? '⏳ הניגון יתחיל כשהנגן יהיה מוכן' : '⏳ טוען נגן';
+      return;
+    }
+    const state = youtubePlayer.getPlayerState();
+    if(state === window.YT.PlayerState.PLAYING) youtubePlayer.pauseVideo();
+    else youtubePlayer.playVideo();
+  }
+  function updatePlaybackButton(state){
+    if(state === window.YT.PlayerState.PLAYING) playPauseBtn.textContent = '⏸ השהיה';
+    else if(state === window.YT.PlayerState.BUFFERING) playPauseBtn.textContent = '⏳ טוען נגן';
+    else playPauseBtn.textContent = '▶ ניגון';
+  }
+  function toggleFullscreen(){
+    if(document.fullscreenElement === slotEl) return document.exitFullscreen();
+    if(!document.fullscreenElement) return slotEl.requestFullscreen();
+  }
+  function showChannelOverlay(cam){
+    clearTimeout(switchOverlayTimer);
+    clearTimeout(switchOverlayHideTimer);
+    switchFlag.src = `https://flagcdn.com/w80/${cam.flagCode}.png`;
+    switchFlag.alt = cam.country;
+    switchCountry.textContent = cam.country;
+    switchOverlay.classList.remove('fade');
+    switchOverlay.hidden = false;
+    switchOverlayTimer = setTimeout(() => {
+      switchOverlay.classList.add('fade');
+      switchOverlayHideTimer = setTimeout(() => { switchOverlay.hidden = true; }, 300);
+    }, 2400);
+  }
+  function showRandomCam(){
+    if(cams.length <= 1) return;
+    let next;
+    do { next = Math.floor(Math.random() * cams.length); } while(next === current);
+    goTo(next);
+  }
+  starBtn.addEventListener('click', () => {
+    if(cams.length === 0) return;
+    const id = camId(cams[current]);
+    if(favorites.has(id)) favorites.delete(id);
+    else favorites.add(id);
+    starBtn.classList.toggle('active', favorites.has(id));
+    saveFavorites();
+    renderFavbar();
+  });
+
+  loadFavorites();
+  KidLearn.onAuthChange(async profile => {
+    if(!profile) return;
+    await KidLearn.pullLocalStorageKey(FAV_KEY);
+    loadFavorites();
+    showCam(current);
+  });
+  showCam(0);
+</script>
+</body>
+</html>
