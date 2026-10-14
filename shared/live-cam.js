@@ -316,7 +316,7 @@ async function loadConfig(){
       showCam(current);
     });
   }
-  showCam(0);
+  showCam(cams.length ? Math.floor(Math.random() * cams.length) : 0);
 }
 
 loadConfig().catch(error => {
