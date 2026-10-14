@@ -521,6 +521,16 @@
       "categories": ["world"],
       "grade": ["preschool", "kindergarten", "first", "second", "third"],
       "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "train-cam",
+      "title": "רכבות בשידור חי",
+      "description": "מציצים אל תחנות רכבת ורואים רכבות חולפות.",
+      "icon": "🚂",
+      "url": "train-cam/index.html",
+      "categories": ["world"],
+      "grade": ["preschool", "kindergarten", "first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
     }
   ]
 }
