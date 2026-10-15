@@ -75,10 +75,12 @@ await KidLearnBridge.isInstalled(); // true כשהתוסף מותקן ומגיב
 
 `installMicrobit` מקבל `payload.program = { scripts: [...] }`. האתר שולח רק שמות ערכים מרשימה קבועה, והאפליקציה כותבת מהם את הקוד לפי תבנית קבועה ב-[app/MicrobitProgramBuilder.cs](app/MicrobitProgramBuilder.cs). האתר לא שולח קוד, ואין דרך לשלוח קוד שרירותי.
 
-- **תסריטים:** 1 עד 6 בתוכנית. כל תסריט מכיל `event` (`start`, `buttonA`, `buttonB`, `shake`) ורשימת `actions` של 1 עד 12 סמלים. כל תסריט רץ פעם אחת. בכל התוכנית יש עד 24 סמלים.
+- **תסריטים:** 1 עד 6 בתוכנית. כל תסריט מכיל `event` ורשימת `actions` של 1 עד 12 סמלים. כל תסריט רץ פעם אחת. בכל התוכנית יש עד 24 סמלים.
+- **אירועים:** `start`, `buttonA`, `buttonB`, `shake`, `faceDown` (הופכים את הלוח), `abPress` (A ו-B יחד, מופעל ברגע הלחיצה), `tiltLeft` / `tiltRight` / `tiltForward` / `tiltBack` (הטיות; קדימה ואחורה נמסרות כ-`up` ו-`down`), `remote` עם `key` (לחצן בשלט Yahboom) ו-`logoTouch` (מגע בלוגו). `logoTouch` דורש micro:bit v2: בלוח v1 הוא פשוט לא מופעל.
+- **תוספים:** סמלי הרכב (`drive`, `stop`) ואירועי השלט (`remote`) נכתבים לקוד רק כשהתוכנית משתמשת בהם. התוספים כבויים עד שמדליקים אותם בדף התוספים.
 - **סמלים:** `show` (אייקון מהרשימה), `wait` (`0.5`, `1`, `2` או `3` שניות), `text` (`HI`, `GO`, `OK`, `YAY`, `NO`), `draw` (ציור של 25 תווים, `1` = נורה דלוקה), ו-`clear`.
 - **בדיקה בלי לכתוב למיקרוביט:** תוכנית שלא עומדת בכללים נדחית עם סיבה (למשל `bad_scripts_count` או `repeat_only_with_start`), לפני שהאפליקציה מחפשת את הלוח.
-- **שמירה:** הדף שומר את התוכניות במכשיר (`localStorage`: `kidlearn-microbit-programs`), ואת העבודה שעל המסך (`kidlearn-microbit-draft`). האפליקציה לא שומרת תוכניות.
+- **שמירה:** מחוברים לחשבון, התוכניות נשמרות בענן (`users/{uid}/saves/microbit-programs`). בלי התחברות הן נשמרות במכשיר (`localStorage`: `kidlearn-microbit-programs`). את העבודה שעל המסך שומר `kidlearn-microbit-draft`. האפליקציה לא שומרת תוכניות.
 - **ברירת מחדל:** המשחק כבוי עד שמדליקים אותו ב"כיבוי משחקים לפי משחק" (`"defaultOff": true` ב-`games.json`). ההגדרה נשמרת בחשבון, ואם אין חשבון, במכשיר.
 
 ## בנייה
