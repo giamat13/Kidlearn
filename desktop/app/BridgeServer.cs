@@ -108,16 +108,50 @@ internal static class BridgeActions
                 ["connected"] = MicrobitInstaller.FindPort() is not null,
             }),
             "installMicrobit" => InstallMicrobit(id, request),
+            "liveStart" => LiveStart(id),
+            "liveStop" => LiveStop(id),
+            "liveCommand" => LiveCommand(id, request),
+            "liveEvents" => Ok(id, LiveHost.TakeEvents()),
             _ => Fail(id, "unknown_action"),
         };
     }
 
     private static readonly object InstallLock = new();
 
+    // The live session the page uses: started and stopped by the page, asked for presses, and sent commands
+    private static JsonObject LiveStart(string? id)
+    {
+        string? error = LiveHost.Start(out JsonObject data);
+        return error is null ? Ok(id, data) : Fail(id, error);
+    }
+
+    private static JsonObject LiveStop(string? id)
+    {
+        LiveHost.Stop();
+        return Ok(id, new JsonObject());
+    }
+
+    private static JsonObject LiveCommand(string? id, JsonObject request)
+    {
+        if (request["payload"] is not JsonObject payload)
+        {
+            return Fail(id, "no_command");
+        }
+
+        string? error = LiveHost.Command(payload);
+        return error is null ? Ok(id, new JsonObject()) : Fail(id, error);
+    }
+
     // The website sends the blocks the child chose, and MicrobitProgramBuilder writes the code from them.
     // The website never sends code.
     private static JsonObject InstallMicrobit(string? id, JsonObject request)
     {
+        // The live session holds the board's port, so the program can not be written while it runs
+        if (LiveHost.IsRunning)
+        {
+            return Fail(id, "live_running");
+        }
+
         if (request["payload"] is not JsonObject payload || payload["program"] is not JsonObject program)
         {
             return Fail(id, "no_program");
