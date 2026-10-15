@@ -376,6 +376,7 @@
         </div>
     </div>
 
+    <script src="../shared/kidlearn-wallet.js"></script>
     <script>
 const categories = {
     animals: {
@@ -524,6 +525,8 @@ const categories = {
             }
         });
 
+        const rewardedFacts = new Set(); // one reward per fact per session
+
         function showResults(category) {
             const data = categories[category];
             const resultsContainer = document.getElementById('resultsContainer');
@@ -543,7 +546,14 @@ const categories = {
                     <div class="result-title">${item.name}</div>
                     <div class="result-description">${item.desc}</div>
                 `;
-                card.onclick = () => speakText(item.name + '. ' + item.desc);
+                card.onclick = () => {
+                    speakText(item.name + '. ' + item.desc);
+                    const key = category + ':' + item.name;
+                    if (!rewardedFacts.has(key)) {
+                        rewardedFacts.add(key);
+                        window.KidLearnWallet && KidLearnWallet.earn(1, { reason: 'למדת עובדה חדשה' });
+                    }
+                };
                 resultsGrid.appendChild(card);
             });
 

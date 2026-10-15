@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>שיחה מלאה</title>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF3E3; --paper-dark:#F3E6C9; --ink:#3A2E22; --stamp:#D6584A;
+    --postal:#3C6E71; --gold:#C9973B; --muted:#A89A82; --shadow:rgba(58,46,34,.14);
+  }
+  *{box-sizing:border-box}
+  body{font-family:'Rubik',sans-serif;color:var(--ink);background:var(--paper);
+    background-image:radial-gradient(circle at 85% 10%, rgba(214,88,74,.06) 0%, transparent 45%);
+    margin:0;padding:16px;direction:rtl}
+  .stamp-badge{width:52px;height:52px;background:var(--paper-dark);border:2px dashed var(--stamp);
+    border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:26px;
+    transform:rotate(-6deg);margin:24px auto 0;box-shadow:0 3px 0 var(--shadow)}
+  .sheet{background:var(--paper-dark);border-radius:4px 4px 16px 16px;padding:22px 20px 18px;
+    max-width:440px;margin:14px auto 40px;box-shadow:0 8px 22px var(--shadow);position:relative}
+  .sheet::before{content:"";position:absolute;top:0;left:12px;right:12px;height:6px;
+    background-image:repeating-linear-gradient(90deg, transparent 0 6px, var(--paper) 6px 9px);
+    border-radius:0 0 3px 3px}
+  h2{font-family:'Suez One',serif;font-weight:400;color:var(--stamp);margin:2px 0 12px;font-size:1.3rem}
+  .original{background:var(--paper);border:1px solid #E6D6AE;border-radius:10px;padding:12px 14px;
+    margin:12px 0;font-size:15px;line-height:1.5}
+  textarea{width:100%;box-sizing:border-box;min-height:130px;padding:12px 14px;
+    border:2px solid #E6D6AE;border-radius:10px;font-size:15px;font-family:inherit;
+    background:var(--paper);color:var(--ink);resize:vertical;line-height:26px;
+    background-image:repeating-linear-gradient(var(--paper) 0 25px, #E6D6AE 25px 26px);
+    background-position-y:6px}
+  textarea:focus{outline:none;border-color:var(--postal)}
+  button{padding:11px 20px;border:none;border-radius:999px;background:var(--stamp);color:#fff;
+    font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;font-family:inherit;
+    box-shadow:0 3px 0 #a83f34;transition:transform .12s}
+  button:active{transform:translateY(2px);box-shadow:0 1px 0 #a83f34}
+  #send-reply{width:100%;padding:13px;font-size:15px}
+  #mic{background:var(--postal);box-shadow:0 3px 0 #294e50}
+  #mic.on{background:var(--stamp);box-shadow:0 3px 0 #a83f34}
+  .muted{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;align-items:center;margin-top:4px}
+
+  #thread{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+  .bubble{max-width:82%;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.5}
+  .bubble.kid{align-self:flex-start;background:var(--paper);border:1px solid #E6D6AE;
+    border-start-start-radius:2px}
+  .bubble.family{align-self:flex-end;background:#EAF2E9;border-start-end-radius:2px}
+  .bubble .bubble-meta{font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600}
+  .nikud-btn{padding:4px 12px;font-size:12px;margin-inline-start:8px;margin-top:6px;
+    background:var(--paper);color:var(--postal);box-shadow:0 2px 0 #d8c69c;
+    border:2px solid #E6D6AE}
+  .bg-sky{background:linear-gradient(135deg,#EAF4FB,#D9ECF7)}
+  .bg-mint{background:linear-gradient(135deg,#EAF7EF,#D8F0E0)}
+  .bg-blush{background:linear-gradient(135deg,#FBEAF0,#F6D9E4)}
+  .bg-sun{background:linear-gradient(135deg,#FDF6E3,#FBEAB8)}
+  .bg-lav{background:linear-gradient(135deg,#F1EAFB,#E3D6F5)}
+  .msg-img{max-width:200px;border-radius:10px;display:block;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="stamp-badge">✉️</div>
+<div class="sheet" id="card">טוען...</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script>
+firebase.initializeApp(window.KIDLEARN_FIREBASE_CONFIG);
+const db = firebase.firestore();
+const card = document.getElementById("card");
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
+// The full history is kept as: the original letter (body), its legacy
+// single-reply field (replyBody, for messages sent before the `thread` array
+// existed), then every entry appended to `thread` since - see kidlearn-cloud.js
+// and family-mail/index.html's identical flattening for the kid's own view.
+function threadEntries(m) {
+  const entries = [{ from: "kid", text: m.body, at: 0, image: m.image || null }];
+  if (m.replyBody) entries.push({ from: "family", text: m.replyBody, at: 1 });
+  (m.thread || []).forEach((e) => entries.push(e));
+  return entries;
+}
+
+async function load() {
+  if (!id) { card.textContent = "קישור לא תקין."; return; }
+  const doc = await db.collection("messages").doc(id).get();
+  if (!doc.exists) { card.textContent = "המכתב לא נמצא."; return; }
+  const m = doc.data();
+
+  const entries = threadEntries(m);
+  const kidLabel = `${m.fromAvatar || "🙂"} ${m.fromUsername}`;
+
+  card.className = "sheet" + (m.bgTheme ? " bg-" + m.bgTheme : "");
+  card.innerHTML = `
+    <h2>💬 שיחה עם ${kidLabel}</h2>
+    <div class="muted">${m.subject || ""}</div>
+    <div id="thread"></div>
+    <div class="row">
+      <button id="mic">🎤 להקליט</button><span class="muted" id="mic-status"></span>
+    </div>
+    <textarea id="reply-body" placeholder="כתבו כאן..."></textarea>
+    <button id="send-reply">שליחת הודעה 💌</button>
+    <p class="muted" id="status"></p>
+  `;
+
+  const thread = document.getElementById("thread");
+  entries.forEach((e) => {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + e.from;
+    bubble.innerHTML = `<div class="bubble-meta">${e.from === "kid" ? kidLabel : "אני"}</div><span class="msg-text">${e.text}</span>` +
+      (e.image ? `<img class="msg-img" src="${e.image}" alt="תמונה מצורפת">` : "");
+    thread.appendChild(bubble);
+  });
+
+  document.getElementById("send-reply").onclick = async () => {
+    const text = document.getElementById("reply-body").value.trim();
+    const status = document.getElementById("status");
+    if (!text) { status.textContent = "כתבו משהו קודם"; return; }
+    await db.collection("messages").doc(id).update({
+      thread: firebase.firestore.FieldValue.arrayUnion({ from: "family", text, at: Date.now() }),
+      replied: true, replySeenByKid: false, repliedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    status.textContent = "נשלח! 🎉";
+    load();
+  };
+  setupMic();
+}
+
+function setupMic() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = document.getElementById("mic");
+  const micStatus = document.getElementById("mic-status");
+  if (!SpeechRecognition) { micBtn.disabled = true; micStatus.textContent = "הדפדפן לא תומך בהקלטה"; return; }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "he-IL";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  let listening = false;
+  recognition.onresult = (e) => {
+    const textarea = document.getElementById("reply-body");
+    let addition = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) addition += e.results[i][0].transcript;
+    textarea.value = (textarea.value + " " + addition).trim();
+  };
+  recognition.onerror = () => { micStatus.textContent = "לא הצלחתי לשמוע, נסו שוב"; };
+  recognition.onend = () => { listening = false; micBtn.classList.remove("on"); micBtn.textContent = "🎤 להקליט"; };
+  micBtn.onclick = () => {
+    if (listening) { recognition.stop(); return; }
+    listening = true;
+    micBtn.classList.add("on");
+    micBtn.textContent = "⏹ עצירה";
+    micStatus.textContent = "מקשיב...";
+    recognition.start();
+  };
+}
+
+load();
+</script>
+</body>
+</html>

@@ -488,6 +488,7 @@
         </div>
     </div>
 
+    <script src="../shared/kidlearn-wallet.js"></script>
     <script>
         // --- קונפטי וצלילים ---
         const confettiColors = ['#FF6B9D','#34D399','#FCD34D','#60A5FA','#A78BFA','#F97316','#EC4899'];
@@ -535,6 +536,7 @@
         let correctCount = 0;
         let attemptCount = 0;
         let totalPoints = 0;
+        let rewardedWord = null;    // מניעת תשלום כפול על אותה מילה
         let usedSlots = new Set();  // מעקב לפי slotIndex ייחודי (לא אינדקס הכפתור)
 
         // טעינת המילים מקובץ חיצוני
@@ -665,6 +667,11 @@
             const correct = currentWord.hebrew;
             
             if (built === correct) {
+                if (rewardedWord !== currentWord) {
+                    rewardedWord = currentWord;
+                    window.KidLearnWallet && KidLearnWallet.earn(currentDifficulty === 'easy' ? 1 : currentDifficulty === 'medium' ? 2 : 3, {reason: 'מילה נכונה'});
+                    if ((correctCount + 1) % 3 === 0) window.KidLearnWallet && KidLearnWallet.earn(5, {reason: 'שלוש מילים ברצף!', silent: true});
+                }
                 correctCount++;
                 totalPoints += calculatePoints();
                 updateScore();

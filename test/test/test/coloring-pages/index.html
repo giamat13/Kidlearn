@@ -257,6 +257,7 @@ body{
   </div>
 </div>
 
+<script src="../shared/kidlearn-wallet.js"></script>
 <script>
 // ─── Scene definitions ───────────────────────────────────────────────
 const SCENES = [
@@ -521,6 +522,7 @@ function colorRegion(id, color, el) {
   updateProgress();
   if (colored.size === totalRegions) {
     setTimeout(celebrate, 400);
+    window.KidLearnWallet && KidLearnWallet.earn(10,{reason:'סיימת לצבוע'});
   }
 }
 

@@ -1,0 +1,469 @@
+{
+  "categories": [
+    {
+      "id": "he",
+      "title": "עברית",
+      "subtitle": "כלים ללימוד אותיות, מילים ומגנטים",
+      "icon": "🇮🇱",
+      "color": "linear-gradient(90deg, #FF6B9D, #FF8AB3)"
+    },
+    {
+      "id": "english",
+      "title": "אנגלית",
+      "subtitle": "כלים ללימוד אנגלית ומשאבים חיצוניים",
+      "icon": "🇺🇸",
+      "color": "linear-gradient(90deg, #60A5FA, #7DD3FC)"
+    },
+    {
+      "id": "math",
+      "title": "חשבון",
+      "subtitle": "לימוד צבעים ומספרים",
+      "icon": "🔢",
+      "color": "linear-gradient(90deg, #34D399, #5EEAD4)"
+    },
+    {
+      "id": "knowledge",
+      "title": "ידע כללי",
+      "subtitle": "עובדות מהנות",
+      "icon": "🧠",
+      "color": "linear-gradient(90deg, #F59E0B, #FCD34D)"
+    },
+    {
+      "id": "science",
+      "title": "מדעים",
+      "subtitle": "משחקי מדע לכל הכיתות",
+      "icon": "🔬",
+      "color": "linear-gradient(90deg, #14B8A6, #0EA5E9)"
+    },
+    {
+      "id": "series",
+      "title": "סדרות חינוכיות",
+      "subtitle": "כרגע רק בלי סודות",
+      "icon": "📺",
+      "color": "linear-gradient(90deg, #8B5CF6, #A78BFA)"
+    },
+    {
+      "id": "games",
+      "title": "משחקים",
+      "subtitle": "משחקים חינוכיים לזיכרון ואותיות",
+      "icon": "🎮",
+      "color": "linear-gradient(90deg, #FEC163, #FBBF24)"
+    },
+    {
+      "id": "gan-chova",
+      "title": "הכנה לכיתה א'",
+      "subtitle": "הכנה חובה לכניסה לכיתה א' עם כל הכלים הדרושים",
+      "icon": "📝",
+      "color": "linear-gradient(90deg, #EC4899, #F43F5E)"
+    },
+    {
+      "id": "family",
+      "title": "משפחה",
+      "subtitle": "כלים לתקשורת עם המשפחה",
+      "icon": "💌",
+      "color": "linear-gradient(90deg, #FB7185, #FDA4AF)"
+    }
+  ],
+  "items": [
+    {
+      "id": "letters-game",
+      "title": "משחק האותיות",
+      "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
+      "icon": "🔤",
+      "url": "Letters-game/index.html",
+      "categories": ["he", "games"],
+      "grade": ["kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "magic-fridge",
+      "title": "המקרר הקסום",
+      "description": "אילו מאכלים בריאים ואילו לא?",
+      "icon": "🧊",
+      "url": "the magical fridge/index.html",
+      "categories": ["he", "games", "knowledge"],
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "homework",
+      "title": "ניהול שיעורי בית",
+      "description": "ללמוד לנהל את הזמן ולעשות ש.ב!",
+      "icon": "⏰",
+      "url": "https://giamat13.github.io/homework-easy-times",
+      "categories": ["english", "he"],
+      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "grammar",
+      "title": "Grammar Rules",
+      "description": "Master English grammar with clear explanations.",
+      "icon": "✏️",
+      "url": "learn/apps/grammar.html",
+      "categories": ["english"],
+      "grade": ["second", "third", "fourth"],
+      "devices": ["desktop", "tablet", "mobile"]
+    },
+    {
+      "id": "vocab",
+      "title": "Vocabulary",
+      "description": "Expand your English vocabulary with new words.",
+      "icon": "📝",
+      "url": "learn/apps/vocab.html",
+      "categories": ["english"],
+      "grade": ["third", "fourth", "fifth", "sixth"],
+      "devices": ["desktop", "tablet", "mobile"]
+    },
+    {
+      "id": "quiz",
+      "title": "Quiz Time",
+      "description": "Test your knowledge with interactive quizzes.",
+      "icon": "❓",
+      "url": "learn/apps/quiz.html",
+      "categories": ["english"],
+      "grade": ["second", "third", "fourth"],
+      "devices": ["desktop", "tablet", "mobile"]
+    },
+    {
+      "id": "colors-numbers",
+      "title": "למידת מספרים",
+      "description": "ללמוד מספרים עד 10 בדרכים מהנות.",
+      "icon": "🔢",
+      "url": "Learn-Color-Numburs/index.html",
+      "categories": ["math"],
+      "grade": ["preschool", "kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "words-he-build",
+      "title": "למידת איות",
+      "description": "ללמוד איות בדרך מהנה.",
+      "icon": "📝",
+      "url": "words-he-build/index.html",
+      "categories": ["he"],
+      "grade": ["kindergarten", "first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "facts",
+      "title": "עובדות",
+      "description": "לגלות עובדות מעניינות וידע כללי.",
+      "icon": "🧠",
+      "url": "Facts/index.html",
+      "categories": ["knowledge"],
+      "grade": ["preschool", "kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-1",
+      "title": "מדעים כיתה א׳",
+      "description": "משחק מדע מקוון לכיתה א׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=1&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["first"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-2",
+      "title": "מדעים כיתה ב׳",
+      "description": "משחק מדע מקוון לכיתה ב׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=2&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-3",
+      "title": "מדעים כיתה ג׳",
+      "description": "משחק מדע מקוון לכיתה ג׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=3&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["third"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-4",
+      "title": "מדעים כיתה ד׳",
+      "description": "משחק מדע מקוון לכיתה ד׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=4&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["fourth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-5",
+      "title": "מדעים כיתה ה׳",
+      "description": "משחק מדע מקוון לכיתה ה׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=5&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["fifth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-6",
+      "title": "מדעים כיתה ו׳",
+      "description": "משחק מדע מקוון לכיתה ו׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=6&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["sixth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-7",
+      "title": "מדעים כיתה ז׳",
+      "description": "משחק מדע מקוון לכיתה ז׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=7&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["seventh"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-8",
+      "title": "מדעים כיתה ח׳",
+      "description": "משחק מדע מקוון לכיתה ח׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=8&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["eighth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-9",
+      "title": "מדעים כיתה ט׳",
+      "description": "משחק מדע מקוון לכיתה ט׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=9&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["ninth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-10",
+      "title": "מדעים כיתה י׳",
+      "description": "משחק מדע מקוון לכיתה י׳.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=10&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["tenth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-11",
+      "title": "מדעים כיתה י\"א",
+      "description": "משחק מדע מקוון לכיתה י\"א.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=11&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["eleventh"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "spacegame-S-12",
+      "title": "מדעים כיתה י\"ב",
+      "description": "משחק מדע מקוון לכיתה י\"ב.",
+      "icon": "🚀",
+      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=12&subject=science",
+      "categories": ["science", "games"],
+      "grade": ["twelfth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "secrets-series",
+      "title": "בלי סודות",
+      "description": "סדרת וידאו ללימוד האותיות בעברית.",
+      "icon": "📺",
+      "url": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
+      "categories": ["series", "he"],
+      "grade": ["kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "parpar-nachmad-old",
+      "title": "פרפר נחמד ישן",
+      "description": "סדרת וידאו חינוכית מהנה לילדים.",
+      "icon": "🦋",
+      "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
+      "categories": ["series"],
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "parpar-nachmad-new",
+      "title": "פרפר נחמד חדש",
+      "description": "סדרת וידאו עדכנית ללימוד מהנה של עברית.",
+      "icon": "🦋",
+      "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
+      "categories": ["series"],
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "memory-game",
+      "title": "משחק הזיכרון",
+      "description": "תרגל את הזיכרון שלך עם משחק זכרון קלאסי!",
+      "icon": "🧠",
+      "url": "memory-game/index.html",
+      "categories": ["games", "he", "math"],
+      "grade": ["kindergarten", "preschool", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "nikud-game",
+      "title": "משחק הניקוד",
+      "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
+      "icon": "🔡",
+      "url": "nikud-game/index.html",
+      "categories": ["he", "games"],
+      "grade": ["kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "multiplication-game",
+      "title": "לוח הכפל",
+      "description": "תרגל לוח כפל, ענה מהר וצבור ניקוד!",
+      "icon": "✖️",
+      "url": "multiplication-game/index.html",
+      "categories": ["math", "games"],
+      "grade": ["third", "fourth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "coloring-pages",
+      "title": "צביעה לפי מספרים",
+      "description": "צבע תמונות מהנות לפי מספרים — כל מספר מייצג צבע!",
+      "icon": "🎨",
+      "url": "coloring-pages/index.html",
+      "categories": ["math", "games"],
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "ruler-design",
+      "title": "עיצוב סרגל מתקפל",
+      "description": "צובעים ומקשטים סרגל מתקפל בדרך יצירתית ומהנה.",
+      "icon": "🎨",
+      "url": "Ruler-design/index.html",
+      "categories": ["games", "he"],
+      "grade": ["preschool", "kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "memory-english",
+      "title": "משחק זיכרון - אנגלית ועברית",
+      "description": "התאימו כל מילה באנגלית לתרגום שלה בעברית וצברו מטבעות!",
+      "icon": "🧠",
+      "url": "memory-english/index.html",
+      "categories": ["games", "english", "he"],
+      "grade": ["fifth", "sixth", "seventh"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "math-addition-subtraction",
+      "title": "חיבור וחיסור",
+      "description": "תרגלו חיבור וחיסור עד 10 או עד 20, ענו מהר וצברו נקודות!",
+      "icon": "➕",
+      "url": "math-addition-subtraction/index.html",
+      "categories": ["math", "games"],
+      "grade": ["first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "first-reading-game",
+      "title": "הקריאה הראשונה שלי",
+      "description": "מרכיבים משפט קצר ממילים מעורבבות וקוראים אותו בעברית.",
+      "icon": "📖",
+      "url": "first-reading-game/index.html",
+      "categories": ["he", "games"],
+      "grade": ["kindergarten", "first"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "letters-game-gan-chova",
+      "title": "משחק האותיות",
+      "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
+      "icon": "🔤",
+      "url": "Letters-game/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "colors-numbers-gan-chova",
+      "title": "למידת מספרים",
+      "description": "ללמוד מספרים עד 10 בדרכים מהנות.",
+      "icon": "🔢",
+      "url": "Learn-Color-Numburs/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "words-he-build-gan-chova",
+      "title": "למידת איות",
+      "description": "ללמוד איות בדרך מהנה.",
+      "icon": "📝",
+      "url": "words-he-build/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "nikud-game-gan-chova",
+      "title": "משחק הניקוד",
+      "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
+      "icon": "🔡",
+      "url": "nikud-game/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "coloring-pages-gan-chova",
+      "title": "צביעה לפי מספרים",
+      "description": "צבע תמונות מהנות לפי מספרים — כל מספר מייצג צבע!",
+      "icon": "🎨",
+      "url": "coloring-pages/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "math-adventure",
+      "title": "הרפתקת החשבון",
+      "description": "עולמות קסומים מלאי אתגרי חשבון וצבע!",
+      "icon": "🧮",
+      "url": "math-adventure/index.html",
+      "categories": ["math", "games"],
+      "grade": ["first", "second", "third", "fourth", "fifth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "first-reading-game-gan-chova",
+      "title": "הקריאה הראשונה שלי",
+      "description": "מרכיבים משפט קצר ממילים מעורבבות וקוראים אותו בעברית.",
+      "icon": "📖",
+      "url": "first-reading-game/index.html",
+      "categories": ["gan-chova"],
+      "grade": ["kindergarten"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "family-mail",
+      "title": "מכתב למשפחה",
+      "description": "כותבים (או מדברים!) מכתב שנשלח באמת באימייל למשפחה, והם יכולים לענות.",
+      "icon": "💌",
+      "url": "family-mail/index.html",
+      "categories": ["family", "games"],
+      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    }
+  ]
+}

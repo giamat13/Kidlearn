@@ -284,6 +284,7 @@
     <script src="../shared/kidlearn-cloud.js"></script>
     <script src="../shared/kidlearn-widget.js"></script>
     <script>KidLearn.init();</script>
+    <script src="../shared/kidlearn-wallet.js"></script>
     <script>
         // --- נתוני הניקוד ---
 const NIKUD = [
@@ -364,6 +365,7 @@ const NIKUD = [
         let current = 0;
         let score = 0;
         let streak = 0;
+        let correctCount = 0;
         let answered = false;
 
         function shuffle(arr) {
@@ -400,6 +402,7 @@ const NIKUD = [
             current = 0;
             score = 0;
             streak = 0;
+            correctCount = 0;
             answered = false;
             document.getElementById('endScreen').style.display = 'none';
             document.getElementById('questionCard').style.display = 'block';
@@ -549,6 +552,8 @@ const NIKUD = [
                 const points = 10 + streak * 2;
                 score += points;
                 streak++;
+                correctCount++;
+                window.KidLearnWallet && KidLearnWallet.earn(2, {reason: 'ניקוד נכון'});
                 fb.textContent = streak >= 3 ? `🔥 נכון! +${points} (רצף ${streak}!)` : `✓ נכון! +${points}`;
                 fb.className = 'feedback success';
                 if (streak % 3 === 0) launchConfetti();
@@ -579,6 +584,8 @@ const NIKUD = [
             const end = document.getElementById('endScreen');
             end.style.display = 'block';
 
+            if (correctCount === TOTAL_QUESTIONS) window.KidLearnWallet && KidLearnWallet.earn(15, {reason: 'סיבוב מושלם!'});
+            else if (correctCount >= 7) window.KidLearnWallet && KidLearnWallet.earn(5, {reason: 'סיום סיבוב'});
             const pct = score / (TOTAL_QUESTIONS * 10);
             let emoji = '😊', title = 'כל הכבוד!', msg = '';
             if (pct >= 0.9) { emoji = '🏆'; title = 'מושלם!'; msg = 'ידע ניקוד מעולה!'; launchConfetti(); }

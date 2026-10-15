@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חיבור וחיסור</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <a href="../index.html" data-gamepad-back class="back-btn">← חזור</a>
+        <h1>➕ חיבור וחיסור</h1>
+        <p class="subtitle">תרגלו חיבור וחיסור וצברו נקודות!</p>
+    </header>
+
+    <!-- מסך הגדרות -->
+    <div id="setup-screen">
+        <h2>בחרו תרגול</h2>
+
+        <div class="option-group">
+            <div class="option-label">סוג פעולה</div>
+            <div class="pill-grid" id="opGrid"></div>
+        </div>
+
+        <div class="option-group">
+            <div class="option-label">טווח מספרים</div>
+            <div class="pill-grid" id="rangeGrid"></div>
+        </div>
+
+        <button class="btn btn-primary" id="startBtn" onclick="startGame()">התחל משחק ✨</button>
+    </div>
+
+    <!-- מסך משחק -->
+    <div id="game-screen">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">ניקוד</span>
+                <span class="stat-value" id="scoreDisplay">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">שאלה</span>
+                <span class="stat-value" id="questionNum">1/10</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">רצף 🔥</span>
+                <span class="stat-value streak" id="streakDisplay">0</span>
+            </div>
+        </div>
+
+        <div class="timer-bar-wrap">
+            <div class="timer-bar" id="timerBar"></div>
+        </div>
+
+        <div class="question-card">
+            <div class="question-text" id="questionText"></div>
+            <div class="live-points" id="livePoints"></div>
+        </div>
+
+        <div class="answers-grid" id="answersGrid"></div>
+        <div class="feedback" id="feedbackArea"></div>
+    </div>
+
+    <!-- מסך סיום -->
+    <div id="end-screen">
+        <div id="recordBadge" style="display:none" class="record-badge">🏆 שיא חדש!</div>
+        <h2 id="endTitle">🎉 כל הכבוד!</h2>
+        <div class="final-score">
+            <span id="finalScore">0</span>
+            <small>נקודות</small>
+        </div>
+        <div class="end-stats">
+            <div class="end-stat">
+                <div class="end-stat-label">נכון</div>
+                <div class="end-stat-value" id="endCorrect">—</div>
+            </div>
+            <div class="end-stat">
+                <div class="end-stat-label">רצף מקסימלי</div>
+                <div class="end-stat-value" id="endStreak">—</div>
+            </div>
+            <div class="end-stat">
+                <div class="end-stat-label">שיא אישי</div>
+                <div class="end-stat-value" id="endRecord">—</div>
+            </div>
+        </div>
+        <div class="end-buttons">
+            <button class="btn btn-primary" onclick="startGame()">שחק שוב 🔄</button>
+            <button class="btn btn-secondary" onclick="goToSetup()">הגדרות ⚙️</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
+<script src="game.js"></script>
+<script src="../effects/gamepad-ui.js"></script>
+</body>
+</html>

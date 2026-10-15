@@ -192,6 +192,8 @@ function handleAnswer(chosen, correct, btn) {
         correctCount++;
         showFeedback(true);
         showScorePopup(btn, '+' + pts);
+        // 1 לתשובה נכונה, +1 אם ענו מהר (בשליש הראשון של הזמן)
+        window.KidLearnWallet && KidLearnWallet.earn(timeLeft >= QUESTION_TIME * 0.66 ? 2 : 1, { reason: 'תשובה נכונה' });
     } else {
         btn.classList.add('wrong');
         allBtns.forEach(b => {
@@ -270,6 +272,11 @@ function endGame() {
     const pct = correctCount / questions.length;
     const title = pct === 1 ? '🏆 מושלם!' : pct >= 0.8 ? '🌟 כל הכבוד!' : pct >= 0.6 ? '😊 יפה!' : '💪 נסה שוב!';
     document.getElementById('endTitle').textContent = title;
+
+    // סיום סיבוב: 5 על 6+ נכונות, 8 על 8+, 15 על סיבוב מושלם (+ בונוס קושי)
+    const roundBonus = correctCount >= 6 ? (selectedTables.length >= 6 ? 2 : 0) : 0;
+    const roundReward = pct === 1 ? 15 : correctCount >= 8 ? 8 : correctCount >= 6 ? 5 : 0;
+    if (roundReward > 0) window.KidLearnWallet && KidLearnWallet.earn(roundReward + roundBonus, { reason: pct === 1 ? 'סיבוב מושלם!' : 'סיימת סיבוב' });
 
     document.getElementById('end-screen').style.display = 'block';
 }

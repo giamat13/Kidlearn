@@ -209,6 +209,7 @@
         <button onclick="backToMain()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-lg w-full">חזרה לתפריט</button>
     </div>
 
+    <script src="../../shared/kidlearn-wallet.js"></script>
     <script>
         // --- Full Vocabulary Database ---
         const numToWordMap = {'0':'zero','1':'one','2':'two','3':'three','4':'four','5':'five','6':'six','7':'seven','8':'eight','9':'nine','10':'ten','11':'eleven','12':'twelve','13':'thirteen','14':'fourteen','15':'fifteen','16':'sixteen','17':'seventeen','18':'eighteen','19':'nineteen','20':'twenty'};
@@ -370,6 +371,7 @@
         let currentQuizQuestions = [];
         let currentQuestionIdx = 0;
         let score = 0; let streak = 0; let maxStreak = 0; let currentQuestionAttempts = 0;
+        let paidQuestions = new Set(); let firstTryCount = 0; let endPaid = false; // wallet reward guards
         let unscrambleSelectedIndices = []; let currentUnscrambleBank = [];
 
         function showScreen(screenId) {
@@ -413,7 +415,7 @@
                     return { ...item, qType, fixedSentence };
                 }).slice(0, 10);
             }
-            currentQuizQuestions = pool; currentQuestionIdx = 0; score = 0; streak = 0; maxStreak = 0;
+            currentQuizQuestions = pool; currentQuestionIdx = 0; score = 0; streak = 0; maxStreak = 0; paidQuestions = new Set(); firstTryCount = 0; endPaid = false;
             updateStreakUI(); showScreen('quiz-container'); loadQuestion();
         }
 
@@ -504,6 +506,11 @@
                 }
                 const bonus = streak >= 3 ? 2 : 0; const pts = currentQuestionAttempts === 0 ? 10 : (currentQuestionAttempts === 1 ? 5 : 2);
                 if (currentQuestionAttempts === 0) streak++; else streak = 0;
+                if (!paidQuestions.has(currentQuestionIdx)) {
+                    paidQuestions.add(currentQuestionIdx);
+                    if (currentQuestionAttempts === 0) firstTryCount++;
+                    window.KidLearnWallet && KidLearnWallet.earn(currentQuestionAttempts === 0 ? 2 : 1, { reason: 'תשובה נכונה' });
+                }
                 score += (pts + bonus); document.getElementById('score-val').innerText = score; updateStreakUI();
                 showMessage(`יפה מאוד! (${pts}${bonus > 0 ? ' + ' + bonus : ''} נק') 🌟`, "#48bb78");
                 setTimeout(() => { currentQuestionIdx++; if(currentQuestionIdx < 10) loadQuestion(); else showEndScreen(); }, 1800);
@@ -567,7 +574,13 @@
         function skipQuestion() { streak = 0; updateStreakUI(); currentQuestionIdx++; if(currentQuestionIdx < 10) loadQuestion(); else showEndScreen(); }
         function updateStreakUI() { document.getElementById('streak-val').innerText = streak; document.getElementById('streak-indicator').classList.toggle('active', streak > 0); if (streak > maxStreak) maxStreak = streak; }
         function showMessage(t, c) { const b = document.getElementById('message-box'); b.innerText = t; b.style.backgroundColor = c; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 1800); }
-        function showEndScreen() { showScreen('end-screen'); document.getElementById('final-score').innerText = score; document.getElementById('final-streak-msg').innerText = maxStreak >= 3 ? `רצף שיא: ${maxStreak} 🔥` : ""; }
+        function showEndScreen() { showScreen('end-screen');
+            if (!endPaid && window.KidLearnWallet) {
+                endPaid = true;
+                if (paidQuestions.size >= 5) KidLearnWallet.earn(8, { reason: 'סיימת חידון' });
+                if (firstTryCount >= 10) KidLearnWallet.earn(10, { reason: 'חידון מושלם' });
+            }
+            document.getElementById('final-score').innerText = score; document.getElementById('final-streak-msg').innerText = maxStreak >= 3 ? `רצף שיא: ${maxStreak} 🔥` : ""; }
 
         function showWordCategories() {
             showScreen('category-container');

@@ -29,6 +29,7 @@ const allFoods = [
 let score = 0;
 let lives = 3;
 let currentFood = null;
+let foodRewarded = false; // מונע תגמול כפול על אותו מזון
 
 // אלמנטים
 const foodItem = document.getElementById('foodItem');
@@ -55,6 +56,7 @@ function showNewFood() {
     foodName.textContent = currentFood.name;
     feedback.textContent = '';
     feedback.className = 'feedback';
+    foodRewarded = false;
 }
 
 // פונקציה לבדיקת התשובה
@@ -62,6 +64,10 @@ function checkAnswer(isHealthyBox) {
     const correct = (isHealthyBox && currentFood.healthy) || (!isHealthyBox && !currentFood.healthy);
     
     if (correct) {
+        if (!foodRewarded && lives > 0) {
+            foodRewarded = true;
+            window.KidLearnWallet && KidLearnWallet.earn(2, {reason: 'מיון נכון'});
+        }
         score += 10;
         scoreDisplay.textContent = score;
         feedback.textContent = '🎉 כל הכבוד! תשובה נכונה!';
