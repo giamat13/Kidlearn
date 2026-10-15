@@ -93,6 +93,16 @@
         });
     }
 
+    async function deleteFile(key) {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(FILES, 'readwrite');
+            tx.objectStore(FILES).delete(key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
     async function loadDrawing() {
         try {
             const blob = await getFile('drawing');
@@ -487,6 +497,44 @@
         });
     });
 
+    // ---- a whole board as plain data, to keep with a program: widgets, the drawing and the pictures ----
+    function blobToDataUrl(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    async function exportState() {
+        const images = {};
+        for (const w of widgets) {
+            if (w.type !== 'image') continue;
+            const blob = await getFile(w.imageId);
+            if (blob) images[w.imageId] = await blobToDataUrl(blob);
+        }
+        return { widgets: JSON.parse(JSON.stringify(widgets)), drawing: drawCanvas.toDataURL('image/png'), images };
+    }
+
+    async function importState(state) {
+        const data = state || {};
+        widgets = (Array.isArray(data.widgets) ? data.widgets : []).filter(isWidget);
+        selectedId = null;
+        for (const m of [pressed, lamps, numbers, screenFaces]) Object.keys(m).forEach((k) => delete m[k]);
+        for (const [id, url] of Object.entries(data.images || {})) {
+            await putFile(id, await (await fetch(url)).blob());
+            delete imageUrls[id];
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.clearRect(0, 0, BOARD_W, BOARD_H);
+        if (data.drawing) ctx.drawImage(await createImageBitmap(await (await fetch(data.drawing)).blob()), 0, 0, BOARD_W, BOARD_H);
+        saveDrawing();
+        saveLayout();
+        render();
+        emitChange();
+    }
+
     // ---- the screen: what the scripts of the board show on it (a picture, a word, or a drawing) ----
     function firstScreen() {
         return widgets.find((w) => w.type === 'screen') || null;
@@ -513,6 +561,12 @@
 
     // ---- what the page reads ----
     window.KidlearnBoard = {
+        exportState,
+        importState,
+        clearState: () => importState({}),
+        saveSnapshot: (id, state) => putFile('snapshot:' + id, state),
+        loadSnapshot: (id) => getFile('snapshot:' + id),
+        deleteSnapshot: (id) => deleteFile('snapshot:' + id),
         screenShow: (emoji) => showOnScreen(emoji, 90),
         screenText: (word) => showOnScreen(word, 56),
         screenPixels: (pixels) => showOnScreen(
