@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>תכנות המיקרוביט - KidLearn</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap">
+<style>
+    [hidden] { display: none !important; }
+    body { margin: 0; background: #FFF8F0; color: #2B2433; font-family: 'Varela Round', system-ui, sans-serif; }
+    button { font-family: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #FF6B9D; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+    .wrap { box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 28px 22px 56px; }
+    .back { display: inline-block; font-size: 18px; color: #5B5366; text-decoration: none; min-height: 44px; line-height: 44px; }
+    h1 { margin: 6px 0 0; font-size: 46px; line-height: 1.15; }
+    .lead { margin: 8px 0 0; font-size: 22px; color: #4A4253; }
+
+    .steps { list-style: none; margin: 22px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .steps li { background: #FFFFFF; border-radius: 22px; padding: 16px; display: flex; align-items: center; gap: 12px; font-size: 19px; box-shadow: 0 2px 0 #EFE6DA; }
+    .step-num { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; background: #FEC163; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+
+    .status { margin-top: 22px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-radius: 22px; padding: 16px 20px; box-shadow: 0 2px 0 #EFE6DA; }
+    .status-icon { font-size: 40px; line-height: 1; }
+    .status-title { font-size: 23px; font-weight: 700; }
+    .status-text { font-size: 17px; color: #4A4253; margin-top: 2px; }
+    .status.ok { background: #DDF6EE; }
+    .status.warn { background: #FFF0D6; }
+    .status.bad { background: #FDE2EA; }
+
+    /* saved programs */
+    .library { margin-top: 22px; background: #FFFFFF; border-radius: 26px; padding: 20px; box-shadow: 0 2px 0 #EFE6DA; }
+    .library-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .library h2 { margin: 0; font-size: 26px; }
+    .count-badge { font-size: 18px; color: #5B5366; font-weight: 700; }
+    .chips { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { display: flex; align-items: center; gap: 4px; background: #F4F8FF; border-radius: 999px; padding: 0 6px 0 0; }
+    .chip.open { background: #E9DEFF; box-shadow: inset 0 0 0 3px #A78BFA; }
+    .chip-open { min-height: 48px; border: 0; background: none; padding: 0 18px; font-size: 20px; font-weight: 700; color: #2B2433; cursor: pointer; }
+    .chip-del { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #FDE2EA; font-size: 16px; cursor: pointer; }
+    .save-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
+    .save-row input { flex: 1 1 260px; min-height: 52px; box-sizing: border-box; border: 2px solid #E6DED4; border-radius: 16px; padding: 0 16px; font-size: 20px; font-family: inherit; background: #FFFCF8; color: #2B2433; }
+    .btn { min-height: 52px; padding: 0 20px; border-radius: 999px; font-size: 19px; font-weight: 700; cursor: pointer; }
+    .btn-save { border: 0; background: #22A06B; color: #FFFFFF; }
+    .btn-ghost { border: 2px solid #CFC6BE; background: #FFFFFF; color: #2B2433; }
+    .lib-state { font-size: 17px; color: #4A4253; margin: 12px 0 0; min-height: 22px; }
+    .lib-note { font-size: 17px; color: #A3134A; margin: 4px 0 0; min-height: 0; }
+    .empty { font-size: 17px; color: #5B5366; margin: 12px 0 0; }
+
+    .builder { display: grid; grid-template-columns: minmax(230px, 0.9fr) minmax(0, 1.6fr) minmax(260px, 1fr); gap: 18px; margin-top: 22px; align-items: start; }
+    .panel { background: #FFFFFF; border-radius: 26px; padding: 20px; box-shadow: 0 2px 0 #EFE6DA; }
+    .panel h2 { margin: 0 0 12px; font-size: 26px; }
+    .panel h3 { margin: 16px 0 8px; font-size: 18px; color: #5B5366; }
+    .panel .hint { margin-top: 0; }
+
+    /* 1: the events, and the scripts that were added */
+    .when-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 60px; box-sizing: border-box; margin-bottom: 10px; padding: 0 16px; border: 0; border-radius: 18px; background: #F4EFFB; font-size: 21px; font-weight: 700; color: #2B2433; cursor: pointer; text-align: right; }
+    .when-btn:hover:not(:disabled) { background: #E9DEFF; }
+    .letter { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; background: #60A5FA; color: #FFFFFF; font-size: 20px; }
+    .mark { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; font-size: 26px; line-height: 1; }
+    .script-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .script { display: flex; align-items: center; gap: 6px; background: #F4F8FF; border-radius: 18px; padding: 6px; }
+    .script.selected { background: #E9DEFF; box-shadow: inset 0 0 0 3px #A78BFA; }
+    .script-pick { flex: 1 1 auto; min-width: 0; min-height: 52px; display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 0 8px; color: #2B2433; cursor: pointer; text-align: right; }
+    .script-label { flex: 1 1 auto; font-size: 19px; font-weight: 700; }
+    .script-count { font-size: 16px; color: #5B5366; font-weight: 700; }
+    .script-del { flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 14px; font-size: 20px; cursor: pointer; background: #FFFFFF; }
+    .script-del { background: #FDE2EA; font-size: 18px; }
+
+    /* 2: the blocks */
+    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
+    .tile { min-height: 96px; border: 0; border-radius: 20px; background: #FFF3E0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; color: #2B2433; }
+    .tile:hover:not(:disabled) { background: #FFE0B2; }
+    .tile .emoji { font-size: 40px; line-height: 1; }
+    .tile .label { font-size: 16px; font-weight: 700; }
+    .tile.wait { background: #E6F7F2; }
+    .tile.wait:hover:not(:disabled) { background: #C9F0E3; }
+    .tile.word { background: #F0E7FF; }
+    .tile.word:hover:not(:disabled) { background: #E2D2FF; }
+
+    /* the picture grid: five per row, and the last row is the full-width "ציור בעצמי" button */
+    #pictureTiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .tile.wide { grid-column: 1 / -1; flex-direction: row; min-height: 64px; gap: 12px; background: #FFE3EE; }
+    .tile.wide:hover:not(:disabled) { background: #FFC9DF; }
+    .tile.wide .emoji { font-size: 32px; }
+    .tile.wide .label { font-size: 20px; }
+
+    .drawer { margin-top: 14px; padding: 14px; border-radius: 20px; background: #FFF8F0; }
+    .drawer-title { margin: 0 0 12px; font-size: 19px; font-weight: 700; text-align: center; }
+    .pixels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 280px; margin: 0 auto; }
+    .pixel { aspect-ratio: 1; border: 0; border-radius: 50%; background: #3A3344; cursor: pointer; }
+    .pixel.on { background: #FF6B9D; }
+    .drawer-buttons { display: flex; gap: 10px; margin-top: 14px; justify-content: center; flex-wrap: wrap; }
+    .drawer-add, .drawer-cancel { min-height: 52px; padding: 0 18px; border-radius: 999px; font-size: 19px; font-weight: 700; cursor: pointer; }
+    .drawer-add { border: 0; background: #22A06B; color: #FFFFFF; }
+    .drawer-cancel { border: 2px solid #CFC6BE; background: #FFFFFF; color: #2B2433; }
+
+    /* 3: the blocks of the chosen script */
+    .script-title { margin: 0 0 10px; font-size: 19px; font-weight: 700; color: #5B5366; }
+    .sequence { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
+    .sequence li { display: flex; align-items: center; gap: 10px; background: #F4F8FF; border-radius: 18px; padding: 8px 10px; }
+    .sequence .num { width: 30px; font-size: 18px; font-weight: 700; color: #5B5366; text-align: center; }
+    .sequence .emoji { font-size: 36px; line-height: 1; }
+    .sequence .label { flex: 1 1 auto; font-size: 19px; font-weight: 700; }
+    .remove { width: 48px; height: 48px; border: 0; border-radius: 14px; background: #FDE2EA; font-size: 22px; cursor: pointer; }
+    .grip { flex: 0 0 auto; font-size: 22px; color: #8A8196; cursor: grab; user-select: none; }
+    .dragging { opacity: 0.4; }
+    .drop-here { box-shadow: inset 0 0 0 3px #22A06B; }
+    .hint { font-size: 17px; color: #5B5366; margin: 12px 0 0; min-height: 22px; }
+    .link { margin-top: 12px; border: 0; background: none; color: #A3134A; font-size: 18px; font-weight: 700; text-decoration: underline; min-height: 44px; cursor: pointer; }
+
+    .send { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .send-btn { width: min(560px, 100%); min-height: 80px; border: 0; border-radius: 999px; background: #22A06B; color: #FFFFFF; font-size: 28px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 0 #17794F; }
+    .send-btn:not(:disabled):active { transform: translateY(2px); box-shadow: 0 2px 0 #17794F; }
+    .send-note { font-size: 18px; color: #4A4253; text-align: center; margin: 0; min-height: 24px; }
+    .send-error { font-size: 19px; font-weight: 700; color: #A3134A; text-align: center; margin: 0; min-height: 24px; }
+
+    @media (max-width: 980px) {
+        .builder { grid-template-columns: 1fr; }
+        .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        h1 { font-size: 36px; }
+    }
+</style>
+</head>
+<body>
+<main class="wrap">
+    <a class="back" href="../index.html">&larr; כל המשחקים</a>
+    <h1>תכנתו את המיקרוביט!</h1>
+    <p class="lead">בונים תסריטים מסמלים, שולחים אותם למיקרוביט, ואז מריצים בלי מסך.</p>
+
+    <ol class="steps">
+        <li><span class="step-num" aria-hidden="true">🔌</span>חברו את המיקרוביט למחשב בכבל</li>
+        <li><span class="step-num" aria-hidden="true">🧩</span>בנו תסריטים מהסמלים</li>
+        <li><span class="step-num" aria-hidden="true">🚀</span>לחצו על "שלחו"</li>
+        <li><span class="step-num" aria-hidden="true">🎉</span>נתקו ושחקו!</li>
+    </ol>
+
+    <div class="status" id="statusBox" role="status">
+        <span class="status-icon" id="statusIcon" aria-hidden="true">⏳</span>
+        <div>
+            <div class="status-title" id="statusTitle">בודקים...</div>
+            <div class="status-text" id="statusText"></div>
+        </div>
+    </div>
+
+    <section class="library" aria-labelledby="libTitle">
+        <div class="library-head">
+            <h2 id="libTitle">התוכניות שלי</h2>
+            <span class="count-badge" id="libCount">0/10</span>
+        </div>
+        <ul class="chips" id="savedList"></ul>
+        <p class="empty" id="libEmpty">עדיין אין תוכניות שמורות. בנו תוכנית ושמרו אותה כאן.</p>
+        <div class="save-row">
+            <input type="text" id="progName" maxlength="30" placeholder="שם לתוכנית, למשל: הלב שלי" aria-label="שם לתוכנית">
+            <button type="button" class="btn btn-save" id="saveProg">שמרו</button>
+            <button type="button" class="btn btn-ghost" id="newProg">תוכנית חדשה</button>
+        </div>
+        <p class="lib-state" id="libState"></p>
+        <p class="lib-note" id="libNote" aria-live="polite"></p>
+    </section>
+
+    <div class="builder">
+        <section class="panel">
+            <h2>1. כשקורה...</h2>
+            <p class="hint">לחצו על מה שיקרה. כל לחיצה מוסיפה תסריט חדש.</p>
+            <div id="whenButtons"></div>
+            <h3>התסריטים שלי <span class="count-badge" id="scriptCount">0/6</span></h3>
+            <ol class="script-list" id="scriptList"></ol>
+            <p class="hint" id="scriptEmpty">עדיין אין תסריטים.</p>
+        </section>
+
+        <section class="panel">
+            <h2>2. אז עושים...</h2>
+            <h3>תמונות</h3>
+            <div class="tiles" id="pictureTiles"></div>
+            <div class="drawer" id="drawer" hidden>
+                <p class="drawer-title">ציירו משהו! לחצו על הנורות שרוצים שידלקו.</p>
+                <div class="pixels" id="pixels"></div>
+                <div class="drawer-buttons">
+                    <button type="button" class="drawer-add" id="drawerAdd">הוסיפו לתסריט</button>
+                    <button type="button" class="drawer-cancel" id="drawerCancel">ביטול</button>
+                </div>
+            </div>
+            <h3>זמן</h3>
+            <div class="tiles" id="waitTiles"></div>
+            <h3>מסך</h3>
+            <div class="tiles" id="otherTiles"></div>
+        </section>
+
+        <section class="panel">
+            <h2>3. מה עושים בתסריט <span class="count-badge" id="count">0/12</span></h2>
+            <p class="script-title" id="scriptTitle"></p>
+            <ol class="sequence" id="sequence"></ol>
+            <p class="hint" id="hint"></p>
+            <button type="button" class="link" id="clearAll">נקו את התסריט</button>
+        </section>
+    </div>
+
+    <div class="send">
+        <button type="button" class="send-btn" id="sendBtn" disabled>שלחו למיקרוביט!</button>
+        <p class="send-note" id="sendNote"></p>
+        <p class="send-error" id="sendError" role="alert"></p>
+    </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-bridge.js"></script>
+<script>
+    const GAME_ID = 'microbit-programming';
+    const MAX_SCRIPTS = 6;     // scripts in one program (the app checks the same limit)
+    const MAX_ACTIONS = 12;    // blocks in one script
+    const MAX_TOTAL = 24;      // blocks in all the scripts together
+    const MAX_SAVED = 10;      // saved programs on this device
+    const DRAFT_KEY = 'kidlearn-microbit-draft';
+    const SAVED_KEY = 'kidlearn-microbit-programs';
+
+    // The blocks a child can use. Each block is sent as its name and value only; the app writes the code.
+    const WHEN = [
+        { event: 'start', label: 'מתחילים', mark: '🚀' },
+        { event: 'buttonA', label: 'לוחצים על A', mark: 'A' },
+        { event: 'buttonB', label: 'לוחצים על B', mark: 'B' },
+        { event: 'shake', label: 'מנערים', mark: '🤝' },
+    ];
+    const PICTURES = [
+        { icon: 'heart', emoji: '❤️', label: 'לב' }, { icon: 'happy', emoji: '😊', label: 'שמח' },
+        { icon: 'sad', emoji: '😢', label: 'עצוב' }, { icon: 'surprised', emoji: '😮', label: 'הפתעה' },
+        { icon: 'angry', emoji: '😠', label: 'כועס' }, { icon: 'asleep', emoji: '😴', label: 'ישן' },
+        { icon: 'yes', emoji: '✅', label: 'וי' }, { icon: 'no', emoji: '❌', label: 'לא' },
+        { icon: 'up', emoji: '⬆️', label: 'למעלה' }, { icon: 'right', emoji: '➡️', label: 'ימינה' },
+        { icon: 'down', emoji: '⬇️', label: 'למטה' }, { icon: 'left', emoji: '⬅️', label: 'שמאלה' },
+        { icon: 'house', emoji: '🏠', label: 'בית' }, { icon: 'ghost', emoji: '👻', label: 'רוח' },
+        { icon: 'target', emoji: '🎯', label: 'מטרה' },
+    ];
+    const WAITS = [
+        { seconds: 0.5, emoji: '⚡', label: 'חצי שנייה' }, { seconds: 1, emoji: '⏳', label: 'שנייה' },
+        { seconds: 2, emoji: '⌛', label: '2 שניות' }, { seconds: 3, emoji: '🕐', label: '3 שניות' },
+    ];
+    const OTHERS = [
+        { clear: true, emoji: '🧹', label: 'מנקה מסך' },
+    ];
+
+    let scripts = [];        // the program: [{ event, actions: [...] }], each script runs once
+    let selected = -1;       // the script the child is working on (-1 = none)
+    let openId = null;       // the saved program that is open, if any
+    let gamesOff = null;     // null until known; true = switched off for this account (or this device)
+    let defaultOff = true;   // from games.json ("defaultOff"), used when nothing was saved for the game
+    let installing = false;
+    let sentThisTime = false;
+    let connectionState = 'checking';
+    let drawing = [];        // the 5x5 drawing: true = lit
+
+    const $ = (id) => document.getElementById(id);
+    const copy = (value) => JSON.parse(JSON.stringify(value));
+    const eventInfo = (event) => WHEN.find(w => w.event === event);
+    const currentScript = () => scripts[selected] || null;
+    const totalActions = () => scripts.reduce((n, s) => n + s.actions.length, 0);
+
+    // A letter (A or B) is shown in a blue circle, an emoji as it is
+    function markFor(info) {
+        const span = document.createElement('span');
+        span.className = info.mark === 'A' || info.mark === 'B' ? 'letter' : 'mark';
+        span.setAttribute('aria-hidden', 'true');
+        span.textContent = info.mark;
+        return span;
+    }
+
+    function actionFor(tile) {
+        if (tile.icon) return { do: 'show', icon: tile.icon };
+        if (tile.seconds) return { do: 'wait', seconds: tile.seconds };
+        if (tile.word) return { do: 'text', word: tile.word };
+        return { do: 'clear' };
+    }
+
+    function sameAction(a, b) {
+        return JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    function tileFor(action) {
+        return [...PICTURES.map(t => [t, actionFor(t)]), ...WAITS.map(t => [t, actionFor(t)]),
+                ...OTHERS.map(t => [t, actionFor(t)])].find(([, a]) => sameAction(a, action))?.[0];
+    }
+
+    function tileButton(tile, extraClass) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tile ' + (extraClass || '');
+        b.innerHTML = '<span class="emoji" aria-hidden="true"></span><span class="label"></span>';
+        b.querySelector('.emoji').textContent = tile.emoji;
+        b.querySelector('.label').textContent = tile.label;
+        b.setAttribute('aria-label', tile.label);
+        b.addEventListener('click', () => addAction(actionFor(tile)));
+        return b;
+    }
+
+    function buildDrawer() {
+        const box = $('pixels');
+        for (let i = 0; i < 25; i++) {
+            const pixel = document.createElement('button');
+            pixel.type = 'button';
+            pixel.className = 'pixel';
+            pixel.setAttribute('aria-pressed', 'false');
+            pixel.setAttribute('aria-label', 'נורה ' + (i + 1));
+            pixel.addEventListener('click', () => {
+                drawing[i] = !drawing[i];
+                pixel.classList.toggle('on', drawing[i]);
+                pixel.setAttribute('aria-pressed', String(drawing[i]));
+            });
+            box.appendChild(pixel);
+        }
+        $('drawerAdd').addEventListener('click', () => {
+            const added = addAction({ do: 'draw', pixels: Array.from({ length: 25 }, (_, i) => drawing[i] ? '1' : '0').join('') });
+            if (added) closeDrawer();
+        });
+        $('drawerCancel').addEventListener('click', closeDrawer);
+    }
+
+    function openDrawer() {
+        drawing = Array(25).fill(false);
+        document.querySelectorAll('#pixels .pixel').forEach(p => {
+            p.classList.remove('on');
+            p.setAttribute('aria-pressed', 'false');
+        });
+        $('drawer').hidden = false;
+    }
+
+    function closeDrawer() {
+        $('drawer').hidden = true;
+    }
+
+    function buildPalette() {
+        PICTURES.forEach(t => $('pictureTiles').appendChild(tileButton(t)));
+        // The last row: one button that spans the whole row, for a picture the child draws
+        const draw = document.createElement('button');
+        draw.type = 'button';
+        draw.className = 'tile wide';
+        draw.innerHTML = '<span class="emoji" aria-hidden="true">🎨</span><span class="label">ציור בעצמי</span>';
+        draw.setAttribute('aria-label', 'ציור בעצמי');
+        draw.addEventListener('click', openDrawer);
+        $('pictureTiles').appendChild(draw);
+        buildDrawer();
+        WAITS.forEach(t => $('waitTiles').appendChild(tileButton(t, 'wait')));
+        OTHERS.forEach(t => $('otherTiles').appendChild(tileButton(t, 'word')));
+        WHEN.forEach(w => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'when-btn';
+            b.dataset.event = w.event;
+            const label = document.createElement('span');
+            label.textContent = w.label;
+            b.append(markFor(w), label);
+            b.addEventListener('click', () => addScript(w.event));
+            $('whenButtons').appendChild(b);
+        });
+        $('clearAll').addEventListener('click', () => {
+            if (!currentScript()) return;
+            currentScript().actions = [];
+            changed();
+        });
+        $('saveProg').addEventListener('click', saveProgram);
+        $('newProg').addEventListener('click', newProgram);
+        $('progName').addEventListener('input', () => {
+            saveDraft();
+            renderLibrary();
+        });
+    }
+
+    // ---- scripts ----
+    function addScript(event) {
+        if (scripts.length >= MAX_SCRIPTS) {
+            $('hint').textContent = 'יש עד 6 תסריטים בתוכנית. אפשר למחוק תסריט כדי להוסיף.';
+            return;
+        }
+        scripts.push({ event, actions: [] });
+        selected = scripts.length - 1;
+        changed();
+    }
+
+    function removeScript(index) {
+        const s = scripts[index];
+        if (s.actions.length > 0 && !confirm('למחוק את התסריט "' + eventInfo(s.event).label + '"?')) return;
+        scripts.splice(index, 1);
+        selected = scripts.length ? Math.min(index, scripts.length - 1) : -1;
+        changed();
+    }
+
+    function addAction(action) {
+        const s = currentScript();
+        if (!s) {
+            $('hint').textContent = 'קודם בחרו מתי התסריט עובד: לחצו על מה שיקרה בעמודה הראשונה.';
+            return false;
+        }
+        if (s.actions.length >= MAX_ACTIONS) {
+            $('hint').textContent = 'בתסריט הזה יש עד 12 סמלים. אפשר למחוק סמל כדי להוסיף.';
+            return false;
+        }
+        if (totalActions() >= MAX_TOTAL) {
+            $('hint').textContent = 'בכל התוכנית יש עד 24 סמלים. אפשר למחוק סמל כדי להוסיף.';
+            return false;
+        }
+        s.actions.push(action);
+        changed();
+        return true;
+    }
+
+    function removeAction(index) {
+        currentScript().actions.splice(index, 1);
+        changed();
+    }
+
+    function renderScripts() {
+        const list = $('scriptList');
+        list.innerHTML = '';
+        scripts.forEach((s, i) => {
+            const info = eventInfo(s.event);
+            const li = document.createElement('li');
+            li.className = 'script' + (i === selected ? ' selected' : '');
+            li.appendChild(gripFor());
+            enableDrag(li, 'script', i);
+
+            const pick = document.createElement('button');
+            pick.type = 'button';
+            pick.className = 'script-pick';
+            pick.setAttribute('aria-pressed', String(i === selected));
+            const label = document.createElement('span');
+            label.className = 'script-label';
+            label.textContent = info.label;
+            const count = document.createElement('span');
+            count.className = 'script-count';
+            count.textContent = s.actions.length + '/' + MAX_ACTIONS;
+            pick.append(markFor(info), label, count);
+            pick.addEventListener('click', () => {
+                selected = i;
+                changed();
+            });
+            li.appendChild(pick);
+
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'script-del';
+            del.textContent = '✖';
+            del.setAttribute('aria-label', 'מחיקת התסריט ' + info.label);
+            del.addEventListener('click', () => removeScript(i));
+            li.appendChild(del);
+
+            list.appendChild(li);
+        });
+        $('scriptCount').textContent = scripts.length + '/' + MAX_SCRIPTS;
+        $('scriptEmpty').hidden = scripts.length > 0;
+        document.querySelectorAll('.when-btn').forEach(b => {
+            b.disabled = scripts.length >= MAX_SCRIPTS;
+        });
+    }
+
+    // Dragging: drop a block on another block of the same script, or a script on another script,
+    // to put it in that place. Blocks stay in their script.
+    let dragging = null; // { kind: 'action' | 'script', index }
+
+    function gripFor() {
+        const grip = document.createElement('span');
+        grip.className = 'grip';
+        grip.setAttribute('aria-hidden', 'true');
+        grip.textContent = '⠿';
+        return grip;
+    }
+
+    function enableDrag(li, kind, index) {
+        li.draggable = true;
+        li.addEventListener('dragstart', (e) => {
+            dragging = { kind, index };
+            li.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(index)); // some browsers need data to start a drag
+        });
+        li.addEventListener('dragend', () => {
+            dragging = null;
+            document.querySelectorAll('.dragging, .drop-here').forEach(el => el.classList.remove('dragging', 'drop-here'));
+        });
+        li.addEventListener('dragover', (e) => {
+            if (!dragging || dragging.kind !== kind) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            li.classList.add('drop-here');
+        });
+        li.addEventListener('dragleave', () => li.classList.remove('drop-here'));
+        li.addEventListener('drop', (e) => {
+            if (!dragging || dragging.kind !== kind) return;
+            e.preventDefault();
+            const from = dragging.index;
+            dragging = null;
+            if (kind === 'action') {
+                moveItem(currentScript().actions, from, index);
+            } else {
+                const chosen = scripts[selected];
+                moveItem(scripts, from, index);
+                selected = scripts.indexOf(chosen);
+            }
+            changed();
+        });
+    }
+
+    function moveItem(list, from, to) {
+        if (from === to) return;
+        const [item] = list.splice(from, 1);
+        list.splice(to, 0, item);
+    }
+
+    // The blocks of the chosen script
+    function renderProgram() {
+        const list = $('sequence');
+        const s = currentScript();
+        list.innerHTML = '';
+        (s ? s.actions : []).forEach((action, i) => {
+            const tile = tileFor(action);
+            const li = document.createElement('li');
+            enableDrag(li, 'action', i);
+            const num = document.createElement('span');
+            num.className = 'num';
+            num.textContent = String(i + 1);
+            const emoji = document.createElement('span');
+            emoji.className = 'emoji';
+            emoji.setAttribute('aria-hidden', 'true');
+            const isDrawing = action.do === 'draw';
+            const name = isDrawing ? 'ציור שלי' : (tile ? tile.label : '');
+            emoji.textContent = isDrawing ? '🎨' : (tile ? tile.emoji : '?');
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = name;
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'remove';
+            remove.textContent = '✖';
+            remove.setAttribute('aria-label', 'מחיקת הסמל ' + name);
+            remove.addEventListener('click', () => removeAction(i));
+            li.append(gripFor(), num, emoji, label, remove);
+            list.appendChild(li);
+        });
+        $('count').textContent = (s ? s.actions.length : 0) + '/' + MAX_ACTIONS;
+        $('scriptTitle').textContent = s ? 'התסריט: ' + eventInfo(s.event).label : 'עדיין לא נבחר תסריט.';
+        $('clearAll').disabled = !s || s.actions.length === 0;
+        $('hint').textContent = !s ? 'לחצו על מה שיקרה בעמודה הראשונה, ואז בחרו סמלים.'
+            : s.actions.length === 0 ? 'לחצו על סמל כדי להוסיף אותו לתסריט.'
+            : 'הסמלים יופעלו לפי הסדר. אפשר לגרור סמל למקום אחר.';
+    }
+
+    // The send button depends only on the program. The send itself reports any real problem
+    // (no board, no extension, no app), so the status check never blocks a send that would work.
+    function updateSend() {
+        const count = totalActions();
+        const ready = scripts.length > 0 && count > 0 && gamesOff === false && !installing;
+        $('sendBtn').disabled = !ready;
+        $('sendBtn').textContent = sentThisTime ? 'שלחו שוב!' : 'שלחו למיקרוביט!';
+        $('sendNote').textContent = count === 0 ? 'בנו תסריט עם סמלים קודם, ואז אפשר לשלוח.' : '';
+    }
+
+    function changed() {
+        sentThisTime = false;
+        $('libNote').textContent = '';
+        $('sendError').textContent = '';
+        renderScripts();
+        renderProgram();
+        renderLibrary();
+        updateSend();
+        saveDraft();
+    }
+
+    // ---- saved programs on this device, and the draft that is kept until the child changes it ----
+    // Keeps only the shape of a saved program; the app checks every block again when it is sent
+    function cleanScripts(input) {
+        const result = [];
+        let total = 0;
+        if (!Array.isArray(input)) return result;
+        for (const s of input) {
+            if (result.length >= MAX_SCRIPTS || !s || !eventInfo(s.event)) continue;
+            const actions = Array.isArray(s.actions) ? s.actions.filter(a => a && typeof a.do === 'string') : [];
+            const kept = actions.slice(0, Math.max(0, Math.min(MAX_ACTIONS, MAX_TOTAL - total)));
+            total += kept.length;
+            result.push({ event: s.event, actions: kept });
+        }
+        return result;
+    }
+
+    function readSaved() {
+        try {
+            const list = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+            if (!Array.isArray(list)) return [];
+            return list
+                .filter(p => p && typeof p.id === 'string' && typeof p.name === 'string')
+                .slice(0, MAX_SAVED)
+                .map(p => ({ id: p.id, name: p.name.slice(0, 30), scripts: cleanScripts(p.scripts) }));
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function writeSaved(list) {
+        try {
+            localStorage.setItem(SAVED_KEY, JSON.stringify(list));
+            return true;
+        } catch (e) {
+            return false; // storage is blocked or full
+        }
+    }
+
+    function saveDraft() {
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ scripts, selected, openId, name: $('progName').value }));
+        } catch (e) {
+            // storage is blocked: the work lasts until the page is closed
+        }
+    }
+
+    function loadDraft() {
+        try {
+            const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+            if (!d) return;
+            scripts = cleanScripts(d.scripts);
+            selected = scripts.length ? Math.min(Math.max(0, Number(d.selected) || 0), scripts.length - 1) : -1;
+            openId = typeof d.openId === 'string' ? d.openId : null;
+            $('progName').value = typeof d.name === 'string' ? d.name.slice(0, 30) : '';
+        } catch (e) {
+            // a damaged draft is ignored: the child starts with an empty program
+        }
+    }
+
+    // True when what is on the screen is not what is saved under its name
+    function isDirty() {
+        const open = readSaved().find(p => p.id === openId);
+        if (!open) return scripts.length > 0;
+        return JSON.stringify(scripts) !== JSON.stringify(open.scripts) || $('progName').value.trim() !== open.name;
+    }
+
+    function renderLibrary() {
+        const saved = readSaved();
+        if (openId && !saved.some(p => p.id === openId)) openId = null;
+        const list = $('savedList');
+        list.innerHTML = '';
+        saved.forEach(p => {
+            const li = document.createElement('li');
+            li.className = 'chip' + (p.id === openId ? ' open' : '');
+            const open = document.createElement('button');
+            open.type = 'button';
+            open.className = 'chip-open';
+            open.textContent = p.name;
+            open.setAttribute('aria-pressed', String(p.id === openId));
+            open.addEventListener('click', () => openProgram(p.id));
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'chip-del';
+            del.textContent = '✖';
+            del.setAttribute('aria-label', 'מחיקת ' + p.name);
+            del.addEventListener('click', () => deleteProgram(p.id));
+            li.append(open, del);
+            list.appendChild(li);
+        });
+        $('libCount').textContent = saved.length + '/' + MAX_SAVED;
+        $('libEmpty').hidden = saved.length > 0;
+        const isOpen = saved.some(p => p.id === openId);
+        $('libState').textContent = isDirty()
+            ? (isOpen ? 'יש שינויים שלא נשמרו.' : 'התוכנית הזו עדיין לא שמורה. כתבו שם ולחצו "שמרו".')
+            : (isOpen ? 'התוכנית שמורה.' : '');
+    }
+
+    function saveProgram() {
+        if (scripts.length === 0) {
+            $('libNote').textContent = 'בנו תוכנית לפני שמירה.';
+            return;
+        }
+        const typed = $('progName').value.trim().slice(0, 30);
+        const saved = readSaved();
+        let program = saved.find(p => p.id === openId);
+        if (program) {
+            program.name = typed || program.name;
+            program.scripts = copy(scripts);
+        } else {
+            if (saved.length >= MAX_SAVED) {
+                $('libNote').textContent = 'כבר יש ' + MAX_SAVED + ' תוכניות שמורות. מחקו אחת כדי לשמור עוד.';
+                return;
+            }
+            program = { id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: typed || 'תוכנית ' + (saved.length + 1), scripts: copy(scripts) };
+            saved.push(program);
+            openId = program.id;
+        }
+        if (!writeSaved(saved)) {
+            $('libNote').textContent = 'לא הצלחנו לשמור במכשיר הזה.';
+            return;
+        }
+        $('progName').value = program.name;
+        $('libNote').textContent = 'נשמר!';
+        saveDraft();
+        renderLibrary();
+    }
+
+    function openProgram(id) {
+        const p = readSaved().find(x => x.id === id);
+        if (!p) return renderLibrary();
+        if (isDirty() && !confirm('לפתוח את "' + p.name + '"? מה שלא נשמר בתוכנית שעל המסך ימחק.')) return;
+        scripts = copy(p.scripts);
+        selected = scripts.length ? 0 : -1;
+        openId = p.id;
+        $('progName').value = p.name;
+        sentThisTime = false;
+        changed();
+    }
+
+    function deleteProgram(id) {
+        const saved = readSaved();
+        const p = saved.find(x => x.id === id);
+        if (!p || !confirm('למחוק את "' + p.name + '"?')) return;
+        writeSaved(saved.filter(x => x.id !== id));
+        // What is on the screen stays, as work that is not saved
+        if (openId === id) openId = null;
+        $('libNote').textContent = 'נמחקה: ' + p.name;
+        saveDraft();
+        renderLibrary();
+    }
+
+    function newProgram() {
+        if (isDirty() && !confirm('לפתוח תוכנית חדשה? מה שלא נשמר ימחק.')) return;
+        scripts = [];
+        selected = -1;
+        openId = null;
+        $('progName').value = '';
+        sentThisTime = false;
+        changed();
+    }
+
+    // ---- status ----
+    const ICONS = { checking: '⏳', 'no-extension': '🧩', 'no-app': '🖥️', waiting: '🔌', ready: '✅', sending: '📡', sent: '🎉', off: '🔒', error: '⚠️' };
+    const TONES = { ready: 'ok', sent: 'ok', waiting: 'warn', 'no-app': 'warn', 'no-extension': 'warn', off: 'bad', error: 'bad', sending: 'warn', checking: '' };
+    const TEXTS = {
+        checking: ['בודקים את החיבור...', ''],
+        'no-extension': ['צריך את תוסף Kidlearn בכרום', 'התקינו את התוסף לפי ההוראות, ורעננו את הדף.'],
+        'no-app': ['צריך לפתוח את Kidlearn במחשב', 'האייקון נמצא ליד השעון, באזור ההודעות.'],
+        waiting: ['המיקרוביט לא מחובר', 'חברו אותו למחשב בכבל USB. זה נבדק לבד.'],
+        ready: ['המיקרוביט מחובר ומוכן', 'בנו תסריט ושלחו אותו.'],
+        sending: ['שולחים את התוכנית...', 'אל תנתקו את המיקרוביט. זה לוקח כמה שניות.'],
+        sent: ['התוכנית הגיעה למיקרוביט!', 'נתקו אותו ושחקו. הוא מריץ את התסריטים לבד.'],
+        off: ['התכנות כבוי', 'אפשר להדליק אותו בדף הבית, בהגדרות "כיבוי משחקים לפי משחק".'],
+        error: ['לא הצלחנו לשלוח', ''],
+    };
+
+    function setStatus(name, detail) {
+        connectionState = name;
+        const [title, text] = TEXTS[name] || [name, ''];
+        $('statusBox').className = 'status' + (TONES[name] ? ' ' + TONES[name] : '');
+        $('statusIcon').textContent = ICONS[name] || '⚠️';
+        $('statusTitle').textContent = title;
+        $('statusText').textContent = detail || text;
+        updateSend();
+    }
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    let statusFailures = 0;
+
+    // The extension can answer a moment after the page loads, so try a few times before saying it is missing
+    async function extensionReady() {
+        for (let i = 0; i < 3; i++) {
+            if (await KidLearnBridge.isInstalled()) return true;
+            await sleep(700);
+        }
+        return false;
+    }
+
+    async function checkStatus() {
+        if (installing || gamesOff === null) return;
+        if (gamesOff) return setStatus('off');
+        if (!(await extensionReady())) return setStatus('no-extension');
+        const reply = await KidLearnBridge.request('microbitStatus');
+        if (!reply.ok) {
+            if (reply.error === 'extension_missing') return setStatus('no-extension');
+            // An older version of the extension is still loaded in Chrome: it does not know this action
+            if (reply.error === 'unknown_action') {
+                return setStatus('no-extension', 'התוסף בכרום ישן. ב-chrome://extensions לחצו על רענון (Reload) ל-Kidlearn, ואז רעננו את הדף.');
+            }
+            // One failed check (for example a slow start) does not change what the child sees
+            statusFailures++;
+            if (statusFailures < 2 && connectionState !== 'checking') return;
+            return setStatus('no-app', 'לא הצלחנו לדבר עם Kidlearn במחשב (' + reply.error + ').');
+        }
+        statusFailures = 0;
+        if (reply.data.connected) {
+            return setStatus(sentThisTime ? 'sent' : 'ready');
+        }
+        sentThisTime = false;
+        setStatus('waiting');
+    }
+
+    // What the child sees for each failure the app reports when it writes to the board
+    const REASONS = {
+        port_busy: 'הכבל של המיקרוביט תפוס בתוכנה אחרת, למשל עורך Python בדפדפן. סגרו אותה ונסו שוב.',
+        no_answer: 'המיקרוביט לא ענה. נתקו את הכבל וחברו אותו שוב, ונסו שוב.',
+        port_error: 'לא הצלחנו לכתוב למיקרוביט דרך הכבל. נתקו את הכבל וחברו אותו שוב, ונסו שוב.',
+        board_error: 'המיקרוביט דחה את התוכנית. נסו שוב.',
+    };
+
+    // A send error is shown under the send button, and stays there until the program changes or is sent again.
+    // The status box is checked every few seconds and would hide it, so the error is kept out of the status box.
+    function sendFailed(text) {
+        $('sendError').textContent = text;
+        $('sendError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    $('sendBtn').addEventListener('click', async () => {
+        installing = true;
+        $('sendError').textContent = '';
+        setStatus('sending');
+        const reply = await KidLearnBridge.request('installMicrobit', { program: copy({ scripts }) }, { timeoutMs: 60000 });
+        installing = false;
+        if (reply.ok) {
+            sentThisTime = true;
+            return setStatus('sent');
+        }
+        sentThisTime = false;
+        if (reply.error === 'extension_missing') {
+            setStatus('no-extension');
+            return sendFailed('צריך את תוסף Kidlearn בכרום כדי לשלוח.');
+        }
+        if (reply.error === 'no_microbit') {
+            setStatus('waiting');
+            return sendFailed('המיקרוביט לא מחובר. חברו אותו בכבל ונסו שוב.');
+        }
+        if (reply.error === 'app_not_running' || reply.error === 'host_unavailable') {
+            setStatus('no-app');
+            return sendFailed('Kidlearn במחשב לא פועל. פתחו אותו ונסו שוב.');
+        }
+        if (reply.error === 'unknown_action' || reply.error === 'forbidden') {
+            setStatus('error');
+            return sendFailed('צריך לעדכן את Kidlearn במחשב: פתחו את ההתקנה מחדש.');
+        }
+        if (REASONS[reply.error]) {
+            setStatus('ready');
+            return sendFailed(REASONS[reply.error] + (reply.detail ? ' פרטים: ' + reply.detail : ''));
+        }
+        setStatus('ready');
+        sendFailed('התוכנית לא נשלחה (' + reply.error + '). נסו שוב, ואם זה חוזר, פתחו את ההתקנה מחדש.');
+    });
+
+    // ---- on or off ----
+    // A game is on unless it is switched off. A game marked "defaultOff" in games.json is off until it is switched on.
+    const defaultOffLoaded = fetch('../games.json')
+        .then(r => r.json())
+        .then(data => {
+            const item = (data.items || []).find(i => i.id === GAME_ID);
+            defaultOff = !item || item.defaultOff === true;
+        })
+        .catch(() => { defaultOff = true; });
+
+    const withTimeout = (promise, ms) => Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(null), ms))]);
+
+    // The switch is read from the account, or from this device when nobody is logged in
+    async function loadGameState() {
+        await defaultOffLoaded;
+        const off = (await withTimeout(KidLearn.getGamesOff().catch(() => null), 4000)) || {};
+        gamesOff = typeof off[GAME_ID] === 'boolean' ? off[GAME_ID] : defaultOff;
+        checkStatus();
+    }
+
+    buildPalette();
+    loadDraft();
+    changed();
+
+    KidLearn.init();
+    KidLearn.onAuthChange(() => loadGameState());
+    // Back from the settings on the home page (or another tab): read the switch again
+    window.addEventListener('focus', () => loadGameState());
+    setInterval(checkStatus, 5000);
+</script>
+</body>
+</html>

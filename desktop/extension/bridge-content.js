@@ -1,15 +1,19 @@
-// נטען בכל דפי Kidlearn (ראו manifest.json). מעביר הודעות מהדף לתוסף ובחזרה,
-// ומזהה ברקע אם האפליקציה במחשב רצה. התוצאה נשמרת ב-data-kidlearn-bridge על <html>:
-//   "checking"        הבדיקה עוד רצה
+// נטען בכל דף בכל דומיין (ראו manifest.json). התוסף מסמן את <html> בתכונה data-kidlearn-bridge,
+// כך שדף Kidlearn יודע שהתוסף מותקן, בלי קשר לדומיין שבו הוא פתוח:
+//   "checking"        בדיקת האפליקציה עוד רצה (רק בכתובות של Kidlearn)
 //   "connected"       התוסף מותקן, והאפליקציה עונה
-//   "extension-only"  התוסף מותקן, אבל האפליקציה לא עונה
+//   "extension-only"  התוסף מותקן, אבל האפליקציה לא עונה (או שזה דף שאינו של Kidlearn)
 // כשהתוסף לא מותקן, הסקריפט לא נטען, והתכונה לא קיימת. הדף שולח window.postMessage
 // עם channel "kidlearn-bridge" (ראו shared/kidlearn-bridge.js).
 
 const CHANNEL = "kidlearn-bridge";
 const ATTRIBUTE = "kidlearnBridge";
 
-let connection = "checking";
+// כתובות שבהן יש אפליקציה לבדוק: האתר ב-GitHub Pages, ופיתוח מקומי בכל פורט
+const APP_PAGE = location.origin === "https://giamat13.github.io" ||
+  /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.origin);
+
+let connection = APP_PAGE ? "checking" : "extension-only";
 
 function publishConnection() {
   // documentElement עשוי להיות עדיין ריק בתחילת הטעינה, ואז מעדכנים שוב ב-DOMContentLoaded
@@ -34,6 +38,9 @@ window.addEventListener("message", (event) => {
     return;
   }
 
+  // מדפים שאינם של Kidlearn לא מעבירים בקשות לאפליקציה
+  if (!APP_PAGE) return;
+
   const reply = (response) => {
     window.postMessage({ channel: CHANNEL, direction: "to-page", id: msg.id, response }, location.origin);
   };
@@ -49,15 +56,17 @@ window.addEventListener("message", (event) => {
   }
 });
 
-// בדיקה אחת בכל טעינת דף. לא מציגה כלום, רק מעדכנת את התכונה
-try {
-  chrome.runtime.sendMessage({ id: "startup-check", action: "ping" }, (response) => {
-    const failed = chrome.runtime.lastError || !response || !response.ok;
-    connection = failed ? "extension-only" : "connected";
+// בדיקה אחת בכל טעינת דף של Kidlearn. לא מציגה כלום, רק מעדכנת את התכונה
+if (APP_PAGE) {
+  try {
+    chrome.runtime.sendMessage({ id: "startup-check", action: "ping" }, (response) => {
+      const failed = chrome.runtime.lastError || !response || !response.ok;
+      connection = failed ? "extension-only" : "connected";
+      publishConnection();
+    });
+  } catch (error) {
+    // התוסף עודכן בזמן שהדף היה פתוח
+    connection = "extension-only";
     publishConnection();
-  });
-} catch (error) {
-  // התוסף עודכן בזמן שהדף היה פתוח
-  connection = "extension-only";
-  publishConnection();
+  }
 }

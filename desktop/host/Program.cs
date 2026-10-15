@@ -19,7 +19,8 @@ internal static class Program
         // ה-stdout משמש רק לתשובה ל-Chrome, בשום מקרה לא מדפיסים אליו דבר אחר
         using var stdin = Console.OpenStandardInput();
         using var stdout = Console.OpenStandardOutput();
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        // A micro:bit install can take about 10 seconds, so the host waits longer than that
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 
         JsonObject? request = await Framing.ReadAsync(stdin, cts.Token);
         if (request is null)

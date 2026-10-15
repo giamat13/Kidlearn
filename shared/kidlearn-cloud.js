@@ -108,6 +108,54 @@
     await db.collection("users").doc(auth.currentUser.uid).set({ recoveryEmail: email }, { merge: true });
   }
 
+  // Per-game switches, stored per account in users/{uid}/gameSettings/{gameId} = { off: true | false }.
+  // A game with no document keeps its default from games.json ("defaultOff").
+  // Without an account the switches are kept on this device (localStorage), so they work for everyone.
+  const LOCAL_GAMES_KEY = "kidlearn-games-off";
+
+  function readLocalGamesOff() {
+    try {
+      return JSON.parse(localStorage.getItem(LOCAL_GAMES_KEY) || "{}") || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function writeLocalGamesOff(off) {
+    try {
+      localStorage.setItem(LOCAL_GAMES_KEY, JSON.stringify(off));
+    } catch (e) {
+      // storage is blocked (private window): the switch works until the page is closed
+    }
+  }
+
+  // Returns { gameId: true | false } for every game that was switched at least once.
+  // A game that is not in the map keeps its default (games.json "defaultOff").
+  async function getGamesOff() {
+    if (!auth || !auth.currentUser) return readLocalGamesOff();
+    const snap = await db.collection("users").doc(auth.currentUser.uid).collection("gameSettings").get();
+    const off = {};
+    snap.docs.forEach((d) => {
+      off[d.id] = d.data().off === true;
+    });
+    return off;
+  }
+
+  async function setGameOff(gameId, off) {
+    if (!/^[a-z0-9-]{1,60}$/.test(String(gameId || ""))) {
+      throw new Error("מזהה משחק לא תקין");
+    }
+    if (!auth || !auth.currentUser) {
+      const local = readLocalGamesOff();
+      local[gameId] = off === true;
+      writeLocalGamesOff(local);
+      return off === true;
+    }
+    await db.collection("users").doc(auth.currentUser.uid).collection("gameSettings").doc(gameId)
+      .set({ off: off === true });
+    return off === true;
+  }
+
   async function setAvatar(emoji) {
     requireAuth();
     await db.collection("users").doc(auth.currentUser.uid).set({ avatarEmoji: emoji }, { merge: true });
@@ -239,7 +287,7 @@
   window.KidLearn = {
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
     saveData, loadData, contacts, sendFamilyMessage, listSentMessages,
-    getUnseenReplies, markReplySeen, setAvatar,
+    getUnseenReplies, markReplySeen, setAvatar, getGamesOff, setGameOff,
     pullLocalStorageKey, pushLocalStorageKey,
     _internal: { usernameToAuthEmail, isValidUsername, isValidDisplayName, isValidGrade },
   };

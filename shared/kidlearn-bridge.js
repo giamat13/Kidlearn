@@ -62,17 +62,19 @@
     });
   }
 
-  async function request(action, payload) {
+  // options.timeoutMs: longer for slow actions such as installing on a micro:bit (default 5 s)
+  async function request(action, payload, options) {
     if (!installed && !(await isInstalled())) {
       return { ok: false, error: "extension_missing" };
     }
 
+    const timeoutMs = (options && options.timeoutMs) || REQUEST_TIMEOUT_MS;
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         pending.delete(id);
         resolve({ ok: false, error: "timeout" });
-      }, REQUEST_TIMEOUT_MS);
+      }, timeoutMs);
 
       pending.set(id, { resolve, timer });
       window.postMessage(

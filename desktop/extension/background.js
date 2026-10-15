@@ -3,10 +3,14 @@
 
 const HOST_NAME = "com.kidlearn.bridge";
 const KIDLEARN_ORIGIN = "https://giamat13.github.io";
-const ALLOWED_ACTIONS = new Set(["ping"]);
+// Local development: any port on localhost or 127.0.0.1 (the same matches as manifest.json)
+const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+// Only these actions reach the app. The app checks them again (BridgeActions in BridgeServer.cs)
+const ALLOWED_ACTIONS = new Set(["ping", "microbitStatus", "installMicrobit"]);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (sender.id !== chrome.runtime.id || sender.origin !== KIDLEARN_ORIGIN) {
+  const fromKidlearn = sender.origin === KIDLEARN_ORIGIN || LOCAL_ORIGIN.test(sender.origin || "");
+  if (sender.id !== chrome.runtime.id || !fromKidlearn) {
     sendResponse({ ok: false, error: "forbidden" });
     return false;
   }
