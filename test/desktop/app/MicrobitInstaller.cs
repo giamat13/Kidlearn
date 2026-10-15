@@ -79,16 +79,7 @@ internal static class MicrobitInstaller
 
     public static void WriteProgram(Stream stream, string source)
     {
-        EnterRawRepl(stream);
-
-        byte[] data = Encoding.UTF8.GetBytes(source);
-        Exec(stream, "f = open('main.py', 'wb')\nw = f.write");
-        for (int offset = 0; offset < data.Length; offset += ChunkBytes)
-        {
-            int count = Math.Min(ChunkBytes, data.Length - offset);
-            Exec(stream, "w(" + BytesLiteral(data, offset, count) + ")");
-        }
-        Exec(stream, "f.close()");
+        WriteFile(stream, "main.py", source);
 
         // The board resets as soon as it runs this, so no reply is read. The port may drop: that is expected.
         try
@@ -99,6 +90,22 @@ internal static class MicrobitInstaller
         catch (IOException)
         {
         }
+    }
+
+    // Writes source to a file on the board and leaves the board in the raw REPL. main.py is the program that runs
+    // at every reset; live.py is only started on purpose, so the saved program is not replaced by it.
+    public static void WriteFile(Stream stream, string fileName, string source)
+    {
+        EnterRawRepl(stream);
+
+        byte[] data = Encoding.UTF8.GetBytes(source);
+        Exec(stream, "f = open('" + fileName + "', 'wb')\nw = f.write");
+        for (int offset = 0; offset < data.Length; offset += ChunkBytes)
+        {
+            int count = Math.Min(ChunkBytes, data.Length - offset);
+            Exec(stream, "w(" + BytesLiteral(data, offset, count) + ")");
+        }
+        Exec(stream, "f.close()");
     }
 
     private static void EnterRawRepl(Stream stream)
