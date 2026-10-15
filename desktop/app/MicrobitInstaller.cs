@@ -79,7 +79,10 @@ internal static class MicrobitInstaller
 
     public static void WriteProgram(Stream stream, string source)
     {
-        WriteFile(stream, "main.py", source);
+        EnterRawRepl(stream);
+        // A send starts fresh: remove the previous app programs before writing the new main.py.
+        Exec(stream, "import os\nfor name in ('main.py', 'live.py'):\n if name in os.listdir():\n  os.remove(name)");
+        WriteFileInRawRepl(stream, "main.py", source);
 
         // The board resets as soon as it runs this, so no reply is read. The port may drop: that is expected.
         try
@@ -97,7 +100,11 @@ internal static class MicrobitInstaller
     public static void WriteFile(Stream stream, string fileName, string source)
     {
         EnterRawRepl(stream);
+        WriteFileInRawRepl(stream, fileName, source);
+    }
 
+    private static void WriteFileInRawRepl(Stream stream, string fileName, string source)
+    {
         byte[] data = Encoding.UTF8.GetBytes(source);
         Exec(stream, "f = open('" + fileName + "', 'wb')\nw = f.write");
         for (int offset = 0; offset < data.Length; offset += ChunkBytes)
