@@ -3,12 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // The profile fields a user may store; anything else is refused.
-    // grade: 1 = first grade ... 12 = twelfth grade (the sign-up screen offers exactly this range).
+    // grade: the same keys as "grade" in games.json and the sign-up select (preschool ... twelfth)
     function isValidProfile(data) {
       return data.keys().hasOnly(['username', 'displayName', 'grade', 'createdAt', 'avatarEmoji', 'recoveryEmail'])
         && (!('username' in data) || (data.username is string && data.username.matches('^[a-z0-9_]{3,20}$')))
         && (!('displayName' in data) || (data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 30))
-        && (!('grade' in data) || (data.grade is int && data.grade >= 1 && data.grade <= 12))
+        && (!('grade' in data) || (data.grade is string && data.grade in ['preschool', 'kindergarten', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth']))
         && (!('avatarEmoji' in data) || (data.avatarEmoji is string && data.avatarEmoji.size() <= 16))
         && (!('recoveryEmail' in data) || (data.recoveryEmail is string && data.recoveryEmail.size() <= 254));
     }

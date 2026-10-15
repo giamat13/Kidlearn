@@ -35,9 +35,15 @@
     btn.textContent = "התחברות";
     document.body.appendChild(btn);
 
-    // values are the grade number that gets stored (1 = first grade ... 12 = twelfth grade)
-    const gradeOptions = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ז׳", "ח׳", "ט׳", "י׳", "י״א", "י״ב"]
-      .map((label, i) => `<option value="${i + 1}">${label}</option>`)
+    // Same keys and labels as the grade select in index.html (and "grade" in games.json)
+    const GRADE_OPTIONS = [
+      ["preschool", "טרום חובה"], ["kindergarten", "גן חובה"],
+      ["first", "כיתה א׳"], ["second", "כיתה ב׳"], ["third", "כיתה ג׳"], ["fourth", "כיתה ד׳"],
+      ["fifth", "כיתה ה׳"], ["sixth", "כיתה ו׳"], ["seventh", "כיתה ז׳"], ["eighth", "כיתה ח׳"],
+      ["ninth", "כיתה ט׳"], ["tenth", "כיתה י׳"], ["eleventh", "כיתה י\"א"], ["twelfth", "כיתה י\"ב"],
+    ];
+    const gradeOptions = GRADE_OPTIONS
+      .map(([key, label]) => `<option value="${key}">${label}</option>`)
       .join("");
 
     const modal = document.createElement("div");
@@ -87,7 +93,7 @@
       const username = modal.querySelector("#kl-username").value;
       const password = modal.querySelector("#kl-password").value;
       const displayName = modal.querySelector("#kl-name").value;
-      const grade = Number(modal.querySelector("#kl-grade").value);
+      const grade = modal.querySelector("#kl-grade").value;
       err.textContent = "";
       try {
         if (tab === "login") await window.KidLearn.logIn(username, password);

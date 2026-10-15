@@ -18,9 +18,15 @@
     return clean.length >= 1 && clean.length <= 30;
   }
 
-  // 1 = first grade ... 12 = twelfth grade (same range as the rules in firestore.rules)
+  // Same keys as "grade" in games.json and the grade select on index.html.
+  // The rules in firestore.rules accept the same list.
+  const GRADES = [
+    "preschool", "kindergarten", "first", "second", "third", "fourth", "fifth",
+    "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth",
+  ];
+
   function isValidGrade(grade) {
-    return Number.isInteger(grade) && grade >= 1 && grade <= 12;
+    return GRADES.includes(grade);
   }
 
   let app, auth, db, analytics;
