@@ -51,7 +51,7 @@
     <a class="back" href="../index.html">&larr; כל המשחקים</a>
     <h1>תוספים</h1>
     <p class="lead">תוספים מוסיפים לתכנות המיקרוביט בלוקים לחומרה שלכם: רכב ושלט. כל תוסף כבוי עד שמדליקים אותו.</p>
-    <p class="note">בלי תוספים כל המשחקים עובדים כרגיל. ההגדרות נשמרות במכשיר הזה.</p>
+    <p class="note">בלי תוספים כל המשחקים עובדים כרגיל. התוספים שמדליקים כאן שייכים לתוכנית שאתם עובדים עליה עכשיו, והם נשמרים איתה. תוכנית חדשה מתחילה בלי תוספים.</p>
 
     <ul class="cards">
         <li class="card" aria-labelledby="carTitle">
@@ -101,6 +101,30 @@
                 <span id="remoteSwitchText">תוסף כבוי</span>
             </label>
         </li>
+
+        <li class="card" aria-labelledby="boardTitle">
+            <div class="card-head">
+                <span class="card-icon" aria-hidden="true">🎨</span>
+                <h2 id="boardTitle">הלוח שלי</h2>
+                <span class="pill" id="boardPill">כבוי</span>
+            </div>
+            <p>לוח לציור שאפשר לשים עליו כפתורים, אותיות, נורות, מספרים ומסך. הלוח נשמר עם התוכנית, גם בחשבון שלכם.</p>
+            <h3>מה צריך</h3>
+            <ul>
+                <li>כלום. הלוח עובד גם בלי מיקרוביט</li>
+                <li>עם מיקרוביט מחובר, הלוח מפעיל גם אותו</li>
+            </ul>
+            <h3>מה מוסיף לתכנות</h3>
+            <ul>
+                <li>כשקורה: לחיצה על כפתור, סרגל או אות שעל הלוח</li>
+                <li>אז עושים: להדליק ולכבות נורה, להוסיף למספר, ולהראות תמונה על המסך</li>
+            </ul>
+            <label class="switch">
+                <input type="checkbox" id="boardOn">
+                <span class="track" aria-hidden="true"></span>
+                <span id="boardSwitchText">תוסף כבוי</span>
+            </label>
+        </li>
     </ul>
 
     <div class="next">
@@ -117,9 +141,9 @@
     function readExtensions() {
         try {
             const saved = JSON.parse(localStorage.getItem(EXT_KEY) || '{}');
-            return { car: saved.car === true, remote: saved.remote === true };
+            return { car: saved.car === true, remote: saved.remote === true, board: saved.board === true };
         } catch (e) {
-            return { car: false, remote: false };
+            return { car: false, remote: false, board: false };
         }
     }
 
@@ -135,6 +159,7 @@
     const ADDONS = [
         { key: 'car', input: $('carOn'), pill: $('carPill'), text: $('carSwitchText') },
         { key: 'remote', input: $('remoteOn'), pill: $('remotePill'), text: $('remoteSwitchText') },
+        { key: 'board', input: $('boardOn'), pill: $('boardPill'), text: $('boardSwitchText') },
     ];
 
     function showExtensions(ext) {
