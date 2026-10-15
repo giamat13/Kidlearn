@@ -13,6 +13,16 @@
     return /^[a-z0-9_]{3,20}$/.test(String(username || "").trim().toLowerCase());
   }
 
+  function isValidDisplayName(name) {
+    const clean = String(name || "").trim();
+    return clean.length >= 1 && clean.length <= 30;
+  }
+
+  // 1 = first grade ... 12 = twelfth grade (same range as the rules in firestore.rules)
+  function isValidGrade(grade) {
+    return Number.isInteger(grade) && grade >= 1 && grade <= 12;
+  }
+
   let app, auth, db, analytics;
   let currentProfile = null; // { uid, username }
   const authListeners = [];
@@ -40,6 +50,8 @@
         uid: user.uid,
         username: stored.username || (user.email || "").split("@")[0],
         avatarEmoji: stored.avatarEmoji || "🙂",
+        displayName: stored.displayName || "",
+        grade: stored.grade || null,
       };
       authListeners.forEach((cb) => cb(currentProfile));
     });
@@ -54,13 +66,22 @@
     return currentProfile;
   }
 
-  async function signUp(username, password) {
+  async function signUp(username, password, displayName, grade) {
     if (!isValidUsername(username)) {
       throw new Error("שם משתמש חייב להיות 3-20 תווים באנגלית/מספרים בלבד");
     }
+    if (!isValidDisplayName(displayName)) {
+      throw new Error("צריך להזין שם (עד 30 תווים)");
+    }
+    if (!isValidGrade(grade)) {
+      throw new Error("צריך לבחור כיתה");
+    }
     const cred = await auth.createUserWithEmailAndPassword(usernameToAuthEmail(username), password);
+    // name and grade are written in the same call as the username, so a new profile is never half-filled
     await db.collection("users").doc(cred.user.uid).set({
       username: username.trim().toLowerCase(),
+      displayName: displayName.trim(),
+      grade,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
     return cred.user.uid;
@@ -214,6 +235,6 @@
     saveData, loadData, contacts, sendFamilyMessage, listSentMessages,
     getUnseenReplies, markReplySeen, setAvatar,
     pullLocalStorageKey, pushLocalStorageKey,
-    _internal: { usernameToAuthEmail, isValidUsername },
+    _internal: { usernameToAuthEmail, isValidUsername, isValidDisplayName, isValidGrade },
   };
 })();

@@ -19,6 +19,10 @@
     #kl-modal .kl-tab.active{border-color:#FF6B9D;font-weight:bold}
     #kl-modal .kl-close{background:none;color:#999;width:auto;float:left}
     #kl-modal .kl-err{color:#c0392b;font-size:12px;min-height:16px}
+    #kl-modal .kl-signup[hidden]{display:none}
+    #kl-modal select{width:100%;box-sizing:border-box;padding:8px;margin:6px 0;border:1px solid #ccc;
+      border-radius:8px;font-size:14px;background:#fff}
+    #kl-modal .kl-switch{background:none;color:#c2185b;text-decoration:underline;font-size:13px}
   `;
 
   function mount() {
@@ -31,6 +35,11 @@
     btn.textContent = "התחברות";
     document.body.appendChild(btn);
 
+    // values are the grade number that gets stored (1 = first grade ... 12 = twelfth grade)
+    const gradeOptions = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ז׳", "ח׳", "ט׳", "י׳", "י״א", "י״ב"]
+      .map((label, i) => `<option value="${i + 1}">${label}</option>`)
+      .join("");
+
     const modal = document.createElement("div");
     modal.id = "kl-modal";
     modal.hidden = true;
@@ -41,32 +50,48 @@
           <button class="kl-tab active" data-tab="login">התחברות</button>
           <button class="kl-tab" data-tab="signup">חשבון חדש</button>
         </div>
+        <div class="kl-signup" hidden>
+          <input id="kl-name" placeholder="שם הילד/ה" maxlength="30" autocomplete="given-name">
+          <select id="kl-grade"><option value="">בחרו כיתה</option>${gradeOptions}</select>
+        </div>
         <input id="kl-username" placeholder="שם משתמש (אנגלית)" autocomplete="username">
         <input id="kl-password" type="password" placeholder="סיסמה" autocomplete="current-password">
         <div class="kl-err"></div>
         <button id="kl-submit">כניסה</button>
+        <button class="kl-switch" id="kl-switch"></button>
       </div>`;
     document.body.appendChild(modal);
 
-    let tab = "login";
     const err = modal.querySelector(".kl-err");
-    modal.querySelectorAll(".kl-tab").forEach((t) =>
-      t.addEventListener("click", () => {
-        tab = t.dataset.tab;
-        modal.querySelectorAll(".kl-tab").forEach((x) => x.classList.toggle("active", x === t));
-        modal.querySelector("#kl-submit").textContent = tab === "login" ? "כניסה" : "יצירת חשבון";
-        err.textContent = "";
-      })
-    );
+    const submit = modal.querySelector("#kl-submit");
+    const switchLink = modal.querySelector("#kl-switch");
+    const signupFields = modal.querySelector(".kl-signup");
+    let tab = "login";
+
+    function setTab(next) {
+      tab = next;
+      modal.querySelectorAll(".kl-tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === tab));
+      signupFields.hidden = tab !== "signup";
+      submit.textContent = tab === "login" ? "כניסה" : "יצירת חשבון";
+      // on the sign-up screen this link leads back to login, and the other way round
+      switchLink.textContent = tab === "login" ? "אין לי חשבון? הרשמה" : "כבר יש לי חשבון? להתחברות";
+      err.textContent = "";
+    }
+    setTab("login");
+
+    modal.querySelectorAll(".kl-tab").forEach((t) => t.addEventListener("click", () => setTab(t.dataset.tab)));
+    switchLink.addEventListener("click", () => setTab(tab === "login" ? "signup" : "login"));
     modal.querySelector(".kl-close").addEventListener("click", () => (modal.hidden = true));
 
-    modal.querySelector("#kl-submit").addEventListener("click", async () => {
+    submit.addEventListener("click", async () => {
       const username = modal.querySelector("#kl-username").value;
       const password = modal.querySelector("#kl-password").value;
+      const displayName = modal.querySelector("#kl-name").value;
+      const grade = Number(modal.querySelector("#kl-grade").value);
       err.textContent = "";
       try {
         if (tab === "login") await window.KidLearn.logIn(username, password);
-        else await window.KidLearn.signUp(username, password);
+        else await window.KidLearn.signUp(username, password, displayName, grade);
         modal.hidden = true;
       } catch (e) {
         err.textContent = e.message || "שגיאה, נסו שוב";
