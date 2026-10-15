@@ -7,16 +7,16 @@
 
 ```
 דף Kidlearn ──postMessage──► bridge-content.js ──► background.js ──► KidlearnHost.exe ──named pipe──► Kidlearn.exe
- (shared/kidlearn-bridge.js)  (התוסף, רק בדפי Kidlearn)  (התוסף)    (Chrome מפעיל לכל בקשה)    (אייקון במגש)
+ (shared/kidlearn-bridge.js)  (התוסף, רק מדפי Kidlearn ומכתובת מקומית)  (התוסף)    (Chrome מפעיל לכל בקשה)    (אייקון במגש)
 ```
 
 1. הדף שולח בקשה דרך `KidLearnBridge.request("ping")`.
-2. הסקריפט בתוסף רץ רק בדפי Kidlearn, ומעביר את הבקשה לרקע.
-3. התוסף מאשר רק פעולות מהרשימה, ורק אם השולח הוא דף Kidlearn.
+2. הסקריפט של התוסף רץ בכל דף, ומעביר בקשות לרקע רק מדפי Kidlearn (`giamat13.github.io`) ומכתובות מקומיות (`localhost` / `127.0.0.1`).
+3. הרקע מאשר רק פעולות מהרשימה, ורק אם השולח הוא דף Kidlearn או כתובת מקומית.
 4. `KidlearnHost.exe` ש-Chrome מפעיל בודק שהקורא הוא התוסף הנכון, ומעביר את הבקשה לאפליקציה.
 5. האפליקציה בודקת שוב שהפעולה מותרת, ומחזירה תשובה.
 
-הפעולות שזמינות היום: `ping` בלבד. פעולה חדשה דורשת שינוי בשני מקומות: מקרה ב-`BridgeActions` ב-[app/BridgeServer.cs](app/BridgeServer.cs), ושמה ב-`ALLOWED_ACTIONS` ב-[extension/background.js](extension/background.js).
+הפעולות שזמינות היום: `ping`, `microbitStatus` (האם המיקרוביט מחובר), ו-`installMicrobit` (שליחת תוכנית למיקרוביט, ראו למטה). פעולה חדשה דורשת שינוי בשני מקומות: מקרה ב-`BridgeActions` ב-[app/BridgeServer.cs](app/BridgeServer.cs), ושמה ב-`ALLOWED_ACTIONS` ב-[extension/background.js](extension/background.js).
 
 ## מבנה
 
@@ -70,6 +70,16 @@ await KidLearnBridge.isInstalled(); // true כשהתוסף מותקן ומגיב
 - אין תכונה כלל: התוסף לא מותקן.
 
 השגיאות האפשריות: `extension_missing` (התוסף לא מותקן), `app_not_running` (האפליקציה סגורה), `timeout`, `unknown_action`, `host_unavailable`. הפונקציה לא זורקת שגיאה, והתשובה תמיד אובייקט עם `ok`.
+
+## תוכנית המיקרוביט
+
+`installMicrobit` מקבל `payload.program = { scripts: [...] }`. האתר שולח רק שמות ערכים מרשימה קבועה, והאפליקציה כותבת מהם את הקוד לפי תבנית קבועה ב-[app/MicrobitProgramBuilder.cs](app/MicrobitProgramBuilder.cs). האתר לא שולח קוד, ואין דרך לשלוח קוד שרירותי.
+
+- **תסריטים:** 1 עד 6 בתוכנית. כל תסריט מכיל `event` (`start`, `buttonA`, `buttonB`, `shake`) ורשימת `actions` של 1 עד 12 סמלים. כל תסריט רץ פעם אחת. בכל התוכנית יש עד 24 סמלים.
+- **סמלים:** `show` (אייקון מהרשימה), `wait` (`0.5`, `1`, `2` או `3` שניות), `text` (`HI`, `GO`, `OK`, `YAY`, `NO`), `draw` (ציור של 25 תווים, `1` = נורה דלוקה), ו-`clear`.
+- **בדיקה בלי לכתוב למיקרוביט:** תוכנית שלא עומדת בכללים נדחית עם סיבה (למשל `bad_scripts_count` או `repeat_only_with_start`), לפני שהאפליקציה מחפשת את הלוח.
+- **שמירה:** הדף שומר את התוכניות במכשיר (`localStorage`: `kidlearn-microbit-programs`), ואת העבודה שעל המסך (`kidlearn-microbit-draft`). האפליקציה לא שומרת תוכניות.
+- **ברירת מחדל:** המשחק כבוי עד שמדליקים אותו ב"כיבוי משחקים לפי משחק" (`"defaultOff": true` ב-`games.json`). ההגדרה נשמרת בחשבון, ואם אין חשבון, במכשיר.
 
 ## בנייה
 

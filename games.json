@@ -531,6 +531,18 @@
       "categories": ["world"],
       "grade": ["preschool", "kindergarten", "first", "second", "third"],
       "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "microbit-programming",
+      "title": "תכנות המיקרוביט",
+      "description": "בונים תוכנית מסמלים, שולחים אותה למיקרוביט, ואז מריצים אותה בלי מסך.",
+      "icon": "🔌",
+      "url": "microbit-game/index.html",
+      "categories": ["games", "science"],
+      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"],
+      "devices": ["desktop"],
+      "requiresExtension": true,
+      "defaultOff": true
     }
   ]
 }

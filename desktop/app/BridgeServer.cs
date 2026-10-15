@@ -10,7 +10,8 @@ namespace Kidlearn.Tray;
 // תהליכון רקע אחד שמחכה לחיבור, בלי חלון ובלי טיימרים.
 internal sealed class BridgeServer : IDisposable
 {
-    private static readonly TimeSpan ClientTimeout = TimeSpan.FromSeconds(5);
+    // An install can take about 10 seconds (it writes the program in small chunks)
+    private static readonly TimeSpan ClientTimeout = TimeSpan.FromSeconds(90);
     private readonly CancellationTokenSource _cts = new();
 
     public BridgeServer()
@@ -102,15 +103,81 @@ internal static class BridgeActions
                 ["version"] = Application.ProductVersion,
                 ["status"] = "running",
             }),
+            "microbitStatus" => Ok(id, new JsonObject
+            {
+                ["connected"] = MicrobitInstaller.FindPort() is not null,
+            }),
+            "installMicrobit" => InstallMicrobit(id, request),
             _ => Fail(id, "unknown_action"),
         };
+    }
+
+    private static readonly object InstallLock = new();
+
+    // The website sends the blocks the child chose, and MicrobitProgramBuilder writes the code from them.
+    // The website never sends code.
+    private static JsonObject InstallMicrobit(string? id, JsonObject request)
+    {
+        if (request["payload"] is not JsonObject payload || payload["program"] is not JsonObject program)
+        {
+            return Fail(id, "no_program");
+        }
+
+        string source;
+        try
+        {
+            source = MicrobitProgramBuilder.Build(program);
+        }
+        catch (ArgumentException ex)
+        {
+            return Fail(id, ex.Message);
+        }
+
+        string? port = MicrobitInstaller.FindPort();
+        if (port is null)
+        {
+            return Fail(id, "no_microbit");
+        }
+
+        try
+        {
+            lock (InstallLock)
+            {
+                MicrobitInstaller.Install(port, source);
+            }
+            return Ok(id, new JsonObject { ["installed"] = true, ["port"] = port });
+        }
+        // Each failure has its own code, so the website can tell the child what to do
+        catch (UnauthorizedAccessException ex)
+        {
+            return Fail(id, "port_busy", ex.Message);       // another program has the cable
+        }
+        catch (TimeoutException ex)
+        {
+            return Fail(id, "no_answer", ex.Message);       // the board did not answer
+        }
+        catch (IOException ex)
+        {
+            return Fail(id, "port_error", ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Fail(id, "board_error", ex.Message);     // the board refused or reported an error
+        }
     }
 
     private static JsonObject Ok(string? id, JsonObject data) =>
         new() { ["id"] = id, ["ok"] = true, ["data"] = data };
 
-    private static JsonObject Fail(string? id, string error) =>
-        new() { ["id"] = id, ["ok"] = false, ["error"] = error };
+    private static JsonObject Fail(string? id, string error, string? detail = null)
+    {
+        var response = new JsonObject { ["id"] = id, ["ok"] = false, ["error"] = error };
+        if (detail is not null)
+        {
+            response["detail"] = detail;
+        }
+        return response;
+    }
 
     private static string? GetString(JsonObject obj, string key) =>
         obj[key] is JsonValue value && value.TryGetValue(out string? text) ? text : null;

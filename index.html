@@ -370,6 +370,22 @@
             box-shadow: 0 6px 20px rgba(255,107,157,0.4);
         }
         .hidden { display: none !important; }
+
+        /* "כיבוי משחקים" switch in the settings */
+        .games-off-row { display: flex; gap: 16px; align-items: center; justify-content: space-between; background: #FFF8F0; border-radius: 16px; padding: 14px 16px; margin-top: 14px; }
+        .games-off-title { font-weight: 700; font-size: 17px; color: #2B2433; }
+        .games-off-help { font-size: 14px; line-height: 1.4; color: #5B5366; margin-top: 4px; }
+        .games-off-switch { flex: 0 0 auto; position: relative; width: 60px; height: 34px; padding: 0; border: 0; border-radius: 999px; background: #CFC6BE; cursor: pointer; }
+        .games-off-switch[aria-checked="true"] { background: #C2185B; }
+        .games-off-switch:disabled { background: #E4DCD3; cursor: not-allowed; }
+        .games-off-switch span { position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.15s; }
+        .games-off-switch[aria-checked="true"] span { transform: translateX(26px); }
+        .games-off-switch:focus-visible { outline: 3px solid #FF6B9D; outline-offset: 2px; }
+        .games-off-help { font-size: 14px; line-height: 1.4; color: #5B5366; margin: 8px 0 0; text-align: center; }
+        .games-list { max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+        .games-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #FFF8F0; border-radius: 14px; padding: 10px 14px; }
+        .games-row-name { font-weight: 700; font-size: 16px; color: #2B2433; }
+        .games-row-cat { font-size: 13px; color: #5B5366; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -402,9 +418,23 @@
                 <option value="twelfth">כיתה י"ב</option>
             </select>
 
+            <button type="button" class="modal-cancel-btn" id="gamesOffOpen" onclick="openGamesModal()">כיבוי משחקים לפי משחק</button>
+            <p class="games-off-help" id="gamesOffHelp">צריך להתחבר לחשבון כדי לשמור את ההגדרות בענן.</p>
+
             <button class="modal-save-btn" onclick="saveSettings()">✅ שמור והתחל!</button>
             <br>
             <button class="modal-cancel-btn hidden" id="modalCancelBtn" onclick="closeModal()">ביטול</button>
+        </div>
+    </div>
+
+    <!-- Per-game switches: each game can be shown or hidden for this account -->
+    <div class="modal-overlay hidden" id="gamesOverlay">
+        <div class="modal">
+            <h2>כיבוי משחקים</h2>
+            <p class="modal-sub">בחרו אילו משחקים יוצגו לחשבון הזה. כל המשחקים דלוקים כברירת מחדל.</p>
+            <p class="games-off-help" id="gamesListNote"></p>
+            <div class="games-list" id="gamesList"></div>
+            <button class="modal-save-btn" onclick="closeGamesModal()">סיום</button>
         </div>
     </div>
 
@@ -512,7 +542,132 @@
             document.getElementById('modalTitle').textContent = 'הגדרות';
             document.getElementById('modalSub').textContent = 'ערוך את השם והכיתה שלך';
             document.getElementById('modalCancelBtn').classList.remove('hidden');
+            updateGamesOpenButton();
             document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+
+        // Games switched off per account (cloud), and whether the Kidlearn extension is installed.
+        // The extension marks <html> with data-kidlearn-bridge on every page it runs on (see manifest.json).
+        let gamesOff = {};     // { gameId: true | false } as saved; a game that is not saved uses its defaultOff
+        let allGames = [];     // every game from games.json (for the switch list)
+        let allCategories = [];
+        let renderToken = 0;   // only the newest render is shown
+
+        function extensionInstalled() {
+            return document.documentElement.hasAttribute('data-kidlearn-bridge');
+        }
+
+        // The switch list shows the games this child gets (grade, device, extension), switched off or not,
+        // so that a switched-off game can be turned back on
+        function gameListable(item) {
+            const grade = getCookie('studentGrade');
+            const device = detectDevice();
+            if (grade && !item.grade.includes(grade)) return false;
+            if (item.devices && !item.devices.includes(device)) return false;
+            if (item.requiresExtension && !extensionInstalled()) return false;
+            return true;
+        }
+
+        // A game is on unless it is switched off. A game marked "defaultOff" in games.json is off until it is switched on
+        function isGameOff(item) {
+            return typeof gamesOff[item.id] === 'boolean' ? gamesOff[item.id] : item.defaultOff === true;
+        }
+
+        // Shown unless switched off, and a game that needs the extension is shown only when it is installed
+        function gameVisible(item) {
+            if (isGameOff(item)) return false;
+            if (item.requiresExtension && !extensionInstalled()) return false;
+            return true;
+        }
+
+        // Logging in is per address (localhost, 127.0.0.1 and GitHub Pages are separate), so say so with a link
+        function signInNote() {
+            const login = new URL('login/index.html', location.href);
+            login.searchParams.set('next', location.href);
+            return 'כדי לשמור בענן ולשמור על ההגדרות בכל מכשיר, <a href="' + login.href + '">התחברו לחשבון</a> באותה כתובת.';
+        }
+
+        function updateGamesOpenButton() {
+            const loggedIn = !!KidLearn.currentUser();
+            document.getElementById('gamesOffHelp').innerHTML = loggedIn
+                ? 'בחרו אילו משחקים יוצגו. ההגדרות נשמרות בחשבון.'
+                : 'בחרו אילו משחקים יוצגו. ההגדרות נשמרות במכשיר הזה. ' + signInNote();
+        }
+
+        async function loadGamesOff() {
+            try {
+                gamesOff = await KidLearn.getGamesOff();
+            } catch (e) {
+                gamesOff = {};
+            }
+            updateGamesOpenButton();
+            renderCategories();
+            // The account may load after the list was opened: rebuild it so the switches match the account
+            if (!document.getElementById('gamesOverlay').classList.contains('hidden')) {
+                renderGamesList();
+            }
+        }
+
+        function openGamesModal() {
+            renderGamesList();
+            document.getElementById('gamesOverlay').classList.remove('hidden');
+        }
+
+        function closeGamesModal() {
+            document.getElementById('gamesOverlay').classList.add('hidden');
+        }
+
+        function renderGamesList() {
+            const list = document.getElementById('gamesList');
+            list.innerHTML = '';
+            const loggedIn = !!KidLearn.currentUser();
+            document.getElementById('gamesListNote').innerHTML = loggedIn ? '' : 'ההגדרות נשמרות במכשיר הזה. ' + signInNote();
+            allGames.filter(gameListable).forEach((item) => {
+                const on = !isGameOff(item);
+                const row = document.createElement('div');
+                row.className = 'games-row';
+
+                const text = document.createElement('div');
+                text.style.minWidth = '0';
+                const name = document.createElement('div');
+                name.className = 'games-row-name';
+                name.textContent = item.title;
+                const category = allCategories.find(c => item.categories.includes(c.id));
+                const cat = document.createElement('div');
+                cat.className = 'games-row-cat';
+                cat.textContent = category ? category.title : '';
+                text.appendChild(name);
+                text.appendChild(cat);
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'games-off-switch';
+                button.setAttribute('role', 'switch');
+                button.setAttribute('aria-checked', String(on));
+                button.setAttribute('aria-label', item.title);
+                button.disabled = false;
+                button.innerHTML = '<span></span>';
+                button.addEventListener('click', () => toggleGame(item.id));
+
+                row.appendChild(text);
+                row.appendChild(button);
+                list.appendChild(row);
+            });
+        }
+
+        async function toggleGame(gameId) {
+            const item = allGames.find(g => g.id === gameId);
+            if (!item) return;
+            const turnOff = !isGameOff(item);
+            try {
+                await KidLearn.setGameOff(gameId, turnOff);
+                gamesOff[gameId] = turnOff;
+            } catch (e) {
+                document.getElementById('gamesOffHelp').textContent = 'לא הצלחנו לשמור. נסו שוב.';
+                return;
+            }
+            renderGamesList();
+            renderCategories();
         }
 
         function closeModal() {
@@ -571,17 +726,22 @@
 
         async function renderCategories() {
             const categoriesGrid = document.getElementById('categoriesGrid');
+            const token = ++renderToken;
             categoriesGrid.innerHTML = '';
             try {
                 const response = await fetch('games.json');
                 const data = await response.json();
+                if (token !== renderToken) return;
                 const grade = getCookie('studentGrade');
                 const device = detectDevice();
                 allItemsCache = data.items;
+                allGames = data.items;
+                allCategories = data.categories;
 
                 const visibleCategories = data.categories.map(category => {
                     const visibleCount = data.items.filter(item =>
                         item.categories.includes(category.id) &&
+                        gameVisible(item) &&
                         (!grade || item.grade.includes(grade)) &&
                         (!item.devices || item.devices.includes(device))
                     ).length;
@@ -617,6 +777,7 @@
             const grade = getCookie('studentGrade');
             const device = detectDevice();
             const matches = allItemsCache.filter(item =>
+                gameVisible(item) &&
                 (!grade || item.grade.includes(grade)) &&
                 (!item.devices || item.devices.includes(device)) &&
                 (item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q))
@@ -679,6 +840,7 @@
         };
 
         KidLearn.onAuthChange(async (profile) => {
+            loadGamesOff();
             if (!profile) return;
             try {
                 const unseen = await KidLearn.getUnseenReplies();
