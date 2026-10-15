@@ -62,6 +62,13 @@ const status = await KidLearnBridge.request("ping");
 await KidLearnBridge.isInstalled(); // true כשהתוסף מותקן ומגיב בדף
 ```
 
+**זיהוי חיבור בלי קריאה:** התוסף מזהה ברקע, בכל טעינה של דף Kidlearn, אם האפליקציה רצה, ושומר את התוצאה ב-`document.documentElement.dataset.kidlearnBridge`:
+
+- `connected`: התוסף מותקן, והאפליקציה עונה.
+- `extension-only`: התוסף מותקן, אבל האפליקציה לא עונה (סגורה או לא רצה).
+- `checking`: הבדיקה עוד רצה.
+- אין תכונה כלל: התוסף לא מותקן.
+
 השגיאות האפשריות: `extension_missing` (התוסף לא מותקן), `app_not_running` (האפליקציה סגורה), `timeout`, `unknown_action`, `host_unavailable`. הפונקציה לא זורקת שגיאה, והתשובה תמיד אובייקט עם `ok`.
 
 ## בנייה
