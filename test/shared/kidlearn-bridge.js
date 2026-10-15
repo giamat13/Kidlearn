@@ -10,6 +10,10 @@
 //
 // Errors: "extension_missing", "timeout", "app_not_running", "unknown_action", "host_unavailable".
 // The actions the app accepts are listed in desktop/app/BridgeServer.cs (BridgeActions).
+//
+// Connection status without any call: the extension sets document.documentElement.dataset.kidlearnBridge
+// on every Kidlearn page: "checking", "connected" (app answers) or "extension-only" (app not running).
+// No attribute means the extension is not installed.
 (function () {
   "use strict";
 
