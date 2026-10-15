@@ -209,9 +209,7 @@
     </section>
 
     <div class="ext-bar">
-        <a class="btn btn-ghost" id="extLink" href="../extensions/index.html">🧩 תוספים</a>
-        <a class="btn btn-ghost" href="#boardSection">🎨 הלוח שלי</a>
-    </div>
+        <a class="btn btn-ghost" id="extLink" href="../extensions/index.html">🧩 תוספים</a>    </div>
 
     <div class="builder">
         <section class="panel">
@@ -410,7 +408,7 @@
     let sentThisTime = false;
     let connectionState = 'checking';
     let drawing = [];        // the 5x5 drawing: true = lit
-    let extensions = { car: false, remote: false }; // the add-ons: off until the child turns them on
+    let extensions = { car: false, remote: false, board: false }; // the add-ons of the program on the screen: off until turned on
 
     const $ = (id) => document.getElementById(id);
     const copy = (value) => JSON.parse(JSON.stringify(value));
@@ -554,7 +552,7 @@
     function loadExtensions() {
         try {
             const saved = JSON.parse(localStorage.getItem(EXT_KEY) || '{}');
-            extensions = { car: saved.car === true, remote: saved.remote === true };
+            extensions = { car: saved.car === true, remote: saved.remote === true, board: saved.board === true };
         } catch (e) {
             // a damaged setting is ignored: both add-ons stay off
         }
@@ -573,14 +571,29 @@
     function renderExtensions() {
         $('carPart').hidden = !extensions.car;
         $('remoteWhen').hidden = !extensions.remote;
+        $('boardSection').hidden = !extensions.board;
+        renderBoardPalettes();
     }
 
-    // A program with a car or remote block turns that add-on on, so its blocks can be seen and changed
+    // The add-ons of a program that was opened (or of a new one): they replace the ones on the screen
+    function applyExtensions(next) {
+        extensions = { car: !!next.car, remote: !!next.remote, board: !!next.board };
+        try {
+            localStorage.setItem(EXT_KEY, JSON.stringify(extensions));
+        } catch (e) {
+            // storage is blocked: the setting lasts until the page is closed
+        }
+        renderExtensions();
+    }
+
+    // A program with a car, remote or board block turns that add-on on, so its blocks can be seen and changed
     function enableFor(list) {
         const usesCar = list.some(s => s.actions.some(a => a.do === 'drive' || a.do === 'stop'));
         const usesRemote = list.some(s => s.event === 'remote');
+        const usesBoard = list.some(s => s.event === 'board' || s.actions.some(a => BOARD_ONLY.includes(a.do)));
         if (usesCar && !extensions.car) setExtension('car', true);
         if (usesRemote && !extensions.remote) setExtension('remote', true);
+        if (usesBoard && !extensions.board) setExtension('board', true);
     }
 
     // The label and the mark of a script: a start, button or shake script, or a key of the remote
@@ -653,7 +666,7 @@
             b.addEventListener('click', () => addScript('board', x.id));
             $('boardWhen').appendChild(b);
         });
-        $('boardWhenWrap').hidden = inputs.length === 0;
+        $('boardWhenWrap').hidden = inputs.length === 0 || !extensions.board;
 
         $('boardActions').innerHTML = '';
         KidlearnBoard.outputs().forEach((o) => {
@@ -673,7 +686,7 @@
                 $('boardActions').appendChild(b);
             });
         });
-        $('boardActionsWrap').hidden = KidlearnBoard.outputs().length === 0;
+        $('boardActionsWrap').hidden = KidlearnBoard.outputs().length === 0 || !extensions.board;
     }
 
     // A board button, slider or key was used in the play mode: run the scripts of the program that start with it
@@ -1039,7 +1052,13 @@
         return list
             .filter(p => p && typeof p.id === 'string' && typeof p.name === 'string')
             .slice(0, MAX_SAVED)
-            .map(p => ({ id: p.id, name: p.name.slice(0, 30), scripts: cleanScripts(p.scripts) }));
+            .map(p => ({
+                id: p.id,
+                name: p.name.slice(0, 30),
+                scripts: cleanScripts(p.scripts),
+                // The add-ons that are on for this program
+                extensions: { car: !!(p.extensions && p.extensions.car), remote: !!(p.extensions && p.extensions.remote), board: !!(p.extensions && p.extensions.board) },
+            }));
     }
 
     function readList(key) {
@@ -1168,7 +1187,34 @@
             : (isOpen ? 'התוכנית שמורה.' : '');
     }
 
-    function saveProgram() {
+    // The board kept with a program: on this device (IndexedDB) and, when someone is signed in, in the account
+    const boardDoc = (id) => 'microbit-board-' + id;
+    const MAX_BOARD_CHARS = 900000; // a Firestore document is at most 1 MB
+
+    // Returns false when the board could not be kept in the account (it is still kept on this device)
+    async function saveBoardSnapshot(id) {
+        const state = await KidlearnBoard.exportState();
+        await KidlearnBoard.saveSnapshot(id, state);
+        if (!KidLearn.currentUser()) return true;
+        if (JSON.stringify(state).length > MAX_BOARD_CHARS) return false;
+        try {
+            await KidLearn.saveData(boardDoc(id), state);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function restoreBoard(id) {
+        let state = await KidlearnBoard.loadSnapshot(id).catch(() => null);
+        if (!(state && state.widgets) && KidLearn.currentUser()) {
+            state = await KidLearn.loadData(boardDoc(id)).catch(() => null);
+            if (state && state.widgets) await KidlearnBoard.saveSnapshot(id, state);
+        }
+        if (state && state.widgets) await KidlearnBoard.importState(state);
+    }
+
+    async function saveProgram() {
         if (scripts.length === 0) {
             $('libNote').textContent = 'בנו תוכנית לפני שמירה.';
             return;
@@ -1179,12 +1225,13 @@
         if (program) {
             program.name = typed || program.name;
             program.scripts = copy(scripts);
+            program.extensions = copy(extensions);
         } else {
             if (saved.length >= MAX_SAVED) {
                 $('libNote').textContent = 'כבר יש ' + MAX_SAVED + ' תוכניות שמורות. מחקו אחת כדי לשמור עוד.';
                 return;
             }
-            program = { id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: typed || 'תוכנית ' + (saved.length + 1), scripts: copy(scripts) };
+            program = { id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: typed || 'תוכנית ' + (saved.length + 1), scripts: copy(scripts), extensions: copy(extensions) };
             saved.push(program);
             openId = program.id;
         }
@@ -1196,19 +1243,26 @@
         $('libNote').textContent = KidLearn.currentUser() ? 'נשמר בחשבון שלכם!' : 'נשמר!';
         saveDraft();
         renderLibrary();
+        // The board goes with the program, if the board add-on is on for it
+        if (extensions.board) {
+            const kept = await saveBoardSnapshot(program.id);
+            if (!kept) $('libNote').textContent = 'התוכנית נשמרה, אבל הלוח שלי לא נשמר בחשבון (גדול מדי, או שאין רשת). הוא נשמר במכשיר הזה.';
+        }
     }
 
-    function openProgram(id) {
+    async function openProgram(id) {
         const p = readSaved().find(x => x.id === id);
         if (!p) return renderLibrary();
         if (isDirty() && !confirm('לפתוח את "' + p.name + '"? מה שלא נשמר בתוכנית שעל המסך ימחק.')) return;
         scripts = copy(p.scripts);
+        applyExtensions(p.extensions || {});
         enableFor(scripts);
         selected = scripts.length ? 0 : -1;
         openId = p.id;
         $('progName').value = p.name;
         sentThisTime = false;
         changed();
+        if (extensions.board) await restoreBoard(p.id);
     }
 
     function deleteProgram(id) {
@@ -1216,6 +1270,9 @@
         const p = saved.find(x => x.id === id);
         if (!p || !confirm('למחוק את "' + p.name + '"?')) return;
         writeSaved(saved.filter(x => x.id !== id));
+        // Its board goes too: on this device, and in the account (the document is emptied)
+        KidlearnBoard.deleteSnapshot(id).catch(() => {});
+        if (KidLearn.currentUser()) KidLearn.saveData(boardDoc(id), { removed: true }).catch(() => {});
         // What is on the screen stays, as work that is not saved
         if (openId === id) openId = null;
         $('libNote').textContent = 'נמחקה: ' + p.name;
@@ -1230,6 +1287,9 @@
         openId = null;
         $('progName').value = '';
         sentThisTime = false;
+        // A new program starts with every add-on off, and an empty board
+        applyExtensions({});
+        KidlearnBoard.clearState();
         changed();
     }
 
