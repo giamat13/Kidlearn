@@ -1,774 +1,969 @@
 {
-  "title": "רכבות בשידור חי",
-  "subtitle": "מגלים תחנות ומסילות רכבת בשידור חי ברחבי העולם",
+  "title": "מצלמות רכבות",
+  "subtitle": "שידור חי, ממש עכשיו, מכל העולם",
   "emoji": "🚂",
   "favoriteKey": "trainCamFavorites",
-  "emptyMessage": "שידורי הרכבות יתווספו בקרוב",
+  "emptyMessage": "אין כרגע מצלמות רכבות פעילות. כדאי לחזור בהמשך!",
   "channels": [
     {
       "emoji": "🚂",
-      "label": "תחנת קידרמינסטר - אנגליה",
-      "country": "הממלכה המאוחדת",
-      "flagCode": "gb",
-      "title": "LIVE CAM - Kidderminster Station Concourse Camera on the Severn Valley Railway",
-      "src": "https://www.youtube.com/embed/INCxBjBFbMw?autoplay=0",
-      "credit": "מצלמת שידור חי באולם תחנת קידרמינסטר של רכבת עמק סוורן, אנגליה."
-    },
-    {
-      "emoji": "🚂",
-      "label": "Amherst, Ohio, USA",
+      "label": "רכבות - אמהרסט, אוהיו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Amherst, Ohio, USA - LIVE Train Feed (Fixed)",
       "src": "https://www.youtube.com/embed/jBOcskBbC5A?autoplay=0",
-      "credit": "שידור רכבות חי מ-Amherst, Ohio, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-אמהרסט, אוהיו.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Anchorage, Alaska, USA",
+      "label": "רכבות - אנקורידג', אלסקה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Anchorage, Alaska, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Anchorage, Alaska, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/WMSiw_Hyac8?autoplay=0",
-      "credit": "שידור רכבות חי מ-Anchorage, Alaska, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-אנקורידג', אלסקה, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Big 10 Curve at Arvada, Colorado, USA",
+      "label": "רכבות - עיקול Big 10 בארוודה, קולורדו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Big 10 Curve at Arvada, Colorado, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/nUdVtKcprJU?autoplay=0",
-      "credit": "שידור רכבות חי מ-Big 10 Curve at Arvada, Colorado, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-עיקול Big 10 בארוודה, קולורדו.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Ashland, Virginia, USA",
+      "label": "רכבות - אשלנד, וירג'יניה (PTZ), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Ashland, Virginia, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/4XYbh4Pegzw?autoplay=0",
-      "credit": "שידור רכבות חי מ-Ashland, Virginia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-אשלנד, וירג'יניה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Ashland, Virginia, USA",
+      "label": "רכבות - אשלנד, וירג'יניה (צפון), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Ashland, Virginia, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Ashland, Virginia, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/8CgXXdx97DA?autoplay=0",
-      "credit": "שידור רכבות חי מ-Ashland, Virginia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-אשלנד, וירג'יניה, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Ashland, Virginia, USA",
+      "label": "רכבות - אשלנד, וירג'יניה (דרום), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Ashland, Virginia, USA | LIVE Train Camera (Fixed View � South)",
+      "title": "Ashland, Virginia, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/_Kk5anP-dQg?autoplay=0",
-      "credit": "שידור רכבות חי מ-Ashland, Virginia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-אשלנד, וירג'יניה, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Austell, Georgia, USA",
+      "label": "רכבות - אוסטל, ג'ורג'יה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Austell, Georgia, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/Ux0rtJXPPQ0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Austell, Georgia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-אוסטל, ג'ורג'יה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "BNSF Railway Yard in Barstow, California, USA",
+      "label": "רכבות - חצר BNSF בבארסטו, קליפורניה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "BNSF Railway Yard in Barstow, California, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/_DUQnPjPC_8?autoplay=0",
-      "credit": "שידור רכבות חי מ-BNSF Railway Yard in Barstow, California, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בחצר BNSF בבארסטו, קליפורניה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Battle Creek, Michigan, USA",
+      "label": "רכבות - באטל קריק, מישיגן, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Battle Creek, Michigan, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Battle Creek, Michigan, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/fTkOmPbSXBg?autoplay=0",
-      "credit": "שידור רכבות חי מ-Battle Creek, Michigan, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-באטל קריק, מישיגן, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "BNSF Railway Yard in Belen, New Mexico, USA",
+      "label": "רכבות - חצר BNSF בבלן, ניו מקסיקו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "BNSF Railway Yard in Belen, New Mexico, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/EKohXgHGCj8?autoplay=0",
-      "credit": "שידור רכבות חי מ-BNSF Railway Yard in Belen, New Mexico, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בחצר BNSF בבלן, ניו מקסיקו.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Big Sandy, Texas, USA",
+      "label": "רכבות - ביג סנדי, טקסס, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Big Sandy, Texas, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/WNSkLhEWbuY?autoplay=0",
-      "credit": "שידור רכבות חי מ-Big Sandy, Texas, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-ביג סנדי, טקסס.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Burlington, Iowa, USA",
+      "label": "רכבות - בורלינגטון, איווה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Burlington, Iowa, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/L_xBQqGzNzY?autoplay=0",
-      "credit": "שידור רכבות חי מ-Burlington, Iowa, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-בורלינגטון, איווה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Steam Trains in Chattanooga, Tennessee, USA",
+      "label": "רכבות - צ'טנוגה, טנסי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Steam Trains in Chattanooga, Tennessee, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/HSZDWRE5m2o?autoplay=0",
-      "credit": "שידור רכבות חי מ-Steam Trains in Chattanooga, Tennessee, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ברכבות קיטור בצ'טנוגה, טנסי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Chehalis, Washington, USA",
+      "label": "רכבות - צ'יהליס, וושינגטון, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Chehalis, Washington, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Chehalis, Washington, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/wSZCdFJNkR4?autoplay=0",
-      "credit": "שידור רכבות חי מ-Chehalis, Washington, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-צ'יהליס, וושינגטון, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Chesterton, Indiana, USA",
+      "label": "רכבות - צ'סטרטון, אינדיאנה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Chesterton, Indiana, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Chesterton, Indiana, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/BDb_sSL-K5k?autoplay=0",
-      "credit": "שידור רכבות חי מ-Chesterton, Indiana, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-צ'סטרטון, אינדיאנה, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Cheyenne, Wyoming, USA",
+      "label": "רכבות - שיין, ויומינג, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Cheyenne, Wyoming, USA | LIVE Train Camera (Fixed View - West)",
       "src": "https://www.youtube.com/embed/p9CJkmVgxp0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Cheyenne, Wyoming, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-שיין, ויומינג, מבט לכיוון מערב.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Cocoa, Florida, USA",
+      "label": "רכבות - קוקו, פלורידה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Cocoa, Florida, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Cocoa, Florida, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/nqW68wm_1Lc?autoplay=0",
-      "credit": "שידור רכבות חי מ-Cocoa, Florida, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-קוקו, פלורידה, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Colorado Model Railroad Museum, Greeley, CO, USA",
+      "label": "רכבות - מוזיאון הרכבות הדגם של קולורדו, גריילי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Colorado Model Railroad Museum, Greeley, CO, USA | Virtual Railfan LIVE !",
       "src": "https://www.youtube.com/embed/MLuxiq6Uke8?autoplay=0",
-      "credit": "שידור רכבות חי מ-Colorado Model Railroad Museum, Greeley, CO, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממוזיאון הרכבות הדגם של קולורדו בגריילי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Cordele, Georgia, USA",
+      "label": "רכבות - קורדל, ג'ורג'יה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Cordele, Georgia, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/Sj-TMZX_4_s?autoplay=0",
-      "credit": "שידור רכבות חי מ-Cordele, Georgia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-קורדל, ג'ורג'יה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Covington, Kentucky, USA",
+      "label": "רכבות - קובינגטון, קנטקי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Covington, Kentucky, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Covington, Kentucky, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/Kfnq9KUBQng?autoplay=0",
-      "credit": "שידור רכבות חי מ-Covington, Kentucky, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-קובינגטון, קנטקי, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Cresson, Pennsylvania, USA",
+      "label": "רכבות - קרסון, פנסילבניה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Cresson, Pennsylvania, USA | LIVE Train Camera (Fixed View - West)",
       "src": "https://www.youtube.com/embed/KHNgcx8AMQ0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Cresson, Pennsylvania, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-קרסון, פנסילבניה, מבט לכיוון מערב.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Cumberland, Maryland, USA",
+      "label": "רכבות - קמברלנד, מרילנד (מרכז העיר), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Cumberland, Maryland, USA | LIVE Train Camera (PTZ � Downtown) Feat. Western Maryland Scenic 1309!",
+      "title": "Cumberland, Maryland, USA | LIVE Train Camera (PTZ - Downtown) Feat. Western Maryland Scenic 1309!",
       "src": "https://www.youtube.com/embed/LqPsNV_b-uc?autoplay=0",
-      "credit": "שידור רכבות חי מ-Cumberland, Maryland, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) במרכז קמברלנד, מרילנד.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "CSX Mainline in Cumberland, Maryland, USA",
+      "label": "רכבות - קו CSX בקמברלנד, מרילנד, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "CSX Mainline in Cumberland, Maryland, USA | LIVE Train Camera (PTZ � South)",
+      "title": "CSX Mainline in Cumberland, Maryland, USA | LIVE Train Camera (PTZ - South)",
       "src": "https://www.youtube.com/embed/cR3kSHm7Ts0?autoplay=0",
-      "credit": "שידור רכבות חי מ-CSX Mainline in Cumberland, Maryland, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) על קו CSX הראשי בקמברלנד, מרילנד.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Dalton, Georgia, USA",
+      "label": "רכבות - דלטון, ג'ורג'יה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Dalton, Georgia, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Dalton, Georgia, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/DofPCzEUlXk?autoplay=0",
-      "credit": "שידור רכבות חי מ-Dalton, Georgia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-דלטון, ג'ורג'יה, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "150MPH Trains at Davisville, Rhode Island, USA",
+      "label": "רכבות - דייוויסוויל, רוד איילנד, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "150MPH Trains at Davisville, Rhode Island, USA | LIVE Train Camera (Fixed View � South)",
+      "title": "150MPH Trains at Davisville, Rhode Island, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/9uAn-VdurrE?autoplay=0",
-      "credit": "שידור רכבות חי מ-150MPH Trains at Davisville, Rhode Island, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בדייוויסוויל, רוד איילנד, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Decatur, Alabama, USA",
+      "label": "רכבות - דיקייטר, אלבמה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Decatur, Alabama, USA | LIVE Train Camera (Fixed View � West)",
+      "title": "Decatur, Alabama, USA | LIVE Train Camera (Fixed View - West)",
       "src": "https://www.youtube.com/embed/5YG01nZOygQ?autoplay=0",
-      "credit": "שידור רכבות חי מ-Decatur, Alabama, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-דיקייטר, אלבמה, מבט לכיוון מערב.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Deshler, Ohio, USA",
+      "label": "רכבות - דשלר, אוהיו (צומת Diamond), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Deshler, Ohio, USA | LIVE Train Camera (Fixed View � Diamond)",
+      "title": "Deshler, Ohio, USA | LIVE Train Camera (Fixed View - Diamond)",
       "src": "https://www.youtube.com/embed/Y28qU7UsFko?autoplay=0",
-      "credit": "שידור רכבות חי מ-Deshler, Ohio, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה על צומת המסילות בדשלר, אוהיו.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Deshler, Ohio, USA",
+      "label": "רכבות - דשלר, אוהיו (PTZ), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Deshler, Ohio, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/TjMwpB8JRw8?autoplay=0",
-      "credit": "שידור רכבות חי מ-Deshler, Ohio, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בדשלר, אוהיו.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Elkhart, Indiana, USA",
+      "label": "רכבות - אלקהארט, אינדיאנה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Elkhart, Indiana, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/YR1PdWaSxgk?autoplay=0",
-      "credit": "שידור רכבות חי מ-Elkhart, Indiana, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-אלקהארט, אינדיאנה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Fairport, New York, USA",
+      "label": "רכבות - פיירפורט, ניו יורק, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Fairport, New York, USA | LIVE Train Camera (Fixed View � West)",
+      "title": "Fairport, New York, USA | LIVE Train Camera (Fixed View - West)",
       "src": "https://www.youtube.com/embed/XWxyuL9dctA?autoplay=0",
-      "credit": "שידור רכבות חי מ-Fairport, New York, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-פיירפורט, ניו יורק, מבט לכיוון מערב.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Flagstaff, Arizona, USA",
+      "label": "רכבות - פלגסטף, אריזונה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Flagstaff, Arizona, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/7xdHH9KMSVk?autoplay=0",
-      "credit": "שידור רכבות חי מ-Flagstaff, Arizona, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-פלגסטף, אריזונה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Folkston, Georgia, USA",
+      "label": "רכבות - פולקסטון, ג'ורג'יה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Folkston, Georgia, USA | LIVE Train Camera (Depot PTZ)",
       "src": "https://www.youtube.com/embed/FHYqepozgiQ?autoplay=0",
-      "credit": "שידור רכבות חי מ-Folkston, Georgia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ליד תחנת הרכבת בפולקסטון, ג'ורג'יה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Fort Madison, Iowa, USA",
+      "label": "רכבות - פורט מדיסון, איווה (PTZ), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Fort Madison, Iowa, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/L6eG4ahJc_Q?autoplay=0",
-      "credit": "שידור רכבות חי מ-Fort Madison, Iowa, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-פורט מדיסון, איווה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Fort Madison, Iowa, USA",
+      "label": "רכבות - פורט מדיסון, איווה (מרינה), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Fort Madison, Iowa, USA | LIVE Train Camera (Marina Fixed View � West)",
+      "title": "Fort Madison, Iowa, USA | LIVE Train Camera (Marina Fixed View - West)",
       "src": "https://www.youtube.com/embed/DuXSP6y9W7U?autoplay=0",
-      "credit": "שידור רכבות חי מ-Fort Madison, Iowa, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה במרינה בפורט מדיסון, איווה, מבט לכיוון מערב.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Tower 55 in Fort Worth, Texas, USA",
+      "label": "רכבות - Tower 55, פורט וורת', טקסס, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Tower 55 in Fort Worth, Texas, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/blcDjPvPbss?autoplay=0",
-      "credit": "שידור רכבות חי מ-Tower 55 in Fort Worth, Texas, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-Tower 55 בפורט וורת', טקסס.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "The Iron Triangle in Fostoria, Ohio, USA",
+      "label": "רכבות - Iron Triangle, פוסטוריה, אוהיו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "The Iron Triangle in Fostoria, Ohio, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/05MkbHUuVNM?autoplay=0",
-      "credit": "שידור רכבות חי מ-The Iron Triangle in Fostoria, Ohio, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-Iron Triangle בפוסטוריה, אוהיו.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Galesburg, Illinois, USA",
+      "label": "רכבות - גייל'סבורג, אילינוי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Galesburg, Illinois, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/On1MRt0NqFs?autoplay=0",
-      "credit": "שידור רכבות חי מ-Galesburg, Illinois, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בגייל'סבורג, אילינוי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Glendale, Ohio, USA",
+      "label": "רכבות - גלנדייל, אוהיו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Glendale, Ohio, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Glendale, Ohio, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/vF4ZdG-_6FE?autoplay=0",
-      "credit": "שידור רכבות חי מ-Glendale, Ohio, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בגלנדייל, אוהיו, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Greeley, Colorado, USA",
+      "label": "רכבות - גריילי, קולורדו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Greeley, Colorado, USA | LIVE Train Camera (Fixed View � South)",
+      "title": "Greeley, Colorado, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/DDHWS4i4eTo?autoplay=0",
-      "credit": "שידור רכבות חי מ-Greeley, Colorado, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בגריילי, קולורדו, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Greencastle, Pennsylvania, USA",
+      "label": "רכבות - גרינקאסל, פנסילבניה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Greencastle, Pennsylvania, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Greencastle, Pennsylvania, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/Q5eSocWD-4c?autoplay=0",
-      "credit": "שידור רכבות חי מ-Greencastle, Pennsylvania, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-גרינקאסל, פנסילבניה, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Horseshoe Curve � Altoona, Pennsylvania, USA",
+      "label": "רכבות - Horseshoe Curve, אלטונה, פנסילבניה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Horseshoe Curve � Altoona, Pennsylvania, USA | LIVE Train Camera (PTZ)",
+      "title": "Horseshoe Curve – Altoona, Pennsylvania, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/ssuM6NJQ2no?autoplay=0",
-      "credit": "שידור רכבות חי מ-Horseshoe Curve � Altoona, Pennsylvania, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-Horseshoe Curve באלטונה, פנסילבניה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Jesup, Georgia, USA",
+      "label": "רכבות - ג'סאפ, ג'ורג'יה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Jesup, Georgia, USA | LIVE Train Camera | Virtual Railfan (Fixed View � North)",
+      "title": "Jesup, Georgia, USA | LIVE Train Camera | Virtual Railfan (Fixed View - North)",
       "src": "https://www.youtube.com/embed/g1GgLCfImSE?autoplay=0",
-      "credit": "שידור רכבות חי מ-Jesup, Georgia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-ג'סאפ, ג'ורג'יה, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Johnstown, Pennsylvania, USA",
+      "label": "רכבות - ג'ונסטאון, פנסילבניה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Johnstown, Pennsylvania, USA | LIVE Train Camera (Fixed View � West)",
+      "title": "Johnstown, Pennsylvania, USA | LIVE Train Camera (Fixed View - West)",
       "src": "https://www.youtube.com/embed/lUMGsNe-R9Q?autoplay=0",
-      "credit": "שידור רכבות חי מ-Johnstown, Pennsylvania, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בג'ונסטאון, פנסילבניה, מבט לכיוון מערב.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Jonesborough, Tennessee, USA",
+      "label": "רכבות - ג'ונסבורו, טנסי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Jonesborough, Tennessee, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Jonesborough, Tennessee, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/geu9bc_M-kA?autoplay=0",
-      "credit": "שידור רכבות חי מ-Jonesborough, Tennessee, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בג'ונסבורו, טנסי, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Kansas City, Missouri, USA",
+      "label": "רכבות - קנזס סיטי, מיזורי (Santa Fe JCT), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Kansas City, Missouri, USA | LIVE Train Camera (Santa Fe JCT PTZ � Bottom)",
+      "title": "Kansas City, Missouri, USA | LIVE Train Camera (Santa Fe JCT PTZ - Bottom)",
       "src": "https://www.youtube.com/embed/PyLw5HQKiYU?autoplay=0",
-      "credit": "שידור רכבות חי מ-Kansas City, Missouri, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ב-Santa Fe JCT בקנזס סיטי, מיזורי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Kearney, Nebraska, USA",
+      "label": "רכבות - קירני, נברסקה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Kearney, Nebraska, USA | LIVE Train Camera (Fixed View � West)",
+      "title": "Kearney, Nebraska, USA | LIVE Train Camera (Fixed View - West)",
       "src": "https://www.youtube.com/embed/23tmCNeFh7A?autoplay=0",
-      "credit": "שידור רכבות חי מ-Kearney, Nebraska, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בקירני, נברסקה, מבט לכיוון מערב.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Lafayette, Indiana, USA",
+      "label": "רכבות - לאפייט, אינדיאנה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Lafayette, Indiana, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/IAC4KczQuQY?autoplay=0",
-      "credit": "שידור רכבות חי מ-Lafayette, Indiana, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בלאפייט, אינדיאנה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Trains in the Street at La Grange, Kentucky, USA",
+      "label": "רכבות - לה גריינג' (ברחוב), קנטקי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Trains in the Street at La Grange, Kentucky, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/9SLt3AT0rXk?autoplay=0",
-      "credit": "שידור רכבות חי מ-Trains in the Street at La Grange, Kentucky, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ברחוב בלה גריינג', קנטקי, שבו עוברות רכבות.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "La Grange, Kentucky, USA",
+      "label": "רכבות - לה גריינג' (דרום), קנטקי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "La Grange, Kentucky, USA | LIVE Train Camera (Fixed View � South)",
+      "title": "La Grange, Kentucky, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/0YIKIk76Sy0?autoplay=0",
-      "credit": "שידור רכבות חי מ-La Grange, Kentucky, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בלה גריינג', קנטקי, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "La Grange, Kentucky, USA",
+      "label": "רכבות - לה גריינג' (מוזיאון), קנטקי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "La Grange, Kentucky, USA | LIVE Train Camera (Museum Fixed View � South)",
+      "title": "La Grange, Kentucky, USA | LIVE Train Camera (Museum Fixed View - South)",
       "src": "https://www.youtube.com/embed/jntMnCMiZx4?autoplay=0",
-      "credit": "שידור רכבות חי מ-La Grange, Kentucky, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה במוזיאון בלה גריינג', קנטקי, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "La Plata, Missouri, USA",
+      "label": "רכבות - לה פלאטה (מזרח), מיזורי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "La Plata, Missouri, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "La Plata, Missouri, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/X-ir2KfXMX0?autoplay=0",
-      "credit": "שידור רכבות חי מ-La Plata, Missouri, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בלה פלאטה, מיזורי, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "La Plata, Missouri, USA",
+      "label": "רכבות - לה פלאטה (PTZ), מיזורי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "La Plata, Missouri, USA | LIVE Train Camera (PTZ � Lookout)",
+      "title": "La Plata, Missouri, USA | LIVE Train Camera (PTZ - Lookout)",
       "src": "https://www.youtube.com/embed/iz9IQhp_fu0?autoplay=0",
-      "credit": "שידור רכבות חי מ-La Plata, Missouri, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) מנקודת התצפית בלה פלאטה, מיזורי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Laramie, Wyoming, USA",
+      "label": "רכבות - לארמי, ויומינג, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Laramie, Wyoming, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/LRTTZdNTW_0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Laramie, Wyoming, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בלארמי, ויומינג.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Lincoln, Nebraska, USA",
+      "label": "רכבות - לינקולן, נברסקה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Lincoln, Nebraska, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Lincoln, Nebraska, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/DhoVf4-0Zt4?autoplay=0",
-      "credit": "שידור רכבות חי מ-Lincoln, Nebraska, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בלינקולן, נברסקה, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Muncie, Indiana, USA",
+      "label": "רכבות - מאנסי, אינדיאנה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Muncie, Indiana, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Muncie, Indiana, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/G8iIhudKPsQ?autoplay=0",
-      "credit": "שידור רכבות חי מ-Muncie, Indiana, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה במאנסי, אינדיאנה, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "SoNo Tower in South Norwalk, Connecticut, USA (Fixed View � East)",
+      "label": "רכבות - SoNo Tower, דרום נורוולק, קונטיקט, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "SoNo Tower in South Norwalk, Connecticut, USA (Fixed View � East)",
+      "title": "SoNo Tower in South Norwalk, Connecticut, USA (Fixed View - East)",
       "src": "https://www.youtube.com/embed/Dv2XxhsWqWY?autoplay=0",
-      "credit": "שידור רכבות חי מ-SoNo Tower in South Norwalk, Connecticut, USA (Fixed View � East), ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ב-SoNo Tower בדרום נורוולק, קונטיקט, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Amtrak and Strasburg Rail Road at Paradise, Pennsylvania, USA",
+      "label": "רכבות - פרדייס, פנסילבניה (Amtrak), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Amtrak and Strasburg Rail Road at Paradise, Pennsylvania, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/qnO188z7z5w?autoplay=0",
-      "credit": "שידור רכבות חי מ-Amtrak and Strasburg Rail Road at Paradise, Pennsylvania, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בפרדייס, פנסילבניה, שבה רואים רכבות Amtrak ורכבות Strasburg Rail Road.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Parkville, Missouri, USA",
+      "label": "רכבות - פארקוויל, מיזורי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Parkville, Missouri, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Parkville, Missouri, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/nO81bQFql7M?autoplay=0",
-      "credit": "שידור רכבות חי מ-Parkville, Missouri, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בפארקוויל, מיזורי, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Plant City, Florida, USA",
+      "label": "רכבות - פלנט סיטי, פלורידה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Plant City, Florida, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/IVSoVgGXDoU?autoplay=0",
-      "credit": "שידור רכבות חי מ-Plant City, Florida, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בפלנט סיטי, פלורידה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Princeton, Indiana, USA",
+      "label": "רכבות - פרינסטון, אינדיאנה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Princeton, Indiana, USA | LIVE Train Camera (Fixed View � South)",
+      "title": "Princeton, Indiana, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/jRvnO7D-FpA?autoplay=0",
-      "credit": "שידור רכבות חי מ-Princeton, Indiana, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בפרינסטון, אינדיאנה, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Quanah, Texas, USA",
+      "label": "רכבות - קוואנה, טקסס, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Quanah, Texas, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/LInPY_D1Ln4?autoplay=0",
-      "credit": "שידור רכבות חי מ-Quanah, Texas, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בקוואנה, טקסס.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Quincy, Illinois, USA",
+      "label": "רכבות - קווינסי, אילינוי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Quincy, Illinois, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Quincy, Illinois, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/a__yfG4PnxY?autoplay=0",
-      "credit": "שידור רכבות חי מ-Quincy, Illinois, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בקווינסי, אילינוי, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Revelstoke, British Columbia, Canada",
+      "label": "רכבות - רבלסטוק, קולומביה הבריטית, קנדה",
       "country": "קנדה",
       "flagCode": "ca",
       "title": "Revelstoke, British Columbia, Canada | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/fIMbMz2P7Bs?autoplay=0",
-      "credit": "שידור רכבות חי מ-Revelstoke, British Columbia, Canada, קנדה."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ברבלסטוק, קולומביה הבריטית.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Roanoke, Virginia, USA",
+      "label": "רכבות - רואנוק, וירג'יניה (PTZ), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Roanoke, Virginia, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/UhP0rMfgjJ8?autoplay=0",
-      "credit": "שידור רכבות חי מ-Roanoke, Virginia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ברואנוק, וירג'יניה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Roanoke, Virginia, USA",
+      "label": "רכבות - רואנוק, וירג'יניה (מזרח), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Roanoke, Virginia, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "Roanoke, Virginia, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/7IEVmX3Ykf0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Roanoke, Virginia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ברואנוק, וירג'יניה, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Rochelle, Illinois, USA",
+      "label": "רכבות - רושל, אילינוי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Rochelle, Illinois, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/LhNpn9L5ndM?autoplay=0",
-      "credit": "שידור רכבות חי מ-Rochelle, Illinois, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) ברושל, אילינוי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Rockwood, Tennessee, USA",
+      "label": "רכבות - רוקווד, טנסי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Rockwood, Tennessee, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Rockwood, Tennessee, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/sOFA93jWtvA?autoplay=0",
-      "credit": "שידור רכבות חי מ-Rockwood, Tennessee, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה ברוקווד, טנסי, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Russellville, Arkansas, USA",
+      "label": "רכבות - ראסלוויל, ארקנסו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Russellville, Arkansas, USA | LIVE Train Camera (Fixed View � South)",
+      "title": "Russellville, Arkansas, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/ya36dX89dGU?autoplay=0",
-      "credit": "שידור רכבות חי מ-Russellville, Arkansas, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בראסלוויל, ארקנסו, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Saint Louis, Missouri, USA",
+      "label": "רכבות - סנט לואיס, מיזורי (PTZ), ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Saint Louis, Missouri, USA | LIVE Train Camera (PTZ - East)",
       "src": "https://www.youtube.com/embed/XRLwO9QjveA?autoplay=0",
-      "credit": "שידור רכבות חי מ-Saint Louis, Missouri, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בסנט לואיס, מיזורי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "St. Paul, Minnesota, USA",
+      "label": "רכבות - סנט פול, מינסוטה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "St. Paul, Minnesota, USA | LIVE Train Camera (Fixed View � East)",
+      "title": "St. Paul, Minnesota, USA | LIVE Train Camera (Fixed View - East)",
       "src": "https://www.youtube.com/embed/u5dt2mHDuxQ?autoplay=0",
-      "credit": "שידור רכבות חי מ-St. Paul, Minnesota, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בסנט פול, מינסוטה, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Salt Lake City, Utah, USA",
+      "label": "רכבות - סולט לייק סיטי, יוטה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Salt Lake City, Utah, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/NP-bvAcswIM?autoplay=0",
-      "credit": "שידור רכבות חי מ-Salt Lake City, Utah, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בסולט לייק סיטי, יוטה, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "San Juan Capistrano, USA",
+      "label": "רכבות - סן חואן קפיסטרנו, קליפורניה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "San Juan Capistrano, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/-g1qAvXyIyQ?autoplay=0",
-      "credit": "שידור רכבות חי מ-San Juan Capistrano, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בסן חואן קפיסטרנו, קליפורניה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Skykomish, Washington, USA",
+      "label": "רכבות - סקייקומיש, וושינגטון, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Skykomish, Washington, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/jxvalaix3K0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Skykomish, Washington, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בסקייקומיש, וושינגטון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Spartanburg, South Carolina, USA",
+      "label": "רכבות - ספרטנבורג, דרום קרולינה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Spartanburg, South Carolina, USA | LIVE Train Camera (Fixed View � North)",
+      "title": "Spartanburg, South Carolina, USA | LIVE Train Camera (Fixed View - North)",
       "src": "https://www.youtube.com/embed/xJMJegqnl8Y?autoplay=0",
-      "credit": "שידור רכבות חי מ-Spartanburg, South Carolina, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בספרטנבורג, דרום קרולינה, מבט לכיוון צפון.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Springfield, Massachusetts, USA",
+      "label": "רכבות - ספרינגפילד, מסצ'וסטס, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Springfield, Massachusetts, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/8U0M_mionOs?autoplay=0",
-      "credit": "שידור רכבות חי מ-Springfield, Massachusetts, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בספרינגפילד, מסצ'וסטס.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Spokane, Washington, USA",
+      "label": "רכבות - ספוקיין, וושינגטון, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Spokane, Washington, USA | LIVE Train Cam | Virtual Railfan (Fixed View - East)",
       "src": "https://www.youtube.com/embed/2blgPhEGUy0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Spokane, Washington, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בספוקיין, וושינגטון, מבט לכיוון מזרח.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Strasburg, Pennsylvania, USA",
+      "label": "רכבות - שטרסבורג, פנסילבניה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Strasburg, Pennsylvania, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/RZpIX6cq7Os?autoplay=0",
-      "credit": "שידור רכבות חי מ-Strasburg, Pennsylvania, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בשטרסבורג, פנסילבניה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Sweetwater, Tennessee, USA",
+      "label": "רכבות - סוויטווטר, טנסי, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Sweetwater, Tennessee, USA | LIVE Train Camera",
       "src": "https://www.youtube.com/embed/NIultPoJuaE?autoplay=0",
-      "credit": "שידור רכבות חי מ-Sweetwater, Tennessee, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמת רכבות בסוויטווטר, טנסי.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Texarkana, Arkansas, USA",
+      "label": "רכבות - טקסרקנה, ארקנסו, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Texarkana, Arkansas, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/6s1KTevqrNY?autoplay=0",
-      "credit": "שידור רכבות חי מ-Texarkana, Arkansas, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בטקסרקנה, ארקנסו.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Thomasville, North Carolina, USA",
+      "label": "רכבות - תומסוויל, צפון קרולינה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
-      "title": "Thomasville, North Carolina, USA | LIVE Train Camera (Fixed View � South)",
+      "title": "Thomasville, North Carolina, USA | LIVE Train Camera (Fixed View - South)",
       "src": "https://www.youtube.com/embed/JPdUQtZcuk8?autoplay=0",
-      "credit": "שידור רכבות חי מ-Thomasville, North Carolina, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה קבועה בתומסוויל, צפון קרולינה, מבט לכיוון דרום.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Tucson, Arizona, USA",
+      "label": "רכבות - טוסון, אריזונה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Tucson, Arizona, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/q5BQRwSh41Q?autoplay=0",
-      "credit": "שידור רכבות חי מ-Tucson, Arizona, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בטוסון, אריזונה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Waupaca, Wisconsin, USA",
+      "label": "רכבות - ווופקה, ויסקונסין, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Waupaca, Wisconsin, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/KFu4LVTJ4Xk?autoplay=0",
-      "credit": "שידור רכבות חי מ-Waupaca, Wisconsin, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בווופקה, ויסקונסין.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Waycross, Georgia, USA",
+      "label": "רכבות - וייקרוס, ג'ורג'יה, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Waycross, Georgia, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/bCIIn4c5LrM?autoplay=0",
-      "credit": "שידור רכבות חי מ-Waycross, Georgia, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בוייקרוס, ג'ורג'יה.",
+      "category": "train"
     },
     {
       "emoji": "🚂",
-      "label": "Wichita, Kansas, USA",
+      "label": "רכבות - ויצ'יטה, קנזס, ארצות הברית",
       "country": "ארצות הברית",
       "flagCode": "us",
       "title": "Wichita, Kansas, USA | LIVE Train Camera (PTZ)",
       "src": "https://www.youtube.com/embed/iN7u2jKbDm0?autoplay=0",
-      "credit": "שידור רכבות חי מ-Wichita, Kansas, USA, ארצות הברית."
+      "credit": "שידור חי 24/7 ממצלמה מסתובבת (PTZ) בוויצ'יטה, קנזס.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Prague Main Station, Czech Republic",
+      "country": "צ׳כיה",
+      "flagCode": "cz",
+      "title": "4K LIVE: Trainspotting on Prague Main Station | 24/7 LIVE",
+      "src": "https://www.youtube.com/embed/tmlE1ct0cYk?autoplay=0",
+      "credit": "שידור חי 24/7 מתחנת הרכבות הראשית בפראג, צ׳כיה.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Amsterdam Centraal, Netherlands",
+      "country": "הולנד",
+      "flagCode": "nl",
+      "title": "Station Amsterdam Centraal - De Vijf Bruggen, camera 2 | Livestream ProRail",
+      "src": "https://www.youtube.com/embed/FHJH2yMe6Hw?autoplay=0",
+      "credit": "שידור חי מתחנת אמסטרדם סנטרל, מצלמה 2, מבית ProRail.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Čerčany, Czech Republic",
+      "country": "צ׳כיה",
+      "flagCode": "cz",
+      "title": "Live: Trains in Čerčany | 24/7 LIVE",
+      "src": "https://www.youtube.com/embed/C5yAhDCnFZI?autoplay=0",
+      "credit": "שידור חי 24/7 מרכבות בצ׳רצ׳אני, צ׳כיה.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Hannover, Germany",
+      "country": "גרמניה",
+      "flagCode": "de",
+      "title": "LIVE: Train Traffic in Hannover Germany | ICEs, REs, Freight Trains | 24/7 Live Stream",
+      "src": "https://www.youtube.com/embed/zM3XD4Dhzk4?autoplay=0",
+      "credit": "שידור חי 24/7 מתנועת הרכבות בהנובר, גרמניה, כולל ICE, RE ורכבות משא.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Olympia-Lacey, Washington, USA",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "Olympia-Lacey Centennial Station Live Railcam",
+      "src": "https://www.youtube.com/embed/PftkGaoFl_0?autoplay=0",
+      "credit": "שידור חי 24/7 מתחנת Centennial באולימפיה-לייסי, וושינגטון.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "York ROC, England, UK",
+      "country": "הממלכה המאוחדת",
+      "flagCode": "gb",
+      "title": "York ROC Camera No.1, Yorkshire UK - in Partnership with Network Rail | Railcam LIVE",
+      "src": "https://www.youtube.com/embed/vByZX49lCic?autoplay=0",
+      "credit": "שידור חי 24/7 מיורק, יורקשייר, בשיתוף Network Rail.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Shinjuku, Tokyo, Japan",
+      "country": "יפן",
+      "flagCode": "jp",
+      "title": "【LIVE】Tokyo Shinjuku JR Live Cam",
+      "src": "https://www.youtube.com/embed/GLQhbRGv5qU?autoplay=0",
+      "credit": "שידור חי 24/7 מאזור תחנת JR בשינג׳וקו, טוקיו.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Houston, Texas, USA (Tower 26)",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "LIVE Trains Railcam | Houston, Texas (Tower 26) East Cam",
+      "src": "https://www.youtube.com/embed/bchdO4OtIEI?autoplay=0",
+      "credit": "שידור חי 24/7 ממגדל 26 בהיוסטון, טקסס, מבט מזרחי.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Chicago, Illinois, USA (Power House)",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "Chicago & North Western Power House Live Webcam - Chicago, IL",
+      "src": "https://www.youtube.com/embed/grl50cJ7Fq0?autoplay=0",
+      "credit": "שידור חי 24/7 ממבנה Power House בשיקגו, אילינוי.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Banbury, England, UK",
+      "country": "הממלכה המאוחדת",
+      "flagCode": "gb",
+      "title": "Railcam Banbury - Station Camera showcase",
+      "src": "https://www.youtube.com/embed/1FsH5EeOppg?autoplay=0",
+      "credit": "שידור חי 24/7 ממצלמות תחנת Banbury, אנגליה.",
+      "category": "train"
+    },
+    {
+      "emoji": "🚇",
+      "label": "London Underground, England, UK",
+      "country": "הממלכה המאוחדת",
+      "flagCode": "gb",
+      "title": "London Underground First Person Journey 24/7 Livestream!",
+      "src": "https://www.youtube.com/embed/gzV7uUxwgwI?autoplay=0",
+      "credit": "שידור חי 24/7 מנקודת מבט של נוסע ברכבת התחתית של לונדון.",
+      "category": "metro"
+    },
+    {
+      "emoji": "🚂",
+      "label": "Fullerton, California, USA",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "LIVE Rail Cam – Fullerton, California | BNSF Mainline + Amtrak + Metrolink | RailStream",
+      "src": "https://www.youtube.com/embed/oKwiQBAkEVU?autoplay=0",
+      "credit": "שידור חי 24/7 מצלמת רכבות בפולרטון, קליפורניה, על קו BNSF ורכבות Amtrak ו-Metrolink.",
+      "category": "train"
     }
   ]
 }
