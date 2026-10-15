@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>תכנות המיקרוביט - KidLearn</title>
+<title>תכנתו את המיקרוביט! - KidLearn</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap">
 <style>
     [hidden] { display: none !important; }
+    #scriptCount, #libCount, #count { display: none; }
     body { margin: 0; background: #FFF8F0; color: #2B2433; font-family: 'Varela Round', system-ui, sans-serif; }
     button { font-family: inherit; }
     button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #FF6B9D; outline-offset: 3px; }
@@ -14,17 +15,17 @@
 
     .wrap { box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 28px 22px 56px; }
     .back { display: inline-block; font-size: 18px; color: #5B5366; text-decoration: none; min-height: 44px; line-height: 44px; }
-    h1 { margin: 6px 0 0; font-size: 46px; line-height: 1.15; }
-    .lead { margin: 8px 0 0; font-size: 22px; color: #4A4253; }
+    h1 { margin: 6px 0 0; font-size: 56px; line-height: 1.15; }
+    .lead { margin: 8px 0 0; font-size: 24px; color: #4A4253; }
 
     .steps { list-style: none; margin: 22px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-    .steps li { background: #FFFFFF; border-radius: 22px; padding: 16px; display: flex; align-items: center; gap: 12px; font-size: 19px; box-shadow: 0 2px 0 #EFE6DA; }
-    .step-num { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; background: #FEC163; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+    .steps li { background: #FFFFFF; border-radius: 22px; padding: 18px; display: flex; align-items: center; gap: 12px; font-size: 24px; box-shadow: 0 2px 0 #EFE6DA; }
+    .step-num { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; background: #FEC163; display: flex; align-items: center; justify-content: center; font-size: 36px; }
 
     .status { margin-top: 22px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-radius: 22px; padding: 16px 20px; box-shadow: 0 2px 0 #EFE6DA; }
-    .status-icon { font-size: 40px; line-height: 1; }
-    .status-title { font-size: 23px; font-weight: 700; }
-    .status-text { font-size: 17px; color: #4A4253; margin-top: 2px; }
+    .status-icon { font-size: 56px; line-height: 1; }
+    .status-title { font-size: 30px; font-weight: 700; }
+    .status-text { font-size: 22px; color: #4A4253; margin-top: 2px; }
     .status.ok { background: #DDF6EE; }
     .status.warn { background: #FFF0D6; }
     .status.bad { background: #FDE2EA; }
@@ -37,7 +38,7 @@
     .chips { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
     .chip { display: flex; align-items: center; gap: 4px; background: #F4F8FF; border-radius: 999px; padding: 0 6px 0 0; }
     .chip.open { background: #E9DEFF; box-shadow: inset 0 0 0 3px #A78BFA; }
-    .chip-open { min-height: 48px; border: 0; background: none; padding: 0 18px; font-size: 20px; font-weight: 700; color: #2B2433; cursor: pointer; }
+    .chip-open { min-height: 48px; border: 0; background: none; padding: 0 18px; font-size: 24px; font-weight: 700; color: #2B2433; cursor: pointer; }
     .chip-del { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #FDE2EA; font-size: 16px; cursor: pointer; }
     .save-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
     .save-row input { flex: 1 1 260px; min-height: 52px; box-sizing: border-box; border: 2px solid #E6DED4; border-radius: 16px; padding: 0 16px; font-size: 20px; font-family: inherit; background: #FFFCF8; color: #2B2433; }
@@ -51,12 +52,15 @@
 
     .builder { display: grid; grid-template-columns: minmax(230px, 0.9fr) minmax(0, 1.6fr) minmax(260px, 1fr); gap: 18px; margin-top: 22px; align-items: start; }
     .panel { background: #FFFFFF; border-radius: 26px; padding: 20px; box-shadow: 0 2px 0 #EFE6DA; }
-    .panel h2 { margin: 0 0 12px; font-size: 26px; }
+    .panel h2 { margin: 0 0 12px; font-size: 30px; }
     .panel h3 { margin: 16px 0 8px; font-size: 18px; color: #5B5366; }
     .panel .hint { margin-top: 0; }
+    .builder > .panel:nth-child(1) { box-shadow: inset 0 10px 0 #60A5FA, 0 2px 0 #EFE6DA; }
+    .builder > .panel:nth-child(2) { box-shadow: inset 0 10px 0 #FEC163, 0 2px 0 #EFE6DA; }
+    .builder > .panel:nth-child(3) { box-shadow: inset 0 10px 0 #22A06B, 0 2px 0 #EFE6DA; }
 
     /* 1: the events, and the scripts that were added */
-    .when-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 60px; box-sizing: border-box; margin-bottom: 10px; padding: 0 16px; border: 0; border-radius: 18px; background: #F4EFFB; font-size: 21px; font-weight: 700; color: #2B2433; cursor: pointer; text-align: right; }
+    .when-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 72px; box-sizing: border-box; margin-bottom: 10px; padding: 0 16px; border: 0; border-radius: 18px; background: #F4EFFB; font-size: 26px; font-weight: 700; color: #2B2433; cursor: pointer; text-align: right; }
     .when-btn:hover:not(:disabled) { background: #E9DEFF; }
     .letter { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; background: #60A5FA; color: #FFFFFF; font-size: 20px; }
     .mark { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; font-size: 26px; line-height: 1; }
@@ -64,23 +68,23 @@
     .script { display: flex; align-items: center; gap: 6px; background: #F4F8FF; border-radius: 18px; padding: 6px; }
     .script.selected { background: #E9DEFF; box-shadow: inset 0 0 0 3px #A78BFA; }
     .script-pick { flex: 1 1 auto; min-width: 0; min-height: 52px; display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 0 8px; color: #2B2433; cursor: pointer; text-align: right; }
-    .script-label { flex: 1 1 auto; font-size: 19px; font-weight: 700; }
+    .script-label { flex: 1 1 auto; font-size: 23px; font-weight: 700; }
     .script-count { font-size: 16px; color: #5B5366; font-weight: 700; }
     .script-del { flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 14px; font-size: 20px; cursor: pointer; background: #FFFFFF; }
     .script-del { background: #FDE2EA; font-size: 18px; }
 
     /* 2: the blocks */
     .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
-    .tile { min-height: 96px; border: 0; border-radius: 20px; background: #FFF3E0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; color: #2B2433; }
+    .tile { min-height: 112px; border: 0; border-radius: 20px; background: #FFF3E0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; color: #2B2433; }
     .tile:hover:not(:disabled) { background: #FFE0B2; }
-    .tile .emoji { font-size: 40px; line-height: 1; }
-    .tile .label { font-size: 16px; font-weight: 700; }
+    .tile .emoji { font-size: 48px; line-height: 1; }
+    .tile .label { font-size: 19px; font-weight: 700; }
     .tile.wait { background: #E6F7F2; }
     .tile.wait:hover:not(:disabled) { background: #C9F0E3; }
     .tile.word { background: #F0E7FF; }
     .tile.word:hover:not(:disabled) { background: #E2D2FF; }
 
-    /* the picture grid: five per row, and the last row is the full-width "ציור בעצמי" button */
+    /* the picture grid: five per row, and the last row is the full-width "ציור שלי" button */
     #pictureTiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .tile.wide { grid-column: 1 / -1; flex-direction: row; min-height: 64px; gap: 12px; background: #FFE3EE; }
     .tile.wide:hover:not(:disabled) { background: #FFC9DF; }
@@ -105,28 +109,28 @@
     .sequence li { display: flex; align-items: center; gap: 10px; background: #F4F8FF; border-radius: 18px; padding: 8px 10px; }
     .sequence .num { width: 30px; font-size: 18px; font-weight: 700; color: #5B5366; text-align: center; }
     .sequence .emoji { font-size: 36px; line-height: 1; }
-    .sequence .label { flex: 1 1 auto; font-size: 19px; font-weight: 700; }
+    .sequence .label { flex: 1 1 auto; font-size: 23px; font-weight: 700; }
     .remove { width: 48px; height: 48px; border: 0; border-radius: 14px; background: #FDE2EA; font-size: 22px; cursor: pointer; }
     .grip { flex: 0 0 auto; font-size: 22px; color: #8A8196; cursor: grab; user-select: none; }
     .dragging { opacity: 0.4; }
     .drop-here { box-shadow: inset 0 0 0 3px #22A06B; }
-    .hint { font-size: 17px; color: #5B5366; margin: 12px 0 0; min-height: 22px; }
+    .hint { font-size: 20px; color: #5B5366; margin: 12px 0 0; min-height: 22px; }
     .link { margin-top: 12px; border: 0; background: none; color: #A3134A; font-size: 18px; font-weight: 700; text-decoration: underline; min-height: 44px; cursor: pointer; }
 
     .send { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .send-btn { width: min(560px, 100%); min-height: 80px; border: 0; border-radius: 999px; background: #22A06B; color: #FFFFFF; font-size: 28px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 0 #17794F; }
+    .send-btn { width: min(560px, 100%); min-height: 96px; border: 0; border-radius: 999px; background: #22A06B; color: #FFFFFF; font-size: 36px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 0 #17794F; }
     .send-btn:not(:disabled):active { transform: translateY(2px); box-shadow: 0 2px 0 #17794F; }
     .send-note { font-size: 18px; color: #4A4253; text-align: center; margin: 0; min-height: 24px; }
     .send-error { font-size: 19px; font-weight: 700; color: #A3134A; text-align: center; margin: 0; min-height: 24px; }
 
     /* the board (board.js): a picture, and the buttons, sliders, keys, lamps and numbers on it */
     .bd-section { margin-top: 36px; }
-    .bd-section h2 { margin: 0; font-size: 30px; }
+    .bd-section h2 { margin: 0; font-size: 36px; }
     .bd-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; background: #FFFFFF; border-radius: 22px; padding: 12px; box-shadow: 0 2px 0 #EFE6DA; }
     .bd-sep { width: 1px; align-self: stretch; background: #E6DED4; margin: 0 6px; }
-    .bd-tool { min-height: 44px; padding: 0 14px; border: 2px solid #E6DED4; border-radius: 14px; background: #FFFCF8; font-size: 17px; font-weight: 700; color: #2B2433; cursor: pointer; display: inline-flex; align-items: center; }
+    .bd-tool { min-height: 56px; padding: 0 16px; border: 2px solid #E6DED4; border-radius: 14px; background: #FFFCF8; font-size: 20px; font-weight: 700; color: #2B2433; cursor: pointer; display: inline-flex; align-items: center; }
     .bd-tool[aria-pressed="true"] { background: #22A06B; border-color: #22A06B; color: #FFFFFF; }
-    .bd-field { display: flex; flex-direction: column; gap: 4px; font-size: 16px; color: #5B5366; }
+    .bd-field { display: flex; flex-direction: column; gap: 4px; font-size: 19px; color: #5B5366; }
     .bd-bar label.bd-field { flex-direction: row; align-items: center; gap: 6px; }
     .bd-field input[type="text"] { min-height: 42px; border: 2px solid #E6DED4; border-radius: 12px; padding: 0 10px; font-size: 17px; }
     .bd-file { position: relative; overflow: hidden; }
@@ -136,30 +140,30 @@
     .bd-board canvas { position: absolute; inset: 0; width: 960px; height: 560px; pointer-events: none; }
     .bd-board.draw canvas { cursor: crosshair; pointer-events: auto; }
     .bd-board.draw .bd-w { pointer-events: none; }
-    .bd-hint { margin: 10px 0 0; font-size: 17px; color: #4A4253; min-height: 22px; }
+    .bd-hint { margin: 10px 0 0; font-size: 20px; color: #4A4253; min-height: 22px; }
     .bd-w { position: absolute; box-sizing: border-box; user-select: none; }
     .bd-board.edit .bd-w { cursor: move; }
     .bd-board.edit .bd-w.selected { outline: 3px solid #FF6B9D; outline-offset: 2px; }
-    .bd-btn { width: 100%; height: 100%; border: 0; border-radius: 18px; background: #FEC163; font-size: 20px; font-weight: 700; color: #2B2433; box-shadow: 0 4px 0 #D89A2E; cursor: pointer; }
+    .bd-btn { width: 100%; height: 100%; border: 0; border-radius: 18px; background: #FEC163; font-size: 26px; font-weight: 700; color: #2B2433; box-shadow: 0 4px 0 #D89A2E; cursor: pointer; }
     .bd-btn.down, .bd-board.play .bd-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #D89A2E; }
-    .bd-slider { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 8px; background: #F4EFFB; border-radius: 18px; font-size: 17px; font-weight: 700; box-sizing: border-box; }
+    .bd-slider { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 8px; background: #F4EFFB; border-radius: 18px; font-size: 22px; font-weight: 700; box-sizing: border-box; }
     .bd-slider input { width: 100%; }
-    .bd-key { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #E6F7F2; border-radius: 18px; font-size: 17px; font-weight: 700; }
-    .bd-key-letter { font-size: 40px; line-height: 1; margin-top: 4px; }
+    .bd-key { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #E6F7F2; border-radius: 18px; font-size: 22px; font-weight: 700; }
+    .bd-key-letter { font-size: 56px; line-height: 1; margin-top: 4px; }
     .bd-key.down { background: #22A06B; color: #FFFFFF; }
-    .bd-lamp { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 17px; font-weight: 700; }
+    .bd-lamp { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 22px; font-weight: 700; }
     .bd-bulb { width: 70%; aspect-ratio: 1; max-height: 80%; border-radius: 50%; background: #E6DED4; box-shadow: inset 0 0 0 3px #CFC6BE; }
     .bd-lamp.on .bd-bulb { background: #FEC163; box-shadow: 0 0 24px 8px rgba(254, 193, 99, 0.6); }
-    .bd-number { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #2B2433; color: #FFFFFF; border-radius: 18px; font-size: 17px; }
-    .bd-digits { font-size: 48px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .bd-text { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; text-align: center; }
+    .bd-number { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #2B2433; color: #FFFFFF; border-radius: 18px; font-size: 22px; }
+    .bd-digits { font-size: 60px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .bd-text { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; text-align: center; }
     .bd-image { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
     .bd-live-state { background: #F4EFFB; border-color: #F4EFFB; cursor: default; }
     .bd-screen { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #2B2433; color: #FFFFFF; border-radius: 18px; overflow: hidden; }
     .bd-screen-face { text-align: center; line-height: 1.15; white-space: pre; font-weight: 700; }
     .bd-props { margin-top: 14px; background: #FFFFFF; border-radius: 22px; padding: 16px; box-shadow: 0 2px 0 #EFE6DA; }
     .bd-props h3 { margin: 0 0 8px; font-size: 20px; }
-    .bd-props p { margin: 0; font-size: 16px; color: #4A4253; }
+    .bd-props p { margin: 0; font-size: 19px; color: #4A4253; }
     .bd-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .bd-danger { min-height: 44px; padding: 0 16px; border: 0; border-radius: 14px; background: #FDE2EA; font-size: 17px; font-weight: 700; color: #A3134A; cursor: pointer; }
 
@@ -172,15 +176,15 @@
 </head>
 <body>
 <main class="wrap">
-    <a class="back" href="../index.html">&larr; כל המשחקים</a>
+    <a class="back" href="../index.html">🏠 למשחקים</a>
     <h1>תכנתו את המיקרוביט!</h1>
-    <p class="lead">בונים תסריטים מסמלים, שולחים אותם למיקרוביט, ואז מריצים בלי מסך.</p>
+    <p class="lead">מחברים סמלים, שולחים למיקרוביט, ואז משחקים!</p>
 
     <ol class="steps">
-        <li><span class="step-num" aria-hidden="true">🔌</span>חברו את המיקרוביט למחשב בכבל</li>
-        <li><span class="step-num" aria-hidden="true">🧩</span>בנו תסריטים מהסמלים</li>
-        <li><span class="step-num" aria-hidden="true">🚀</span>לחצו על "שלחו"</li>
-        <li><span class="step-num" aria-hidden="true">🎉</span>נתקו ושחקו!</li>
+        <li><span class="step-num" aria-hidden="true">🔌</span>מחברים את המיקרוביט בכבל</li>
+        <li><span class="step-num" aria-hidden="true">🧩</span>בונים סיפורים מסמלים</li>
+        <li><span class="step-num" aria-hidden="true">🚀</span>לוחצים על "שלחו"</li>
+        <li><span class="step-num" aria-hidden="true">🎉</span>מנתקים ומשחקים!</li>
     </ol>
 
     <div class="status" id="statusBox" role="status">
@@ -198,11 +202,11 @@
         </div>
         <p class="lib-where" id="libWhere"></p>
         <ul class="chips" id="savedList"></ul>
-        <p class="empty" id="libEmpty">עדיין אין תוכניות שמורות. בנו תוכנית ושמרו אותה כאן.</p>
+        <p class="empty" id="libEmpty">עדיין אין תוכניות. בנו משהו ושמרו אותו כאן 💾</p>
         <div class="save-row">
-            <input type="text" id="progName" maxlength="30" placeholder="שם לתוכנית, למשל: הלב שלי" aria-label="שם לתוכנית">
-            <button type="button" class="btn btn-save" id="saveProg">שמרו</button>
-            <button type="button" class="btn btn-ghost" id="newProg">תוכנית חדשה</button>
+            <input type="text" id="progName" maxlength="30" placeholder="איך קוראים לזה?" aria-label="שם לתוכנית">
+            <button type="button" class="btn btn-save" id="saveProg">💾 שמרו</button>
+            <button type="button" class="btn btn-ghost" id="newProg">➕ חדשה</button>
         </div>
         <p class="lib-state" id="libState"></p>
         <p class="lib-note" id="libNote" aria-live="polite"></p>
@@ -213,45 +217,45 @@
 
     <div class="builder">
         <section class="panel">
-            <h2>1. כשקורה...</h2>
-            <p class="hint">לחצו על מה שיקרה. כל לחיצה מוסיפה תסריט חדש.</p>
+            <h2>1. מתי?</h2>
+            <p class="hint">לחצו על מה שיקרה, וזה יתחיל סיפור חדש 👇</p>
             <div id="whenButtons"></div>
             <h3>מטים את הלוח</h3>
             <div class="tiles" id="tiltWhen"></div>
-            <h3>מגע בלוגו <span class="count-badge">רק במיקרו:ביט v2</span></h3>
+            <h3>נוגעים בלוגו <span class="count-badge">רק V2</span></h3>
             <div id="v2When"></div>
             <div id="remoteWhen" hidden>
-                <h3>שלט Yahboom</h3>
-                <p class="hint">לחצו על לחצן בשלט, והתסריט ירוץ כשלוחצים עליו.</p>
+                <h3>🎮 השלט</h3>
+                <p class="hint">לוחצים על כפתור בשלט, והסיפור יתחיל.</p>
                 <div class="tiles" id="remoteTiles"></div>
             </div>
             <div id="boardWhenWrap" hidden>
                 <h3>על הלוח שלי</h3>
                 <div id="boardWhen"></div>
             </div>
-            <h3>התסריטים שלי <span class="count-badge" id="scriptCount">0/6</span></h3>
+            <h3>הסיפורים שלי <span class="count-badge" id="scriptCount">0/6</span></h3>
             <ol class="script-list" id="scriptList"></ol>
-            <p class="hint" id="scriptEmpty">עדיין אין תסריטים.</p>
+            <p class="hint" id="scriptEmpty">עדיין אין סיפורים. לחצו למעלה 👆</p>
         </section>
 
         <section class="panel">
-            <h2>2. אז עושים...</h2>
+            <h2>2. ואז?</h2>
             <h3>תמונות</h3>
             <div class="tiles" id="pictureTiles"></div>
             <div class="drawer" id="drawer" hidden>
-                <p class="drawer-title">ציירו משהו! לחצו על הנורות שרוצים שידלקו.</p>
+                <p class="drawer-title">ציירו! לחצו על מה שידלק 💡</p>
                 <div class="pixels" id="pixels"></div>
                 <div class="drawer-buttons">
-                    <button type="button" class="drawer-add" id="drawerAdd">הוסיפו לתסריט</button>
-                    <button type="button" class="drawer-cancel" id="drawerCancel">ביטול</button>
+                    <button type="button" class="drawer-add" id="drawerAdd">✅ הוסיפו</button>
+                    <button type="button" class="drawer-cancel" id="drawerCancel">↩️ חזרה</button>
                 </div>
             </div>
             <h3>זמן</h3>
             <div class="tiles" id="waitTiles"></div>
-            <h3>מסך</h3>
+            <h3>על המסך</h3>
             <div class="tiles" id="otherTiles"></div>
             <div id="carPart" hidden>
-                <h3>רכב Yahboom</h3>
+                <h3>🚗 הרכב</h3>
                 <div class="tiles" id="carTiles"></div>
             </div>
             <div id="boardActionsWrap" hidden>
@@ -261,22 +265,22 @@
         </section>
 
         <section class="panel">
-            <h2>3. מה עושים בתסריט <span class="count-badge" id="count">0/12</span></h2>
+            <h2>3. מה הוא עושה? <span class="count-badge" id="count">0/12</span></h2>
             <p class="script-title" id="scriptTitle"></p>
             <ol class="sequence" id="sequence"></ol>
             <p class="hint" id="hint"></p>
-            <button type="button" class="link" id="clearAll">נקו את התסריט</button>
+            <button type="button" class="link" id="clearAll">🧹 נקו את הסיפור</button>
         </section>
     </div>
 
     <section class="bd-section" id="boardSection" aria-labelledby="bdTitle">
         <h2 id="bdTitle">🎨 הלוח שלי</h2>
-        <p class="lead">ציירו, שימו כפתורים, סרגלים, אותיות, נורות ומספרים. אחר כך בנו תסריט למעלה: "כשקורה" ו"אז עושים".</p>
+        <p class="lead">ציירו, שימו כפתורים ונורות! ואחר כך בנו סיפור למעלה 👆</p>
         <div class="bd-bar" role="toolbar" aria-label="כלים">
             <button type="button" class="bd-tool" data-bd-mode="draw" aria-pressed="false">✏️ לצייר</button>
             <button type="button" class="bd-tool" data-bd-mode="edit" aria-pressed="true">✋ להזיז</button>
             <button type="button" class="bd-tool" data-bd-mode="play" aria-pressed="false">▶️ לשחק</button>
-            <span class="bd-tool bd-live-state" id="bdLiveState" role="status">🔌 מתחבר למיקרוביט...</span>
+            <span class="bd-tool bd-live-state" id="bdLiveState" role="status">🔌 מתחבר...</span>
             <span class="bd-sep" aria-hidden="true"></span>
             <label class="bd-field">צבע <input type="color" id="bdPenColor" value="#2B2433" aria-label="צבע העט"></label>
             <label class="bd-field">עובי <input type="range" id="bdPenSize" min="2" max="30" value="6" aria-label="עובי העט"></label>
@@ -302,9 +306,9 @@
         <p class="bd-hint" id="bdHint"></p>
         <section class="bd-props" aria-labelledby="bdPropsTitle">
             <h3 id="bdPropsTitle">מה לשנות</h3>
-            <p id="bdPropsEmpty">לחצו על משהו בלוח, ואז תוכלו לשנות אותו.</p>
+            <p id="bdPropsEmpty">לחצו על משהו בלוח כדי לשנות אותו 👆</p>
             <div id="bdProps" hidden>
-                <label class="bd-field">מה כתוב <input type="text" id="bdPropLabel" maxlength="40"></label>
+                <label class="bd-field">שם <input type="text" id="bdPropLabel" maxlength="40"></label>
                 <div class="bd-field">
                     <span>גודל</span>
                     <div class="bd-row">
@@ -315,7 +319,7 @@
                 </div>
                 <div class="bd-field" id="bdKeyField" hidden>
                     <span>איזו אות</span>
-                    <button type="button" class="bd-tool" id="bdPickKey">לחצו על אות במקלדת</button>
+                    <button type="button" class="bd-tool" id="bdPickKey">⌨️ לחצו על אות</button>
                 </div>
                 <div class="bd-row">
                     <button type="button" class="bd-danger" id="bdDelete">🗑️ למחוק</button>
@@ -325,7 +329,7 @@
     </section>
 
     <div class="send">
-        <button type="button" class="send-btn" id="sendBtn" disabled>שלחו למיקרוביט!</button>
+        <button type="button" class="send-btn" id="sendBtn" disabled>🚀 שלחו!</button>
         <p class="send-note" id="sendNote"></p>
         <p class="send-error" id="sendError" role="alert"></p>
     </div>
@@ -352,23 +356,23 @@
     // The blocks a child can use. Each block is sent as its name and value only; the app writes the code.
     // group: '' = the main list, 'tilt' = the four tilts (tiles), 'v2' = needs a micro:bit V2 (the sound and the logo)
     const WHEN = [
-        { event: 'start', label: 'מתחילים', mark: '🚀' },
-        { event: 'buttonA', label: 'לוחצים על A', mark: 'A' },
-        { event: 'buttonB', label: 'לוחצים על B', mark: 'B' },
-        { event: 'abPress', label: 'לוחצים על A ו-B יחד', mark: 'AB' },
-        { event: 'shake', label: 'מנערים', mark: '🤝' },
-        { event: 'faceDown', label: 'הופכים את הלוח', mark: '🙃' },
-        { event: 'tiltForward', label: 'מטים קדימה', mark: '⬆️', group: 'tilt' },
-        { event: 'tiltBack', label: 'מטים אחורה', mark: '⬇️', group: 'tilt' },
-        { event: 'tiltLeft', label: 'מטים שמאלה', mark: '⬅️', group: 'tilt' },
-        { event: 'tiltRight', label: 'מטים ימינה', mark: '➡️', group: 'tilt' },
-        { event: 'logoTouch', label: 'נוגעים בלוגו', mark: '👆', group: 'v2' },
+        { event: 'start', label: 'כשמתחילים', mark: '🚀' },
+        { event: 'buttonA', label: 'כשלוחצים על A', mark: 'A' },
+        { event: 'buttonB', label: 'כשלוחצים על B', mark: 'B' },
+        { event: 'abPress', label: 'כשלוחצים על A ו-B יחד', mark: 'AB' },
+        { event: 'shake', label: 'כשמנענעים', mark: '📳' },
+        { event: 'faceDown', label: 'כשהופכים את הלוח', mark: '🙃' },
+        { event: 'tiltForward', label: 'כשמטים קדימה', mark: '⬆️', group: 'tilt' },
+        { event: 'tiltBack', label: 'כשמטים אחורה', mark: '⬇️', group: 'tilt' },
+        { event: 'tiltLeft', label: 'כשמטים שמאלה', mark: '⬅️', group: 'tilt' },
+        { event: 'tiltRight', label: 'כשמטים ימינה', mark: '➡️', group: 'tilt' },
+        { event: 'logoTouch', label: 'כשנוגעים בלוגו', mark: '👆', group: 'v2' },
     ];
     const PICTURES = [
         { icon: 'heart', emoji: '❤️', label: 'לב' }, { icon: 'happy', emoji: '😊', label: 'שמח' },
         { icon: 'sad', emoji: '😢', label: 'עצוב' }, { icon: 'surprised', emoji: '😮', label: 'הפתעה' },
         { icon: 'angry', emoji: '😠', label: 'כועס' }, { icon: 'asleep', emoji: '😴', label: 'ישן' },
-        { icon: 'yes', emoji: '✅', label: 'וי' }, { icon: 'no', emoji: '❌', label: 'לא' },
+        { icon: 'yes', emoji: '✅', label: 'נכון' }, { icon: 'no', emoji: '❌', label: 'לא' },
         { icon: 'up', emoji: '⬆️', label: 'למעלה' }, { icon: 'right', emoji: '➡️', label: 'ימינה' },
         { icon: 'down', emoji: '⬇️', label: 'למטה' }, { icon: 'left', emoji: '⬅️', label: 'שמאלה' },
         { icon: 'house', emoji: '🏠', label: 'בית' }, { icon: 'ghost', emoji: '👻', label: 'רוח' },
@@ -379,7 +383,7 @@
         { seconds: 2, emoji: '⌛', label: '2 שניות' }, { seconds: 3, emoji: '🕐', label: '3 שניות' },
     ];
     const OTHERS = [
-        { clear: true, emoji: '🧹', label: 'מנקה מסך' },
+        { clear: true, emoji: '🧹', label: 'מנקים מסך' },
     ];
     // Add-on blocks: the Yahboom car (drive and stop), and the keys of the Yahboom remote that start a script
     const CARS = [
@@ -391,11 +395,11 @@
     const REMOTE = [
         { key: 'up', label: 'חץ למעלה', mark: '⬆️' }, { key: 'down', label: 'חץ למטה', mark: '⬇️' },
         { key: 'left', label: 'חץ שמאלה', mark: '⬅️' }, { key: 'right', label: 'חץ ימינה', mark: '➡️' },
-        { key: 'zero', label: 'מספר 0', mark: '0️⃣' }, { key: 'one', label: 'מספר 1', mark: '1️⃣' },
-        { key: 'two', label: 'מספר 2', mark: '2️⃣' }, { key: 'three', label: 'מספר 3', mark: '3️⃣' },
-        { key: 'four', label: 'מספר 4', mark: '4️⃣' }, { key: 'five', label: 'מספר 5', mark: '5️⃣' },
-        { key: 'six', label: 'מספר 6', mark: '6️⃣' }, { key: 'seven', label: 'מספר 7', mark: '7️⃣' },
-        { key: 'eight', label: 'מספר 8', mark: '8️⃣' }, { key: 'nine', label: 'מספר 9', mark: '9️⃣' },
+        { key: 'zero', label: '0', mark: '0️⃣' }, { key: 'one', label: '1', mark: '1️⃣' },
+        { key: 'two', label: '2', mark: '2️⃣' }, { key: 'three', label: '3', mark: '3️⃣' },
+        { key: 'four', label: '4', mark: '4️⃣' }, { key: 'five', label: '5', mark: '5️⃣' },
+        { key: 'six', label: '6', mark: '6️⃣' }, { key: 'seven', label: '7', mark: '7️⃣' },
+        { key: 'eight', label: '8', mark: '8️⃣' }, { key: 'nine', label: '9', mark: '9️⃣' },
     ];
     const EXT_KEY = 'kidlearn-microbit-extensions';
 
@@ -523,8 +527,8 @@
         const draw = document.createElement('button');
         draw.type = 'button';
         draw.className = 'tile wide';
-        draw.innerHTML = '<span class="emoji" aria-hidden="true">🎨</span><span class="label">ציור בעצמי</span>';
-        draw.setAttribute('aria-label', 'ציור בעצמי');
+        draw.innerHTML = '<span class="emoji" aria-hidden="true">🎨</span><span class="label">ציור שלי</span>';
+        draw.setAttribute('aria-label', 'ציור שלי');
         draw.addEventListener('click', openDrawer);
         $('pictureTiles').appendChild(draw);
         buildDrawer();
@@ -726,13 +730,13 @@
 
     // ---- the live link: while the micro:bit is connected, its buttons are triggers, and the board's screen shows on it ----
     const LIVE_ERRORS = {
-        no_microbit: 'לא מצאנו מיקרוביט מחובר בכבל.',
+        no_microbit: 'המיקרוביט לא מחובר. חברו אותו בכבל 🔌',
         port_busy: 'המיקרוביט תפוס בתוכנה אחרת. סגרו אותה ונסו שוב.',
         port_error: 'לא הצלחנו לדבר עם המיקרוביט. נתקו את הכבל וחברו אותו שוב.',
         no_answer: 'המיקרוביט לא ענה. נתקו את הכבל וחברו אותו שוב.',
         board_error: 'המיקרוביט לא הבין את החיבור. נסו שוב.',
         app_not_running: 'צריך את תוכנית Kidlearn במחשב כדי לחבר את המיקרוביט.',
-        extension_missing: 'צריך את תוסף Kidlearn בכרום כדי לחבר את המיקרוביט.',
+        extension_missing: 'צריך עזרה מהורה 🙋 (חסר תוסף Kidlearn בכרום)',
         unknown_action: 'התוסף בכרום צריך רענון. פתחו את chrome://extensions ולחצו על רענון ב-Kidlearn.',
         host_unavailable: 'לא מצאנו את תוכנית Kidlearn במחשב. פתחו אותה מתפריט התחל, או התקינו אותה מחדש.',
         extension_error: 'התוסף בכרום לא הצליח לדבר עם התוכנית. רעננו את הדף ונסו שוב.',
@@ -753,13 +757,13 @@
         const reply = await KidLearnBridge.request('liveStart', null, { timeoutMs: 15000 });
         live.connecting = false;
         if (!reply.ok) {
-            renderLiveState(LIVE_ERRORS[reply.error] || 'לא הצלחנו לחבר את המיקרוביט. (' + (reply.error || 'בלי פרטים') + ')');
+            renderLiveState(LIVE_ERRORS[reply.error] || 'לא הצלחנו לחבר 🔌 (' + (reply.error || 'בלי פרטים') + ')');
             return reply.error || 'error';
         }
         live.on = true;
         KidlearnBoard.setLive(true);
         live.timer = setInterval(liveAsk, 150);
-        renderLiveState('🔌 המיקרוביט מחובר');
+        renderLiveState('🔌 מחובר!');
         updateSend();
         return null;
     }
@@ -776,7 +780,7 @@
     }
 
     function liveErrorText(error) {
-        return LIVE_ERRORS[error] || 'לא הצלחנו לחבר את המיקרוביט. (' + error + ')';
+        return LIVE_ERRORS[error] || 'לא הצלחנו לחבר 🔌 (' + error + ')';
     }
 
     async function liveDisconnect() {
@@ -784,7 +788,7 @@
         live.timer = null;
         live.on = false;
         KidlearnBoard.setLive(false);
-        renderLiveState('🔌 המיקרוביט לא מחובר');
+        renderLiveState('🔌 לא מחובר');
         updateSend();
         await KidLearnBridge.request('liveStop');
     }
@@ -816,7 +820,7 @@
     // ---- scripts ----
     function addScript(event, key) {
         if (scripts.length >= MAX_SCRIPTS) {
-            $('hint').textContent = 'יש עד 6 תסריטים בתוכנית. אפשר למחוק תסריט כדי להוסיף.';
+            $('hint').textContent = 'יש כבר 6 סיפורים! מחקו אחד כדי להוסיף.';
             return;
         }
         scripts.push(key ? { event, key, actions: [] } : { event, actions: [] });
@@ -826,7 +830,7 @@
 
     function removeScript(index) {
         const s = scripts[index];
-        if (s.actions.length > 0 && !confirm('למחוק את התסריט "' + scriptInfo(s).label + '"?')) return;
+        if (s.actions.length > 0 && !confirm('למחוק את הסיפור "' + scriptInfo(s).label + '"?')) return;
         scripts.splice(index, 1);
         selected = scripts.length ? Math.min(index, scripts.length - 1) : -1;
         changed();
@@ -835,20 +839,20 @@
     function addAction(action) {
         const s = currentScript();
         if (!s) {
-            $('hint').textContent = 'קודם בחרו מתי התסריט עובד: לחצו על מה שיקרה בעמודה הראשונה.';
+            $('hint').textContent = 'קודם לחצו על "מתי?" כדי לבחור מתי זה יקרה.';
             return false;
         }
         // A script of the board runs on the screen; the micro:bit blocks go in the other scripts. "wait" works in both.
         if (s.event === 'board' && !BOARD_ACTIONS.includes(action.do)) {
-            $('hint').textContent = 'הסמל הזה לא עובד בתסריט של הלוח שלי. בתסריט הזה אפשר תמונות, מילים, נורות, מספרים ו"שנייה".';
+            $('hint').textContent = 'הסמל הזה לא עובד בסיפור של הלוח שלי. בסיפור הזה אפשר תמונות, מילים, נורות, מספרים ו"שנייה".';
             return false;
         }
         if (s.actions.length >= MAX_ACTIONS) {
-            $('hint').textContent = 'בתסריט הזה יש עד 12 סמלים. אפשר למחוק סמל כדי להוסיף.';
+            $('hint').textContent = 'יש כבר 12 סמלים בסיפור הזה. מחקו אחד כדי להוסיף.';
             return false;
         }
         if (totalActions() >= MAX_TOTAL) {
-            $('hint').textContent = 'בכל התוכנית יש עד 24 סמלים. אפשר למחוק סמל כדי להוסיף.';
+            $('hint').textContent = 'יש כבר 24 סמלים בכל התוכנית. מחקו אחד כדי להוסיף.';
             return false;
         }
         s.actions.push(action);
@@ -990,11 +994,11 @@
             list.appendChild(li);
         });
         $('count').textContent = (s ? s.actions.length : 0) + '/' + MAX_ACTIONS;
-        $('scriptTitle').textContent = s ? 'התסריט: ' + scriptInfo(s).label : 'עדיין לא נבחר תסריט.';
+        $('scriptTitle').textContent = s ? 'הסיפור: ' + scriptInfo(s).label : 'עדיין לא נבחר סיפור.';
         $('clearAll').disabled = !s || s.actions.length === 0;
-        $('hint').textContent = !s ? 'לחצו על מה שיקרה בעמודה הראשונה, ואז בחרו סמלים.'
-            : s.actions.length === 0 ? 'לחצו על סמל כדי להוסיף אותו לתסריט.'
-            : 'הסמלים יופעלו לפי הסדר. אפשר לגרור סמל למקום אחר.';
+        $('hint').textContent = !s ? 'קודם לחצו על "מתי?", ואז בחרו סמלים.'
+            : s.actions.length === 0 ? 'לחצו על סמל כדי להוסיף אותו 🙂'
+            : 'הדברים יקרו לפי הסדר, מלמעלה למטה. אפשר לגרור כדי לשנות מקום ↕️';
     }
 
     // The send button depends only on the program. The send itself reports any real problem
@@ -1005,11 +1009,11 @@
         // A program with board scripts only can be sent too: sending connects the micro:bit for them
         const ready = (sendable || scripts.some(s => s.event === 'board')) && count > 0 && gamesOff === false && !installing;
         $('sendBtn').disabled = !ready;
-        $('sendBtn').textContent = sentThisTime ? 'שלחו שוב!' : 'שלחו למיקרוביט!';
-        $('sendNote').textContent = count === 0 ? 'בנו תסריט עם סמלים קודם, ואז אפשר לשלוח.'
+        $('sendBtn').textContent = sentThisTime ? '🚀 שלחו שוב!' : '🚀 שלחו!';
+        $('sendNote').textContent = count === 0 ? 'קודם בנו סיפור מסמלים, ואז אפשר לשלוח 🧩'
             : !sendable ? (live.on
-                ? 'התסריטים של הלוח שלי רצים על המסך ועל המיקרוביט המחובר.'
-                : 'לחצו על "שלחו" כדי לחבר את המיקרוביט. אז התסריטים של הלוח שלי ירוצו גם עליו.')
+                ? 'הסיפורים של הלוח שלי רצים על המסך ועל המיקרוביט 🎉'
+                : 'לחצו "שלחו" כדי לחבר את המיקרוביט. אז הסיפורים של הלוח ירוצו גם עליו.')
             : '';
     }
 
@@ -1178,13 +1182,13 @@
         });
         $('libCount').textContent = saved.length + '/' + MAX_SAVED;
         $('libWhere').textContent = KidLearn.currentUser()
-            ? 'התוכניות שמורות בחשבון שלכם, ואפשר לפתוח אותן מכל מכשיר.'
-            : 'בלי התחברות התוכניות נשמרות רק במכשיר הזה. התחברו כדי לשמור בענן.';
+            ? 'התוכניות נשמרו בחשבון שלכם ☁️'
+            : 'נשמר רק במכשיר הזה. ההורים יכולים להתחבר כדי לשמור בענן.';
         $('libEmpty').hidden = saved.length > 0;
         const isOpen = saved.some(p => p.id === openId);
         $('libState').textContent = isDirty()
-            ? (isOpen ? 'יש שינויים שלא נשמרו.' : 'התוכנית הזו עדיין לא שמורה. כתבו שם ולחצו "שמרו".')
-            : (isOpen ? 'התוכנית שמורה.' : '');
+            ? (isOpen ? 'יש שינויים שלא נשמרו.' : 'התוכנית הזו עדיין לא שמורה. לחצו "שמרו" 💾')
+            : (isOpen ? 'התוכנית שמורה! ✅' : '');
     }
 
     // The board kept with a program: on this device (IndexedDB) and, when someone is signed in, in the account
@@ -1216,7 +1220,7 @@
 
     async function saveProgram() {
         if (scripts.length === 0) {
-            $('libNote').textContent = 'בנו תוכנית לפני שמירה.';
+            $('libNote').textContent = 'בנו משהו לפני שמירה 🧩';
             return;
         }
         const typed = $('progName').value.trim().slice(0, 30);
@@ -1228,7 +1232,7 @@
             program.extensions = copy(extensions);
         } else {
             if (saved.length >= MAX_SAVED) {
-                $('libNote').textContent = 'כבר יש ' + MAX_SAVED + ' תוכניות שמורות. מחקו אחת כדי לשמור עוד.';
+                $('libNote').textContent = 'יש כבר ' + MAX_SAVED + ' תוכניות. מחקו אחת כדי לשמור עוד.';
                 return;
             }
             program = { id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: typed || 'תוכנית ' + (saved.length + 1), scripts: copy(scripts), extensions: copy(extensions) };
@@ -1240,7 +1244,7 @@
             return;
         }
         $('progName').value = program.name;
-        $('libNote').textContent = KidLearn.currentUser() ? 'נשמר בחשבון שלכם!' : 'נשמר!';
+        $('libNote').textContent = KidLearn.currentUser() ? 'נשמר בחשבון שלכם!' : 'נשמר! ✅';
         saveDraft();
         renderLibrary();
         // The board goes with the program, if the board add-on is on for it
@@ -1253,7 +1257,7 @@
     async function openProgram(id) {
         const p = readSaved().find(x => x.id === id);
         if (!p) return renderLibrary();
-        if (isDirty() && !confirm('לפתוח את "' + p.name + '"? מה שלא נשמר בתוכנית שעל המסך ימחק.')) return;
+        if (isDirty() && !confirm('לפתוח את "' + p.name + '"? מה שלא נשמר ימחק.')) return;
         scripts = copy(p.scripts);
         applyExtensions(p.extensions || {});
         enableFor(scripts);
@@ -1297,15 +1301,15 @@
     const ICONS = { checking: '⏳', 'no-extension': '🧩', 'no-app': '🖥️', waiting: '🔌', ready: '✅', sending: '📡', sent: '🎉', off: '🔒', error: '⚠️' };
     const TONES = { ready: 'ok', sent: 'ok', waiting: 'warn', 'no-app': 'warn', 'no-extension': 'warn', off: 'bad', error: 'bad', sending: 'warn', checking: '' };
     const TEXTS = {
-        checking: ['בודקים את החיבור...', ''],
-        'no-extension': ['צריך את תוסף Kidlearn בכרום', 'התקינו את התוסף לפי ההוראות, ורעננו את הדף.'],
-        'no-app': ['צריך לפתוח את Kidlearn במחשב', 'האייקון נמצא ליד השעון, באזור ההודעות.'],
-        waiting: ['המיקרוביט לא מחובר', 'חברו אותו למחשב בכבל USB. זה נבדק לבד.'],
-        ready: ['המיקרוביט מחובר ומוכן', 'בנו תסריט ושלחו אותו.'],
-        sending: ['שולחים את התוכנית...', 'אל תנתקו את המיקרוביט. זה לוקח כמה שניות.'],
-        sent: ['התוכנית הגיעה למיקרוביט!', 'נתקו אותו ושחקו. הוא מריץ את התסריטים לבד.'],
-        off: ['התכנות כבוי', 'אפשר להדליק אותו בדף הבית, בהגדרות "כיבוי משחקים לפי משחק".'],
-        error: ['לא הצלחנו לשלוח', ''],
+        checking: ['בודקים...', ''],
+        'no-extension': ['צריך עזרה מהורה 🙋', 'חסר תוסף Kidlearn בכרום. התקינו אותו ורעננו את הדף.'],
+        'no-app': ['פתחו את Kidlearn במחשב 🖥️', 'האייקון נמצא ליד השעון.'],
+        waiting: ['המיקרוביט לא מחובר 🔌', 'חברו אותו בכבל. זה נבדק לבד.'],
+        ready: ['המיקרוביט מוכן! ✅', 'בנו סיפור ולחצו "שלחו".'],
+        sending: ['שולחים...', 'לא לנתק את המיקרוביט! חכו כמה שניות ⏳'],
+        sent: ['הגיע למיקרוביט! 🎉', 'מנתקים ומשחקים. הוא עושה הכול לבד.'],
+        off: ['התכנות כבוי 😴', 'בקשו מההורה להדליק אותו בדף הבית.'],
+        error: ['אופס, משהו לא עבד 😕', ''],
     };
 
     function setStatus(name, detail) {
@@ -1357,10 +1361,10 @@
     // What the child sees for each failure the app reports when it writes to the board
     const REASONS = {
         port_busy: 'הכבל של המיקרוביט תפוס בתוכנה אחרת, למשל עורך Python בדפדפן. סגרו אותה ונסו שוב.',
-        no_answer: 'המיקרוביט לא ענה. נתקו את הכבל וחברו אותו שוב, ונסו שוב.',
-        port_error: 'לא הצלחנו לכתוב למיקרוביט דרך הכבל. נתקו את הכבל וחברו אותו שוב, ונסו שוב.',
-        board_error: 'המיקרוביט דחה את התוכנית. נסו שוב.',
-        live_running: 'המיקרוביט מחובר עכשיו ללוח שלי. סגרו את הדף או חכו כמה שניות, ואז שלחו שוב.',
+        no_answer: 'המיקרוביט לא ענה. נתקו וחברו שוב, ונסו שוב 🔌',
+        port_error: 'לא הצלחנו לשלוח למיקרוביט. נתקו וחברו שוב 🔌',
+        board_error: 'אופס! נסו שוב 🙂',
+        live_running: 'המיקרוביט עסוק עכשיו עם הלוח שלי. חכו כמה שניות ונסו שוב ⏳',
     };
 
     // A send error is shown under the send button, and stays there until the program changes or is sent again.
@@ -1410,22 +1414,22 @@
                 // The board restarts to run its new program, so wait before connecting to it
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 const error = await connectWithRetry();
-                if (error) sendFailed('התוכנית נשלחה, אבל לא הצלחנו לחבר את המיקרוביט ללוח. ' + liveErrorText(error));
+                if (error) sendFailed('שלחנו! אבל לא הצלחנו לחבר את הלוח. ' + liveErrorText(error));
             }
             return;
         }
         sentThisTime = false;
         if (reply.error === 'extension_missing') {
             setStatus('no-extension');
-            return sendFailed('צריך את תוסף Kidlearn בכרום כדי לשלוח.');
+            return sendFailed('צריך עזרה מהורה 🙋 (חסר תוסף Kidlearn בכרום)');
         }
         if (reply.error === 'no_microbit') {
             setStatus('waiting');
-            return sendFailed('המיקרוביט לא מחובר. חברו אותו בכבל ונסו שוב.');
+            return sendFailed('המיקרוביט לא מחובר 🔌 חברו בכבל ונסו שוב.');
         }
         if (reply.error === 'app_not_running' || reply.error === 'host_unavailable') {
             setStatus('no-app');
-            return sendFailed('Kidlearn במחשב לא פועל. פתחו אותו ונסו שוב.');
+            return sendFailed('פתחו את Kidlearn במחשב 🖥️ ונסו שוב.');
         }
         if (reply.error === 'unknown_action' || reply.error === 'forbidden') {
             setStatus('error');

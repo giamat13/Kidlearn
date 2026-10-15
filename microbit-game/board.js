@@ -11,12 +11,12 @@
     const SIZE_FACTOR = { s: 0.7, m: 1, l: 1.4 };
 
     const DEFAULTS = {
-        button: { w: 180, h: 70, label: 'לחצו' },
-        slider: { w: 240, h: 80, label: 'סרגל' },
-        key: { w: 120, h: 120, label: 'אות', key: '' },
-        lamp: { w: 120, h: 120, label: 'נורה' },
-        number: { w: 180, h: 110, label: 'מספר' },
-        label: { w: 240, h: 60, label: 'שם' },
+        button: { w: 200, h: 100, label: 'לחצו' },
+        slider: { w: 260, h: 100, label: 'סרגל' },
+        key: { w: 140, h: 140, label: 'אות', key: '' },
+        lamp: { w: 140, h: 140, label: 'נורה' },
+        number: { w: 200, h: 130, label: 'מספר' },
+        label: { w: 260, h: 70, label: 'כתבו כאן' },
         image: { w: 300, h: 220 },
         screen: { w: 240, h: 240, label: '' },
     };
@@ -186,9 +186,9 @@
     // What a child sees for an input: "when this happens"
     function triggerText(x) {
         if (x.type === 'mb') return 'כשלוחצים על ' + x.label + ' במיקרוביט';
-        if (x.type === 'key') return x.key ? 'כשלוחצים על האות ' + x.key.toUpperCase() : 'כשלוחצים על אות (עוד לא נבחרה)';
+        if (x.type === 'key') return x.key ? 'כשלוחצים על האות ' + x.key.toUpperCase() : 'כשלוחצים על אות (בחרו אות)';
         if (x.type === 'slider') return 'כשמזיזים ' + (x.label || 'את הסרגל');
-        return 'כשלוחצים על ' + (x.label || 'הלחצן');
+        return 'כשלוחצים על ' + (x.label || 'הכפתור');
     }
 
     function addWidget(type, extra) {
@@ -367,15 +367,15 @@
         $('bdPropLabel').disabled = w.type === 'image';
         document.querySelectorAll('[data-bd-size]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bdSize === (w.size || 'm'))));
         $('bdKeyField').hidden = w.type !== 'key';
-        if (awaitingKey === w.id) $('bdPickKey').textContent = 'לחצו על אות עכשיו…';
-        else $('bdPickKey').textContent = w.key ? 'האות ' + w.key.toUpperCase() + ' - לשינוי לחצו' : 'לחצו על אות במקלדת';
+        if (awaitingKey === w.id) $('bdPickKey').textContent = 'לחצו על אות עכשיו ⌨️';
+        else $('bdPickKey').textContent = w.key ? 'האות ' + w.key.toUpperCase() + ' (לשינוי לחצו)' : '⌨️ לחצו על אות';
     }
 
     function renderHint() {
         const texts = {
-            draw: 'עכשיו אפשר לצייר עם העכבר ✏️',
-            edit: 'גררו משהו כדי להזיז אותו ✋',
-            play: 'לחצו על הכפתורים ועל הסרגל, או על האותיות במקלדת. הנורות נדלקות 💡',
+            draw: 'ציירו עם העכבר ✏️',
+            edit: 'גררו כדי להזיז ✋',
+            play: 'לחצו על הכפתורים 👆 או על אות במקלדת ⌨️. הנורות נדלקות 💡',
         };
         $('bdHint').textContent = texts[mode];
     }
@@ -543,7 +543,7 @@
     function showOnScreen(text, size) {
         const s = firstScreen();
         if (!s) {
-            $('bdHint').textContent = 'כדי לראות תמונות, שימו "מסך" על הלוח שלי.';
+            $('bdHint').textContent = 'שימו מסך על הלוח כדי לראות תמונות 🖥️';
             return false;
         }
         screenFaces[s.id] = { text, size };
