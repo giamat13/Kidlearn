@@ -209,6 +209,25 @@
             return card;
         }
 
+        // Games switched off in the account (cloud), and the extension check (see the home page)
+        let gamesOff = {};
+        let renderToken = 0;
+
+        function extensionInstalled() {
+            return document.documentElement.hasAttribute('data-kidlearn-bridge');
+        }
+
+        // A game marked "defaultOff" in games.json is off until it is switched on (see the home page)
+        function isGameOff(item) {
+            return typeof gamesOff[item.id] === 'boolean' ? gamesOff[item.id] : item.defaultOff === true;
+        }
+
+        function gameVisible(item) {
+            if (isGameOff(item)) return false;
+            if (item.requiresExtension && !extensionInstalled()) return false;
+            return true;
+        }
+
         async function renderCategory() {
             const categoryId = getQueryParam('category');
             const grade = getCookie('studentGrade');
@@ -216,10 +235,14 @@
             const subtitleEl = document.getElementById('categorySubtitle');
             const appsGrid = document.getElementById('appsGrid');
             const categoryMessage = document.getElementById('categoryMessage');
+            const token = ++renderToken;
+            appsGrid.innerHTML = '';
+            categoryMessage.textContent = '';
 
             try {
                 const response = await fetch('games.json');
                 const data = await response.json();
+                if (token !== renderToken) return;
                 const category = data.categories.find(cat => cat.id === categoryId);
                 if (!category) {
                     titleEl.textContent = 'קטגוריה לא נמצאה';
@@ -236,6 +259,7 @@
 
                 const visibleItems = data.items.filter(item =>
                     item.categories.includes(category.id) &&
+                    gameVisible(item) &&
                     (!grade || item.grade.includes(grade)) &&
                     (!item.devices || item.devices.includes(device))
                 );
@@ -264,6 +288,18 @@
     <script src="shared/kidlearn-cloud.js"></script>
     <script src="shared/kidlearn-widget.js"></script>
     <script src="shared/kidlearn-wallet.js"></script>
-    <script>KidLearn.init();</script>
+    <script>
+        KidLearn.init();
+
+        // Games switched off per account: load them once the account is known, then show the list again
+        KidLearn.onAuthChange(async () => {
+            try {
+                gamesOff = await KidLearn.getGamesOff();
+            } catch (e) {
+                gamesOff = {};
+            }
+            renderCategory();
+        });
+    </script>
 </body>
 </html>

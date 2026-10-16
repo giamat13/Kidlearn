@@ -511,6 +511,38 @@
       "categories": ["world"],
       "grade": ["preschool", "kindergarten", "first", "second", "third"],
       "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "airplane-cam",
+      "title": "מטוסים בשידור חי",
+      "description": "צופים במטוסים ממריאים ונוחתים ברחבי העולם.",
+      "icon": "✈️",
+      "url": "airplane-cam/index.html",
+      "categories": ["world"],
+      "grade": ["preschool", "kindergarten", "first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "train-cam",
+      "title": "רכבות בשידור חי",
+      "description": "מציצים אל תחנות רכבת ורואים רכבות חולפות.",
+      "icon": "🚂",
+      "url": "train-cam/index.html",
+      "categories": ["world"],
+      "grade": ["preschool", "kindergarten", "first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "microbit-programming",
+      "title": "תכנות המיקרוביט",
+      "description": "בונים תוכנית מסמלים, שולחים אותה למיקרוביט, ואז מריצים אותה בלי מסך.",
+      "icon": "🔌",
+      "url": "microbit-game/index.html",
+      "categories": ["games", "science"],
+      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"],
+      "devices": ["desktop"],
+      "requiresExtension": true,
+      "defaultOff": true
     }
   ]
 }

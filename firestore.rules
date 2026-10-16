@@ -2,14 +2,40 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // The profile fields a user may store; anything else is refused.
+    // grade: the same keys as "grade" in games.json and the sign-up select (preschool ... twelfth)
+    function isValidProfile(data) {
+      return data.keys().hasOnly(['username', 'displayName', 'grade', 'createdAt', 'avatarEmoji', 'recoveryEmail'])
+        && (!('username' in data) || (data.username is string && data.username.matches('^[a-z0-9_]{3,20}$')))
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 30))
+        && (!('grade' in data) || (data.grade is string && data.grade in ['preschool', 'kindergarten', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth']))
+        && (!('avatarEmoji' in data) || (data.avatarEmoji is string && data.avatarEmoji.size() <= 16))
+        && (!('recoveryEmail' in data) || (data.recoveryEmail is string && data.recoveryEmail.size() <= 254));
+    }
+
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // A new profile must carry the name and grade chosen at sign-up
+      allow create: if request.auth != null && request.auth.uid == uid
+                      && isValidProfile(request.resource.data)
+                      && 'displayName' in request.resource.data && 'grade' in request.resource.data;
+      // Profiles created before name and grade existed can still be updated (avatar, recovery email)
+      allow update: if request.auth != null && request.auth.uid == uid
+                      && isValidProfile(request.resource.data);
+      allow delete: if request.auth != null && request.auth.uid == uid;
 
       match /saves/{gameId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
       match /contacts/{contactId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      // One document per game the parent switched off: { off: true }. No document = the game is on.
+      match /gameSettings/{gameId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid
+                       && request.resource.data.keys().hasOnly(['off'])
+                       && request.resource.data.off is bool;
       }
     }
 
