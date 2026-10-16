@@ -95,7 +95,7 @@
 
     .drawer { margin-top: 14px; padding: 14px; border-radius: 20px; background: #FFF8F0; }
     .drawer-title { margin: 0 0 12px; font-size: 19px; font-weight: 700; text-align: center; }
-    .pixels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 280px; margin: 0 auto; }
+    .pixels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 280px; margin: 0 auto; direction: ltr; /* same left-to-right order as the micro:bit, even in a Hebrew page */ }
     .pixel { aspect-ratio: 1; border: 0; border-radius: 50%; background: #3A3344; cursor: pointer; }
     .pixel.on { background: #FF6B9D; }
     .drawer-buttons { display: flex; gap: 10px; margin-top: 14px; justify-content: center; flex-wrap: wrap; }
@@ -411,7 +411,8 @@
     let installing = false;
     let sentThisTime = false;
     let connectionState = 'checking';
-    let drawing = [];        // the 5x5 drawing: true = lit
+    let editingDraw = null;  // the place of the drawing being changed, or null for a new one
+    let drawing = [];      // the 5x5 drawing: true = lit
     let extensions = { car: false, remote: false, board: false }; // the add-ons of the program on the screen: off until turned on
 
     const $ = (id) => document.getElementById(id);
@@ -475,18 +476,29 @@
             box.appendChild(pixel);
         }
         $('drawerAdd').addEventListener('click', () => {
-            const added = addAction({ do: 'draw', pixels: Array.from({ length: 25 }, (_, i) => drawing[i] ? '1' : '0').join('') });
+            const action = { do: 'draw', pixels: Array.from({ length: 25 }, (_, i) => drawing[i] ? '1' : '0').join('') };
+            if (editingDraw !== null && currentScript() && currentScript().actions[editingDraw]) {
+                currentScript().actions[editingDraw] = action;
+                changed();
+                closeDrawer();
+                return;
+            }
+            const added = addAction(action);
             if (added) closeDrawer();
         });
         $('drawerCancel').addEventListener('click', closeDrawer);
     }
 
-    function openDrawer() {
-        drawing = Array(25).fill(false);
-        document.querySelectorAll('#pixels .pixel').forEach(p => {
-            p.classList.remove('on');
-            p.setAttribute('aria-pressed', 'false');
+    // index = the place of a drawing to change; without it a new drawing starts empty
+    function openDrawer(index) {
+        editingDraw = Number.isInteger(index) ? index : null;
+        const old = editingDraw !== null ? currentScript().actions[editingDraw].pixels : '';
+        drawing = Array.from({ length: 25 }, (_, i) => old[i] === '1');
+        document.querySelectorAll('#pixels .pixel').forEach((p, i) => {
+            p.classList.toggle('on', drawing[i]);
+            p.setAttribute('aria-pressed', String(drawing[i]));
         });
+        $('drawerAdd').textContent = editingDraw !== null ? '✅ שמרו' : '✅ הוסיפו';
         $('drawer').hidden = false;
     }
 
@@ -529,7 +541,7 @@
         draw.className = 'tile wide';
         draw.innerHTML = '<span class="emoji" aria-hidden="true">🎨</span><span class="label">ציור שלי</span>';
         draw.setAttribute('aria-label', 'ציור שלי');
-        draw.addEventListener('click', openDrawer);
+        draw.addEventListener('click', () => openDrawer());
         $('pictureTiles').appendChild(draw);
         buildDrawer();
         WAITS.forEach(t => $('waitTiles').appendChild(tileButton(t, 'wait')));
@@ -990,7 +1002,17 @@
             remove.textContent = '✖';
             remove.setAttribute('aria-label', 'מחיקת הסמל ' + name);
             remove.addEventListener('click', () => removeAction(i));
-            li.append(gripFor(), num, emoji, label, remove);
+            li.append(gripFor(), num, emoji, label);
+            if (isDrawing) {
+                const edit = document.createElement('button');
+                edit.type = 'button';
+                edit.className = 'remove';
+                edit.textContent = '✏️';
+                edit.setAttribute('aria-label', 'עריכת הציור');
+                edit.addEventListener('click', () => openDrawer(i));
+                li.appendChild(edit);
+            }
+            li.appendChild(remove);
             list.appendChild(li);
         });
         $('count').textContent = (s ? s.actions.length : 0) + '/' + MAX_ACTIONS;
