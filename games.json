@@ -287,7 +287,8 @@
       "title": "בלי סודות",
       "description": "סדרת וידאו ללימוד האותיות בעברית.",
       "icon": "📺",
-      "url": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
+      "url": "series/index.html?config=data/secrets-series.json",
+      "playlistUrl": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
       "categories": ["series", "he"],
       "grade": ["kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -297,7 +298,8 @@
       "title": "פרפר נחמד ישן",
       "description": "סדרת וידאו חינוכית מהנה לילדים.",
       "icon": "🦋",
-      "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
+      "url": "series/index.html?config=data/parpar-nachmad-old.json",
+      "playlistUrl": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
       "categories": ["series"],
       "grade": ["preschool", "kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -307,7 +309,8 @@
       "title": "פרפר נחמד חדש",
       "description": "סדרת וידאו עדכנית ללימוד מהנה של עברית.",
       "icon": "🦋",
-      "url": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
+      "url": "series/index.html?config=data/parpar-nachmad-new.json",
+      "playlistUrl": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
       "categories": ["series"],
       "grade": ["preschool", "kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
@@ -317,7 +320,8 @@
       "title": "החיים",
       "description": "סדרת וידאו חינוכית על מערכות הגוף לילדים.",
       "icon": "💉",
-      "url": "https://www.youtube.com/playlist?list=PL7s3QxO6wm48st6XALJqSP1iQHbd4ghGW",
+      "url": "series/index.html?config=data/hachaim-series.json",
+      "playlistUrl": "https://www.youtube.com/playlist?list=PL7s3QxO6wm48st6XALJqSP1iQHbd4ghGW",
       "categories": ["series"],
       "grade": ["kindergarten", "first", "second"],
       "devices": ["mobile", "tablet", "desktop"]
