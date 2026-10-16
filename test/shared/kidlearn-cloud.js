@@ -172,6 +172,11 @@
       .set({ data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
   }
 
+  async function deleteData(gameId) {
+    requireAuth();
+    await db.collection("users").doc(auth.currentUser.uid).collection("saves").doc(gameId).delete();
+  }
+
   async function loadData(gameId) {
     requireAuth();
     const snap = await db.collection("users").doc(auth.currentUser.uid).collection("saves").doc(gameId).get();
@@ -286,7 +291,7 @@
 
   window.KidLearn = {
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
-    saveData, loadData, contacts, sendFamilyMessage, listSentMessages,
+    saveData, loadData, deleteData, contacts, sendFamilyMessage, listSentMessages,
     getUnseenReplies, markReplySeen, setAvatar, getGamesOff, setGameOff,
     pullLocalStorageKey, pushLocalStorageKey,
     _internal: { usernameToAuthEmail, isValidUsername, isValidDisplayName, isValidGrade },
