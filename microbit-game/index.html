@@ -265,6 +265,7 @@
     const DRAFT_KEY = 'kidlearn-microbit-draft';
     const SAVED_KEY = 'kidlearn-microbit-programs';   // saved programs of someone who is not signed in (this device)
     const CLOUD_ID = 'microbit-programs';             // the account's copy: users/{uid}/saves/microbit-programs
+    const DRAFT_CLOUD_ID = 'microbit-draft';          // the work on the screen, in the account: users/{uid}/saves/microbit-draft
     const BOARD_CLOUD_ID = 'microbit-board-';         // the board of each program has its own copy: users/{uid}/saves/microbit-board-{program id}
 
     // The blocks a child can use. Each block is sent as its name and value only; the app writes the code.
@@ -1143,6 +1144,16 @@
         }
     }
 
+    async function dropBoardFromCloud(id) {
+        if (!KidLearn.currentUser()) return;
+        try {
+            if (KidLearn.deleteData) await KidLearn.deleteData(BOARD_CLOUD_ID + id);
+            else await KidLearn.saveData(BOARD_CLOUD_ID + id, { board: null });
+        } catch (e) {
+            // a small leftover document in the account does no harm
+        }
+    }
+
     function writeSaved(list) {
         const local = writeCache(list);
         if (KidLearn.currentUser()) pushToCloud(list);
@@ -1153,6 +1164,8 @@
     // saved on this device before signing in move into it.
     async function syncFromCloud() {
         if (!KidLearn.currentUser()) {
+            draftCloudReady = false;
+            clearTimeout(draftCloudTimer);
             renderLibrary();
             return;
         }
@@ -1190,6 +1203,7 @@
             }
         }
         renderLibrary();
+        await syncDraftFromCloud();
     }
 
     let draftTimer = 0;
@@ -1199,13 +1213,94 @@
         draftTimer = setTimeout(saveDraft, 400);
     }
 
+    // ---- the work on the screen (the draft): on this device, and in the account when someone is signed in ----
+    // Without a login nothing leaves the device. With a login the work is also kept in the account, so a child who
+    // continues on another computer finds it as it was. The newer copy wins, and the account's copy is read before
+    // anything is sent, so an old draft on a device never covers newer work.
+    let lastDraftJson = '';        // the work as it was last saved: the time moves only when the work changes
+    let draftBaseline = '';        // the work as it was when the page opened
+    let draftAt = 0;               // when the work on the screen last changed
+    let draftOwner = null;         // the account the draft on this device belongs to (null: nobody was signed in)
+    let draftCloudReady = false;   // true once the account's draft was read
+    let draftCloudTimer = 0;
+
+    function draftContent() {
+        return { scripts, selected, openId, name: $('progName').value, board: boardData, extensions };
+    }
+
+    function hasDraftWork() {
+        return scripts.length > 0 || hasBoardContent() || $('progName').value.trim() !== '';
+    }
+
     function saveDraft() {
         clearTimeout(draftTimer);
+        const content = draftContent();
+        const json = JSON.stringify(content);
+        if (json !== lastDraftJson) {
+            lastDraftJson = json;
+            draftAt = Date.now();
+            pushDraftSoon();
+        }
+        const user = KidLearn.currentUser();
         try {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify({ scripts, selected, openId, name: $('progName').value, board: boardData }));
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...content, savedAt: draftAt, uid: user ? user.uid : null }));
         } catch (e) {
             // storage is blocked: the work lasts until the page is closed
         }
+    }
+
+    function pushDraftSoon() {
+        if (!KidLearn.currentUser() || !draftCloudReady) return;
+        clearTimeout(draftCloudTimer);
+        draftCloudTimer = setTimeout(pushDraftNow, 2000);
+    }
+
+    async function pushDraftNow() {
+        if (!KidLearn.currentUser() || !draftCloudReady) return;
+        try {
+            await KidLearn.saveData(DRAFT_CLOUD_ID, { ...draftContent(), savedAt: draftAt });
+        } catch (e) {
+            // quiet: the work is on this device, and the next change tries again
+        }
+    }
+
+    // The account's work comes to the screen only while nothing was changed on this page
+    function applyCloudDraft(d) {
+        scripts = cleanScripts(d.scripts);
+        selected = scripts.length ? Math.min(Math.max(0, Number(d.selected) || 0), scripts.length - 1) : -1;
+        openId = typeof d.openId === 'string' ? d.openId : null;
+        boardData = d.board && typeof d.board === 'object' ? d.board : null;
+        $('progName').value = typeof d.name === 'string' ? d.name.slice(0, 30) : '';
+        applyExtensions(d.extensions || {});
+        enableFor(scripts);
+        draftAt = Number(d.savedAt) || Date.now();
+        lastDraftJson = JSON.stringify(draftContent());   // this is not a change: no new time, nothing is sent back
+        draftBaseline = lastDraftJson;
+        sentThisTime = false;
+        changed();
+        reloadBoard();
+        $('libNote').textContent = 'טענו את העבודה האחרונה מהחשבון שלכם ☁️';
+    }
+
+    async function syncDraftFromCloud() {
+        const user = KidLearn.currentUser();
+        if (!user) return;
+        let cloud;
+        try {
+            cloud = await KidLearn.loadData(DRAFT_CLOUD_ID);
+        } catch (e) {
+            return;   // it could not be read: nothing on the screen is replaced, and nothing is sent
+        }
+        draftCloudReady = true;
+        const edited = JSON.stringify(draftContent()) !== draftBaseline;
+        const cloudAt = (cloud && Number(cloud.savedAt)) || 0;
+        // A draft that another account left on this device is not this account's work
+        const foreign = draftOwner !== null && draftOwner !== user.uid;
+        if (cloud && cloudAt > (foreign ? 0 : draftAt) && !edited) {
+            applyCloudDraft(cloud);
+            return;
+        }
+        if ((!foreign || edited) && hasDraftWork() && cloudAt !== draftAt) pushDraftSoon();
     }
 
     function loadDraft() {
@@ -1217,9 +1312,14 @@
             openId = typeof d.openId === 'string' ? d.openId : null;
             boardData = d.board && typeof d.board === 'object' ? d.board : null;
             $('progName').value = typeof d.name === 'string' ? d.name.slice(0, 30) : '';
+            draftAt = Number(d.savedAt) || 0;
+            draftOwner = typeof d.uid === 'string' ? d.uid : null;
             enableFor(scripts);
         } catch (e) {
             // a damaged draft is ignored: the child starts with an empty program
+        } finally {
+            lastDraftJson = JSON.stringify(draftContent());
+            draftBaseline = lastDraftJson;
         }
     }
 
@@ -1322,7 +1422,7 @@
         const p = saved.find(x => x.id === id);
         if (!p || !confirm('למחוק את "' + p.name + '"?')) return;
         writeSaved(saved.filter(x => x.id !== id));
-        if (p.board || p.hasBoard) pushBoard(id, null);
+        if (p.board || p.hasBoard) dropBoardFromCloud(id);
         // What is on the screen stays, as work that is not saved
         if (openId === id) openId = null;
         $('libNote').textContent = 'נמחקה: ' + p.name;
