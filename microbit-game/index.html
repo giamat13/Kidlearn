@@ -123,50 +123,6 @@
     .send-note { font-size: 18px; color: #4A4253; text-align: center; margin: 0; min-height: 24px; }
     .send-error { font-size: 19px; font-weight: 700; color: #A3134A; text-align: center; margin: 0; min-height: 24px; }
 
-    /* the board (board.js): a picture, and the buttons, sliders, keys, lamps and numbers on it */
-    .bd-section { margin-top: 36px; }
-    .bd-section h2 { margin: 0; font-size: 36px; }
-    .bd-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; background: #FFFFFF; border-radius: 22px; padding: 12px; box-shadow: 0 2px 0 #EFE6DA; }
-    .bd-sep { width: 1px; align-self: stretch; background: #E6DED4; margin: 0 6px; }
-    .bd-tool { min-height: 56px; padding: 0 16px; border: 2px solid #E6DED4; border-radius: 14px; background: #FFFCF8; font-size: 20px; font-weight: 700; color: #2B2433; cursor: pointer; display: inline-flex; align-items: center; }
-    .bd-tool[aria-pressed="true"] { background: #22A06B; border-color: #22A06B; color: #FFFFFF; }
-    .bd-field { display: flex; flex-direction: column; gap: 4px; font-size: 19px; color: #5B5366; }
-    .bd-bar label.bd-field { flex-direction: row; align-items: center; gap: 6px; }
-    .bd-field input[type="text"] { min-height: 42px; border: 2px solid #E6DED4; border-radius: 12px; padding: 0 10px; font-size: 17px; }
-    .bd-file { position: relative; overflow: hidden; }
-    .bd-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .bd-stage { overflow: auto; margin-top: 14px; background: #FFFFFF; border-radius: 22px; padding: 12px; box-shadow: 0 2px 0 #EFE6DA; }
-    .bd-board { position: relative; width: 960px; height: 560px; background: #FFFFFF; border: 2px dashed #E6DED4; border-radius: 12px; overflow: hidden; touch-action: none; }
-    .bd-board canvas { position: absolute; inset: 0; width: 960px; height: 560px; pointer-events: none; }
-    .bd-board.draw canvas { cursor: crosshair; pointer-events: auto; }
-    .bd-board.draw .bd-w { pointer-events: none; }
-    .bd-hint { margin: 10px 0 0; font-size: 20px; color: #4A4253; min-height: 22px; }
-    .bd-w { position: absolute; box-sizing: border-box; user-select: none; }
-    .bd-board.edit .bd-w { cursor: move; }
-    .bd-board.edit .bd-w.selected { outline: 3px solid #FF6B9D; outline-offset: 2px; }
-    .bd-btn { width: 100%; height: 100%; border: 0; border-radius: 18px; background: #FEC163; font-size: 26px; font-weight: 700; color: #2B2433; box-shadow: 0 4px 0 #D89A2E; cursor: pointer; }
-    .bd-btn.down, .bd-board.play .bd-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #D89A2E; }
-    .bd-slider { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 8px; background: #F4EFFB; border-radius: 18px; font-size: 22px; font-weight: 700; box-sizing: border-box; }
-    .bd-slider input { width: 100%; }
-    .bd-key { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #E6F7F2; border-radius: 18px; font-size: 22px; font-weight: 700; }
-    .bd-key-letter { font-size: 56px; line-height: 1; margin-top: 4px; }
-    .bd-key.down { background: #22A06B; color: #FFFFFF; }
-    .bd-lamp { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 22px; font-weight: 700; }
-    .bd-bulb { width: 70%; aspect-ratio: 1; max-height: 80%; border-radius: 50%; background: #E6DED4; box-shadow: inset 0 0 0 3px #CFC6BE; }
-    .bd-lamp.on .bd-bulb { background: #FEC163; box-shadow: 0 0 24px 8px rgba(254, 193, 99, 0.6); }
-    .bd-number { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #2B2433; color: #FFFFFF; border-radius: 18px; font-size: 22px; }
-    .bd-digits { font-size: 60px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .bd-text { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; text-align: center; }
-    .bd-image { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-    .bd-live-state { background: #F4EFFB; border-color: #F4EFFB; cursor: default; }
-    .bd-screen { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #2B2433; color: #FFFFFF; border-radius: 18px; overflow: hidden; }
-    .bd-screen-face { text-align: center; line-height: 1.15; white-space: pre; font-weight: 700; }
-    .bd-props { margin-top: 14px; background: #FFFFFF; border-radius: 22px; padding: 16px; box-shadow: 0 2px 0 #EFE6DA; }
-    .bd-props h3 { margin: 0 0 8px; font-size: 20px; }
-    .bd-props p { margin: 0; font-size: 19px; color: #4A4253; }
-    .bd-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .bd-danger { min-height: 44px; padding: 0 16px; border: 0; border-radius: 14px; background: #FDE2EA; font-size: 17px; font-weight: 700; color: #A3134A; cursor: pointer; }
-
     @media (max-width: 980px) {
         .builder { grid-template-columns: 1fr; }
         .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -229,10 +185,6 @@
                 <p class="hint">לוחצים על כפתור בשלט, והסיפור יתחיל.</p>
                 <div class="tiles" id="remoteTiles"></div>
             </div>
-            <div id="boardWhenWrap" hidden>
-                <h3>על הלוח שלי</h3>
-                <div id="boardWhen"></div>
-            </div>
             <h3>הסיפורים שלי <span class="count-badge" id="scriptCount">0/6</span></h3>
             <ol class="script-list" id="scriptList"></ol>
             <p class="hint" id="scriptEmpty">עדיין אין סיפורים. לחצו למעלה 👆</p>
@@ -258,10 +210,6 @@
                 <h3>🚗 הרכב</h3>
                 <div class="tiles" id="carTiles"></div>
             </div>
-            <div id="boardActionsWrap" hidden>
-                <h3>על הלוח שלי</h3>
-                <div class="tiles" id="boardActions"></div>
-            </div>
         </section>
 
         <section class="panel">
@@ -272,61 +220,6 @@
             <button type="button" class="link" id="clearAll">🧹 נקו את הסיפור</button>
         </section>
     </div>
-
-    <section class="bd-section" id="boardSection" aria-labelledby="bdTitle">
-        <h2 id="bdTitle">🎨 הלוח שלי</h2>
-        <p class="lead">ציירו, שימו כפתורים ונורות! ואחר כך בנו סיפור למעלה 👆</p>
-        <div class="bd-bar" role="toolbar" aria-label="כלים">
-            <button type="button" class="bd-tool" data-bd-mode="draw" aria-pressed="false">✏️ לצייר</button>
-            <button type="button" class="bd-tool" data-bd-mode="edit" aria-pressed="true">✋ להזיז</button>
-            <button type="button" class="bd-tool" data-bd-mode="play" aria-pressed="false">▶️ לשחק</button>
-            <span class="bd-tool bd-live-state" id="bdLiveState" role="status">🔌 מתחבר...</span>
-            <span class="bd-sep" aria-hidden="true"></span>
-            <label class="bd-field">צבע <input type="color" id="bdPenColor" value="#2B2433" aria-label="צבע העט"></label>
-            <label class="bd-field">עובי <input type="range" id="bdPenSize" min="2" max="30" value="6" aria-label="עובי העט"></label>
-            <button type="button" class="bd-tool" id="bdEraser" aria-pressed="false">🧽 למחוק</button>
-            <button type="button" class="bd-tool" id="bdClear">🧹 לנקות</button>
-            <span class="bd-sep" aria-hidden="true"></span>
-            <button type="button" class="bd-tool" data-bd-add="button">🔘 כפתור</button>
-            <button type="button" class="bd-tool" data-bd-add="slider">🎚️ סרגל</button>
-            <button type="button" class="bd-tool" data-bd-add="key">⌨️ אות</button>
-            <button type="button" class="bd-tool" data-bd-add="lamp">💡 נורה</button>
-            <button type="button" class="bd-tool" data-bd-add="number">🔢 מספר</button>
-            <button type="button" class="bd-tool" data-bd-add="label">🔤 שם</button>
-            <button type="button" class="bd-tool" data-bd-add="screen">🖥️ מסך</button>
-            <label class="bd-tool bd-file">🖼️ תמונה
-                <input type="file" id="bdImage" accept="image/*" aria-label="העלאת תמונה">
-            </label>
-        </div>
-        <div class="bd-stage">
-            <div class="bd-board edit" id="bdBoard">
-                <canvas id="bdDraw" width="960" height="560" aria-label="לוח ציור"></canvas>
-            </div>
-        </div>
-        <p class="bd-hint" id="bdHint"></p>
-        <section class="bd-props" aria-labelledby="bdPropsTitle">
-            <h3 id="bdPropsTitle">מה לשנות</h3>
-            <p id="bdPropsEmpty">לחצו על משהו בלוח כדי לשנות אותו 👆</p>
-            <div id="bdProps" hidden>
-                <label class="bd-field">שם <input type="text" id="bdPropLabel" maxlength="40"></label>
-                <div class="bd-field">
-                    <span>גודל</span>
-                    <div class="bd-row">
-                        <button type="button" class="bd-tool" data-bd-size="s" aria-pressed="false">קטן</button>
-                        <button type="button" class="bd-tool" data-bd-size="m" aria-pressed="false">בינוני</button>
-                        <button type="button" class="bd-tool" data-bd-size="l" aria-pressed="false">גדול</button>
-                    </div>
-                </div>
-                <div class="bd-field" id="bdKeyField" hidden>
-                    <span>איזו אות</span>
-                    <button type="button" class="bd-tool" id="bdPickKey">⌨️ לחצו על אות</button>
-                </div>
-                <div class="bd-row">
-                    <button type="button" class="bd-danger" id="bdDelete">🗑️ למחוק</button>
-                </div>
-            </div>
-        </section>
-    </section>
 
     <div class="send">
         <button type="button" class="send-btn" id="sendBtn" disabled>🚀 שלחו!</button>
@@ -342,7 +235,6 @@
 <script src="../shared/kidlearn-firebase-config.js"></script>
 <script src="../shared/kidlearn-cloud.js"></script>
 <script src="../shared/kidlearn-bridge.js"></script>
-<script src="board.js"></script>
 <script>
     const GAME_ID = 'microbit-programming';
     const MAX_SCRIPTS = 6;     // scripts in one program (the app checks the same limit)
@@ -413,7 +305,7 @@
     let connectionState = 'checking';
     let editingDraw = null;  // the place of the drawing being changed, or null for a new one
     let drawing = [];      // the 5x5 drawing: true = lit
-    let extensions = { car: false, remote: false, board: false }; // the add-ons of the program on the screen: off until turned on
+    let extensions = { car: false, remote: false }; // the add-ons of the program on the screen: off until turned on
 
     const $ = (id) => document.getElementById(id);
     const copy = (value) => JSON.parse(JSON.stringify(value));
@@ -568,7 +460,7 @@
     function loadExtensions() {
         try {
             const saved = JSON.parse(localStorage.getItem(EXT_KEY) || '{}');
-            extensions = { car: saved.car === true, remote: saved.remote === true, board: saved.board === true };
+            extensions = { car: saved.car === true, remote: saved.remote === true };
         } catch (e) {
             // a damaged setting is ignored: both add-ons stay off
         }
@@ -587,13 +479,11 @@
     function renderExtensions() {
         $('carPart').hidden = !extensions.car;
         $('remoteWhen').hidden = !extensions.remote;
-        $('boardSection').hidden = !extensions.board;
-        renderBoardPalettes();
     }
 
     // The add-ons of a program that was opened (or of a new one): they replace the ones on the screen
     function applyExtensions(next) {
-        extensions = { car: !!next.car, remote: !!next.remote, board: !!next.board };
+        extensions = { car: !!next.car, remote: !!next.remote };
         try {
             localStorage.setItem(EXT_KEY, JSON.stringify(extensions));
         } catch (e) {
@@ -602,14 +492,12 @@
         renderExtensions();
     }
 
-    // A program with a car, remote or board block turns that add-on on, so its blocks can be seen and changed
+    // A program with a car or remote block turns that add-on on, so its blocks can be seen and changed
     function enableFor(list) {
         const usesCar = list.some(s => s.actions.some(a => a.do === 'drive' || a.do === 'stop'));
         const usesRemote = list.some(s => s.event === 'remote');
-        const usesBoard = list.some(s => s.event === 'board' || s.actions.some(a => BOARD_ONLY.includes(a.do)));
         if (usesCar && !extensions.car) setExtension('car', true);
         if (usesRemote && !extensions.remote) setExtension('remote', true);
-        if (usesBoard && !extensions.board) setExtension('board', true);
     }
 
     // The label and the mark of a script: a start, button or shake script, or a key of the remote
@@ -617,16 +505,6 @@
         if (s.event === 'remote') {
             const k = REMOTE.find(r => r.key === s.key);
             return k ? { label: 'כשלוחצים על ' + k.label, mark: k.mark } : null;
-        }
-        if (s.event === 'board') {
-            // A board input that was deleted keeps its script, marked as deleted
-            // A button of the micro:bit keeps its name when the link is off
-            if (s.key && s.key.startsWith('mb:') && !KidlearnBoard.inputs().some(i => i.id === s.key)) {
-                return { label: 'כשלוחצים על ' + s.key.slice(3) + ' במיקרוביט', mark: '🤖' };
-            }
-            const input = KidlearnBoard.inputs().find(i => i.id === s.key);
-            const mark = !input ? '❔' : input.type === 'mb' ? '🤖' : input.type === 'key' ? '⌨️' : input.type === 'slider' ? '🎚️' : '🔘';
-            return { label: input ? KidlearnBoard.triggerText(input) : 'כשקורה משהו שנמחק', mark };
         }
         return eventInfo(s.event) || null;
     }
@@ -642,192 +520,6 @@
         b.addEventListener('click', () => addScript('remote', k.key));
         return b;
     }
-
-    // ---- the board's blocks: a button, slider or key on the board starts a script; lamps and numbers are its actions ----
-    const BOARD_ONLY = ['lampOn', 'lampOff', 'numberAdd', 'numberReset'];
-    // Pictures, words, drawings and clear work in both kinds of script: on the board they show on the screen
-    const BOARD_ACTIONS = BOARD_ONLY.concat(['wait', 'show', 'text', 'draw', 'clear']);
-
-    // The picture and words of a board block, as a script shows it
-    function boardBlockInfo(action) {
-        const out = KidlearnBoard.outputs().find(o => o.id === action.id);
-        const name = out ? (out.label || (out.type === 'lamp' ? 'נורה' : 'מספר')) : 'משהו שנמחק';
-        const blocks = {
-            lampOn: ['💡', 'להדליק ' + name],
-            lampOff: ['🌑', 'לכבות ' + name],
-            numberAdd: ['🔢', 'להוסיף 1 ל' + name],
-            numberReset: ['↩️', 'לאפס את ' + name],
-        };
-        const [emoji, label] = blocks[action.do] || ['?', action.do];
-        return { emoji, label };
-    }
-
-    // The board's inputs in "1. כשקורה" and its lamps and numbers in "2. אז עושים"
-    function renderBoardPalettes() {
-        const inputs = KidlearnBoard.inputs();
-        $('boardWhen').innerHTML = '';
-        inputs.forEach((x) => {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'when-btn board-btn';
-            b.dataset.event = 'board';
-            b.dataset.key = x.id;
-            const mark = document.createElement('span');
-            mark.className = 'mark';
-            mark.setAttribute('aria-hidden', 'true');
-            mark.textContent = x.type === 'mb' ? '🤖' : x.type === 'key' ? '⌨️' : x.type === 'slider' ? '🎚️' : '🔘';
-            const label = document.createElement('span');
-            label.textContent = KidlearnBoard.triggerText(x);
-            b.append(mark, label);
-            b.addEventListener('click', () => addScript('board', x.id));
-            $('boardWhen').appendChild(b);
-        });
-        $('boardWhenWrap').hidden = inputs.length === 0 || !extensions.board;
-
-        $('boardActions').innerHTML = '';
-        KidlearnBoard.outputs().forEach((o) => {
-            const name = o.label || (o.type === 'lamp' ? 'נורה' : 'מספר');
-            const blocks = o.type === 'lamp'
-                ? [['lampOn', '💡', 'להדליק ' + name], ['lampOff', '🌑', 'לכבות ' + name]]
-                : [['numberAdd', '🔢', 'להוסיף 1 ל' + name], ['numberReset', '↩️', 'לאפס את ' + name]];
-            blocks.forEach(([doName, emoji, label]) => {
-                const b = document.createElement('button');
-                b.type = 'button';
-                b.className = 'tile board-tile';
-                b.innerHTML = '<span class="emoji" aria-hidden="true"></span><span class="label"></span>';
-                b.querySelector('.emoji').textContent = emoji;
-                b.querySelector('.label').textContent = label;
-                b.setAttribute('aria-label', label);
-                b.addEventListener('click', () => addAction({ do: doName, id: o.id }));
-                $('boardActions').appendChild(b);
-            });
-        });
-        $('boardActionsWrap').hidden = KidlearnBoard.outputs().length === 0 || !extensions.board;
-    }
-
-    // A board button, slider or key was used in the play mode: run the scripts of the program that start with it
-    function runBoardInput(e) {
-        // A press on the micro:bit's A or B also starts the usual A and B scripts (on the screen, while connected)
-        const mbButton = e.id.startsWith('mb:') ? e.id.slice(3) : null;
-        scripts
-            .filter(s => (s.event === 'board' && s.key === e.id) || (mbButton === 'A' && s.event === 'buttonA') || (mbButton === 'B' && s.event === 'buttonB'))
-            .forEach(s => runBoardScript(s));
-    }
-
-    async function runBoardScript(s) {
-        for (const a of s.actions) {
-            if (a.do === 'wait') await new Promise(resolve => setTimeout(resolve, Math.round(a.seconds * 1000)));
-            else if (a.do === 'lampOn') KidlearnBoard.setLamp(a.id, true);
-            else if (a.do === 'lampOff') KidlearnBoard.setLamp(a.id, false);
-            else if (a.do === 'numberAdd') KidlearnBoard.addToNumber(a.id, 1);
-            else if (a.do === 'numberReset') KidlearnBoard.resetNumber(a.id);
-            else if (a.do === 'show') {
-                KidlearnBoard.screenShow((PICTURES.find(p => p.icon === a.icon) || { emoji: '❔' }).emoji);
-                liveSend({ output: 'icon', icon: a.icon });
-            }
-            else if (a.do === 'text') {
-                KidlearnBoard.screenText(a.word);
-                liveSend({ output: 'text', word: a.word });
-            }
-            else if (a.do === 'draw') {
-                KidlearnBoard.screenPixels(a.pixels);
-                liveSend({ output: 'pic', pixels: a.pixels });
-            }
-            else if (a.do === 'clear') {
-                KidlearnBoard.screenClear();
-                liveSend({ output: 'clear' });
-            }
-        }
-    }
-
-    // ---- the live link: while the micro:bit is connected, its buttons are triggers, and the board's screen shows on it ----
-    const LIVE_ERRORS = {
-        no_microbit: 'המיקרוביט לא מחובר. חברו אותו בכבל 🔌',
-        port_busy: 'המיקרוביט תפוס בתוכנה אחרת. סגרו אותה ונסו שוב.',
-        port_error: 'לא הצלחנו לדבר עם המיקרוביט. נתקו את הכבל וחברו אותו שוב.',
-        no_answer: 'המיקרוביט לא ענה. נתקו את הכבל וחברו אותו שוב.',
-        board_error: 'המיקרוביט לא הבין את החיבור. נסו שוב.',
-        app_not_running: 'צריך את תוכנית Kidlearn במחשב כדי לחבר את המיקרוביט.',
-        extension_missing: 'צריך עזרה מהורה 🙋 (חסר תוסף Kidlearn בכרום)',
-        unknown_action: 'התוסף בכרום צריך רענון. פתחו את chrome://extensions ולחצו על רענון ב-Kidlearn.',
-        host_unavailable: 'לא מצאנו את תוכנית Kidlearn במחשב. פתחו אותה מתפריט התחל, או התקינו אותה מחדש.',
-        extension_error: 'התוסף בכרום לא הצליח לדבר עם התוכנית. רעננו את הדף ונסו שוב.',
-        timeout: 'המיקרוביט לא ענה בזמן. נתקו את הכבל וחברו אותו שוב.',
-    };
-    const live = { on: false, timer: null, asking: false, connecting: false };
-
-    // The state is shown in the board's toolbar. The page connects by itself: there is no button to press.
-    function renderLiveState(text) {
-        $('bdLiveState').textContent = text;
-    }
-
-    async function liveConnect() {
-        if (live.on) return null;
-        if (live.connecting) return 'busy';
-        live.connecting = true;
-        // Starting the session writes the live program to the board, which can take a few seconds
-        const reply = await KidLearnBridge.request('liveStart', null, { timeoutMs: 15000 });
-        live.connecting = false;
-        if (!reply.ok) {
-            renderLiveState(LIVE_ERRORS[reply.error] || 'לא הצלחנו לחבר 🔌 (' + (reply.error || 'בלי פרטים') + ')');
-            return reply.error || 'error';
-        }
-        live.on = true;
-        KidlearnBoard.setLive(true);
-        live.timer = setInterval(liveAsk, 150);
-        renderLiveState('🔌 מחובר!');
-        updateSend();
-        return null;
-    }
-
-    // The board restarts after a disconnect or a send, and its cable comes back a moment later: try a few times
-    async function connectWithRetry() {
-        let error = null;
-        for (let attempt = 0; attempt < 2; attempt++) {
-            error = await liveConnect();
-            if (!error) return null;
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        return error;
-    }
-
-    function liveErrorText(error) {
-        return LIVE_ERRORS[error] || 'לא הצלחנו לחבר 🔌 (' + error + ')';
-    }
-
-    async function liveDisconnect() {
-        clearInterval(live.timer);
-        live.timer = null;
-        live.on = false;
-        KidlearnBoard.setLive(false);
-        renderLiveState('🔌 לא מחובר');
-        updateSend();
-        await KidLearnBridge.request('liveStop');
-    }
-
-    // Asks the app for the presses since the last time (about every 150 ms while connected)
-    async function liveAsk() {
-        if (live.asking) return;
-        live.asking = true;
-        const reply = await KidLearnBridge.request('liveEvents');
-        live.asking = false;
-        if (!reply.ok) {
-            // Only a clear "the app is gone" ends the session. A slow or lost reply is tried again on the next poll.
-            if (reply.error === 'app_not_running') liveDisconnect();
-            return;
-        }
-        (reply.data.events || []).forEach((e) => {
-            if (e.state === 'down') KidlearnBoard.microbitPress(e.input);
-            else KidlearnBoard.microbitRelease(e.input);
-        });
-    }
-
-    // A picture, a word, a drawing or clear from a board script, sent to the micro:bit while it is connected
-    function liveSend(command) {
-        if (!live.on) return;
-        KidLearnBridge.request('liveCommand', command);
-    }
-
 
     // ---- scripts ----
     function addScript(event, key) {
@@ -852,11 +544,6 @@
         const s = currentScript();
         if (!s) {
             $('hint').textContent = 'קודם לחצו על "מתי?" כדי לבחור מתי זה יקרה.';
-            return false;
-        }
-        // A script of the board runs on the screen; the micro:bit blocks go in the other scripts. "wait" works in both.
-        if (s.event === 'board' && !BOARD_ACTIONS.includes(action.do)) {
-            $('hint').textContent = 'הסמל הזה לא עובד בסיפור של הלוח שלי. בסיפור הזה אפשר תמונות, מילים, נורות, מספרים ו"שנייה".';
             return false;
         }
         if (s.actions.length >= MAX_ACTIONS) {
@@ -990,9 +677,8 @@
             emoji.className = 'emoji';
             emoji.setAttribute('aria-hidden', 'true');
             const isDrawing = action.do === 'draw';
-            const shown = BOARD_ONLY.includes(action.do) ? boardBlockInfo(action) : null;
-            const name = isDrawing ? 'ציור שלי' : shown ? shown.label : (tile ? tile.label : '');
-            emoji.textContent = isDrawing ? '🎨' : shown ? shown.emoji : (tile ? tile.emoji : '?');
+            const name = isDrawing ? 'ציור שלי' : (tile ? tile.label : '');
+            emoji.textContent = isDrawing ? '🎨' : (tile ? tile.emoji : '?');
             const label = document.createElement('span');
             label.className = 'label';
             label.textContent = name;
@@ -1027,16 +713,10 @@
     // (no board, no extension, no app), so the status check never blocks a send that would work.
     function updateSend() {
         const count = totalActions();
-        const sendable = scripts.some(s => s.event !== 'board');
-        // A program with board scripts only can be sent too: sending connects the micro:bit for them
-        const ready = (sendable || scripts.some(s => s.event === 'board')) && count > 0 && gamesOff === false && !installing;
+        const ready = count > 0 && gamesOff === false && !installing;
         $('sendBtn').disabled = !ready;
         $('sendBtn').textContent = sentThisTime ? '🚀 שלחו שוב!' : '🚀 שלחו!';
-        $('sendNote').textContent = count === 0 ? 'קודם בנו סיפור מסמלים, ואז אפשר לשלוח 🧩'
-            : !sendable ? (live.on
-                ? 'הסיפורים של הלוח שלי רצים על המסך ועל המיקרוביט 🎉'
-                : 'לחצו "שלחו" כדי לחבר את המיקרוביט. אז הסיפורים של הלוח ירוצו גם עליו.')
-            : '';
+        $('sendNote').textContent = count === 0 ? 'קודם בנו סיפור מסמלים, ואז אפשר לשלוח 🧩' : '';
     }
 
     function changed() {
@@ -1052,16 +732,19 @@
 
     // ---- saved programs on this device, and the draft that is kept until the child changes it ----
     // Keeps only the shape of a saved program; the app checks every block again when it is sent
+    const KNOWN_ACTIONS = ['show', 'wait', 'text', 'draw', 'drive', 'stop', 'clear'];
+
     function cleanScripts(input) {
         const result = [];
         let total = 0;
         if (!Array.isArray(input)) return result;
         for (const s of input) {
             if (result.length >= MAX_SCRIPTS || !s || !scriptInfo(s)) continue;
-            const actions = Array.isArray(s.actions) ? s.actions.filter(a => a && typeof a.do === 'string') : [];
+            // Blocks the page does not have any more (the old "my board" lamps and numbers) are dropped
+            const actions = Array.isArray(s.actions) ? s.actions.filter(a => a && KNOWN_ACTIONS.includes(a.do)) : [];
             const kept = actions.slice(0, Math.max(0, Math.min(MAX_ACTIONS, MAX_TOTAL - total)));
             total += kept.length;
-            result.push(s.event === 'remote' || s.event === 'board' ? { event: s.event, key: s.key, actions: kept } : { event: s.event, actions: kept });
+            result.push(s.event === 'remote' ? { event: s.event, key: s.key, actions: kept } : { event: s.event, actions: kept });
         }
         return result;
     }
@@ -1083,7 +766,7 @@
                 name: p.name.slice(0, 30),
                 scripts: cleanScripts(p.scripts),
                 // The add-ons that are on for this program
-                extensions: { car: !!(p.extensions && p.extensions.car), remote: !!(p.extensions && p.extensions.remote), board: !!(p.extensions && p.extensions.board) },
+                extensions: { car: !!(p.extensions && p.extensions.car), remote: !!(p.extensions && p.extensions.remote) },
             }));
     }
 
@@ -1213,34 +896,7 @@
             : (isOpen ? 'התוכנית שמורה! ✅' : '');
     }
 
-    // The board kept with a program: on this device (IndexedDB) and, when someone is signed in, in the account
-    const boardDoc = (id) => 'microbit-board-' + id;
-    const MAX_BOARD_CHARS = 900000; // a Firestore document is at most 1 MB
-
-    // Returns false when the board could not be kept in the account (it is still kept on this device)
-    async function saveBoardSnapshot(id) {
-        const state = await KidlearnBoard.exportState();
-        await KidlearnBoard.saveSnapshot(id, state);
-        if (!KidLearn.currentUser()) return true;
-        if (JSON.stringify(state).length > MAX_BOARD_CHARS) return false;
-        try {
-            await KidLearn.saveData(boardDoc(id), state);
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    async function restoreBoard(id) {
-        let state = await KidlearnBoard.loadSnapshot(id).catch(() => null);
-        if (!(state && state.widgets) && KidLearn.currentUser()) {
-            state = await KidLearn.loadData(boardDoc(id)).catch(() => null);
-            if (state && state.widgets) await KidlearnBoard.saveSnapshot(id, state);
-        }
-        if (state && state.widgets) await KidlearnBoard.importState(state);
-    }
-
-    async function saveProgram() {
+    function saveProgram() {
         if (scripts.length === 0) {
             $('libNote').textContent = 'בנו משהו לפני שמירה 🧩';
             return;
@@ -1269,14 +925,9 @@
         $('libNote').textContent = KidLearn.currentUser() ? 'נשמר בחשבון שלכם!' : 'נשמר! ✅';
         saveDraft();
         renderLibrary();
-        // The board goes with the program, if the board add-on is on for it
-        if (extensions.board) {
-            const kept = await saveBoardSnapshot(program.id);
-            if (!kept) $('libNote').textContent = 'התוכנית נשמרה, אבל הלוח שלי לא נשמר בחשבון (גדול מדי, או שאין רשת). הוא נשמר במכשיר הזה.';
-        }
     }
 
-    async function openProgram(id) {
+    function openProgram(id) {
         const p = readSaved().find(x => x.id === id);
         if (!p) return renderLibrary();
         if (isDirty() && !confirm('לפתוח את "' + p.name + '"? מה שלא נשמר ימחק.')) return;
@@ -1288,7 +939,6 @@
         $('progName').value = p.name;
         sentThisTime = false;
         changed();
-        if (extensions.board) await restoreBoard(p.id);
     }
 
     function deleteProgram(id) {
@@ -1296,9 +946,6 @@
         const p = saved.find(x => x.id === id);
         if (!p || !confirm('למחוק את "' + p.name + '"?')) return;
         writeSaved(saved.filter(x => x.id !== id));
-        // Its board goes too: on this device, and in the account (the document is emptied)
-        KidlearnBoard.deleteSnapshot(id).catch(() => {});
-        if (KidLearn.currentUser()) KidLearn.saveData(boardDoc(id), { removed: true }).catch(() => {});
         // What is on the screen stays, as work that is not saved
         if (openId === id) openId = null;
         $('libNote').textContent = 'נמחקה: ' + p.name;
@@ -1313,9 +960,8 @@
         openId = null;
         $('progName').value = '';
         sentThisTime = false;
-        // A new program starts with every add-on off, and an empty board
+        // A new program starts with every add-on off
         applyExtensions({});
-        KidlearnBoard.clearState();
         changed();
     }
 
@@ -1380,13 +1026,12 @@
         setStatus('waiting');
     }
 
-    // What the child sees for each failure the app reports when it writes to the board
+    // What the child sees for each failure the app reports when it writes to the micro:bit
     const REASONS = {
         port_busy: 'הכבל של המיקרוביט תפוס בתוכנה אחרת, למשל עורך Python בדפדפן. סגרו אותה ונסו שוב.',
         no_answer: 'המיקרוביט לא ענה. נתקו וחברו שוב, ונסו שוב 🔌',
         port_error: 'לא הצלחנו לשלוח למיקרוביט. נתקו וחברו שוב 🔌',
         board_error: 'אופס! נסו שוב 🙂',
-        live_running: 'המיקרוביט עסוק עכשיו עם הלוח שלי. חכו כמה שניות ונסו שוב ⏳',
     };
 
     // A send error is shown under the send button, and stays there until the program changes or is sent again.
@@ -1397,48 +1042,19 @@
     }
 
     $('sendBtn').addEventListener('click', async () => {
-        // Only the scripts of the micro:bit go to the board. The scripts of the board run on the screen.
-        // A lamp or a number only lives on the screen, so the micro:bit scripts are sent without them (and without
-        // a script that has nothing else in it)
-        const toBoard = scripts
-            .filter(s => s.event !== 'board')
-            .map(s => ({ ...s, actions: s.actions.filter(a => !BOARD_ONLY.includes(a.do)) }))
+        if (installing) return;
+        const toSend = scripts
+            .map(s => ({ ...s, actions: s.actions.filter(a => KNOWN_ACTIONS.includes(a.do)) }))
             .filter(s => s.actions.length > 0);
-        const hasBoardScripts = scripts.some(s => s.event === 'board');
-        // Sending writes the micro:bit's program, so the live link lets go of the board first
-        if (live.on) {
-            await liveDisconnect();
-            await new Promise(resolve => setTimeout(resolve, 800)); // the board restarts
-        }
-        if (toBoard.length === 0) {
-            // Only the board's scripts: sending connects the micro:bit, so its buttons work
-            installing = true;
-            $('sendError').textContent = '';
-            setStatus('sending');
-            const error = await connectWithRetry();
-            installing = false;
-            if (error) {
-                setStatus('ready');
-                return sendFailed(liveErrorText(error));
-            }
-            sentThisTime = true;
-            return setStatus('sent');
-        }
+        if (toSend.length === 0) return sendFailed('בנו סיפור מסמלים לפני שליחה 🧩');
         installing = true;
         $('sendError').textContent = '';
         setStatus('sending');
-        const reply = await KidLearnBridge.request('installMicrobit', { program: copy({ scripts: toBoard }) }, { timeoutMs: 60000 });
+        const reply = await KidLearnBridge.request('installMicrobit', { program: copy({ scripts: toSend }) }, { timeoutMs: 60000 });
         installing = false;
         if (reply.ok) {
             sentThisTime = true;
-            setStatus('sent');
-            if (hasBoardScripts) {
-                // The board restarts to run its new program, so wait before connecting to it
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                const error = await connectWithRetry();
-                if (error) sendFailed('שלחנו! אבל לא הצלחנו לחבר את הלוח. ' + liveErrorText(error));
-            }
-            return;
+            return setStatus('sent');
         }
         sentThisTime = false;
         if (reply.error === 'extension_missing') {
@@ -1486,9 +1102,6 @@
     }
 
     buildPalette();
-    KidlearnBoard.onInput(runBoardInput);
-    KidlearnBoard.onChange(renderBoardPalettes);
-    renderBoardPalettes();
     loadExtensions();
     loadDraft();
     renderExtensions();

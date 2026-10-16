@@ -6,7 +6,7 @@ const KIDLEARN_ORIGIN = "https://giamat13.github.io";
 // Local development: any port on localhost or 127.0.0.1 (the same matches as manifest.json)
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 // Only these actions reach the app. The app checks them again (BridgeActions in BridgeServer.cs)
-const ALLOWED_ACTIONS = new Set(["ping", "microbitStatus", "installMicrobit", "liveStart", "liveStop", "liveCommand", "liveEvents"]);
+const ALLOWED_ACTIONS = new Set(["ping", "microbitStatus", "installMicrobit"]);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const fromKidlearn = sender.origin === KIDLEARN_ORIGIN || LOCAL_ORIGIN.test(sender.origin || "");

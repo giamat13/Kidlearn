@@ -13,7 +13,9 @@ internal static class MicrobitInstaller
     private const int ChunkBytes = 64;
     private const int ReplyTimeoutMs = 3000;
     private const int DrainMs = 300;   // how long to throw away what the board prints before a command
-    private const int Attempts = 3;    // a failed write is tried again: it starts over from the beginning each time
+    private const int PieceBytes = 16;  // code is sent to the board in pieces of this size
+    private const int PieceDelayMs = 4; // with this pause after each piece
+    private const int Attempts = 3;   // a failed write is tried again: it starts over from the beginning each time
 
     // The serial port of a connected micro:bit, or null when none is plugged in.
     public static string? FindPort()
@@ -80,8 +82,8 @@ internal static class MicrobitInstaller
     public static void WriteProgram(Stream stream, string source)
     {
         EnterRawRepl(stream);
-        // A send starts fresh: remove the previous app programs before writing the new main.py.
-        Exec(stream, "import os\nfor name in ('main.py', 'live.py'):\n if name in os.listdir():\n  os.remove(name)");
+        // A send starts fresh: remove everything on the board before writing the new main.py.
+        Exec(stream, "import os\nfor name in os.listdir():\n os.remove(name)");
         WriteFileInRawRepl(stream, "main.py", source);
 
         // The board resets as soon as it runs this, so no reply is read. The port may drop: that is expected.
@@ -113,12 +115,19 @@ internal static class MicrobitInstaller
             Exec(stream, "w(" + BytesLiteral(data, offset, count) + ")");
         }
         Exec(stream, "f.close()");
+
+        // Check that the whole file arrived. A short file would fail later, in a way the child can not understand.
+        string size = Exec(stream, "import os\nprint(os.stat('" + fileName + "')[6])").Trim();
+        if (size != data.Length.ToString())
+        {
+            throw new InvalidOperationException(fileName + " arrived incomplete (" + size + " of " + data.Length + " bytes)");
+        }
     }
 
     private static void EnterRawRepl(Stream stream)
     {
         Send(stream, new byte[] { 0x03, 0x03 }); // Ctrl-C twice: stop a running program
-        Thread.Sleep(100);
+        Thread.Sleep(300);
         Drain(stream);                            // throw away what the stopped program printed
         Send(stream, new byte[] { 0x01 });       // Ctrl-A: raw REPL
         ReadUntil(stream, text => text.Contains("raw REPL; CTRL-B to exit\r\n>"));
@@ -144,7 +153,7 @@ internal static class MicrobitInstaller
     // Runs code in raw REPL mode and returns what it printed. Throws when the code raised an error.
     private static string Exec(Stream stream, string code)
     {
-        Send(stream, Encoding.UTF8.GetBytes(code));
+        SendPaced(stream, Encoding.UTF8.GetBytes(code));
         Send(stream, new byte[] { 0x04 }); // Ctrl-D: run it
 
         // Reply: "OK" + stdout + Ctrl-D + stderr + Ctrl-D + ">". Text before the "OK" was left over from an
@@ -192,6 +201,18 @@ internal static class MicrobitInstaller
             }
         }
         return text.ToString();
+    }
+
+    // The micro:bit loses bytes when code arrives in one burst (about every other try, tested on a v2 board).
+    // Small pieces with a short pause between them arrive every time.
+    private static void SendPaced(Stream stream, byte[] bytes)
+    {
+        for (int offset = 0; offset < bytes.Length; offset += PieceBytes)
+        {
+            stream.Write(bytes, offset, Math.Min(PieceBytes, bytes.Length - offset));
+            stream.Flush();
+            Thread.Sleep(PieceDelayMs);
+        }
     }
 
     private static void Send(Stream stream, byte[] bytes)
