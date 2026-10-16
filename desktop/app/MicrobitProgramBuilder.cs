@@ -18,7 +18,12 @@ namespace Kidlearn.Tray;
 //                         { "do": "draw", "pixels": "0101011111..." },   (25 characters: 1 = lit)
 //                         { "do": "drive", "dir": "forward" },           (Tiny:bit car: forward, back, left, right, spinLeft, spinRight)
 //                         { "do": "stop" },                              (Tiny:bit car: stop)
-//                         { "do": "clear" } ] }      (1 to 12 actions)
+//                         { "do": "clear" },
+//                         { "do": "board" } ] }      (1 to 12 actions)
+// "board": the story also has blocks of "my board" on the web page. The micro:bit tells the page that the story started, by
+//          writing one fixed line to its USB serial ("KL:" and the event, for example "KL:buttonA"). The page, through the
+//          app (MicrobitLink), runs the board's blocks. A program with a "board" block also listens on the serial for the
+//          fixed commands the page sends back to show a picture or a word on the micro:bit's screen (BoardFunctions).
 // A program in the older form, with "event" and "actions" directly, is one script.
 internal static class MicrobitProgramBuilder
 {
@@ -53,7 +58,7 @@ internal static class MicrobitProgramBuilder
     };
 
     internal static readonly HashSet<string> Words = new() { "HI", "GO", "OK", "YAY", "NO" };
-    private static readonly HashSet<string> Events = new()
+    internal static readonly HashSet<string> Events = new()
     {
         "start", "buttonA", "buttonB", "shake", "remote",
         "faceDown", "abPress", "tiltLeft", "tiltRight", "tiltForward", "tiltBack", "logoTouch",
@@ -76,7 +81,7 @@ internal static class MicrobitProgramBuilder
 
     // The keys of the Yahboom remote a script can start with, and the code each key sends.
     // From the Yahboom_IR MakeCode extension (YahboomTechnology/Yahboom_IR, enum RemoteButton).
-    private static readonly Dictionary<string, int> RemoteKeys = new()
+    internal static readonly Dictionary<string, int> RemoteKeys = new()
     {
         ["up"] = 0x01,
         ["down"] = 0x09,
@@ -164,6 +169,8 @@ internal static class MicrobitProgramBuilder
         int totalActions = 0;
         bool usesCar = false;                // a drive or stop block somewhere: the car code is added
         bool usesRemote = false;             // a remote script somewhere: the IR code is added and read in the loop
+        bool usesBoard = false;              // a story with a "board" block: it tells the page, and the program listens for the page
+        var notified = new HashSet<string>(); // the events the program already tells the page about
         var abScripts = new List<string>();    // scripts that start when A and B are pressed together
         var logoScripts = new List<string>();  // scripts that start when the logo is touched (micro:bit V2)
 
@@ -172,6 +179,7 @@ internal static class MicrobitProgramBuilder
             ParsedScript parsed = ParseScript(scripts[i]);
             usesCar |= parsed.UsesCar;
             usesRemote |= parsed.EventName == "remote";
+            usesBoard |= parsed.NotifyText is not null;
             totalActions += parsed.Lines.Count;
             if (totalActions > MaxTotalActions)
             {
@@ -180,9 +188,22 @@ internal static class MicrobitProgramBuilder
 
             string name = "script_" + (i + 1);
             functions.Append("def " + name + "():\n");
+            // Several stories can start from the same event (two "when A is pressed"). The page learns of the event once,
+            // and runs every story of the board that has this event. A second line would run them all twice.
+            bool wrote = false;
+            if (parsed.NotifyText is not null && notified.Add(parsed.NotifyText))
+            {
+                functions.Append("    print('KL:" + parsed.NotifyText + "')\n");
+                wrote = true;
+            }
             foreach (string line in parsed.Lines)
             {
                 functions.Append(line);
+                wrote = true;
+            }
+            if (!wrote && !parsed.Drives)
+            {
+                functions.Append("    pass\n");
             }
             if (parsed.Drives)
             {
@@ -270,6 +291,10 @@ internal static class MicrobitProgramBuilder
         {
             imports.Add("pin8");
         }
+        if (usesBoard)
+        {
+            imports.Add("uart");
+        }
         code.Append("from microbit import " + string.Join(", ", imports) + "\n");
         if (usesRemote)
         {
@@ -289,6 +314,10 @@ internal static class MicrobitProgramBuilder
         {
             code.Append(IrFunctions);
         }
+        if (usesBoard)
+        {
+            code.Append(BoardFunctions());
+        }
         code.Append(functions);
         if (abScripts.Count > 0)
         {
@@ -305,6 +334,10 @@ internal static class MicrobitProgramBuilder
         }
         code.Append(once);
         code.Append("while True:\n");
+        if (usesBoard)
+        {
+            code.Append("    board_cmd()\n"); // the commands of the page: a picture or a word for the screen
+        }
         if (usesRemote)
         {
             code.Append("    key = ir_key()\n"); // one read per loop: the remote's key, or -1
@@ -318,7 +351,8 @@ internal static class MicrobitProgramBuilder
 
     // One script: its event, whether it repeats, the lines of its function body,
     // whether it drives the car (so it must stop it at the end), and whether it uses the car at all
-    private sealed record ParsedScript(string EventName, bool Repeat, List<string> Lines, bool Drives, bool UsesCar, int? KeyCode);
+    // NotifyText: what the page is told when this story starts ("buttonA", "remote:up"), or null when the story has no "board" block
+    private sealed record ParsedScript(string EventName, bool Repeat, List<string> Lines, bool Drives, bool UsesCar, int? KeyCode, string? NotifyText);
 
     private static ParsedScript ParseScript(JsonObject script)
     {
@@ -335,6 +369,7 @@ internal static class MicrobitProgramBuilder
         }
 
         int? keyCode = null;
+        string? keyName = null;
         if (eventName == "remote")
         {
             string? key = GetString(script, "key");
@@ -343,6 +378,7 @@ internal static class MicrobitProgramBuilder
                 throw new ArgumentException("unknown_key");
             }
             keyCode = code;
+            keyName = key;
         }
 
         if (script["actions"] is not JsonArray actions || actions.Count < 1 || actions.Count > MaxActions)
@@ -353,6 +389,7 @@ internal static class MicrobitProgramBuilder
         var lines = new List<string>();
         bool drives = false;
         bool usesCar = false;
+        bool notifies = false;
         foreach (JsonNode? node in actions)
         {
             if (node is not JsonObject action)
@@ -360,11 +397,18 @@ internal static class MicrobitProgramBuilder
                 throw new ArgumentException("bad_action");
             }
             string? kind = GetString(action, "do");
+            if (kind == "board")
+            {
+                // The page learns that this story started, with one fixed line built in Build from the event name that
+                // was checked above (letters only). A second "board" block in the same story does nothing more.
+                notifies = true;
+                continue;
+            }
             drives |= kind == "drive";
             usesCar |= kind is "drive" or "stop";
             lines.Add(ActionLine(action));
         }
-        return new ParsedScript(eventName, repeat, lines, drives, usesCar, keyCode);
+        return new ParsedScript(eventName, repeat, lines, drives, usesCar, keyCode, notifies ? eventName + (keyName is null ? "" : ":" + keyName) : null);
     }
 
     private static string ActionLine(JsonObject action)
@@ -425,6 +469,48 @@ internal static class MicrobitProgramBuilder
             default:
                 throw new ArgumentException("unknown_action");
         }
+    }
+
+    // The program listens on the USB serial for short fixed commands from the page, one per line, and shows them:
+    //   I:heart  a picture (the names of Icons)     W:HI  a word (Words)     D:0101...  a drawing (25 characters)     C  clear the screen
+    // Anything else is ignored. The names come from the same tables as the blocks, so the page can not send anything else.
+    private static string BoardFunctions()
+    {
+        var icons = string.Join(", ", Icons.Select(pair => $"'{pair.Key}': {pair.Value}"));
+        var words = string.Join(", ", Words.OrderBy(w => w).Select(w => $"'{w}'"));
+        return
+            "# Kidlearn board: commands from the page, one line each (I:picture, W:WORD, C)\n" +
+            $"BOARD_ICONS = {{{icons}}}\n" +
+            $"BOARD_WORDS = ({words},)\n" +
+            "board_buf = b''\n\n" +
+            "def board_cmd():\n" +
+            "    global board_buf\n" +
+            "    try:\n" +
+            "        if uart.any():\n" +
+            "            data = uart.read()\n" +
+            "            if data:\n" +
+            "                board_buf = (board_buf + data)[-64:]\n" +
+            "        i = board_buf.find(b'\\n')\n" +
+            "        while i >= 0:\n" +
+            "            line = board_buf[:i].decode()\n" +
+            "            board_buf = board_buf[i + 1:]\n" +
+            "            if line.startswith('I:') and line[2:] in BOARD_ICONS:\n" +
+            "                display.show(BOARD_ICONS[line[2:]])\n" +
+            "            elif line.startswith('W:') and line[2:] in BOARD_WORDS:\n" +
+            "                display.scroll(line[2:])\n" +
+            "            elif line.startswith('D:') and len(line) == 27:\n" +
+            "                rows = []\n" +
+            "                for r in range(5):\n" +
+            "                    row = ''\n" +
+            "                    for c in line[2 + r * 5:7 + r * 5]:\n" +
+            "                        row += '9' if c == '1' else '0'\n" +
+            "                    rows.append(row)\n" +
+            "                display.show(Image(':'.join(rows)))\n" +
+            "            elif line == 'C':\n" +
+            "                display.clear()\n" +
+            "            i = board_buf.find(b'\\n')\n" +
+            "    except Exception:\n" +
+            "        board_buf = b''\n\n";
     }
 
     // A script that starts when the board's accelerometer reports a gesture (the names are the micro:bit's own)

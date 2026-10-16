@@ -108,6 +108,10 @@ internal static class BridgeActions
                 ["connected"] = MicrobitInstaller.FindPort() is not null,
             }),
             "installMicrobit" => InstallMicrobit(id, request),
+            "boardLinkStart" => BoardLinkStart(id),
+            "boardLinkPoll" => BoardLinkPoll(id),
+            "boardLinkShow" => BoardLinkShow(id, request),
+            "boardLinkStop" => BoardLinkStop(id),
             _ => Fail(id, "unknown_action"),
         };
     }
@@ -143,6 +147,7 @@ internal static class BridgeActions
         {
             lock (InstallLock)
             {
+                MicrobitLink.Stop(); // the link holds the cable: a send always comes first
                 MicrobitInstaller.Install(port, source);
             }
             return Ok(id, new JsonObject { ["installed"] = true, ["port"] = port });
@@ -164,6 +169,55 @@ internal static class BridgeActions
         {
             return Fail(id, "board_error", ex.Message);     // the board refused or reported an error
         }
+    }
+
+    // ---- the link between the board on the page and the micro:bit (see MicrobitLink) ----
+    // The page starts it while a child plays with the board, asks what the micro:bit said, and sends back what to show.
+    private static JsonObject BoardLinkStart(string? id)
+    {
+        string? error = MicrobitLink.Start();
+        return error is null ? Ok(id, new JsonObject { ["linked"] = true }) : Fail(id, error);
+    }
+
+    private static JsonObject BoardLinkPoll(string? id)
+    {
+        List<string>? events = MicrobitLink.Poll();
+        var list = new JsonArray();
+        foreach (string name in events ?? new List<string>())
+        {
+            list.Add(name);
+        }
+        return Ok(id, new JsonObject { ["linked"] = events is not null, ["events"] = list });
+    }
+
+    // payload: { "kind": "icon" | "word" | "draw" | "clear", "value": "heart" | "HI" | "0101..." }. The command is built here from fixed names.
+    private static JsonObject BoardLinkShow(string? id, JsonObject request)
+    {
+        if (request["payload"] is not JsonObject payload)
+        {
+            return Fail(id, "no_payload");
+        }
+
+        string? value = GetString(payload, "value");
+        string? command = GetString(payload, "kind") switch
+        {
+            "icon" when value is not null => "I:" + value,
+            "word" when value is not null => "W:" + value,
+            "draw" when value is not null => "D:" + value,
+            "clear" => "C",
+            _ => null,
+        };
+        if (command is null || !MicrobitLinkSession.IsCommand(command))
+        {
+            return Fail(id, "bad_command");
+        }
+        return Ok(id, new JsonObject { ["shown"] = MicrobitLink.Show(command) });
+    }
+
+    private static JsonObject BoardLinkStop(string? id)
+    {
+        MicrobitLink.Stop();
+        return Ok(id, new JsonObject { ["linked"] = false });
     }
 
     private static JsonObject Ok(string? id, JsonObject data) =>
