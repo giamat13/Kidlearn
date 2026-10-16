@@ -1,0 +1,90 @@
+{
+  "title": "מטוסים בשידור חי",
+  "subtitle": "ממריאים לתצפית על מטוסים ברחבי העולם",
+  "emoji": "✈️",
+  "favoriteKey": "airplaneCamFavorites",
+  "emptyMessage": "ערוצי המטוסים יתווספו בקרוב",
+  "channels": [
+    {
+      "emoji": "✈️",
+      "label": "סנט מארטן, ממלכת הולנד - SXM",
+      "country": "סנט מארטן (ממלכת הולנד)",
+      "flagCode": "sx",
+      "title": "שדה התעופה סנט מארטן ומאהו ביץ׳ - שידור חי",
+      "src": "https://www.youtube.com/embed/2IQmpCXbOmM?autoplay=0",
+      "credit": "שידור חי 24/7 מנמל התעופה Princess Juliana בחוף מאהו, סנט מארטן."
+    },
+    {
+      "emoji": "🛬",
+      "label": "רינו, ארצות הברית - RNO",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "נמל התעופה רינו - שידור חי",
+      "src": "https://www.youtube.com/embed/fFl0qD108sk?autoplay=0",
+      "credit": "שידור חי 24/7 מנמל התעופה רינו, נבדה."
+    },
+    {
+      "emoji": "🛫",
+      "label": "לאס וגאס, ארצות הברית - LAS",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "נמל התעופה לאס וגאס - מסלולים 26R ו-26L",
+      "src": "https://www.youtube.com/embed/V7_orOtu-oo?autoplay=0",
+      "credit": "שידור חי 24/7 עם מבט על מסלולים 26R ו-26L בנמל התעופה לאס וגאס."
+    },
+    {
+      "emoji": "✈️",
+      "label": "לנזרוטה, ספרד - ACE",
+      "country": "ספרד",
+      "flagCode": "es",
+      "title": "נמל התעופה לנזרוטה - האיים הקנריים",
+      "src": "https://www.youtube.com/embed/4nC8r5neaow?autoplay=0",
+      "credit": "שידור חי 24/7 מנמל התעופה לנזרוטה באיים הקנריים, ספרד."
+    },
+    {
+      "emoji": "🛬",
+      "label": "מילווקי, ארצות הברית - MKE",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "נמל התעופה מילווקי - שידור חי",
+      "src": "https://www.youtube.com/embed/sJl7PsdHxWM?autoplay=0",
+      "credit": "שידור חי 24/7 מנמל התעופה מילווקי, ויסקונסין."
+    },
+    {
+      "emoji": "🛫",
+      "label": "ניו אורלינס, ארצות הברית - MSY",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "נמל התעופה ניו אורלינס - שידור חי",
+      "src": "https://www.youtube.com/embed/iZRbml7fnXI?autoplay=0",
+      "credit": "שידור חי 24/7 מנמל התעופה ניו אורלינס."
+    },
+    {
+      "emoji": "✈️",
+      "label": "לונדון הית׳רו, הממלכה המאוחדת - LHR",
+      "country": "הממלכה המאוחדת",
+      "flagCode": "gb",
+      "title": "נמל התעופה הית׳רו, לונדון - שידור חי",
+      "src": "https://www.youtube.com/embed/SgvpyjQX_HM?autoplay=0",
+      "credit": "שידור חי 24/7 מנמל התעופה הית׳רו בלונדון."
+    },
+    {
+      "emoji": "🛫",
+      "label": "ליסבון, פורטוגל - LIS",
+      "country": "פורטוגל",
+      "flagCode": "pt",
+      "title": "🔴 LIVE 24/7 Lisbon Airport Live Cam 14.10.2026 • Plane Spotting • Direto Aeroporto Lisboa Ao Vivo",
+      "src": "https://www.youtube.com/embed/foDQnWodDUM?autoplay=0",
+      "credit": "שידור חי 24/7 מתצפית מטוסים בנמל התעופה ליסבון, פורטוגל."
+    },
+    {
+      "emoji": "🛬",
+      "label": "סן פרנסיסקו, ארצות הברית - SFO",
+      "country": "ארצות הברית",
+      "flagCode": "us",
+      "title": "🔴 Live SFO Plane Spotting | Real-Time Aircraft Tracking and ATC Audio at San Francisco Airport (KSFO)",
+      "src": "https://www.youtube.com/embed/TSISjkPA-E0?autoplay=1&mute=1",
+      "credit": "תצפית מטוסים חיה בנמל התעופה סן פרנסיסקו, עם מעקב אחר מטוסים ושמע קשר אווירי."
+    }
+  ]
+}
