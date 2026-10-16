@@ -86,15 +86,39 @@ internal static class MicrobitInstaller
         Exec(stream, "import os\nfor name in os.listdir():\n os.remove(name)");
         WriteFileInRawRepl(stream, "main.py", source);
 
-        // The board resets as soon as it runs this, so no reply is read. The port may drop: that is expected.
         try
         {
-            Send(stream, Encoding.UTF8.GetBytes("import machine\nmachine.reset()\n"));
-            Send(stream, new byte[] { 0x04 });
+            Restart(stream);
         }
         catch (IOException)
         {
+            // the board may drop the port while it restarts: that is expected
         }
+    }
+
+    // Starts main.py now, with the cable still plugged in. The board link needs that: it listens to the running program.
+    // Ctrl-B leaves the raw REPL and Ctrl-D restarts the board: two single bytes, which arrive every time.
+    // The older way sent "machine.reset()" as code in one burst. When a piece of it was lost (this board loses bytes in
+    // bursts, see SendPaced) the program was written but never started, and the board waited in the raw REPL.
+    // Unplugging the cable hid that, because the board starts main.py when it gets power. Staying plugged in does not.
+    private static void Restart(Stream stream)
+    {
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            Send(stream, new byte[] { 0x02 });   // Ctrl-B: leave the raw REPL
+            Thread.Sleep(300);
+            Send(stream, new byte[] { 0x04 });   // Ctrl-D: restart, main.py runs
+            try
+            {
+                ReadUntil(stream, text => text.Contains("soft reboot"));
+                return;
+            }
+            catch (TimeoutException)
+            {
+                // no sign of the restart: try again
+            }
+        }
+        // Not confirmed. The program is on the board, and unplugging and plugging the cable starts it.
     }
 
     // Writes source to a file on the board and leaves the board in the raw REPL. main.py is the program that runs

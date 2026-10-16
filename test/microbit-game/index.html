@@ -90,6 +90,10 @@
     .tile.wide:hover:not(:disabled) { background: #FFC9DF; }
     .tile.wide .emoji { font-size: 32px; }
     .tile.wide .label { font-size: 20px; }
+    /* the tabs between the stories and "my board" (shown only when the board add-on is on) */
+    .view-tabs { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
+    .view-tab { min-height: 64px; padding: 0 28px; border: 3px solid #CFC6BE; border-radius: 999px; background: #FFFFFF; font-size: 24px; font-weight: 700; color: #2B2433; cursor: pointer; }
+    .view-tab[aria-pressed="true"] { border-color: #A78BFA; background: #E9DEFF; box-shadow: inset 0 0 0 2px #A78BFA; }
     .ext-bar { margin-top: 22px; display: flex; justify-content: flex-end; }
     .ext-bar a { display: inline-flex; align-items: center; text-decoration: none; }
 
@@ -171,7 +175,13 @@
     <div class="ext-bar">
         <a class="btn btn-ghost" id="extLink" href="extensions/index.html">🧩 תוספים</a>    </div>
 
-    <div class="builder">
+    <p class="hint" id="boardNote" hidden>הלוח שלי לא נפתח עכשיו. כל השאר עובד כרגיל 🙂</p>
+    <div class="view-tabs" id="viewTabs" hidden>
+        <button type="button" class="view-tab" id="tabStories" aria-pressed="true">🧩 הסיפורים</button>
+        <button type="button" class="view-tab" id="tabBoard" aria-pressed="false">🖼️ הלוח שלי</button>
+    </div>
+
+    <div class="builder" id="builderView">
         <section class="panel">
             <h2>1. מתי?</h2>
             <p class="hint">לחצו על מה שיקרה, וזה יתחיל סיפור חדש 👇</p>
@@ -185,13 +195,19 @@
                 <p class="hint">לוחצים על כפתור בשלט, והסיפור יתחיל.</p>
                 <div class="tiles" id="remoteTiles"></div>
             </div>
+            <div id="boardWhen" hidden>
+                <h3>🖼️ הלוח שלי</h3>
+                <div id="boardWhenButtons"></div>
+            </div>
             <h3>הסיפורים שלי <span class="count-badge" id="scriptCount">0/6</span></h3>
             <ol class="script-list" id="scriptList"></ol>
+            <ol class="script-list" id="boardStoryList" hidden></ol>
             <p class="hint" id="scriptEmpty">עדיין אין סיפורים. לחצו למעלה 👆</p>
         </section>
 
         <section class="panel">
             <h2>2. ואז?</h2>
+            <div id="mbThen">
             <h3>תמונות</h3>
             <div class="tiles" id="pictureTiles"></div>
             <div class="drawer" id="drawer" hidden>
@@ -210,16 +226,21 @@
                 <h3>🚗 הרכב</h3>
                 <div class="tiles" id="carTiles"></div>
             </div>
+            </div>
+            <div id="boardThen" hidden></div>
         </section>
 
         <section class="panel">
             <h2>3. מה הוא עושה? <span class="count-badge" id="count">0/12</span></h2>
             <p class="script-title" id="scriptTitle"></p>
+            <div id="boardDoes" hidden></div>
             <ol class="sequence" id="sequence"></ol>
             <p class="hint" id="hint"></p>
             <button type="button" class="link" id="clearAll">🧹 נקו את הסיפור</button>
         </section>
     </div>
+
+    <section id="boardView" aria-label="הלוח שלי" hidden></section>
 
     <div class="send">
         <button type="button" class="send-btn" id="sendBtn" disabled>🚀 שלחו!</button>
@@ -244,6 +265,7 @@
     const DRAFT_KEY = 'kidlearn-microbit-draft';
     const SAVED_KEY = 'kidlearn-microbit-programs';   // saved programs of someone who is not signed in (this device)
     const CLOUD_ID = 'microbit-programs';             // the account's copy: users/{uid}/saves/microbit-programs
+    const BOARD_CLOUD_ID = 'microbit-board-';         // the board of each program has its own copy: users/{uid}/saves/microbit-board-{program id}
 
     // The blocks a child can use. Each block is sent as its name and value only; the app writes the code.
     // group: '' = the main list, 'tilt' = the four tilts (tiles), 'v2' = needs a micro:bit V2 (the sound and the logo)
@@ -305,13 +327,24 @@
     let connectionState = 'checking';
     let editingDraw = null;  // the place of the drawing being changed, or null for a new one
     let drawing = [];      // the 5x5 drawing: true = lit
-    let extensions = { car: false, remote: false }; // the add-ons of the program on the screen: off until turned on
+    let extensions = { car: false, remote: false, board: false }; // the add-ons of the program on the screen: off until turned on
+    let boardData = null;    // "my board" of the program (kept as it is; the board add-on checks it). It never goes to the micro:bit.
+    let boardView = false;   // true while the "my board" tab is shown
 
     const $ = (id) => document.getElementById(id);
     const copy = (value) => JSON.parse(JSON.stringify(value));
     const eventInfo = (event) => WHEN.find(w => w.event === event);
     const currentScript = () => scripts[selected] || null;
-    const totalActions = () => scripts.reduce((n, s) => n + s.actions.length, 0);
+    // A story of "when it starts", A or B can also hold blocks of "my board". The micro:bit runs its own blocks and
+    // the board runs the board's blocks. Only the micro:bit's blocks count toward the limits the app checks, and
+    // only they are ever sent: the send below keeps just the blocks of KNOWN_ACTIONS.
+    const BOARD_DO = ['bLampOn', 'bLampOff', 'bAdd', 'bReset', 'bShow', 'bWord', 'bBlank'];
+    const isBoardAction = (a) => BOARD_DO.includes(a.do);
+    const mbActions = (s) => s.actions.filter(a => !isBoardAction(a));
+    const hasBoardBlocks = (s) => s.actions.some(isBoardAction);
+    // What the app counts for a story: its own blocks, and one more when the story also tells the board ("board" block)
+    const sentCount = (s) => mbActions(s).length + (hasBoardBlocks(s) ? 1 : 0);
+    const totalActions = () => scripts.reduce((n, s) => n + sentCount(s), 0);
 
     // A letter (A or B) is shown in a blue circle, an emoji as it is
     function markFor(info) {
@@ -460,9 +493,9 @@
     function loadExtensions() {
         try {
             const saved = JSON.parse(localStorage.getItem(EXT_KEY) || '{}');
-            extensions = { car: saved.car === true, remote: saved.remote === true };
+            extensions = { car: saved.car === true, remote: saved.remote === true, board: saved.board === true };
         } catch (e) {
-            // a damaged setting is ignored: both add-ons stay off
+            // a damaged setting is ignored: every add-on stays off
         }
     }
 
@@ -479,11 +512,12 @@
     function renderExtensions() {
         $('carPart').hidden = !extensions.car;
         $('remoteWhen').hidden = !extensions.remote;
+        renderBoardTabs();
     }
 
     // The add-ons of a program that was opened (or of a new one): they replace the ones on the screen
     function applyExtensions(next) {
-        extensions = { car: !!next.car, remote: !!next.remote };
+        extensions = { car: !!next.car, remote: !!next.remote, board: !!next.board };
         try {
             localStorage.setItem(EXT_KEY, JSON.stringify(extensions));
         } catch (e) {
@@ -521,6 +555,203 @@
         return b;
     }
 
+    // ---- "my board": an add-on that is loaded only when it is on. If it fails to load, the page works as before. ----
+    let boardLoad = null;   // null = not tried yet, 'loading', true = ready, false = failed
+
+    function hasBoardContent() {
+        return !!(boardData && ((boardData.strokes || []).length || (boardData.parts || []).length || (boardData.stories || []).length));
+    }
+
+    function boardHost() {
+        return {
+            root: $('boardView'),
+            link: { start: linkStart, stop: linkStop },
+            stories: {
+                when: $('boardWhenButtons'),
+                list: $('boardStoryList'),
+                then: $('boardThen'),
+                does: $('boardDoes'),
+                // A board story was chosen, added or deleted: no micro:bit story is chosen with it
+                onSelect: () => {
+                    if (window.MyBoard.hasSelection()) selected = -1;
+                    renderScripts();
+                    renderProgram();
+                    renderBoardPanels();
+                    updateSend();
+                    saveDraft();
+                },
+                // The page's own stories, so the board can run the blocks of the board in "when it starts", A and B
+                getScripts: () => scripts,
+                // True when a story of the page is chosen: every event of the micro:bit can run blocks of the board
+                sharedTarget: () => !!currentScript(),
+                addToScript: (action) => addAction(action),
+                // A part was taken off the board: its blocks leave the page's stories too
+                removePartRefs: (id) => {
+                    scripts.forEach(sc => { sc.actions = sc.actions.filter(a => a.part !== id); });
+                    changed();
+                },
+                usesPart: (id) => scripts.some(sc => sc.actions.some(a => a.part === id)),
+                openStories: () => showBoardTab(false),
+                tryBoard: () => {
+                    showBoardTab(true);
+                    window.MyBoard.play();
+                },
+            },
+            get: () => boardData,
+            update: (board) => {
+                boardData = board;
+                updateSend();
+                renderLibrary();
+                saveDraftSoon();
+            },
+        };
+    }
+
+    function loadBoardAddon() {
+        if (boardLoad !== null) return;
+        boardLoad = 'loading';
+        try {
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'board/board.css';
+            document.head.appendChild(css);
+            const script = document.createElement('script');
+            script.src = 'board/board.js';
+            script.onload = () => {
+                try {
+                    window.MyBoard.init(boardHost());
+                    window.MyBoard.onScreenChange = (partId, state) => linkShow(state);
+                    window.MyBoard.onMicrobitOutput = (a) => linkOutput(a);
+                    boardLoad = true;
+                    renderBoardTabs();
+                    pruneBoardBlocks();
+                } catch (e) {
+                    boardLoad = false;
+                    renderBoardTabs();
+                }
+            };
+            script.onerror = () => {
+                boardLoad = false;
+                renderBoardTabs();
+            };
+            document.head.appendChild(script);
+        } catch (e) {
+            boardLoad = false;
+            renderBoardTabs();
+        }
+    }
+
+    function showBoardTab(on) {
+        boardView = on && boardLoad === true;
+        $('builderView').hidden = boardView;
+        $('boardView').hidden = !boardView;
+        $('tabStories').setAttribute('aria-pressed', String(!boardView));
+        $('tabBoard').setAttribute('aria-pressed', String(boardView));
+        try {
+            if (window.MyBoard && boardLoad === true) window.MyBoard.setVisible(boardView);
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // The tabs are there only while the add-on is on; when it is off the page is exactly the stories page
+    function renderBoardTabs() {
+        // If the board could not be loaded, the tabs stay away and the child is told in a friendly way
+        $('viewTabs').hidden = !extensions.board || boardLoad === false;
+        $('boardNote').hidden = !(extensions.board && boardLoad === false);
+        if (extensions.board) {
+            loadBoardAddon();
+            showBoardTab(boardView);
+        } else {
+            showBoardTab(false);
+        }
+        renderBoardPanels();
+    }
+
+    const boardReady = () => extensions.board && boardLoad === true && !!window.MyBoard;
+
+    // The board's blocks live in the same three columns as the micro:bit's. A board story is chosen in place of
+    // a micro:bit story: then the "and then?" and "what does it do?" columns show the board's blocks.
+    function renderBoardPanels() {
+        const on = boardReady();
+        let open = false;
+        try {
+            if (on) {
+                window.MyBoard.renderStories();
+                open = window.MyBoard.hasSelection();
+            }
+        } catch (e) {
+            open = false;
+        }
+        $('boardWhen').hidden = !on;
+        $('boardStoryList').hidden = !on;
+        $('mbThen').hidden = false;       // the micro:bit's blocks are for every story, also a story of the board
+        $('carPart').hidden = open || !extensions.car;   // the car is not part of the board's stories
+        $('boardThen').hidden = !on;      // the board's blocks, or a line that says where they work
+        $('boardDoes').hidden = !open;
+        try {
+            if (on) window.MyBoard.refresh();
+        } catch (e) {
+            // the board is only an extra
+        }
+        ['scriptTitle', 'sequence', 'hint', 'clearAll'].forEach(id => { $(id).hidden = open; });
+    }
+
+    // How a block of the board looks in a story. Without the board it is a plain block that can still be deleted.
+    function describeBoardAction(a) {
+        try {
+            if (boardReady()) return window.MyBoard.describeAction(a);
+        } catch (e) {
+            // the board is only an extra
+        }
+        return { emoji: '🖼️', label: 'בלוק של הלוח' };
+    }
+
+    // Blocks of a part that is not on the board any more are taken out
+    function pruneBoardBlocks() {
+        if (!boardReady()) return;
+        let any = false;
+        scripts.forEach(sc => {
+            const kept = sc.actions.filter(a => !isBoardAction(a) || window.MyBoard.hasPart(a.part));
+            if (kept.length !== sc.actions.length) {
+                sc.actions = kept;
+                any = true;
+            }
+        });
+        if (any) changed();
+    }
+
+    function boardStoryCount() {
+        try {
+            return boardReady() ? window.MyBoard.storyCount() : 0;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    // A micro:bit story was chosen: no board story stays chosen
+    function boardDeselect() {
+        try {
+            if (boardReady()) window.MyBoard.deselect();
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // A program was opened, or a new one started: the board shows its board
+    function reloadBoard() {
+        try {
+            if (window.MyBoard && boardLoad === true) window.MyBoard.reload();
+        } catch (e) {
+            // the board is only an extra
+        }
+        renderBoardPanels();
+        pruneBoardBlocks();
+    }
+
+    $('tabStories').addEventListener('click', () => showBoardTab(false));
+    $('tabBoard').addEventListener('click', () => showBoardTab(true));
+
     // ---- scripts ----
     function addScript(event, key) {
         if (scripts.length >= MAX_SCRIPTS) {
@@ -536,23 +767,49 @@
         const s = scripts[index];
         if (s.actions.length > 0 && !confirm('למחוק את הסיפור "' + scriptInfo(s).label + '"?')) return;
         scripts.splice(index, 1);
-        selected = scripts.length ? Math.min(index, scripts.length - 1) : -1;
+        const boardChosen = boardReady() && window.MyBoard.hasSelection();
+        selected = boardChosen || !scripts.length ? -1 : Math.min(index, scripts.length - 1);
         changed();
     }
 
+    // A block of the micro:bit (a picture, a drawing, a wait ...) goes to the chosen story of the board when there is one:
+    // the board plays it on the micro:bit through the link
+    const boardStoryChosen = () => boardReady() && window.MyBoard.hasSelection();
+
     function addAction(action) {
+        if (!isBoardAction(action) && boardStoryChosen()) {
+            try {
+                return window.MyBoard.addMicrobitAction(copy(action));
+            } catch (e) {
+                return false;
+            }
+        }
         const s = currentScript();
         if (!s) {
             $('hint').textContent = 'קודם לחצו על "מתי?" כדי לבחור מתי זה יקרה.';
             return false;
         }
-        if (s.actions.length >= MAX_ACTIONS) {
-            $('hint').textContent = 'יש כבר 12 סמלים בסיפור הזה. מחקו אחד כדי להוסיף.';
-            return false;
-        }
-        if (totalActions() >= MAX_TOTAL) {
-            $('hint').textContent = 'יש כבר 24 סמלים בכל התוכנית. מחקו אחד כדי להוסיף.';
-            return false;
+        if (isBoardAction(action)) {
+            if (s.actions.filter(isBoardAction).length >= MAX_ACTIONS) {
+                $('hint').textContent = 'יש כבר 12 בלוקים של הלוח בסיפור הזה. מחקו אחד כדי להוסיף.';
+                return false;
+            }
+            // The first block of the board in a story takes one place of the micro:bit's blocks: it tells the page
+            if (!hasBoardBlocks(s) && (sentCount(s) >= MAX_ACTIONS || totalActions() >= MAX_TOTAL)) {
+                $('hint').textContent = 'אין מקום לבלוק של הלוח: הוא לוקח מקום אחד מהסמלים. מחקו סמל כדי להוסיף.';
+                return false;
+            }
+        } else {
+            if (sentCount(s) >= MAX_ACTIONS) {
+                $('hint').textContent = hasBoardBlocks(s)
+                    ? 'יש כבר 12 סמלים בסיפור הזה (אחד מהם בשביל הלוח). מחקו אחד כדי להוסיף.'
+                    : 'יש כבר 12 סמלים בסיפור הזה. מחקו אחד כדי להוסיף.';
+                return false;
+            }
+            if (totalActions() >= MAX_TOTAL) {
+                $('hint').textContent = 'יש כבר 24 סמלים בכל התוכנית. מחקו אחד כדי להוסיף.';
+                return false;
+            }
         }
         s.actions.push(action);
         changed();
@@ -583,7 +840,7 @@
             label.textContent = info.label;
             const count = document.createElement('span');
             count.className = 'script-count';
-            count.textContent = s.actions.length + '/' + MAX_ACTIONS;
+            count.textContent = mbActions(s).length + '/' + MAX_ACTIONS;
             pick.append(markFor(info), label, count);
             pick.addEventListener('click', () => {
                 selected = i;
@@ -602,7 +859,7 @@
             list.appendChild(li);
         });
         $('scriptCount').textContent = scripts.length + '/' + MAX_SCRIPTS;
-        $('scriptEmpty').hidden = scripts.length > 0;
+        $('scriptEmpty').hidden = scripts.length > 0 || boardStoryCount() > 0;
         document.querySelectorAll('.when-btn, .tilt-btn, .remote-btn').forEach(b => {
             b.disabled = scripts.length >= MAX_SCRIPTS;
         });
@@ -677,8 +934,9 @@
             emoji.className = 'emoji';
             emoji.setAttribute('aria-hidden', 'true');
             const isDrawing = action.do === 'draw';
-            const name = isDrawing ? 'ציור שלי' : (tile ? tile.label : '');
-            emoji.textContent = isDrawing ? '🎨' : (tile ? tile.emoji : '?');
+            const boardInfo = isBoardAction(action) ? describeBoardAction(action) : null;
+            const name = isDrawing ? 'ציור שלי' : boardInfo ? '🖼️ ' + boardInfo.label : (tile ? tile.label : '');
+            emoji.textContent = isDrawing ? '🎨' : boardInfo ? boardInfo.emoji : (tile ? tile.emoji : '?');
             const label = document.createElement('span');
             label.className = 'label';
             label.textContent = name;
@@ -701,7 +959,7 @@
             li.appendChild(remove);
             list.appendChild(li);
         });
-        $('count').textContent = (s ? s.actions.length : 0) + '/' + MAX_ACTIONS;
+        $('count').textContent = (s ? mbActions(s).length : 0) + '/' + MAX_ACTIONS;
         $('scriptTitle').textContent = s ? 'הסיפור: ' + scriptInfo(s).label : 'עדיין לא נבחר סיפור.';
         $('clearAll').disabled = !s || s.actions.length === 0;
         $('hint').textContent = !s ? 'קודם לחצו על "מתי?", ואז בחרו סמלים.'
@@ -709,17 +967,54 @@
             : 'הדברים יקרו לפי הסדר, מלמעלה למטה. אפשר לגרור כדי לשנות מקום ↕️';
     }
 
+    // Blocks of the board in a story of the page: the micro:bit starts them (it starts, A, B, a shake ...). The story is
+    // sent to the micro:bit like any other, with one more block that tells the page when it started.
+    function hasBlocksWaitingForMicrobit() {
+        return scripts.some(hasBoardBlocks);
+    }
+
+    // The board's own stories (a button, a slider, a key) can use the micro:bit's output blocks: they show on the micro:bit
+    const MB_OUT = ['show', 'text', 'draw', 'clear'];
+    function boardStoriesDriveMicrobit() {
+        return !!(boardData && Array.isArray(boardData.stories)
+            && boardData.stories.some(st => Array.isArray(st.actions) && st.actions.some(a => MB_OUT.includes(a.do))));
+    }
+
+    // Anything on the board that needs the micro:bit on the cable
+    function boardNeedsMicrobit() {
+        return hasBlocksWaitingForMicrobit() || boardStoriesDriveMicrobit();
+    }
+
+    // Stories of the parts of the board (a button, a slider, a key): they work on the screen, the micro:bit is not needed
+    function hasBoardOnlyStories() {
+        return !!(boardData && Array.isArray(boardData.stories) && boardData.stories.length);
+    }
+
+    const NOTHING_TO_SEND = 'קודם בנו סיפור מסמלים, ואז אפשר לשלוח 🧩';
+    const BOARD_NEEDS_CABLE = 'אחרי השליחה, השאירו את המיקרוביט מחובר בכבל ופתחו את "הלוח שלי" ▶️. המיקרוביט יפעיל את הלוח 🔌';
+    const BOARD_ONLY = 'מה שבניתם עובד בלוח 🖼️ ואין צורך לשלוח אותו למיקרוביט. אפשר לנסות אותו בלוח ▶️';
+
+    // What to tell the child under the send button
+    function sendNoteText(count) {
+        if (boardNeedsMicrobit()) return BOARD_NEEDS_CABLE;
+        if (count > 0) return '';
+        if (hasBoardOnlyStories()) return BOARD_ONLY;
+        return NOTHING_TO_SEND;
+    }
+
     // The send button depends only on the program. The send itself reports any real problem
     // (no board, no extension, no app), so the status check never blocks a send that would work.
     function updateSend() {
-        const count = totalActions();
+        // The program also needs a story that only listens when the board's own stories show things on the micro:bit
+        const count = totalActions() + (boardStoriesDriveMicrobit() && !scripts.some(hasBoardBlocks) ? 1 : 0);
         const ready = count > 0 && gamesOff === false && !installing;
         $('sendBtn').disabled = !ready;
         $('sendBtn').textContent = sentThisTime ? '🚀 שלחו שוב!' : '🚀 שלחו!';
-        $('sendNote').textContent = count === 0 ? 'קודם בנו סיפור מסמלים, ואז אפשר לשלוח 🧩' : '';
+        $('sendNote').textContent = sendNoteText(count);
     }
 
     function changed() {
+        if (selected >= 0) boardDeselect();
         sentThisTime = false;
         $('libNote').textContent = '';
         $('sendError').textContent = '';
@@ -727,6 +1022,7 @@
         renderProgram();
         renderLibrary();
         updateSend();
+        renderBoardPanels();
         saveDraft();
     }
 
@@ -734,16 +1030,49 @@
     // Keeps only the shape of a saved program; the app checks every block again when it is sent
     const KNOWN_ACTIONS = ['show', 'wait', 'text', 'draw', 'drive', 'stop', 'clear'];
 
+    // A block of the board keeps only its name and the few values it needs
+    function cleanBoardAction(a) {
+        if (typeof a.part !== 'string' || !/^[a-z0-9]{1,12}$/.test(a.part)) return null;
+        const out = { do: a.do, part: a.part };
+        if (a.do === 'bAdd') out.n = 1;
+        if (a.do === 'bShow') {
+            if (typeof a.icon !== 'string' || !/^[a-z]{2,12}$/.test(a.icon)) return null;
+            out.icon = a.icon;
+        }
+        if (a.do === 'bWord') {
+            if (typeof a.word !== 'string' || !/^[A-Z]{2,4}$/.test(a.word)) return null;
+            out.word = a.word;
+        }
+        return out;
+    }
+
     function cleanScripts(input) {
         const result = [];
         let total = 0;
         if (!Array.isArray(input)) return result;
         for (const s of input) {
             if (result.length >= MAX_SCRIPTS || !s || !scriptInfo(s)) continue;
-            // Blocks the page does not have any more (the old "my board" lamps and numbers) are dropped
-            const actions = Array.isArray(s.actions) ? s.actions.filter(a => a && KNOWN_ACTIONS.includes(a.do)) : [];
-            const kept = actions.slice(0, Math.max(0, Math.min(MAX_ACTIONS, MAX_TOTAL - total)));
-            total += kept.length;
+            // Blocks the page does not have any more are dropped. The blocks of "my board" are kept, in their place.
+            const kept = [];
+            let mbCount = 0;
+            let boardCount = 0;
+            // A story with blocks of the board also sends one "board" block: its place is kept free
+            const reserve = Array.isArray(s.actions) && s.actions.some(a => a && BOARD_DO.includes(a.do) && cleanBoardAction(a)) ? 1 : 0;
+            for (const a of Array.isArray(s.actions) ? s.actions : []) {
+                if (!a) continue;
+                if (KNOWN_ACTIONS.includes(a.do)) {
+                    if (mbCount >= MAX_ACTIONS - reserve || total + mbCount >= MAX_TOTAL - reserve) continue;
+                    mbCount++;
+                    kept.push(a);
+                } else if (BOARD_DO.includes(a.do) && boardCount < MAX_ACTIONS) {
+                    const clean = cleanBoardAction(a);
+                    if (clean) {
+                        boardCount++;
+                        kept.push(clean);
+                    }
+                }
+            }
+            total += mbCount + reserve;
             result.push(s.event === 'remote' ? { event: s.event, key: s.key, actions: kept } : { event: s.event, actions: kept });
         }
         return result;
@@ -766,7 +1095,10 @@
                 name: p.name.slice(0, 30),
                 scripts: cleanScripts(p.scripts),
                 // The add-ons that are on for this program
-                extensions: { car: !!(p.extensions && p.extensions.car), remote: !!(p.extensions && p.extensions.remote) },
+                extensions: { car: !!(p.extensions && p.extensions.car), remote: !!(p.extensions && p.extensions.remote), board: !!(p.extensions && p.extensions.board) },
+                // "My board" of the program. The account keeps it in a document of its own (hasBoard says there is one)
+                board: p.board && typeof p.board === 'object' ? p.board : null,
+                hasBoard: !!(p.board || p.hasBoard),
             }));
     }
 
@@ -794,9 +1126,20 @@
     // Saves the whole list in the account. If that fails, the copy on this device stays and the child is told
     async function pushToCloud(list) {
         try {
-            await KidLearn.saveData(CLOUD_ID, { programs: list });
+            // The boards are big, so each one is saved in its own document and the list only says which programs have one
+            const slim = list.map(({ board, ...rest }) => ({ ...rest, hasBoard: !!board }));
+            await KidLearn.saveData(CLOUD_ID, { programs: slim });
         } catch (e) {
             $('libNote').textContent = 'לא הצלחנו לשמור בענן. התוכנית נשמרה במכשיר הזה.';
+        }
+    }
+
+    async function pushBoard(id, board) {
+        if (!KidLearn.currentUser()) return;
+        try {
+            await KidLearn.saveData(BOARD_CLOUD_ID + id, { board: board || null });
+        } catch (e) {
+            $('libNote').textContent = 'לא הצלחנו לשמור את הלוח בענן. הוא נשמר במכשיר הזה.';
         }
     }
 
@@ -822,20 +1165,44 @@
             return;
         }
         if (cloud && Array.isArray(cloud.programs)) {
-            writeCache(normalizeSaved(cloud.programs));
+            const before = readSaved();
+            const programs = normalizeSaved(cloud.programs);
+            // The boards come from their own documents. If one can not be read now, the copy on this device is kept.
+            await Promise.all(programs.map(async (p) => {
+                if (!p.hasBoard) return;
+                try {
+                    const doc = await KidLearn.loadData(BOARD_CLOUD_ID + p.id);
+                    if (doc && doc.board && typeof doc.board === 'object') p.board = doc.board;
+                    else if (!doc) p.board = (before.find(x => x.id === p.id) || {}).board || null;
+                } catch (e) {
+                    p.board = (before.find(x => x.id === p.id) || {}).board || null;
+                }
+            }));
+            writeCache(programs);
         } else {
             const guest = readList(SAVED_KEY);
             if (guest.length) {
                 writeCache(guest);
                 await pushToCloud(guest);
+                for (const p of guest) {
+                    if (p.board) await pushBoard(p.id, p.board);
+                }
             }
         }
         renderLibrary();
     }
 
+    let draftTimer = 0;
+    // The board changes a lot while a child draws, so its draft is written a moment after the last change
+    function saveDraftSoon() {
+        clearTimeout(draftTimer);
+        draftTimer = setTimeout(saveDraft, 400);
+    }
+
     function saveDraft() {
+        clearTimeout(draftTimer);
         try {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify({ scripts, selected, openId, name: $('progName').value }));
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ scripts, selected, openId, name: $('progName').value, board: boardData }));
         } catch (e) {
             // storage is blocked: the work lasts until the page is closed
         }
@@ -848,6 +1215,7 @@
             scripts = cleanScripts(d.scripts);
             selected = scripts.length ? Math.min(Math.max(0, Number(d.selected) || 0), scripts.length - 1) : -1;
             openId = typeof d.openId === 'string' ? d.openId : null;
+            boardData = d.board && typeof d.board === 'object' ? d.board : null;
             $('progName').value = typeof d.name === 'string' ? d.name.slice(0, 30) : '';
             enableFor(scripts);
         } catch (e) {
@@ -858,8 +1226,9 @@
     // True when what is on the screen is not what is saved under its name
     function isDirty() {
         const open = readSaved().find(p => p.id === openId);
-        if (!open) return scripts.length > 0;
-        return JSON.stringify(scripts) !== JSON.stringify(open.scripts) || $('progName').value.trim() !== open.name;
+        if (!open) return scripts.length > 0 || hasBoardContent();
+        return JSON.stringify(scripts) !== JSON.stringify(open.scripts) || $('progName').value.trim() !== open.name
+            || JSON.stringify(boardData || null) !== JSON.stringify(open.board || null);
     }
 
     function renderLibrary() {
@@ -897,7 +1266,7 @@
     }
 
     function saveProgram() {
-        if (scripts.length === 0) {
+        if (scripts.length === 0 && !hasBoardContent()) {
             $('libNote').textContent = 'בנו משהו לפני שמירה 🧩';
             return;
         }
@@ -908,18 +1277,23 @@
             program.name = typed || program.name;
             program.scripts = copy(scripts);
             program.extensions = copy(extensions);
+            program.board = boardData ? copy(boardData) : null;
         } else {
             if (saved.length >= MAX_SAVED) {
                 $('libNote').textContent = 'יש כבר ' + MAX_SAVED + ' תוכניות. מחקו אחת כדי לשמור עוד.';
                 return;
             }
-            program = { id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: typed || 'תוכנית ' + (saved.length + 1), scripts: copy(scripts), extensions: copy(extensions) };
+            program = { id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: typed || 'תוכנית ' + (saved.length + 1), scripts: copy(scripts), extensions: copy(extensions), board: boardData ? copy(boardData) : null };
             saved.push(program);
             openId = program.id;
         }
         if (!writeSaved(saved)) {
             $('libNote').textContent = 'לא הצלחנו לשמור במכשיר הזה.';
             return;
+        }
+        if (program.board || program.hasBoard) {
+            pushBoard(program.id, program.board);
+            program.hasBoard = !!program.board;
         }
         $('progName').value = program.name;
         $('libNote').textContent = KidLearn.currentUser() ? 'נשמר בחשבון שלכם!' : 'נשמר! ✅';
@@ -934,11 +1308,13 @@
         scripts = copy(p.scripts);
         applyExtensions(p.extensions || {});
         enableFor(scripts);
+        boardData = p.board ? copy(p.board) : null;
         selected = scripts.length ? 0 : -1;
         openId = p.id;
         $('progName').value = p.name;
         sentThisTime = false;
         changed();
+        reloadBoard();
     }
 
     function deleteProgram(id) {
@@ -946,6 +1322,7 @@
         const p = saved.find(x => x.id === id);
         if (!p || !confirm('למחוק את "' + p.name + '"?')) return;
         writeSaved(saved.filter(x => x.id !== id));
+        if (p.board || p.hasBoard) pushBoard(id, null);
         // What is on the screen stays, as work that is not saved
         if (openId === id) openId = null;
         $('libNote').textContent = 'נמחקה: ' + p.name;
@@ -960,9 +1337,11 @@
         openId = null;
         $('progName').value = '';
         sentThisTime = false;
-        // A new program starts with every add-on off
+        // A new program starts with every add-on off, and with an empty board
+        boardData = null;
         applyExtensions({});
         changed();
+        reloadBoard();
     }
 
     // ---- status ----
@@ -1044,17 +1423,29 @@
     $('sendBtn').addEventListener('click', async () => {
         if (installing) return;
         const toSend = scripts
-            .map(s => ({ ...s, actions: s.actions.filter(a => KNOWN_ACTIONS.includes(a.do)) }))
+            .map(s => ({ ...s, actions: [...(hasBoardBlocks(s) ? [{ do: 'board' }] : []), ...s.actions.filter(a => KNOWN_ACTIONS.includes(a.do))] }))
             .filter(s => s.actions.length > 0);
-        if (toSend.length === 0) return sendFailed('בנו סיפור מסמלים לפני שליחה 🧩');
+        // The board's own stories show things on the micro:bit: the program must listen to the page. A story that only
+        // says "board" does that (and a story that already says it is enough).
+        if (boardStoriesDriveMicrobit() && !toSend.some(sc => sc.actions[0].do === 'board')) {
+            if (toSend.length < MAX_SCRIPTS) toSend.push({ event: 'start', actions: [{ do: 'board' }] });
+            else if (toSend[0].actions.length < MAX_ACTIONS) toSend[0].actions.unshift({ do: 'board' });
+        }
+        if (toSend.length === 0) return sendFailed(sendNoteText(0));
         installing = true;
         $('sendError').textContent = '';
         setStatus('sending');
+        // The link holds the cable while the board plays: a send always comes first, and the link comes back after it
+        const resumeLink = link.on;
+        await linkStop();
+        if (resumeLink) setBoardLinked(false, 'sending'); // the board is still playing: it says why nothing happens for a moment
         const reply = await KidLearnBridge.request('installMicrobit', { program: copy({ scripts: toSend }) }, { timeoutMs: 60000 });
         installing = false;
+        if (resumeLink) resumeBoardLink();
         if (reply.ok) {
             sentThisTime = true;
-            return setStatus('sent');
+            setStatus('sent');
+            return playBoardAfterSend();
         }
         sentThisTime = false;
         if (reply.error === 'extension_missing') {
@@ -1079,6 +1470,153 @@
         }
         setStatus('ready');
         sendFailed('התוכנית לא נשלחה (' + reply.error + '). נסו שוב, ואם זה חוזר, פתחו את ההתקנה מחדש.');
+    });
+
+    // ---- the link between "my board" and the micro:bit on the cable ----
+    // While the board plays and a story has blocks of the board, the page asks the app (through the extension) what the
+    // micro:bit said, and the board runs its blocks. What the screens of the board show goes back to the micro:bit's screen.
+    // Everything here is quiet: without the extension, the app or the cable the board still plays, and says what is missing.
+    const LINK_POLL_MS = 400;   // each question starts a small helper program of the extension, so not more often than this
+    const link = { on: false, linked: false, reason: '', timer: 0, slow: 0, queue: Promise.resolve() };
+    const LINK_SLOW_MS = 6000;   // after this long without an answer the child is told to plug the cable again
+
+    function linkReasonFor(error) {
+        if (error === 'extension_missing') return 'extension';
+        if (error === 'app_not_running' || error === 'host_unavailable' || error === 'no_reply' || error === 'timeout') return 'app';
+        if (error === 'no_microbit') return 'cable';
+        if (error === 'port_busy') return 'busy';
+        if (error === 'unknown_action' || error === 'forbidden') return 'update';
+        return 'other';
+    }
+
+    function setBoardLinked(on, reason) {
+        link.linked = on;
+        link.reason = on ? '' : (reason || '');
+        try {
+            if (window.MyBoard) window.MyBoard.setMicrobitLinked(on, reason);
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // The micro:bit said that a story started: "buttonA", "start", "remote:up" ...
+    function deliverFromMicrobit(name) {
+        try {
+            if (name.startsWith('remote:')) window.MyBoard.microbitEvent('remote', name.slice(7));
+            else window.MyBoard.microbitEvent(name);
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    async function linkTick() {
+        if (!link.on) return;
+        let wait = LINK_POLL_MS;
+        try {
+            if (installing) {
+                setBoardLinked(false, 'sending');              // a send is using the cable: say so, and wait
+                wait = 1000;
+            } else if (!document.documentElement.dataset.kidlearnBridge) {
+                setBoardLinked(false, 'extension');            // the page itself says the extension is not installed
+                wait = 4000;
+            } else if (!link.linked) {
+                const reply = await KidLearnBridge.request('boardLinkStart', null, { timeoutMs: 6000 });
+                if (!link.on) return;
+                if (reply.ok) {
+                    setBoardLinked(true);
+                } else {
+                    setBoardLinked(false, linkReasonFor(reply.error));
+                    wait = 3000;
+                }
+            } else {
+                const reply = await KidLearnBridge.request('boardLinkPoll', null, { timeoutMs: 4000 });
+                if (!link.on) return;
+                if (reply.ok && reply.data && reply.data.linked) {
+                    (reply.data.events || []).forEach(deliverFromMicrobit);
+                } else {
+                    setBoardLinked(false, reply.ok ? 'cable' : linkReasonFor(reply.error));
+                    wait = 1000;
+                }
+            }
+        } catch (e) {
+            setBoardLinked(false, 'other');                    // never stay on "connecting" without a way out
+            wait = 3000;
+        }
+        if (link.on) link.timer = setTimeout(linkTick, wait);
+    }
+
+    // The board started playing
+    function linkStart() {
+        if (link.on || !boardNeedsMicrobit()) return;
+        link.on = true;
+        setBoardLinked(false, '');
+        // "connecting..." is for a moment. If it lasts, the child is told what to do.
+        clearTimeout(link.slow);
+        link.slow = setTimeout(() => {
+            if (link.on && !link.linked && link.reason === '') setBoardLinked(false, 'slow');
+        }, LINK_SLOW_MS);
+        linkTick();
+    }
+
+    // The program is on the micro:bit: if the board has something for it, the board opens in "play" and connects by itself
+    function playBoardAfterSend() {
+        try {
+            if (boardReady() && boardNeedsMicrobit()) {
+                showBoardTab(true);
+                window.MyBoard.play();
+            }
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // A send is over: if the board is still playing, it connects again by itself
+    function resumeBoardLink() {
+        try {
+            if (boardReady() && window.MyBoard.isPlaying()) linkStart();
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // The board stopped playing, or a send is about to use the cable
+    async function linkStop() {
+        const wasLinked = link.linked;
+        link.on = false;
+        clearTimeout(link.timer);
+        clearTimeout(link.slow);
+        setBoardLinked(false, '');
+        if (wasLinked) {
+            try {
+                await KidLearnBridge.request('boardLinkStop');
+            } catch (e) {
+                // the app closes the link by itself a few seconds after the page stops asking
+            }
+        }
+    }
+
+    // One thing to show on the micro:bit's screen: { kind: 'icon' | 'word' | 'draw' | 'clear', value }. In order, one by one.
+    function sendToMicrobit(payload) {
+        if (!link.on || !link.linked) return;
+        link.queue = link.queue.then(() => KidLearnBridge.request('boardLinkShow', payload)).catch(() => {});
+    }
+
+    // What a screen of the board shows now goes to the micro:bit's own screen (one picture, one word, or clear)
+    function linkShow(state) {
+        const payload = !state ? { kind: 'clear' } : state.icon ? { kind: 'icon', value: state.icon } : state.mb ? { kind: 'word', value: state.mb } : null;
+        if (payload) sendToMicrobit(payload);
+    }
+
+    // A block of the micro:bit in a story of the board (a picture, a word, a drawing, clear)
+    function linkOutput(a) {
+        sendToMicrobit(a.do === 'show' ? { kind: 'icon', value: a.icon }
+            : a.do === 'text' ? { kind: 'word', value: a.word }
+            : a.do === 'draw' ? { kind: 'draw', value: a.pixels }
+            : { kind: 'clear' });
+    }
+
+    window.addEventListener('pagehide', () => {
+        if (link.linked) KidLearnBridge.request('boardLinkStop');
     });
 
     // ---- on or off ----
