@@ -153,6 +153,16 @@
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
+      "id": "dictation-game",
+      "title": "הכתבה",
+      "description": "מכניסים מילים, מקשיבים ומקלידים!",
+      "icon": "✍️",
+      "url": "dictation-game/index.html",
+      "categories": ["he", "games"],
+      "grade": ["first", "second", "third", "fourth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
       "id": "facts",
       "title": "עובדות",
       "description": "לגלות עובדות מעניינות וידע כללי.",
