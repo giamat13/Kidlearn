@@ -39,6 +39,8 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
@@ -386,9 +388,68 @@
         .games-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #FFF8F0; border-radius: 14px; padding: 10px 14px; }
         .games-row-name { font-weight: 700; font-size: 16px; color: #2B2433; }
         .games-row-cat { font-size: 13px; color: #5B5366; margin-top: 2px; }
+
+        /* Decorations: purely visual, behind the content and never clickable */
+        .deco-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .deco {
+            position: absolute;
+            opacity: 0.55;
+            animation: deco-float 7s ease-in-out infinite;
+        }
+
+        .deco:nth-child(even) {
+            animation-delay: -3s;
+        }
+
+        @keyframes deco-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-14px) rotate(8deg); }
+        }
+
+        .bunting {
+            display: block;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            margin: 0 auto 8px;
+        }
+
+        @media (max-width: 768px) {
+            .deco:nth-child(n + 5):not(.heart) {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .deco {
+                animation: none;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Background decorations: purely visual -->
+    <div class="deco-layer" aria-hidden="true">
+        <svg class="deco" style="left: 4%; top: 12%; width: 56px;" viewBox="0 0 48 48"><polygon points="24,7 28.4,17.9 40.2,18.8 31.1,26.3 34,37.8 24,31.5 14,37.8 16.9,26.3 7.8,18.8 19.6,17.9" fill="#FEC163"/></svg>
+        <svg class="deco" style="right: 6%; top: 18%; width: 84px;" viewBox="0 0 48 48"><g fill="#60A5FA"><circle cx="16" cy="30" r="9"/><circle cx="28" cy="24" r="13"/><circle cx="38" cy="31" r="8"/><rect x="7" y="30" width="39" height="10" rx="5"/></g></svg>
+        <svg class="deco" style="left: 10%; top: 58%; width: 40px;" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16" fill="none" stroke="#A78BFA" stroke-width="6"/></svg>
+        <svg class="deco" style="right: 12%; top: 52%; width: 72px;" viewBox="0 0 48 48"><path d="M2 24q6-12 12 0t12 0t12 0t8 0" fill="none" stroke="#34D399" stroke-width="5" stroke-linecap="round"/></svg>
+        <svg class="deco" style="left: 3%; top: 80%; width: 44px;" viewBox="0 0 48 48"><path d="M24 6L42 40H6Z" fill="#67D5B5"/></svg>
+        <svg class="deco" style="right: 4%; top: 80%; width: 44px;" viewBox="0 0 48 48"><path d="M24 4L28 20L44 24L28 28L24 44L20 28L4 24L20 20Z" fill="#FB923C"/></svg>
+        <svg class="deco" style="left: 72%; top: 8%; width: 22px;" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#FF6B9D"/></svg>
+        <svg class="deco heart" style="left: 30%; top: 88%; width: 36px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#FF6B9D"/></svg>
+        <svg class="deco heart" style="left: 20%; top: 34%; width: 28px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#FB923C"/></svg>
+        <svg class="deco heart" style="right: 24%; top: 70%; width: 34px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#FF6B9D"/></svg>
+        <svg class="deco heart" style="left: 56%; top: 92%; width: 26px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#A78BFA"/></svg>
+    </div>
+
     <!-- Settings / Onboarding Modal -->
     <div class="modal-overlay hidden" id="modalOverlay">
         <div class="modal">
@@ -452,6 +513,17 @@
 
     <div class="container">
         <div class="header">
+            <svg class="bunting" viewBox="0 0 600 70" aria-hidden="true">
+                <path d="M0 6Q300 60 600 6" fill="none" stroke="#8B6F4E" stroke-width="2.5"/>
+                <polygon points="22,10 58,10 40,43" fill="#FF6B9D"/>
+                <polygon points="97,20 133,20 115,53" fill="#FEC163"/>
+                <polygon points="172,26 208,26 190,59" fill="#34D399"/>
+                <polygon points="247,30 283,30 265,63" fill="#60A5FA"/>
+                <polygon points="322,30 358,30 340,63" fill="#A78BFA"/>
+                <polygon points="397,26 433,26 415,59" fill="#FB923C"/>
+                <polygon points="472,19 508,19 490,52" fill="#67D5B5"/>
+                <polygon points="547,9 583,9 565,42" fill="#FF6B9D"/>
+            </svg>
             <h1>🎓 KidLearn</h1>
             <p>בחר את הנושא שלך ותחל ללמוד!</p>
             <div id="studentInfo" style="margin-top: 15px; font-size: 1.1rem; color: #666;"></div>
