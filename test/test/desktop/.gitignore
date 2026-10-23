@@ -1,0 +1,6 @@
+app/bin/
+app/obj/
+host/bin/
+host/obj/
+dist/
+installer/prereq/
