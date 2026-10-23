@@ -55,6 +55,10 @@
         .add-btn { font-size: 1.8rem; line-height: 1; padding: 8px 20px; background: var(--success); }
         .big-btn { width: 100%; margin-top: 16px; font-size: 1.4rem; }
         .secondary { background: #94A3B8; }
+        .small-btn {
+            display: block; margin: 20px 0 0 auto;
+            font-size: .9rem; padding: 6px 12px; background: #94A3B8;
+        }
         ul { list-style: none; margin-top: 16px; }
         li {
             display: flex; justify-content: space-between; align-items: center;
@@ -103,7 +107,7 @@
             <button id="checkBtn">בדיקה</button>
         </div>
         <p class="feedback" id="feedback"></p>
-        <button class="big-btn secondary" id="quitBtn">חזרה לרשימה</button>
+        <button class="small-btn" id="quitBtn">↩ חזרה לרשימה</button>
     </div>
 
     <!-- מסך סיום -->
@@ -166,6 +170,9 @@
         speechSynthesis.speak(u);
     }
 
+    // מסיר ניקוד וטעמי מקרא כדי שהשוואה תתעלם מהם
+    function stripNikud(s) { return s.replace(/[֑-ׇ]/g, ''); }
+
     function shuffle(a) {
         for (var i = a.length - 1; i > 0; i--) {
             var j = Math.floor(Math.random() * (i + 1));
@@ -199,7 +206,7 @@
         var a = $('answer').value.trim();
         if (!a) return;
         var fb = $('feedback');
-        if (a === current) {
+        if (stripNikud(a) === stripNikud(current)) {
             if (!triedWrong) correct++;
             fb.textContent = '🎉 נכון!';
             fb.className = 'feedback ok';
@@ -215,6 +222,7 @@
 
     function finish() {
         show('end');
+        try { new Audio('../effects/newlevel.mp3').play().catch(function () {}); } catch (e) {}
         $('result').textContent = 'סיימתם! 🏆 כתבתם נכון בניסיון ראשון ' + correct + ' מתוך ' + total;
     }
 
