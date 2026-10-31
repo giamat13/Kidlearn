@@ -13,6 +13,9 @@ const START_ROWS = 4;
 const STORE_KEY = 'kidlearn-city-v2';
 const OLD_STORE_KEY = 'kidlearn-city';   // הגרסה הקודמת (רשת קבועה 5×4), לצורך מעבר חלק
 const MERGE_MAX = 5;                     // מקסימום בתי ספר שמתאחדים לאחד
+// שער הכניסה לעיר: כביש שמגיע מבחוץ. תמיד קיים ואי אפשר להסיר אותו
+const ENTRANCE_C = 0;
+const ENTRANCE_R = 1;
 
 const W = window.KidLearnWallet;
 const R = W ? W.REWARDS : { answer: 2, smallSuccess: 1, round: 8, level: 10, perfect: 20, create: 5 };
@@ -155,7 +158,7 @@ function startingPlots() {
     return s;
 }
 
-function loadState() {
+function loadStateRaw() {
     try {
         const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
         if (saved && Array.isArray(saved.owned)) {
@@ -180,6 +183,15 @@ function loadState() {
         }
     } catch (e) {}
 }
+
+function loadState() {
+    loadStateRaw();
+    // כביש הכניסה תמיד קיים (גם בשמירות ישנות)
+    const k = key(ENTRANCE_C, ENTRANCE_R);
+    if (!buildings.has(k) && owned.has(k)) buildings.set(k, 'road');
+}
+
+function isEntrance(c, r) { return c === ENTRANCE_C && r === ENTRANCE_R; }
 
 function saveState() {
     try {
@@ -379,6 +391,7 @@ function buildCell(c, r) {
     const cat = v ? v.cat : null;
     let top = 0.9;
     if (cat === 'road') buildRoad(group, c, r, v);
+    if (cat === 'road' && isEntrance(c, r)) buildGate(group);
     else if (cat === 'tree') buildTree(group, seed, v);
     else if (cat === 'house') top = buildHouse(group, seed, c, r, v);
     else if (cat === 'apt') top = buildApartments(group, seed, c, r, v);
@@ -419,7 +432,8 @@ function buildRoad(group, c, r, v) {
     part(group, boxG(0.42, 0.024, 0.42), style.base, 0, y, 0);
 
     for (const d of DIRS) {
-        if (!roadAt(c + d.dc, r + d.dr)) continue;
+        const outside = isEntrance(c, r) && d.name === 'W';   // הכביש ממשיך החוצה
+        if (!roadAt(c + d.dc, r + d.dr) && !outside) continue;
         const sx = d.dc !== 0 ? 0.5 : 0.42;
         const sz = d.dr !== 0 ? 0.5 : 0.42;
         part(group, boxG(sx, 0.024, sz), style.base, d.dc * 0.25, y, d.dr * 0.25);
@@ -677,6 +691,34 @@ function buildSchool(group, c, r, v) {
     }
 }
 
+// שער בכניסה לעיר: שני עמודים וקורה מעל הכביש (בקואורדינטות של החלקה)
+function buildGate(group) {
+    part(group, boxG(0.05, 0.4, 0.05), '#8d6e63', -0.5, 0.2, -0.26);
+    part(group, boxG(0.05, 0.4, 0.05), '#8d6e63', -0.5, 0.2, 0.26);
+    part(group, boxG(0.06, 0.06, 0.6), '#ffca28', -0.5, 0.41, 0);
+}
+
+// הכביש שמגיע מבחוץ: מהשער עד הקצה של השטח שבבעלות הילד. לא עובר דרך חלקות שנקנו
+let outsideGroup = null;
+function drawOutsideRoad() {
+    if (!scene) return;
+    if (outsideGroup) scene.remove(outsideGroup);
+    outsideGroup = new THREE.Group();
+    scene.add(outsideGroup);
+
+    const row = ENTRANCE_R;
+    let c = ENTRANCE_C - 1;
+    while (c > -29 && !isOwned(c, row)) c--;
+    const startX = ENTRANCE_C - 0.5;   // המערב של השער
+    const endX = c + 0.5;              // המזרח של החלקה הראשונה שבבעלות, או הקצה
+    const len = startX - endX;
+    if (len <= 0.01) return;
+    part(outsideGroup, boxG(len, 0.024, 0.42), '#3d3f47', (startX + endX) / 2, 0.034, row);
+    for (let x = startX - 0.4; x > endX + 0.1; x -= 0.8) {
+        part(outsideGroup, boxG(0.12, 0.006, 0.03), '#f5f5f5', x, 0.049, row);
+    }
+}
+
 // --- סצנה ---
 let renderer = null;
 let scene = null;
@@ -860,6 +902,7 @@ function drawAll() {
         const { c, r } = parseKey(k);
         drawCell(c, r);
     });
+    drawOutsideRoad();
 }
 
 // --- קטלוג: לשוניות לכל קטגוריה, ומוצגים רק הסוגים של הלשונית שנבחרה ---
@@ -971,6 +1014,7 @@ function setBuilding(c, r, id) {
 // לחיצה על חלקה: שטח חדש אם היא למכירה, הסרה אם יש בה מבנה, ובנייה אחרת
 function onCell(c, r) {
     if (!isOwned(c, r)) return buyLand(c, r);
+    if (isEntrance(c, r) && roadAt(c, r)) return feedback('הכביש הזה מחבר את העיר לעולם החיצון, לכן אי אפשר להסיר אותו');
     if (buildingAt(c, r)) return removeAt(c, r);
     place(c, r);
 }
