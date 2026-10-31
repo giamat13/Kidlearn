@@ -11,21 +11,23 @@
     <header>
         <button class="back-btn" onclick="window.location.href='../index.html'" data-gamepad-back>← חזור</button>
         <h1>🏘️ עיר לבנייה</h1>
-        <p class="subtitle">בונים בתים ודרכים עם המטבעות שצברתם</p>
+        <p class="subtitle">בונים בתים ודרכים בעיר תלת-ממדית</p>
     </header>
 
     <div class="balance">יש לכם <strong id="balance">0</strong> 🪙</div>
 
     <div class="shop" id="shop" role="radiogroup" aria-label="מה לבנות"></div>
 
-    <p class="hint" id="hint">בחרו מבנה, ואז לחצו על חלקה ריקה. לחיצה על מבנה קיים מחזירה חצי מחירו.</p>
+    <p class="hint" id="hint">בחרו מבנה ולחצו על חלקה ריקה. לחצו על חלקה בהירה עם דגל צהוב כדי לקנות שטח נוסף. לחיצה על מבנה קיים מחזירה חצי מחירו. גררו כדי לסובב את העיר.</p>
 
-    <div class="grid" id="grid" aria-label="העיר שלכם"></div>
+    <div class="scene" id="scene" aria-label="העיר שלכם בתלת-ממד"></div>
 
     <p class="counts" id="counts"></p>
     <div class="feedback" id="feedback" aria-live="polite"></div>
 </div>
 
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
 <script src="../shared/kidlearn-wallet.js"></script>
 <script src="game.js"></script>
 <script src="../effects/gamepad-ui.js"></script>
