@@ -9,7 +9,10 @@ let correctCount = 0;
 let a = 0;
 let b = 0;
 let answered = false;
+let hintUsed = false;
 let nextTimer = null;
+
+const HINT_COST = 2;    // מטבעות לרמז
 
 const $ = (id) => document.getElementById(id);
 
@@ -38,15 +41,19 @@ function newPair() {
 function nextRound() {
     round++;
     answered = false;
+    hintUsed = false;
     [a, b] = newPair();
 
     $('qNum').textContent = `${round}/${ROUNDS}`;
     $('score').textContent = score;
     $('numA').textContent = a;
     $('numB').textContent = b;
+    $('numA').classList.remove('hint-on');
+    $('numB').classList.remove('hint-on');
     $('signBox').textContent = '?';
     $('signBox').classList.remove('ok', 'bad');
     $('feedback').textContent = '';
+    $('hintBtn').disabled = false;
 
     document.querySelectorAll('.choice').forEach(btn => {
         btn.disabled = false;
@@ -54,9 +61,33 @@ function nextRound() {
     });
 }
 
+// רמז: מדגיש את המספר הקטן (או את שניהם אם הם שווים). עולה HINT_COST מטבעות מהארנק המשותף
+function useHint() {
+    if (answered || hintUsed) return;
+    if (!window.KidLearnWallet || !KidLearnWallet.spend(HINT_COST)) {
+        $('feedback').textContent = 'אין מספיק כסף לרמז 🪙';
+        return;
+    }
+    hintUsed = true;
+    $('hintBtn').disabled = true;
+    KidLearnWallet.toast(`−${HINT_COST} 💰 רמז`);
+
+    if (a === b) {
+        $('numA').classList.add('hint-on');
+        $('numB').classList.add('hint-on');
+        $('feedback').textContent = 'שני המספרים שווים, לכן שניהם מסומנים 👆';
+    } else {
+        const smaller = a < b ? 'numA' : 'numB';
+        $('numA').classList.toggle('hint-on', smaller === 'numA');
+        $('numB').classList.toggle('hint-on', smaller === 'numB');
+        $('feedback').textContent = 'המספר המסומן הוא הקטן יותר 👆';
+    }
+}
+
 function answer(btn) {
     if (answered) return;
     answered = true;
+    $('hintBtn').disabled = true;
 
     const chosen = btn.dataset.sign;
     const right = signFor(a, b);
@@ -116,6 +147,7 @@ document.querySelectorAll('.choice').forEach(btn => {
 });
 
 $('startBtn').addEventListener('click', startGame);
+$('hintBtn').addEventListener('click', useHint);
 $('againBtn').addEventListener('click', startGame);
 $('setupBtn').addEventListener('click', () => {
     clearTimeout(nextTimer);
