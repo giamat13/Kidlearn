@@ -589,20 +589,27 @@
 
         const GRADE_ORDER = ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
 
+        // שנת הלימודים מתחילה בספטמבר. כיתה שנבחרה (גם ביוני או באוגוסט) שייכת לשנת הלימודים שבה נבחרה
+        function schoolYear(now) {
+            return now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+        }
+
+        // מעלים כיתה פעם בשנה, כשעוברים לשנת לימודים חדשה (ספטמבר).
+        // כיתה שהילד בחר כבר משייכת לשנה הנוכחית ולא מתעדכנת מיד.
         function checkGradeUpgrade() {
-            const lastUpgradeYear = getCookie("gradeUpgradeYear");
-            const currentYear = new Date().getFullYear();
-            const now = new Date();
-            const isSeptemberOrLater = now.getMonth() >= 8;
-            if (!isSeptemberOrLater) return;
-            if (lastUpgradeYear === String(currentYear)) return;
+            const year = schoolYear(new Date());
+            const marked = getCookie("gradeUpgradeYear");
+            if (!marked) {
+                setCookie("gradeUpgradeYear", String(year), 365);
+                return;
+            }
+            if (Number(marked) >= year) return;
             const grade = getCookie("studentGrade");
-            if (!grade) return;
-            const idx = GRADE_ORDER.indexOf(grade);
-            if (idx === -1 || idx === GRADE_ORDER.length - 1) return;
-            const newGrade = GRADE_ORDER[idx + 1];
-            setCookie("studentGrade", newGrade, 365);
-            setCookie("gradeUpgradeYear", String(currentYear), 365);
+            const idx = GRADE_ORDER.indexOf(grade || '');
+            if (idx !== -1 && idx < GRADE_ORDER.length - 1) {
+                setCookie("studentGrade", GRADE_ORDER[idx + 1], 365);
+            }
+            setCookie("gradeUpgradeYear", String(year), 365);
         }
 
         function openSettingsModal() {
@@ -760,6 +767,8 @@
             }
             setCookie('studentName', name, 365);
             setCookie('studentGrade', grade, 365);
+            // הילד בחר את הכיתה לשנת הלימודים הנוכחית: לא מעלים אותה עכשיו
+            setCookie('gradeUpgradeYear', String(schoolYear(new Date())), 365);
             closeModal();
             checkGradeUpgrade();
         updateStudentInfo();
