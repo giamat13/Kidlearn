@@ -66,6 +66,10 @@ h2 { margin-bottom: 12px; }
 .num.sign.ok { background: #06d6a0; color: #fff; }
 .num.sign.bad { background: #ff5c8a; color: #fff; }
 
+.hint-btn { background: #FEC163; color: #7a4a00; box-shadow: 0 3px 0 #d9a13a; margin: 0 6px 10px; font-size: 1rem; }
+.hint-btn:disabled { opacity: 0.45; cursor: default; }
+.num.hint-on { background: #FEC163; color: #7a4a00; box-shadow: 0 0 0 5px #FEC163; }
+
 .choices { display: flex; gap: 12px; justify-content: center; direction: ltr; }
 .choice {
   font: inherit; font-size: 2.2rem; font-weight: 800; background: #fff; border: none;
