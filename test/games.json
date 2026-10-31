@@ -577,6 +577,16 @@
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
+      "id": "city-game",
+      "title": "עיר לבנייה",
+      "description": "בונים בתים ודרכים בעיר שלכם, עם המטבעות שצברתם.",
+      "icon": "🏘️",
+      "url": "city-game/index.html",
+      "categories": ["games", "math"],
+      "grade": ["first", "second", "third", "fourth"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
       "id": "microbit-programming",
       "title": "תכנות המיקרוביט",
       "description": "בונים תוכנית מסמלים, שולחים אותה למיקרוביט, ואז מריצים אותה בלי מסך.",
