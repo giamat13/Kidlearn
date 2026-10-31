@@ -547,6 +547,36 @@
       "devices": ["mobile", "tablet", "desktop"]
     },
     {
+      "id": "clock-game",
+      "title": "השעון",
+      "description": "לומדים לקרוא את השעון לפי המחוגים!",
+      "icon": "🕐",
+      "url": "clock-game/index.html",
+      "categories": ["math", "games"],
+      "grade": ["first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "compare-game",
+      "title": "מי גדול?",
+      "description": "מי מהמספרים גדול יותר? בוחרים את הסימן הנכון!",
+      "icon": "⚖️",
+      "url": "compare-game/index.html",
+      "categories": ["math", "games"],
+      "grade": ["kindergarten", "first", "second"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
+      "id": "money-game",
+      "title": "כמה כסף?",
+      "description": "סופרים מטבעות ושטרות בשקלים ובוחרים את הסכום הנכון.",
+      "icon": "🪙",
+      "url": "money-game/index.html",
+      "categories": ["math", "games"],
+      "grade": ["first", "second", "third"],
+      "devices": ["mobile", "tablet", "desktop"]
+    },
+    {
       "id": "microbit-programming",
       "title": "תכנות המיקרוביט",
       "description": "בונים תוכנית מסמלים, שולחים אותה למיקרוביט, ואז מריצים אותה בלי מסך.",
