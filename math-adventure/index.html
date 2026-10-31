@@ -1969,7 +1969,11 @@
             document.getElementById('item-controls-bar').classList.add('flex');
             document.getElementById('selected-item-label').innerText = `פריט: ${friendlyName}`;
 
-            renderStageItems();
+            // מעדכנים רק את הסימון, בלי לבנות מחדש את הפריטים. אחרת האלמנט שנגעו בו נמחק
+            // באמצע הגרירה, והתנועה לא מגיעה אליו (בעיקר בטלפון).
+            document.querySelectorAll('#items-container .decor-item').forEach(node => {
+                node.classList.toggle('selected', node.id === item.id);
+            });
 
             const stageArea = document.getElementById('stage-canvas-area');
             const rect = stageArea.getBoundingClientRect();
