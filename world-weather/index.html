@@ -43,6 +43,7 @@
     font-size:24px}
   .outfit-text{font-size:15px}
   .outfit-text b{color:var(--accent)}
+  .outfit-tip{font-size:13px;color:var(--muted);margin:8px 0 0;line-height:1.5;text-align:start}
 
   .moon-emoji{font-size:56px;line-height:1}
   .moon-name{font-family:'Suez One',serif;font-size:1.3rem;color:var(--ink);margin-top:6px}
@@ -165,12 +166,18 @@ function outfitFor(dayStats, uvMax) {
     umbrella: hasRain,
     coat: minTemp < 10 || hasSnow,
     sweater: minTemp >= 10 && minTemp < 16,
-    // UV index scale (WHO): 3+ is "moderate" and up - sunscreen recommended.
-    sunscreen: uvMax >= 3,
+    // Sourced cutoffs (see the guides checked for this card):
+    // - 40°F (~4°C) or colder: hat and gloves for kids.
+    freezing: minTemp <= 4,
+    // - Hot weather: pale, loose clothes and a water bottle (sip every ~20 min).
+    hot: maxTemp >= 25,
+    // - WHO / Australian guidance: sun protection from UV index 3 and up
+    //   (sunscreen, hat, sunglasses). Clouds only filter UV partly.
+    sun: uvMax >= 3,
   };
 }
 // Shirt/pants/shoes always show, state told by both the symbol and the word.
-// Umbrella/coat/sweater/sunscreen only show up at all when actually needed.
+// Umbrella/coat/sweater/sun items/water/gloves only show up when actually needed.
 function outfitRows(dayStats, uvMax) {
   const out = outfitFor(dayStats, uvMax);
   const rows = [
@@ -178,11 +185,32 @@ function outfitRows(dayStats, uvMax) {
     { icon: out.pantsLong ? "👖" : "🩳", text: `מכנסיים ${out.pantsLong ? "ארוכים" : "קצרים"}` },
     { icon: out.sandals ? "👡" : "👟", text: out.sandals ? "סנדלים" : "נעליים" },
   ];
-  if (out.sunscreen) rows.push({ icon: "🧴", text: "קרם הגנה" });
+  if (out.sun) {
+    rows.push({ icon: "🧴", text: "קרם הגנה" });
+    rows.push({ icon: "🕶️", text: "משקפי שמש" });
+  }
+  if (out.freezing || out.sun) {
+    rows.push({ icon: out.freezing ? "🧢" : "👒", text: out.freezing ? "כובע חם" : "כובע (מגן מהשמש)" });
+  }
+  if (out.hot) rows.push({ icon: "💧", text: "בקבוק מים" });
   if (out.umbrella) rows.push({ icon: "☂️", text: "מטרייה" });
-  if (out.coat) rows.push({ icon: "🧥", text: "מעיל" });
+  if (out.coat) rows.push({ icon: "🧥", text: out.umbrella ? "מעיל עמיד למים" : "מעיל" });
   if (out.sweater) rows.push({ icon: "🧶", text: "סווצ'ר" });
+  if (out.freezing) rows.push({ icon: "🧤", text: "כפפות וצעיף חם" });
   return rows;
+}
+// Short tips, each tied to one of the sourced points: cotton stays wet and
+// chills, layers should be easy to take off indoors, pale loose clothes and
+// frequent water in heat, clouds don't block UV, wet kids get cold faster.
+function outfitTips(dayStats, uvMax) {
+  const { minTemp, maxTemp, hasRain } = dayStats;
+  const tips = [];
+  if (minTemp < 10) tips.push("בקור: שכבות דקות. תחתונית של צמר או סינטטי (לא כותנה, היא נשארת רטובה), שכבת פליז באמצע, ומעיל עמיד לרוח ולגשם למעלה.");
+  if (minTemp < 10) tips.push("בתוך הבית מתחממים מהר, לכן כדאי שכבות שקל להוריד.");
+  if (maxTemp >= 25) tips.push("בחום: בגדים בהירים, רפויים ודקים. שתו כל כ-20 דקות והביאו יותר מבקבוק אחד.");
+  if (uvMax >= 3) tips.push("גם כשיש עננים השמש פוגעת. הצל בשעות 10–16, כובע וקרם הגנה עוזרים.");
+  if (hasRain) tips.push("בגשם חשוב להישאר יבשים, כי ילד רטוב מתקרר מהר.");
+  return tips;
 }
 
 // Forecast for today + the next 2 days, at hourly resolution, fetched once.
@@ -255,13 +283,18 @@ function renderForSelection() {
     ? `שקיעה בעוד ${Math.floor(minsToSunset / 60)} שעות ו-${minsToSunset % 60} דקות (${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")})`
     : `שקיעה בשעה ${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`;
 
-  // Any icon starting with the sun glyph (clear, partly cloudy, sunny
-  // showers, ...) - after sunset, swap just the sun for tonight's actual
-  // moon phase, keeping the rest of the icon (clouds, rain, ...) as-is.
-  if (emoji.startsWith("☀️") && selectedHour * 60 >= sh * 60 + sm) {
+  // Night = before sunrise (early morning) or after sunset. Any icon starting
+  // with the sun glyph (clear, partly cloudy, sunny showers, ...) gets just
+  // the sun swapped for the moon phase, keeping the rest of the icon
+  // (clouds, rain, ...) as-is.
+  const [rh, rm] = weatherData.daily.sunrise[selectedOffset].split("T")[1].split(":").map(Number);
+  const selectedMinutes = selectedHour * 60;
+  const isNight = selectedMinutes < rh * 60 + rm || selectedMinutes >= sh * 60 + sm;
+  if (emoji.startsWith("☀️") && isNight) {
     emoji = moonPhaseFor(selectedOffset)[0] + emoji.slice("☀️".length);
   }
 
+  const stats = dayStats(selectedOffset);
   box.innerHTML = `
     <div class="thermo-row">
       <svg width="46" height="140" viewBox="0 0 46 140" aria-hidden="true">
@@ -277,9 +310,10 @@ function renderForSelection() {
       </div>
     </div>
     <div class="outfit-title">מה ללבוש היום? (לפי כל היום, לא רק השעה שנבחרה)</div>
-    <div class="outfit-list">${outfitRows(dayStats(selectedOffset), uvMax).map((r) =>
+    <div class="outfit-list">${outfitRows(stats, uvMax).map((r) =>
       `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
     ).join("")}</div>
+    ${outfitTips(stats, uvMax).map((t) => `<p class="outfit-tip">${t}</p>`).join("")}
     <div class="sunset-row">${staticClockSvg(sh, sm)}<span>🌇 ${sunsetText}</span></div>
   `;
   renderThermometer(temp);
@@ -350,7 +384,7 @@ function setupDayButtons() {
 async function loadWeather(lat, lon) {
   const box = document.getElementById("weather-box");
   try {
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&daily=uv_index_max,sunset&timezone=auto&forecast_days=3`);
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&daily=uv_index_max,sunrise,sunset&timezone=auto&forecast_days=3`);
     if (!res.ok) throw new Error("weather fetch failed");
     weatherData = await res.json();
     setupClock();
