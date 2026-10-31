@@ -14,7 +14,10 @@ let score = 0;
 let correctCount = 0;
 let target = null;      // { h, m } — השעה שהשעון מראה
 let answered = false;
+let hintUsed = false;
 let nextTimer = null;
+
+const HINT_COST = 2;    // מטבעות לרמז
 
 const $ = (id) => document.getElementById(id);
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -103,7 +106,7 @@ function drawClock(t) {
     // מחוג שעות (קצר ועבה) — זווית = השעה + חלק השעה שעברה
     const hourAngle = ((t.h % 12) + t.m / 60) * 30;
     const [hx, hy] = polar(48, hourAngle);
-    svg.appendChild(el('line', { x1: 100, y1: 100, x2: hx, y2: hy, stroke: '#f72585', 'stroke-width': 9, 'stroke-linecap': 'round' }));
+    svg.appendChild(el('line', { class: 'hour-hand', x1: 100, y1: 100, x2: hx, y2: hy, stroke: '#f72585', 'stroke-width': 9, 'stroke-linecap': 'round' }));
 
     // מחוג דקות (ארוך ודק)
     const [mx, my] = polar(72, t.m * 6);
@@ -126,11 +129,13 @@ function startGame() {
 function nextRound() {
     round++;
     answered = false;
+    hintUsed = false;
     target = randomTime();
 
     $('qNum').textContent = `${round}/${ROUNDS}`;
     $('score').textContent = score;
     $('feedback').textContent = '';
+    $('hintBtn').disabled = false;
     drawClock(target);
 
     const box = $('choices');
@@ -144,9 +149,24 @@ function nextRound() {
     });
 }
 
+// רמז: מדגיש את מחוג השעות. עולה HINT_COST מטבעות מהארנק המשותף
+function useHint() {
+    if (answered || hintUsed) return;
+    if (!window.KidLearnWallet || !KidLearnWallet.spend(HINT_COST)) {
+        $('feedback').textContent = 'אין מספיק כסף לרמז 🪙';
+        return;
+    }
+    hintUsed = true;
+    $('hintBtn').disabled = true;
+    KidLearnWallet.toast(`−${HINT_COST} 💰 רמז`);
+    document.querySelector('#clock .hour-hand').classList.add('hint-on');
+    $('feedback').textContent = 'המחוג הצהוב הקצר מראה את השעה 👆';
+}
+
 function answer(t, btn) {
     if (answered) return;
     answered = true;
+    $('hintBtn').disabled = true;
 
     const right = fmt(target);
     const ok = fmt(t) === right;
@@ -189,6 +209,7 @@ document.querySelectorAll('.opt').forEach(btn => {
 });
 
 $('startBtn').addEventListener('click', startGame);
+$('hintBtn').addEventListener('click', useHint);
 $('againBtn').addEventListener('click', startGame);
 $('setupBtn').addEventListener('click', () => {
     clearTimeout(nextTimer);
