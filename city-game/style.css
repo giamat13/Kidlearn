@@ -1,5 +1,5 @@
 /* ===========================
-   עיר לבנייה — City Builder
+   עיר לבנייה — City Builder (3D)
    =========================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
@@ -14,7 +14,7 @@ body {
   padding: 16px;
 }
 
-.container { max-width: 520px; margin: 0 auto; text-align: center; }
+.container { max-width: 620px; margin: 0 auto; text-align: center; }
 
 header { position: relative; padding-top: 8px; }
 .back-btn {
@@ -32,7 +32,7 @@ h1 { font-size: 2rem; margin-top: 44px; }
 }
 .balance strong { font-size: 1.3rem; }
 
-.shop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+.shop { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; margin-bottom: 10px; }
 .shop-item {
   font: inherit; background: #fff; border: 3px solid transparent; border-radius: 14px;
   padding: 8px 4px; cursor: pointer; box-shadow: 0 3px 0 #d0cbe6; min-height: 92px;
@@ -43,22 +43,20 @@ h1 { font-size: 2rem; margin-top: 44px; }
 .shop-item .price { font-size: 0.9rem; color: #7a5200; }
 .shop-item.selected { border-color: #FF6B9D; background: #fff5f8; }
 .shop-item.cant { opacity: 0.5; }
+.shop-item.info { background: #f1f8e9; border-style: dashed; border-color: #9ccc65; }
 
 .hint { color: #6b6b8a; font-size: 0.95rem; margin-bottom: 12px; min-height: 2.6em; }
 
-.grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
-  background: #8bc34a; padding: 10px; border-radius: 18px;
-  box-shadow: 0 4px 0 #5b8a2a;
+.scene {
+  width: 100%;
+  min-height: 260px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #bfe9ff;
+  box-shadow: 0 4px 0 #8fb8d6;
+  touch-action: none;
 }
-.tile {
-  aspect-ratio: 1 / 1; border: none; border-radius: 10px; cursor: pointer;
-  background: radial-gradient(circle at 40% 35%, #c5e8a0, #9fd46a);
-  font-size: 1.8rem; display: flex; align-items: center; justify-content: center;
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,.08);
-}
-.tile.built { background: #fff; box-shadow: 0 2px 0 #c9c3e0; }
-.tile:focus-visible { outline: 3px solid #FF6B9D; outline-offset: 2px; }
+.scene canvas { display: block; width: 100%; cursor: pointer; }
 
 .counts { color: #6b6b8a; margin-top: 12px; font-size: 0.95rem; }
 .feedback { min-height: 2em; font-size: 1.2rem; font-weight: 700; margin-top: 6px; }

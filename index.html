@@ -530,7 +530,7 @@
         </div>
 
         <div style="max-width:480px;margin:0 auto 30px;position:relative;">
-            <input type="text" id="searchInput" placeholder="🔍 חפש משחק או כלי..." oninput="renderSearch()"
+            <input type="text" id="searchInput" placeholder="🔍 חפש משחק או כלי..." oninput="renderSearch()" onkeydown="if (event.key === 'Enter') checkDebugCode()"
                 style="width:100%;padding:14px 20px;font-size:1.1rem;font-family:'Varela Round',sans-serif;border:3px solid #eee;border-radius:50px;outline:none;background:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.08);direction:rtl;transition:border-color 0.2s;"
                 onfocus="this.style.borderColor='#FF6B9D'" onblur="this.style.borderColor='#eee'">
         </div>
@@ -834,6 +834,17 @@
         }
 
         let allItemsCache = [];
+
+        // קוד פיתוח: מקלידים DEVDEBUGADDCOINS ומספר (למשל DEVDEBUGADDCOINS100) ולוחצים Enter, והמטבעות נכנסים לארנק
+        function checkDebugCode() {
+            const input = document.getElementById('searchInput');
+            const m = input.value.trim().match(/^DEVDEBUGADDCOINS(\d+)$/i);
+            if (!m) return;
+            const amount = Math.min(parseInt(m[1], 10), 100000);
+            input.value = '';
+            if (window.KidLearnWallet && amount > 0) KidLearnWallet.earn(amount, { reason: 'קוד פיתוח' });
+            renderSearch();
+        }
 
         function renderSearch() {
             const q = document.getElementById('searchInput').value.trim().toLowerCase();
