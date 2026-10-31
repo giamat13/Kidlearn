@@ -1,0 +1,91 @@
+/* ===========================
+   כמה כסף? — Money Game
+   =========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Varela Round', Arial, sans-serif;
+  background: linear-gradient(135deg, #fffde7, #e3f2fd);
+  color: #2d2d4a;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.container { max-width: 480px; margin: 0 auto; text-align: center; }
+
+header { position: relative; padding-top: 8px; }
+.back-btn {
+  position: absolute; top: 0; right: 0;
+  background: #FF6B9D; color: #fff; border: none;
+  padding: 10px 16px; border-radius: 10px; cursor: pointer;
+  font: inherit; min-height: 44px;
+}
+h1 { font-size: 2rem; margin-top: 44px; }
+.subtitle { color: #6b6b8a; margin: 4px 0 18px; }
+h2 { margin-bottom: 12px; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+.options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.opt {
+  font: inherit; font-size: 1.1rem; background: #fff; border: 3px solid transparent;
+  border-radius: 14px; padding: 12px; cursor: pointer; min-height: 56px;
+  box-shadow: 0 3px 0 #d0cbe6;
+}
+.opt small { color: #6b6b8a; font-size: 0.95rem; }
+.opt.selected { border-color: #FF6B9D; background: #fff5f8; }
+
+.btn {
+  font: inherit; font-size: 1.1rem; border: none; border-radius: 14px;
+  padding: 12px 22px; cursor: pointer; background: #fff; min-height: 48px;
+  box-shadow: 0 3px 0 #d0cbe6; margin: 6px;
+}
+.btn.primary { background: #FF6B9D; color: #fff; box-shadow: 0 3px 0 #c2185b; }
+.row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+.stats {
+  display: flex; justify-content: space-around; background: #fff;
+  border-radius: 14px; padding: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.stats strong { color: #FF6B9D; }
+
+.prompt { font-size: 1.3rem; font-weight: 700; margin: 10px 0; }
+
+.wallet {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+  min-height: 120px; padding: 16px; background: #fff; border-radius: 18px;
+  box-shadow: 0 3px 0 #d0cbe6; margin-bottom: 14px;
+}
+.coin {
+  width: 76px; height: 76px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8c4, #f9c74f 60%, #d89b1a);
+  color: #5a3a00; font-weight: 800; font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,.2), inset 0 -3px 0 rgba(0,0,0,.12);
+  direction: ltr;
+}
+.coin.note {
+  width: 110px; height: 60px; border-radius: 10px;
+  background: linear-gradient(135deg, #b8f0d6, #3ec08d);
+  color: #0c4a33; font-size: 1.3rem;
+}
+
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+.choice {
+  font: inherit; font-size: 1.6rem; font-weight: 700; background: #fff; border: none;
+  border-radius: 16px; padding: 14px 8px; cursor: pointer; min-height: 64px;
+  box-shadow: 0 3px 0 #d0cbe6; direction: ltr;
+}
+.choice:disabled { cursor: default; }
+.choice.correct { background: #06d6a0; color: #fff; }
+.choice.wrong { background: #ff5c8a; color: #fff; }
+
+.feedback { min-height: 2em; font-size: 1.3rem; font-weight: 700; }
+
+.final { font-size: 3rem; font-weight: 800; color: #FF6B9D; margin: 12px 0; }
+.final small { font-size: 1.2rem; color: #6b6b8a; }
+#endInfo { color: #6b6b8a; margin-bottom: 16px; }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מי גדול?</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <button class="back-btn" onclick="window.location.href='../index.html'" data-gamepad-back>← חזור</button>
+        <h1>⚖️ מי גדול?</h1>
+        <p class="subtitle">בוחרים את הסימן הנכון בין שני המספרים</p>
+    </header>
+
+    <!-- מסך הגדרות -->
+    <section id="setup-screen" class="screen active">
+        <h2>עד איזה מספר?</h2>
+        <div class="options">
+            <button class="opt" data-max="10">עד 10<br><small>למתחילים</small></button>
+            <button class="opt selected" data-max="20">עד 20<br><small>קצת יותר</small></button>
+            <button class="opt" data-max="100">עד 100<br><small>אתגר</small></button>
+        </div>
+        <button class="btn primary" id="startBtn">התחל משחק ✨</button>
+    </section>
+
+    <!-- מסך משחק -->
+    <section id="game-screen" class="screen">
+        <div class="stats">
+            <div>ניקוד <strong id="score">0</strong></div>
+            <div>שאלה <strong id="qNum">1/10</strong></div>
+        </div>
+        <p class="hint">🐊 התנין תמיד רוצה לאכול את המספר הגדול!</p>
+        <div class="pair">
+            <div class="num" id="numA">?</div>
+            <div class="num sign" id="signBox">?</div>
+            <div class="num" id="numB">?</div>
+        </div>
+        <div class="choices" id="choices">
+            <button class="choice" data-sign=">">&gt;</button>
+            <button class="choice" data-sign="=">=</button>
+            <button class="choice" data-sign="<">&lt;</button>
+        </div>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+    </section>
+
+    <!-- מסך סיום -->
+    <section id="end-screen" class="screen">
+        <h2 id="endTitle">כל הכבוד! 🎉</h2>
+        <div class="final"><span id="finalScore">0</span> <small>נקודות</small></div>
+        <p id="endInfo"></p>
+        <div class="row">
+            <button class="btn primary" id="againBtn">שחק שוב 🔄</button>
+            <button class="btn" id="setupBtn">הגדרות ⚙️</button>
+        </div>
+    </section>
+</div>
+
+<script src="../shared/kidlearn-wallet.js"></script>
+<script src="game.js"></script>
+<script src="../effects/gamepad-ui.js"></script>
+</body>
+</html>
