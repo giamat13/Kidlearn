@@ -1634,10 +1634,12 @@
             generateProblem();
         }
 
-        function checkNewWorldUnlocks() {
+        // מציגים "עולם חדש נפתח" רק לעולמות ש*התשובה הזאת* חצתה את הניקוד הנדרש לכניסה אליהם.
+        // עולמות שכבר נפתחו (למשל אחרי טעינה מהענן) לא מציגים הודעה שוב.
+        function checkNewWorldUnlocks(scoreBefore) {
             for (let id = 1; id <= WORLD_COUNT; id++) {
                 const config = WORLDS_CONFIG[id];
-                if (score >= config.reqScore && !unlockedWorldAlerted[id]) {
+                if (scoreBefore < config.reqScore && score >= config.reqScore) {
                     unlockedWorldAlerted[id] = true;
                     if (id > 1) {
                         playSound('unlock');
@@ -1752,6 +1754,7 @@
 
             if (isCorrect) {
                 playSound('correct');
+                const scoreBefore = score;
                 score += 2;
                 const coinReward = currentWorldId + 1;
                 KidLearnWallet.earn(coinReward, { silent: true });
@@ -1769,7 +1772,7 @@
                     confetti({ particleCount: 35, spread: 65, origin: { y: 0.7 } });
                 }
 
-                checkNewWorldUnlocks();
+                checkNewWorldUnlocks(scoreBefore);
                 triggerSave();
 
                 setTimeout(() => {
