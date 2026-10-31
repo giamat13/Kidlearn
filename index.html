@@ -844,14 +844,26 @@
 
         let allItemsCache = [];
 
-        // קוד פיתוח: מקלידים DEVDEBUGADDCOINS ומספר (למשל DEVDEBUGADDCOINS100) ולוחצים Enter, והמטבעות נכנסים לארנק
+        // קוד פיתוח: מקלידים DEVDEBUGADDCOINS ומספר ולוחצים Enter. DEVDEBUGADDCOINS100 מוסיף 100 מטבעות,
+        // DEVDEBUGADDCOINS-50 מוריד 50 (לא מתחת ל-0)
         function checkDebugCode() {
             const input = document.getElementById('searchInput');
-            const m = input.value.trim().match(/^DEVDEBUGADDCOINS(\d+)$/i);
+            const m = input.value.trim().match(/^DEVDEBUGADDCOINS(-?\d+)$/i);
             if (!m) return;
-            const amount = Math.min(parseInt(m[1], 10), 100000);
+            const n = Math.min(Math.abs(parseInt(m[1], 10)), 100000);
+            const adding = parseInt(m[1], 10) > 0;
             input.value = '';
-            if (window.KidLearnWallet && amount > 0) KidLearnWallet.earn(amount, { reason: 'קוד פיתוח' });
+            if (window.KidLearnWallet && n > 0) {
+                if (adding) {
+                    KidLearnWallet.earn(n, { reason: 'קוד פיתוח' });
+                } else {
+                    const take = Math.min(n, KidLearnWallet.balance());
+                    if (take > 0) {
+                        KidLearnWallet.spend(take);
+                        KidLearnWallet.toast(`−${take} 💰 קוד פיתוח`);
+                    }
+                }
+            }
             renderSearch();
         }
 
