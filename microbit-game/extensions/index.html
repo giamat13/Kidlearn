@@ -133,9 +133,15 @@
     </div>
 </main>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../../shared/kidlearn-firebase-config.js"></script>
+<script src="../../shared/kidlearn-cloud.js"></script>
 <script>
     // The add-ons are kept on this device, under the same key the micro:bit programming page reads
     const EXT_KEY = 'kidlearn-microbit-extensions';
+    try { if (window.KidLearn) { KidLearn.init(); KidLearn.watchKeys([EXT_KEY]); } } catch (e) { /* בלי ענן ההגדרות נשמרות במכשיר */ }
 
     const $ = (id) => document.getElementById(id);
 
@@ -151,6 +157,7 @@
     function writeExtensions(ext) {
         try {
             localStorage.setItem(EXT_KEY, JSON.stringify(ext));
+            if (window.KidLearn) KidLearn.backupKey(EXT_KEY);
         } catch (e) {
             // storage is blocked: the setting lasts until the page is closed
         }
