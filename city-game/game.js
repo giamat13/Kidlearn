@@ -741,7 +741,9 @@ function init3D() {
         container.textContent = 'המכשיר הזה לא תומך בתלת-ממד.';
         return false;
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    // במכשיר שנוגעים בו (טלפון, טאבלט) מורידים את רמת הפירוט כדי שהסיבוב יהיה חלק
+    const touchScreen = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, touchScreen ? 1.5 : 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.innerHTML = '';
@@ -761,7 +763,7 @@ function init3D() {
     const sun = new THREE.DirectionalLight('#ffffff', 0.9);
     sun.position.set(4, 9, 5);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(touchScreen ? 1024 : 2048, touchScreen ? 1024 : 2048);
     Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
     sun.shadow.camera.updateProjectionMatrix();
     scene.add(sun);
@@ -789,22 +791,34 @@ function init3D() {
     window.addEventListener('resize', resize);
 
     const canvas = renderer.domElement;
+    const pointers = new Set();   // האצבעות (או העכבר) שנמצאים על המסך עכשיו
     let pressX = 0;
     let pressY = 0;
-    let dragged = false;
+    let dragged = false;          // הייתה גרירה, או יותר מאצבע אחת: זה לא נחשב לחיצה
     canvas.addEventListener('pointerdown', (e) => {
-        pressX = e.clientX;
-        pressY = e.clientY;
-        dragged = false;
+        pointers.add(e.pointerId);
+        if (pointers.size > 1) {
+            dragged = true;       // שתי אצבעות = זום או הזזה, לא בנייה
+        } else {
+            pressX = e.clientX;
+            pressY = e.clientY;
+            dragged = false;
+        }
     });
     canvas.addEventListener('pointermove', (e) => {
         if (Math.hypot(e.clientX - pressX, e.clientY - pressY) > 6) dragged = true;
         updateHover(e);
     });
     canvas.addEventListener('pointerup', (e) => {
-        if (dragged) return;   // גרירה לסיבוב, לא לחיצה
+        const isTap = pointers.size === 1 && !dragged;
+        pointers.delete(e.pointerId);
+        if (!isTap) return;
         const cell = cellAt(e);
         if (cell) onCell(cell.c, cell.r);
+    });
+    canvas.addEventListener('pointercancel', (e) => {
+        dragged = true;           // הדפדפן לקח את המגע (למשל גלילה): לא לחיצה
+        pointers.delete(e.pointerId);
     });
     canvas.addEventListener('pointerleave', () => { hoverMesh.visible = false; });
 

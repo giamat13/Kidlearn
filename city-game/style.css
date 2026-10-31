@@ -61,8 +61,11 @@ h1 { font-size: 2rem; margin-top: 44px; }
   background: #bfe9ff;
   box-shadow: 0 4px 0 #8fb8d6;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
-.scene canvas { display: block; width: 100%; cursor: pointer; }
+.scene canvas { display: block; width: 100%; cursor: pointer; touch-action: none; }
 
 /* --- תושבים --- */
 .demands {
