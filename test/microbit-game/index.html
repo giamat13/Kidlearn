@@ -1,0 +1,1772 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>תכנתו את המיקרוביט! - KidLearn</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap">
+<style>
+    [hidden] { display: none !important; }
+    #scriptCount, #libCount, #count { display: none; }
+    body { margin: 0; background: #FFF8F0; color: #2B2433; font-family: 'Varela Round', system-ui, sans-serif; }
+    button { font-family: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #FF6B9D; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+    .wrap { box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 28px 22px 56px; }
+    .back { display: inline-block; font-size: 18px; color: #5B5366; text-decoration: none; min-height: 44px; line-height: 44px; }
+    h1 { margin: 6px 0 0; font-size: 56px; line-height: 1.15; }
+    .lead { margin: 8px 0 0; font-size: 24px; color: #4A4253; }
+
+    .steps { list-style: none; margin: 22px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .steps li { background: #FFFFFF; border-radius: 22px; padding: 18px; display: flex; align-items: center; gap: 12px; font-size: 24px; box-shadow: 0 2px 0 #EFE6DA; }
+    .step-num { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; background: #FEC163; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+
+    .status { margin-top: 22px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-radius: 22px; padding: 16px 20px; box-shadow: 0 2px 0 #EFE6DA; }
+    .status-icon { font-size: 56px; line-height: 1; }
+    .status-title { font-size: 30px; font-weight: 700; }
+    .status-text { font-size: 22px; color: #4A4253; margin-top: 2px; }
+    .status.ok { background: #DDF6EE; }
+    .status.warn { background: #FFF0D6; }
+    .status.bad { background: #FDE2EA; }
+
+    /* saved programs */
+    .library { margin-top: 22px; background: #FFFFFF; border-radius: 26px; padding: 20px; box-shadow: 0 2px 0 #EFE6DA; }
+    .library-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .library h2 { margin: 0; font-size: 26px; }
+    .count-badge { font-size: 18px; color: #5B5366; font-weight: 700; }
+    .chips { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { display: flex; align-items: center; gap: 4px; background: #F4F8FF; border-radius: 999px; padding: 0 6px 0 0; }
+    .chip.open { background: #E9DEFF; box-shadow: inset 0 0 0 3px #A78BFA; }
+    .chip-open { min-height: 48px; border: 0; background: none; padding: 0 18px; font-size: 24px; font-weight: 700; color: #2B2433; cursor: pointer; }
+    .chip-del { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #FDE2EA; font-size: 16px; cursor: pointer; }
+    .save-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
+    .save-row input { flex: 1 1 260px; min-height: 52px; box-sizing: border-box; border: 2px solid #E6DED4; border-radius: 16px; padding: 0 16px; font-size: 20px; font-family: inherit; background: #FFFCF8; color: #2B2433; }
+    .btn { min-height: 52px; padding: 0 20px; border-radius: 999px; font-size: 19px; font-weight: 700; cursor: pointer; }
+    .btn-save { border: 0; background: #22A06B; color: #FFFFFF; }
+    .btn-ghost { border: 2px solid #CFC6BE; background: #FFFFFF; color: #2B2433; }
+    .lib-state { font-size: 17px; color: #4A4253; margin: 12px 0 0; min-height: 22px; }
+    .lib-where { font-size: 17px; color: #5B5366; margin: 6px 0 12px; }
+    .lib-note { font-size: 17px; color: #A3134A; margin: 4px 0 0; min-height: 0; }
+    .empty { font-size: 17px; color: #5B5366; margin: 12px 0 0; }
+
+    .builder { display: grid; grid-template-columns: minmax(230px, 0.9fr) minmax(0, 1.6fr) minmax(260px, 1fr); gap: 18px; margin-top: 22px; align-items: start; }
+    .panel { background: #FFFFFF; border-radius: 26px; padding: 20px; box-shadow: 0 2px 0 #EFE6DA; }
+    .panel h2 { margin: 0 0 12px; font-size: 30px; }
+    .panel h3 { margin: 16px 0 8px; font-size: 18px; color: #5B5366; }
+    .panel .hint { margin-top: 0; }
+    .builder > .panel:nth-child(1) { box-shadow: inset 0 10px 0 #60A5FA, 0 2px 0 #EFE6DA; }
+    .builder > .panel:nth-child(2) { box-shadow: inset 0 10px 0 #FEC163, 0 2px 0 #EFE6DA; }
+    .builder > .panel:nth-child(3) { box-shadow: inset 0 10px 0 #22A06B, 0 2px 0 #EFE6DA; }
+
+    /* 1: the events, and the scripts that were added */
+    .when-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 72px; box-sizing: border-box; margin-bottom: 10px; padding: 0 16px; border: 0; border-radius: 18px; background: #F4EFFB; font-size: 26px; font-weight: 700; color: #2B2433; cursor: pointer; text-align: right; }
+    .when-btn:hover:not(:disabled) { background: #E9DEFF; }
+    .letter { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; background: #60A5FA; color: #FFFFFF; font-size: 20px; }
+    .mark { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; font-size: 26px; line-height: 1; }
+    .script-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .script { display: flex; align-items: center; gap: 6px; background: #F4F8FF; border-radius: 18px; padding: 6px; }
+    .script.selected { background: #E9DEFF; box-shadow: inset 0 0 0 3px #A78BFA; }
+    .script-pick { flex: 1 1 auto; min-width: 0; min-height: 52px; display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 0 8px; color: #2B2433; cursor: pointer; text-align: right; }
+    .script-label { flex: 1 1 auto; font-size: 23px; font-weight: 700; }
+    .script-count { font-size: 16px; color: #5B5366; font-weight: 700; }
+    .script-del { flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 14px; font-size: 20px; cursor: pointer; background: #FFFFFF; }
+    .script-del { background: #FDE2EA; font-size: 18px; }
+
+    /* 2: the blocks */
+    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
+    .tile { min-height: 112px; border: 0; border-radius: 20px; background: #FFF3E0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; color: #2B2433; }
+    .tile:hover:not(:disabled) { background: #FFE0B2; }
+    .tile .emoji { font-size: 48px; line-height: 1; }
+    .tile .label { font-size: 19px; font-weight: 700; }
+    .tile.wait { background: #E6F7F2; }
+    .tile.wait:hover:not(:disabled) { background: #C9F0E3; }
+    .tile.word { background: #F0E7FF; }
+    .tile.word:hover:not(:disabled) { background: #E2D2FF; }
+
+    /* the picture grid: five per row, and the last row is the full-width "ציור שלי" button */
+    #pictureTiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .tile.wide { grid-column: 1 / -1; flex-direction: row; min-height: 64px; gap: 12px; background: #FFE3EE; }
+    .tile.wide:hover:not(:disabled) { background: #FFC9DF; }
+    .tile.wide .emoji { font-size: 32px; }
+    .tile.wide .label { font-size: 20px; }
+    /* the tabs between the stories and "my board" (shown only when the board add-on is on) */
+    .view-tabs { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
+    .view-tab { min-height: 64px; padding: 0 28px; border: 3px solid #CFC6BE; border-radius: 999px; background: #FFFFFF; font-size: 24px; font-weight: 700; color: #2B2433; cursor: pointer; }
+    .view-tab[aria-pressed="true"] { border-color: #A78BFA; background: #E9DEFF; box-shadow: inset 0 0 0 2px #A78BFA; }
+    .ext-bar { margin-top: 22px; display: flex; justify-content: flex-end; }
+    .ext-bar a { display: inline-flex; align-items: center; text-decoration: none; }
+
+    .drawer { margin-top: 14px; padding: 14px; border-radius: 20px; background: #FFF8F0; }
+    .drawer-title { margin: 0 0 12px; font-size: 19px; font-weight: 700; text-align: center; }
+    .pixels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 280px; margin: 0 auto; direction: ltr; /* same left-to-right order as the micro:bit, even in a Hebrew page */ }
+    .pixel { aspect-ratio: 1; border: 0; border-radius: 50%; background: #3A3344; cursor: pointer; }
+    .pixel.on { background: #FF6B9D; }
+    .drawer-buttons { display: flex; gap: 10px; margin-top: 14px; justify-content: center; flex-wrap: wrap; }
+    .drawer-add, .drawer-cancel { min-height: 52px; padding: 0 18px; border-radius: 999px; font-size: 19px; font-weight: 700; cursor: pointer; }
+    .drawer-add { border: 0; background: #22A06B; color: #FFFFFF; }
+    .drawer-cancel { border: 2px solid #CFC6BE; background: #FFFFFF; color: #2B2433; }
+
+    /* 3: the blocks of the chosen script */
+    .script-title { margin: 0 0 10px; font-size: 19px; font-weight: 700; color: #5B5366; }
+    .sequence { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
+    .sequence li { display: flex; align-items: center; gap: 10px; background: #F4F8FF; border-radius: 18px; padding: 8px 10px; }
+    .sequence .num { width: 30px; font-size: 18px; font-weight: 700; color: #5B5366; text-align: center; }
+    .sequence .emoji { font-size: 36px; line-height: 1; }
+    .sequence .label { flex: 1 1 auto; font-size: 23px; font-weight: 700; }
+    .remove { width: 48px; height: 48px; border: 0; border-radius: 14px; background: #FDE2EA; font-size: 22px; cursor: pointer; }
+    .grip { flex: 0 0 auto; font-size: 22px; color: #8A8196; cursor: grab; user-select: none; }
+    .dragging { opacity: 0.4; }
+    .drop-here { box-shadow: inset 0 0 0 3px #22A06B; }
+    .hint { font-size: 20px; color: #5B5366; margin: 12px 0 0; min-height: 22px; }
+    .link { margin-top: 12px; border: 0; background: none; color: #A3134A; font-size: 18px; font-weight: 700; text-decoration: underline; min-height: 44px; cursor: pointer; }
+
+    .send { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .send-btn { width: min(560px, 100%); min-height: 96px; border: 0; border-radius: 999px; background: #22A06B; color: #FFFFFF; font-size: 36px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 0 #17794F; }
+    .send-btn:not(:disabled):active { transform: translateY(2px); box-shadow: 0 2px 0 #17794F; }
+    .send-note { font-size: 18px; color: #4A4253; text-align: center; margin: 0; min-height: 24px; }
+    .send-error { font-size: 19px; font-weight: 700; color: #A3134A; text-align: center; margin: 0; min-height: 24px; }
+
+    @media (max-width: 980px) {
+        .builder { grid-template-columns: 1fr; }
+        .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        h1 { font-size: 36px; }
+    }
+</style>
+</head>
+<body>
+<main class="wrap">
+    <a class="back" href="../index.html">🏠 למשחקים</a>
+    <h1>תכנתו את המיקרוביט!</h1>
+    <p class="lead">מחברים סמלים, שולחים למיקרוביט, ואז משחקים!</p>
+
+    <ol class="steps">
+        <li><span class="step-num" aria-hidden="true">🔌</span>מחברים את המיקרוביט בכבל</li>
+        <li><span class="step-num" aria-hidden="true">🧩</span>בונים סיפורים מסמלים</li>
+        <li><span class="step-num" aria-hidden="true">🚀</span>לוחצים על "שלחו"</li>
+        <li><span class="step-num" aria-hidden="true">🎉</span>מנתקים ומשחקים!</li>
+    </ol>
+
+    <div class="status" id="statusBox" role="status">
+        <span class="status-icon" id="statusIcon" aria-hidden="true">⏳</span>
+        <div>
+            <div class="status-title" id="statusTitle">בודקים...</div>
+            <div class="status-text" id="statusText"></div>
+        </div>
+    </div>
+
+    <section class="library" aria-labelledby="libTitle">
+        <div class="library-head">
+            <h2 id="libTitle">התוכניות שלי</h2>
+            <span class="count-badge" id="libCount">0/10</span>
+        </div>
+        <p class="lib-where" id="libWhere"></p>
+        <ul class="chips" id="savedList"></ul>
+        <p class="empty" id="libEmpty">עדיין אין תוכניות. בנו משהו ושמרו אותו כאן 💾</p>
+        <div class="save-row">
+            <input type="text" id="progName" maxlength="30" placeholder="איך קוראים לזה?" aria-label="שם לתוכנית">
+            <button type="button" class="btn btn-save" id="saveProg">💾 שמרו</button>
+            <button type="button" class="btn btn-ghost" id="newProg">➕ חדשה</button>
+        </div>
+        <p class="lib-state" id="libState"></p>
+        <p class="lib-note" id="libNote" aria-live="polite"></p>
+    </section>
+
+    <div class="ext-bar">
+        <a class="btn btn-ghost" id="extLink" href="extensions/index.html">🧩 תוספים</a>    </div>
+
+    <p class="hint" id="boardNote" hidden>הלוח שלי לא נפתח עכשיו. כל השאר עובד כרגיל 🙂</p>
+    <div class="view-tabs" id="viewTabs" hidden>
+        <button type="button" class="view-tab" id="tabStories" aria-pressed="true">🧩 הסיפורים</button>
+        <button type="button" class="view-tab" id="tabBoard" aria-pressed="false">🖼️ הלוח שלי</button>
+    </div>
+
+    <div class="builder" id="builderView">
+        <section class="panel">
+            <h2>1. מתי?</h2>
+            <p class="hint">לחצו על מה שיקרה, וזה יתחיל סיפור חדש 👇</p>
+            <div id="whenButtons"></div>
+            <h3>מטים את הלוח</h3>
+            <div class="tiles" id="tiltWhen"></div>
+            <h3>נוגעים בלוגו <span class="count-badge">רק V2</span></h3>
+            <div id="v2When"></div>
+            <div id="remoteWhen" hidden>
+                <h3>🎮 השלט</h3>
+                <p class="hint">לוחצים על כפתור בשלט, והסיפור יתחיל.</p>
+                <div class="tiles" id="remoteTiles"></div>
+            </div>
+            <div id="boardWhen" hidden>
+                <h3>🖼️ הלוח שלי</h3>
+                <div id="boardWhenButtons"></div>
+            </div>
+            <h3>הסיפורים שלי <span class="count-badge" id="scriptCount">0/6</span></h3>
+            <ol class="script-list" id="scriptList"></ol>
+            <ol class="script-list" id="boardStoryList" hidden></ol>
+            <p class="hint" id="scriptEmpty">עדיין אין סיפורים. לחצו למעלה 👆</p>
+        </section>
+
+        <section class="panel">
+            <h2>2. ואז?</h2>
+            <div id="mbThen">
+            <h3>תמונות</h3>
+            <div class="tiles" id="pictureTiles"></div>
+            <div class="drawer" id="drawer" hidden>
+                <p class="drawer-title">ציירו! לחצו על מה שידלק 💡</p>
+                <div class="pixels" id="pixels"></div>
+                <div class="drawer-buttons">
+                    <button type="button" class="drawer-add" id="drawerAdd">✅ הוסיפו</button>
+                    <button type="button" class="drawer-cancel" id="drawerCancel">↩️ חזרה</button>
+                </div>
+            </div>
+            <h3>זמן</h3>
+            <div class="tiles" id="waitTiles"></div>
+            <h3>על המסך</h3>
+            <div class="tiles" id="otherTiles"></div>
+            <div id="carPart" hidden>
+                <h3>🚗 הרכב</h3>
+                <div class="tiles" id="carTiles"></div>
+            </div>
+            </div>
+            <div id="boardThen" hidden></div>
+        </section>
+
+        <section class="panel">
+            <h2>3. מה הוא עושה? <span class="count-badge" id="count">0/12</span></h2>
+            <p class="script-title" id="scriptTitle"></p>
+            <div id="boardDoes" hidden></div>
+            <ol class="sequence" id="sequence"></ol>
+            <p class="hint" id="hint"></p>
+            <button type="button" class="link" id="clearAll">🧹 נקו את הסיפור</button>
+        </section>
+    </div>
+
+    <section id="boardView" aria-label="הלוח שלי" hidden></section>
+
+    <div class="send">
+        <button type="button" class="send-btn" id="sendBtn" disabled>🚀 שלחו!</button>
+        <p class="send-note" id="sendNote"></p>
+        <p class="send-error" id="sendError" role="alert"></p>
+    </div>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-bridge.js"></script>
+<script>
+    const GAME_ID = 'microbit-programming';
+    const MAX_SCRIPTS = 6;     // scripts in one program (the app checks the same limit)
+    const MAX_ACTIONS = 12;    // blocks in one script
+    const MAX_TOTAL = 24;      // blocks in all the scripts together
+    const MAX_SAVED = 10;      // saved programs on this device
+    const DRAFT_KEY = 'kidlearn-microbit-draft';
+    const SAVED_KEY = 'kidlearn-microbit-programs';   // saved programs of someone who is not signed in (this device)
+    const CLOUD_ID = 'microbit-programs';             // the account's copy: users/{uid}/saves/microbit-programs
+    const DRAFT_CLOUD_ID = 'microbit-draft';          // the work on the screen, in the account: users/{uid}/saves/microbit-draft
+    const BOARD_CLOUD_ID = 'microbit-board-';         // the board of each program has its own copy: users/{uid}/saves/microbit-board-{program id}
+
+    // The blocks a child can use. Each block is sent as its name and value only; the app writes the code.
+    // group: '' = the main list, 'tilt' = the four tilts (tiles), 'v2' = needs a micro:bit V2 (the sound and the logo)
+    const WHEN = [
+        { event: 'start', label: 'כשמתחילים', mark: '🚀' },
+        { event: 'buttonA', label: 'כשלוחצים על A', mark: 'A' },
+        { event: 'buttonB', label: 'כשלוחצים על B', mark: 'B' },
+        { event: 'abPress', label: 'כשלוחצים על A ו-B יחד', mark: 'AB' },
+        { event: 'shake', label: 'כשמנענעים', mark: '📳' },
+        { event: 'faceDown', label: 'כשהופכים את הלוח', mark: '🙃' },
+        { event: 'tiltForward', label: 'כשמטים קדימה', mark: '⬆️', group: 'tilt' },
+        { event: 'tiltBack', label: 'כשמטים אחורה', mark: '⬇️', group: 'tilt' },
+        { event: 'tiltLeft', label: 'כשמטים שמאלה', mark: '⬅️', group: 'tilt' },
+        { event: 'tiltRight', label: 'כשמטים ימינה', mark: '➡️', group: 'tilt' },
+        { event: 'logoTouch', label: 'כשנוגעים בלוגו', mark: '👆', group: 'v2' },
+    ];
+    const PICTURES = [
+        { icon: 'heart', emoji: '❤️', label: 'לב' }, { icon: 'happy', emoji: '😊', label: 'שמח' },
+        { icon: 'sad', emoji: '😢', label: 'עצוב' }, { icon: 'surprised', emoji: '😮', label: 'הפתעה' },
+        { icon: 'angry', emoji: '😠', label: 'כועס' }, { icon: 'asleep', emoji: '😴', label: 'ישן' },
+        { icon: 'yes', emoji: '✅', label: 'נכון' }, { icon: 'no', emoji: '❌', label: 'לא' },
+        { icon: 'up', emoji: '⬆️', label: 'למעלה' }, { icon: 'right', emoji: '➡️', label: 'ימינה' },
+        { icon: 'down', emoji: '⬇️', label: 'למטה' }, { icon: 'left', emoji: '⬅️', label: 'שמאלה' },
+        { icon: 'house', emoji: '🏠', label: 'בית' }, { icon: 'ghost', emoji: '👻', label: 'רוח' },
+        { icon: 'target', emoji: '🎯', label: 'מטרה' },
+    ];
+    const WAITS = [
+        { seconds: 0.5, emoji: '⚡', label: 'חצי שנייה' }, { seconds: 1, emoji: '⏳', label: 'שנייה' },
+        { seconds: 2, emoji: '⌛', label: '2 שניות' }, { seconds: 3, emoji: '🕐', label: '3 שניות' },
+    ];
+    const OTHERS = [
+        { clear: true, emoji: '🧹', label: 'מנקים מסך' },
+    ];
+    // Add-on blocks: the Yahboom car (drive and stop), and the keys of the Yahboom remote that start a script
+    const CARS = [
+        { dir: 'forward', emoji: '⬆️', label: 'קדימה' }, { dir: 'back', emoji: '⬇️', label: 'אחורה' },
+        { dir: 'left', emoji: '⬅️', label: 'פנייה שמאלה' }, { dir: 'right', emoji: '➡️', label: 'פנייה ימינה' },
+        { dir: 'spinLeft', emoji: '↩️', label: 'מסתובב שמאלה' }, { dir: 'spinRight', emoji: '↪️', label: 'מסתובב ימינה' },
+        { stop: true, emoji: '🛑', label: 'עצירה' },
+    ];
+    const REMOTE = [
+        { key: 'up', label: 'חץ למעלה', mark: '⬆️' }, { key: 'down', label: 'חץ למטה', mark: '⬇️' },
+        { key: 'left', label: 'חץ שמאלה', mark: '⬅️' }, { key: 'right', label: 'חץ ימינה', mark: '➡️' },
+        { key: 'zero', label: '0', mark: '0️⃣' }, { key: 'one', label: '1', mark: '1️⃣' },
+        { key: 'two', label: '2', mark: '2️⃣' }, { key: 'three', label: '3', mark: '3️⃣' },
+        { key: 'four', label: '4', mark: '4️⃣' }, { key: 'five', label: '5', mark: '5️⃣' },
+        { key: 'six', label: '6', mark: '6️⃣' }, { key: 'seven', label: '7', mark: '7️⃣' },
+        { key: 'eight', label: '8', mark: '8️⃣' }, { key: 'nine', label: '9', mark: '9️⃣' },
+    ];
+    const EXT_KEY = 'kidlearn-microbit-extensions';
+
+    let scripts = [];        // the program: [{ event, actions: [...] }], each script runs once
+    let selected = -1;       // the script the child is working on (-1 = none)
+    let openId = null;       // the saved program that is open, if any
+    let gamesOff = null;     // null until known; true = switched off for this account (or this device)
+    let defaultOff = true;   // from games.json ("defaultOff"), used when nothing was saved for the game
+    let installing = false;
+    let sentThisTime = false;
+    let connectionState = 'checking';
+    let editingDraw = null;  // the place of the drawing being changed, or null for a new one
+    let drawing = [];      // the 5x5 drawing: true = lit
+    let extensions = { car: false, remote: false, board: false }; // the add-ons of the program on the screen: off until turned on
+    let boardData = null;    // "my board" of the program (kept as it is; the board add-on checks it). It never goes to the micro:bit.
+    let boardView = false;   // true while the "my board" tab is shown
+
+    const $ = (id) => document.getElementById(id);
+    const copy = (value) => JSON.parse(JSON.stringify(value));
+    const eventInfo = (event) => WHEN.find(w => w.event === event);
+    const currentScript = () => scripts[selected] || null;
+    // A story of "when it starts", A or B can also hold blocks of "my board". The micro:bit runs its own blocks and
+    // the board runs the board's blocks. Only the micro:bit's blocks count toward the limits the app checks, and
+    // only they are ever sent: the send below keeps just the blocks of KNOWN_ACTIONS.
+    const BOARD_DO = ['bLampOn', 'bLampOff', 'bAdd', 'bReset', 'bShow', 'bWord', 'bBlank'];
+    const isBoardAction = (a) => BOARD_DO.includes(a.do);
+    const mbActions = (s) => s.actions.filter(a => !isBoardAction(a));
+    const hasBoardBlocks = (s) => s.actions.some(isBoardAction);
+    // What the app counts for a story: its own blocks, and one more when the story also tells the board ("board" block)
+    const sentCount = (s) => mbActions(s).length + (hasBoardBlocks(s) ? 1 : 0);
+    const totalActions = () => scripts.reduce((n, s) => n + sentCount(s), 0);
+
+    // A letter (A or B) is shown in a blue circle, an emoji as it is
+    function markFor(info) {
+        const span = document.createElement('span');
+        span.className = info.mark === 'A' || info.mark === 'B' ? 'letter' : 'mark';
+        span.setAttribute('aria-hidden', 'true');
+        span.textContent = info.mark;
+        return span;
+    }
+
+    function actionFor(tile) {
+        if (tile.icon) return { do: 'show', icon: tile.icon };
+        if (tile.seconds) return { do: 'wait', seconds: tile.seconds };
+        if (tile.word) return { do: 'text', word: tile.word };
+        if (tile.dir) return { do: 'drive', dir: tile.dir };
+        if (tile.stop) return { do: 'stop' };
+        return { do: 'clear' };
+    }
+
+    function sameAction(a, b) {
+        return JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    function tileFor(action) {
+        return [...PICTURES.map(t => [t, actionFor(t)]), ...WAITS.map(t => [t, actionFor(t)]),
+                ...OTHERS.map(t => [t, actionFor(t)]), ...CARS.map(t => [t, actionFor(t)])].find(([, a]) => sameAction(a, action))?.[0];
+    }
+
+    function tileButton(tile, extraClass) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tile ' + (extraClass || '');
+        b.innerHTML = '<span class="emoji" aria-hidden="true"></span><span class="label"></span>';
+        b.querySelector('.emoji').textContent = tile.emoji;
+        b.querySelector('.label').textContent = tile.label;
+        b.setAttribute('aria-label', tile.label);
+        b.addEventListener('click', () => addAction(actionFor(tile)));
+        return b;
+    }
+
+    function buildDrawer() {
+        const box = $('pixels');
+        for (let i = 0; i < 25; i++) {
+            const pixel = document.createElement('button');
+            pixel.type = 'button';
+            pixel.className = 'pixel';
+            pixel.setAttribute('aria-pressed', 'false');
+            pixel.setAttribute('aria-label', 'נורה ' + (i + 1));
+            pixel.addEventListener('click', () => {
+                drawing[i] = !drawing[i];
+                pixel.classList.toggle('on', drawing[i]);
+                pixel.setAttribute('aria-pressed', String(drawing[i]));
+            });
+            box.appendChild(pixel);
+        }
+        $('drawerAdd').addEventListener('click', () => {
+            const action = { do: 'draw', pixels: Array.from({ length: 25 }, (_, i) => drawing[i] ? '1' : '0').join('') };
+            if (editingDraw !== null && currentScript() && currentScript().actions[editingDraw]) {
+                currentScript().actions[editingDraw] = action;
+                changed();
+                closeDrawer();
+                return;
+            }
+            const added = addAction(action);
+            if (added) closeDrawer();
+        });
+        $('drawerCancel').addEventListener('click', closeDrawer);
+    }
+
+    // index = the place of a drawing to change; without it a new drawing starts empty
+    function openDrawer(index) {
+        editingDraw = Number.isInteger(index) ? index : null;
+        const old = editingDraw !== null ? currentScript().actions[editingDraw].pixels : '';
+        drawing = Array.from({ length: 25 }, (_, i) => old[i] === '1');
+        document.querySelectorAll('#pixels .pixel').forEach((p, i) => {
+            p.classList.toggle('on', drawing[i]);
+            p.setAttribute('aria-pressed', String(drawing[i]));
+        });
+        $('drawerAdd').textContent = editingDraw !== null ? '✅ שמרו' : '✅ הוסיפו';
+        $('drawer').hidden = false;
+    }
+
+    function closeDrawer() {
+        $('drawer').hidden = true;
+    }
+
+    // A "when" button: a big row with its mark and label
+    function whenButton(w) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'when-btn';
+        b.dataset.event = w.event;
+        const label = document.createElement('span');
+        label.textContent = w.label;
+        b.append(markFor(w), label);
+        b.addEventListener('click', () => addScript(w.event));
+        return b;
+    }
+
+    // A "when" tile: the same, in a grid (the four tilts)
+    function whenTile(w) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tile tilt-btn';
+        b.dataset.event = w.event;
+        b.innerHTML = '<span class="emoji" aria-hidden="true"></span><span class="label"></span>';
+        b.querySelector('.emoji').textContent = w.mark;
+        b.querySelector('.label').textContent = w.label;
+        b.setAttribute('aria-label', w.label);
+        b.addEventListener('click', () => addScript(w.event));
+        return b;
+    }
+
+    function buildPalette() {
+        PICTURES.forEach(t => $('pictureTiles').appendChild(tileButton(t)));
+        // The last row: one button that spans the whole row, for a picture the child draws
+        const draw = document.createElement('button');
+        draw.type = 'button';
+        draw.className = 'tile wide';
+        draw.innerHTML = '<span class="emoji" aria-hidden="true">🎨</span><span class="label">ציור שלי</span>';
+        draw.setAttribute('aria-label', 'ציור שלי');
+        draw.addEventListener('click', () => openDrawer());
+        $('pictureTiles').appendChild(draw);
+        buildDrawer();
+        WAITS.forEach(t => $('waitTiles').appendChild(tileButton(t, 'wait')));
+        OTHERS.forEach(t => $('otherTiles').appendChild(tileButton(t, 'word')));
+        CARS.forEach(t => $('carTiles').appendChild(tileButton(t)));
+        REMOTE.forEach(k => $('remoteTiles').appendChild(remoteButton(k)));
+        WHEN.filter(w => !w.group).forEach(w => $('whenButtons').appendChild(whenButton(w)));
+        WHEN.filter(w => w.group === 'tilt').forEach(w => $('tiltWhen').appendChild(whenTile(w)));
+        WHEN.filter(w => w.group === 'v2').forEach(w => $('v2When').appendChild(whenButton(w)));
+        $('clearAll').addEventListener('click', () => {
+            if (!currentScript()) return;
+            currentScript().actions = [];
+            changed();
+        });
+        $('saveProg').addEventListener('click', saveProgram);
+        $('newProg').addEventListener('click', newProgram);
+        $('progName').addEventListener('input', () => {
+            saveDraft();
+            renderLibrary();
+        });
+    }
+
+    // ---- add-ons: the car and the remote, off until the child turns them on (kept on this device) ----
+    function loadExtensions() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(EXT_KEY) || '{}');
+            extensions = { car: saved.car === true, remote: saved.remote === true, board: saved.board === true };
+        } catch (e) {
+            // a damaged setting is ignored: every add-on stays off
+        }
+    }
+
+    function setExtension(name, on) {
+        extensions[name] = on;
+        try {
+            localStorage.setItem(EXT_KEY, JSON.stringify(extensions));
+            if (window.KidLearn) KidLearn.backupKey(EXT_KEY);
+        } catch (e) {
+            // storage is blocked: the setting lasts until the page is closed
+        }
+        renderExtensions();
+    }
+
+    function renderExtensions() {
+        $('carPart').hidden = !extensions.car;
+        $('remoteWhen').hidden = !extensions.remote;
+        renderBoardTabs();
+    }
+
+    // The add-ons of a program that was opened (or of a new one): they replace the ones on the screen
+    function applyExtensions(next) {
+        extensions = { car: !!next.car, remote: !!next.remote, board: !!next.board };
+        try {
+            localStorage.setItem(EXT_KEY, JSON.stringify(extensions));
+            if (window.KidLearn) KidLearn.backupKey(EXT_KEY);
+        } catch (e) {
+            // storage is blocked: the setting lasts until the page is closed
+        }
+        renderExtensions();
+    }
+
+    // A program with a car or remote block turns that add-on on, so its blocks can be seen and changed
+    function enableFor(list) {
+        const usesCar = list.some(s => s.actions.some(a => a.do === 'drive' || a.do === 'stop'));
+        const usesRemote = list.some(s => s.event === 'remote');
+        if (usesCar && !extensions.car) setExtension('car', true);
+        if (usesRemote && !extensions.remote) setExtension('remote', true);
+    }
+
+    // The label and the mark of a script: a start, button or shake script, or a key of the remote
+    function scriptInfo(s) {
+        if (s.event === 'remote') {
+            const k = REMOTE.find(r => r.key === s.key);
+            return k ? { label: 'כשלוחצים על ' + k.label, mark: k.mark } : null;
+        }
+        return eventInfo(s.event) || null;
+    }
+
+    function remoteButton(k) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tile remote-btn';
+        b.innerHTML = '<span class="emoji" aria-hidden="true"></span><span class="label"></span>';
+        b.querySelector('.emoji').textContent = k.mark;
+        b.querySelector('.label').textContent = k.label;
+        b.setAttribute('aria-label', 'כשלוחצים על ' + k.label);
+        b.addEventListener('click', () => addScript('remote', k.key));
+        return b;
+    }
+
+    // ---- "my board": an add-on that is loaded only when it is on. If it fails to load, the page works as before. ----
+    let boardLoad = null;   // null = not tried yet, 'loading', true = ready, false = failed
+
+    function hasBoardContent() {
+        return !!(boardData && ((boardData.strokes || []).length || (boardData.parts || []).length || (boardData.stories || []).length));
+    }
+
+    function boardHost() {
+        return {
+            root: $('boardView'),
+            link: { start: linkStart, stop: linkStop },
+            stories: {
+                when: $('boardWhenButtons'),
+                list: $('boardStoryList'),
+                then: $('boardThen'),
+                does: $('boardDoes'),
+                // A board story was chosen, added or deleted: no micro:bit story is chosen with it
+                onSelect: () => {
+                    if (window.MyBoard.hasSelection()) selected = -1;
+                    renderScripts();
+                    renderProgram();
+                    renderBoardPanels();
+                    updateSend();
+                    saveDraft();
+                },
+                // The page's own stories, so the board can run the blocks of the board in "when it starts", A and B
+                getScripts: () => scripts,
+                // True when a story of the page is chosen: every event of the micro:bit can run blocks of the board
+                sharedTarget: () => !!currentScript(),
+                addToScript: (action) => addAction(action),
+                // A part was taken off the board: its blocks leave the page's stories too
+                removePartRefs: (id) => {
+                    scripts.forEach(sc => { sc.actions = sc.actions.filter(a => a.part !== id); });
+                    changed();
+                },
+                usesPart: (id) => scripts.some(sc => sc.actions.some(a => a.part === id)),
+                openStories: () => showBoardTab(false),
+                tryBoard: () => {
+                    showBoardTab(true);
+                    window.MyBoard.play();
+                },
+            },
+            get: () => boardData,
+            update: (board) => {
+                boardData = board;
+                updateSend();
+                renderLibrary();
+                saveDraftSoon();
+            },
+        };
+    }
+
+    function loadBoardAddon() {
+        if (boardLoad !== null) return;
+        boardLoad = 'loading';
+        try {
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'board/board.css';
+            document.head.appendChild(css);
+            const script = document.createElement('script');
+            script.src = 'board/board.js';
+            script.onload = () => {
+                try {
+                    window.MyBoard.init(boardHost());
+                    window.MyBoard.onScreenChange = (partId, state) => linkShow(state);
+                    window.MyBoard.onMicrobitOutput = (a) => linkOutput(a);
+                    boardLoad = true;
+                    renderBoardTabs();
+                    pruneBoardBlocks();
+                } catch (e) {
+                    boardLoad = false;
+                    renderBoardTabs();
+                }
+            };
+            script.onerror = () => {
+                boardLoad = false;
+                renderBoardTabs();
+            };
+            document.head.appendChild(script);
+        } catch (e) {
+            boardLoad = false;
+            renderBoardTabs();
+        }
+    }
+
+    function showBoardTab(on) {
+        boardView = on && boardLoad === true;
+        $('builderView').hidden = boardView;
+        $('boardView').hidden = !boardView;
+        $('tabStories').setAttribute('aria-pressed', String(!boardView));
+        $('tabBoard').setAttribute('aria-pressed', String(boardView));
+        try {
+            if (window.MyBoard && boardLoad === true) window.MyBoard.setVisible(boardView);
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // The tabs are there only while the add-on is on; when it is off the page is exactly the stories page
+    function renderBoardTabs() {
+        // If the board could not be loaded, the tabs stay away and the child is told in a friendly way
+        $('viewTabs').hidden = !extensions.board || boardLoad === false;
+        $('boardNote').hidden = !(extensions.board && boardLoad === false);
+        if (extensions.board) {
+            loadBoardAddon();
+            showBoardTab(boardView);
+        } else {
+            showBoardTab(false);
+        }
+        renderBoardPanels();
+    }
+
+    const boardReady = () => extensions.board && boardLoad === true && !!window.MyBoard;
+
+    // The board's blocks live in the same three columns as the micro:bit's. A board story is chosen in place of
+    // a micro:bit story: then the "and then?" and "what does it do?" columns show the board's blocks.
+    function renderBoardPanels() {
+        const on = boardReady();
+        let open = false;
+        try {
+            if (on) {
+                window.MyBoard.renderStories();
+                open = window.MyBoard.hasSelection();
+            }
+        } catch (e) {
+            open = false;
+        }
+        $('boardWhen').hidden = !on;
+        $('boardStoryList').hidden = !on;
+        $('mbThen').hidden = false;       // the micro:bit's blocks are for every story, also a story of the board
+        $('carPart').hidden = open || !extensions.car;   // the car is not part of the board's stories
+        $('boardThen').hidden = !on;      // the board's blocks, or a line that says where they work
+        $('boardDoes').hidden = !open;
+        try {
+            if (on) window.MyBoard.refresh();
+        } catch (e) {
+            // the board is only an extra
+        }
+        ['scriptTitle', 'sequence', 'hint', 'clearAll'].forEach(id => { $(id).hidden = open; });
+    }
+
+    // How a block of the board looks in a story. Without the board it is a plain block that can still be deleted.
+    function describeBoardAction(a) {
+        try {
+            if (boardReady()) return window.MyBoard.describeAction(a);
+        } catch (e) {
+            // the board is only an extra
+        }
+        return { emoji: '🖼️', label: 'בלוק של הלוח' };
+    }
+
+    // Blocks of a part that is not on the board any more are taken out
+    function pruneBoardBlocks() {
+        if (!boardReady()) return;
+        let any = false;
+        scripts.forEach(sc => {
+            const kept = sc.actions.filter(a => !isBoardAction(a) || window.MyBoard.hasPart(a.part));
+            if (kept.length !== sc.actions.length) {
+                sc.actions = kept;
+                any = true;
+            }
+        });
+        if (any) changed();
+    }
+
+    function boardStoryCount() {
+        try {
+            return boardReady() ? window.MyBoard.storyCount() : 0;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    // A micro:bit story was chosen: no board story stays chosen
+    function boardDeselect() {
+        try {
+            if (boardReady()) window.MyBoard.deselect();
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // A program was opened, or a new one started: the board shows its board
+    function reloadBoard() {
+        try {
+            if (window.MyBoard && boardLoad === true) window.MyBoard.reload();
+        } catch (e) {
+            // the board is only an extra
+        }
+        renderBoardPanels();
+        pruneBoardBlocks();
+    }
+
+    $('tabStories').addEventListener('click', () => showBoardTab(false));
+    $('tabBoard').addEventListener('click', () => showBoardTab(true));
+
+    // ---- scripts ----
+    function addScript(event, key) {
+        if (scripts.length >= MAX_SCRIPTS) {
+            $('hint').textContent = 'יש כבר 6 סיפורים! מחקו אחד כדי להוסיף.';
+            return;
+        }
+        scripts.push(key ? { event, key, actions: [] } : { event, actions: [] });
+        selected = scripts.length - 1;
+        changed();
+    }
+
+    function removeScript(index) {
+        const s = scripts[index];
+        if (s.actions.length > 0 && !confirm('למחוק את הסיפור "' + scriptInfo(s).label + '"?')) return;
+        scripts.splice(index, 1);
+        const boardChosen = boardReady() && window.MyBoard.hasSelection();
+        selected = boardChosen || !scripts.length ? -1 : Math.min(index, scripts.length - 1);
+        changed();
+    }
+
+    // A block of the micro:bit (a picture, a drawing, a wait ...) goes to the chosen story of the board when there is one:
+    // the board plays it on the micro:bit through the link
+    const boardStoryChosen = () => boardReady() && window.MyBoard.hasSelection();
+
+    function addAction(action) {
+        if (!isBoardAction(action) && boardStoryChosen()) {
+            try {
+                return window.MyBoard.addMicrobitAction(copy(action));
+            } catch (e) {
+                return false;
+            }
+        }
+        const s = currentScript();
+        if (!s) {
+            $('hint').textContent = 'קודם לחצו על "מתי?" כדי לבחור מתי זה יקרה.';
+            return false;
+        }
+        if (isBoardAction(action)) {
+            if (s.actions.filter(isBoardAction).length >= MAX_ACTIONS) {
+                $('hint').textContent = 'יש כבר 12 בלוקים של הלוח בסיפור הזה. מחקו אחד כדי להוסיף.';
+                return false;
+            }
+            // The first block of the board in a story takes one place of the micro:bit's blocks: it tells the page
+            if (!hasBoardBlocks(s) && (sentCount(s) >= MAX_ACTIONS || totalActions() >= MAX_TOTAL)) {
+                $('hint').textContent = 'אין מקום לבלוק של הלוח: הוא לוקח מקום אחד מהסמלים. מחקו סמל כדי להוסיף.';
+                return false;
+            }
+        } else {
+            if (sentCount(s) >= MAX_ACTIONS) {
+                $('hint').textContent = hasBoardBlocks(s)
+                    ? 'יש כבר 12 סמלים בסיפור הזה (אחד מהם בשביל הלוח). מחקו אחד כדי להוסיף.'
+                    : 'יש כבר 12 סמלים בסיפור הזה. מחקו אחד כדי להוסיף.';
+                return false;
+            }
+            if (totalActions() >= MAX_TOTAL) {
+                $('hint').textContent = 'יש כבר 24 סמלים בכל התוכנית. מחקו אחד כדי להוסיף.';
+                return false;
+            }
+        }
+        s.actions.push(action);
+        changed();
+        return true;
+    }
+
+    function removeAction(index) {
+        currentScript().actions.splice(index, 1);
+        changed();
+    }
+
+    function renderScripts() {
+        const list = $('scriptList');
+        list.innerHTML = '';
+        scripts.forEach((s, i) => {
+            const info = scriptInfo(s);
+            const li = document.createElement('li');
+            li.className = 'script' + (i === selected ? ' selected' : '');
+            li.appendChild(gripFor());
+            enableDrag(li, 'script', i);
+
+            const pick = document.createElement('button');
+            pick.type = 'button';
+            pick.className = 'script-pick';
+            pick.setAttribute('aria-pressed', String(i === selected));
+            const label = document.createElement('span');
+            label.className = 'script-label';
+            label.textContent = info.label;
+            const count = document.createElement('span');
+            count.className = 'script-count';
+            count.textContent = mbActions(s).length + '/' + MAX_ACTIONS;
+            pick.append(markFor(info), label, count);
+            pick.addEventListener('click', () => {
+                selected = i;
+                changed();
+            });
+            li.appendChild(pick);
+
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'script-del';
+            del.textContent = '✖';
+            del.setAttribute('aria-label', 'מחיקת התסריט ' + info.label);
+            del.addEventListener('click', () => removeScript(i));
+            li.appendChild(del);
+
+            list.appendChild(li);
+        });
+        $('scriptCount').textContent = scripts.length + '/' + MAX_SCRIPTS;
+        $('scriptEmpty').hidden = scripts.length > 0 || boardStoryCount() > 0;
+        document.querySelectorAll('.when-btn, .tilt-btn, .remote-btn').forEach(b => {
+            b.disabled = scripts.length >= MAX_SCRIPTS;
+        });
+    }
+
+    // Dragging: drop a block on another block of the same script, or a script on another script,
+    // to put it in that place. Blocks stay in their script.
+    let dragging = null; // { kind: 'action' | 'script', index }
+
+    function gripFor() {
+        const grip = document.createElement('span');
+        grip.className = 'grip';
+        grip.setAttribute('aria-hidden', 'true');
+        grip.textContent = '⠿';
+        return grip;
+    }
+
+    function enableDrag(li, kind, index) {
+        li.draggable = true;
+        li.addEventListener('dragstart', (e) => {
+            dragging = { kind, index };
+            li.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(index)); // some browsers need data to start a drag
+        });
+        li.addEventListener('dragend', () => {
+            dragging = null;
+            document.querySelectorAll('.dragging, .drop-here').forEach(el => el.classList.remove('dragging', 'drop-here'));
+        });
+        li.addEventListener('dragover', (e) => {
+            if (!dragging || dragging.kind !== kind) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            li.classList.add('drop-here');
+        });
+        li.addEventListener('dragleave', () => li.classList.remove('drop-here'));
+        li.addEventListener('drop', (e) => {
+            if (!dragging || dragging.kind !== kind) return;
+            e.preventDefault();
+            const from = dragging.index;
+            dragging = null;
+            if (kind === 'action') {
+                moveItem(currentScript().actions, from, index);
+            } else {
+                const chosen = scripts[selected];
+                moveItem(scripts, from, index);
+                selected = scripts.indexOf(chosen);
+            }
+            changed();
+        });
+    }
+
+    function moveItem(list, from, to) {
+        if (from === to) return;
+        const [item] = list.splice(from, 1);
+        list.splice(to, 0, item);
+    }
+
+    // The blocks of the chosen script
+    function renderProgram() {
+        const list = $('sequence');
+        const s = currentScript();
+        list.innerHTML = '';
+        (s ? s.actions : []).forEach((action, i) => {
+            const tile = tileFor(action);
+            const li = document.createElement('li');
+            enableDrag(li, 'action', i);
+            const num = document.createElement('span');
+            num.className = 'num';
+            num.textContent = String(i + 1);
+            const emoji = document.createElement('span');
+            emoji.className = 'emoji';
+            emoji.setAttribute('aria-hidden', 'true');
+            const isDrawing = action.do === 'draw';
+            const boardInfo = isBoardAction(action) ? describeBoardAction(action) : null;
+            const name = isDrawing ? 'ציור שלי' : boardInfo ? '🖼️ ' + boardInfo.label : (tile ? tile.label : '');
+            emoji.textContent = isDrawing ? '🎨' : boardInfo ? boardInfo.emoji : (tile ? tile.emoji : '?');
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = name;
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'remove';
+            remove.textContent = '✖';
+            remove.setAttribute('aria-label', 'מחיקת הסמל ' + name);
+            remove.addEventListener('click', () => removeAction(i));
+            li.append(gripFor(), num, emoji, label);
+            if (isDrawing) {
+                const edit = document.createElement('button');
+                edit.type = 'button';
+                edit.className = 'remove';
+                edit.textContent = '✏️';
+                edit.setAttribute('aria-label', 'עריכת הציור');
+                edit.addEventListener('click', () => openDrawer(i));
+                li.appendChild(edit);
+            }
+            li.appendChild(remove);
+            list.appendChild(li);
+        });
+        $('count').textContent = (s ? mbActions(s).length : 0) + '/' + MAX_ACTIONS;
+        $('scriptTitle').textContent = s ? 'הסיפור: ' + scriptInfo(s).label : 'עדיין לא נבחר סיפור.';
+        $('clearAll').disabled = !s || s.actions.length === 0;
+        $('hint').textContent = !s ? 'קודם לחצו על "מתי?", ואז בחרו סמלים.'
+            : s.actions.length === 0 ? 'לחצו על סמל כדי להוסיף אותו 🙂'
+            : 'הדברים יקרו לפי הסדר, מלמעלה למטה. אפשר לגרור כדי לשנות מקום ↕️';
+    }
+
+    // Blocks of the board in a story of the page: the micro:bit starts them (it starts, A, B, a shake ...). The story is
+    // sent to the micro:bit like any other, with one more block that tells the page when it started.
+    function hasBlocksWaitingForMicrobit() {
+        return scripts.some(hasBoardBlocks);
+    }
+
+    // The board's own stories (a button, a slider, a key) can use the micro:bit's output blocks: they show on the micro:bit
+    const MB_OUT = ['show', 'text', 'draw', 'clear'];
+    function boardStoriesDriveMicrobit() {
+        return !!(boardData && Array.isArray(boardData.stories)
+            && boardData.stories.some(st => Array.isArray(st.actions) && st.actions.some(a => MB_OUT.includes(a.do))));
+    }
+
+    // Anything on the board that needs the micro:bit on the cable
+    function boardNeedsMicrobit() {
+        return hasBlocksWaitingForMicrobit() || boardStoriesDriveMicrobit();
+    }
+
+    // Stories of the parts of the board (a button, a slider, a key): they work on the screen, the micro:bit is not needed
+    function hasBoardOnlyStories() {
+        return !!(boardData && Array.isArray(boardData.stories) && boardData.stories.length);
+    }
+
+    const NOTHING_TO_SEND = 'קודם בנו סיפור מסמלים, ואז אפשר לשלוח 🧩';
+    const BOARD_NEEDS_CABLE = 'אחרי השליחה, השאירו את המיקרוביט מחובר בכבל ופתחו את "הלוח שלי" ▶️. המיקרוביט יפעיל את הלוח 🔌';
+    const BOARD_ONLY = 'מה שבניתם עובד בלוח 🖼️ ואין צורך לשלוח אותו למיקרוביט. אפשר לנסות אותו בלוח ▶️';
+
+    // What to tell the child under the send button
+    function sendNoteText(count) {
+        if (boardNeedsMicrobit()) return BOARD_NEEDS_CABLE;
+        if (count > 0) return '';
+        if (hasBoardOnlyStories()) return BOARD_ONLY;
+        return NOTHING_TO_SEND;
+    }
+
+    // The send button depends only on the program. The send itself reports any real problem
+    // (no board, no extension, no app), so the status check never blocks a send that would work.
+    function updateSend() {
+        // The program also needs a story that only listens when the board's own stories show things on the micro:bit
+        const count = totalActions() + (boardStoriesDriveMicrobit() && !scripts.some(hasBoardBlocks) ? 1 : 0);
+        const ready = count > 0 && gamesOff === false && !installing;
+        $('sendBtn').disabled = !ready;
+        $('sendBtn').textContent = sentThisTime ? '🚀 שלחו שוב!' : '🚀 שלחו!';
+        $('sendNote').textContent = sendNoteText(count);
+    }
+
+    function changed() {
+        if (selected >= 0) boardDeselect();
+        sentThisTime = false;
+        $('libNote').textContent = '';
+        $('sendError').textContent = '';
+        renderScripts();
+        renderProgram();
+        renderLibrary();
+        updateSend();
+        renderBoardPanels();
+        saveDraft();
+    }
+
+    // ---- saved programs on this device, and the draft that is kept until the child changes it ----
+    // Keeps only the shape of a saved program; the app checks every block again when it is sent
+    const KNOWN_ACTIONS = ['show', 'wait', 'text', 'draw', 'drive', 'stop', 'clear'];
+
+    // A block of the board keeps only its name and the few values it needs
+    function cleanBoardAction(a) {
+        if (typeof a.part !== 'string' || !/^[a-z0-9]{1,12}$/.test(a.part)) return null;
+        const out = { do: a.do, part: a.part };
+        if (a.do === 'bAdd') out.n = 1;
+        if (a.do === 'bShow') {
+            if (typeof a.icon !== 'string' || !/^[a-z]{2,12}$/.test(a.icon)) return null;
+            out.icon = a.icon;
+        }
+        if (a.do === 'bWord') {
+            if (typeof a.word !== 'string' || !/^[A-Z]{2,4}$/.test(a.word)) return null;
+            out.word = a.word;
+        }
+        return out;
+    }
+
+    function cleanScripts(input) {
+        const result = [];
+        let total = 0;
+        if (!Array.isArray(input)) return result;
+        for (const s of input) {
+            if (result.length >= MAX_SCRIPTS || !s || !scriptInfo(s)) continue;
+            // Blocks the page does not have any more are dropped. The blocks of "my board" are kept, in their place.
+            const kept = [];
+            let mbCount = 0;
+            let boardCount = 0;
+            // A story with blocks of the board also sends one "board" block: its place is kept free
+            const reserve = Array.isArray(s.actions) && s.actions.some(a => a && BOARD_DO.includes(a.do) && cleanBoardAction(a)) ? 1 : 0;
+            for (const a of Array.isArray(s.actions) ? s.actions : []) {
+                if (!a) continue;
+                if (KNOWN_ACTIONS.includes(a.do)) {
+                    if (mbCount >= MAX_ACTIONS - reserve || total + mbCount >= MAX_TOTAL - reserve) continue;
+                    mbCount++;
+                    kept.push(a);
+                } else if (BOARD_DO.includes(a.do) && boardCount < MAX_ACTIONS) {
+                    const clean = cleanBoardAction(a);
+                    if (clean) {
+                        boardCount++;
+                        kept.push(clean);
+                    }
+                }
+            }
+            total += mbCount + reserve;
+            result.push(s.event === 'remote' ? { event: s.event, key: s.key, actions: kept } : { event: s.event, actions: kept });
+        }
+        return result;
+    }
+
+    // ---- saved programs: in the account when someone is signed in, on this device when nobody is ----
+    // The copy on this device is kept per account, so one account never shows another account's programs
+    function cacheKey() {
+        const user = KidLearn.currentUser();
+        return user ? SAVED_KEY + '-' + user.uid : SAVED_KEY;
+    }
+
+    function normalizeSaved(list) {
+        if (!Array.isArray(list)) return [];
+        return list
+            .filter(p => p && typeof p.id === 'string' && typeof p.name === 'string')
+            .slice(0, MAX_SAVED)
+            .map(p => ({
+                id: p.id,
+                name: p.name.slice(0, 30),
+                scripts: cleanScripts(p.scripts),
+                // The add-ons that are on for this program
+                extensions: { car: !!(p.extensions && p.extensions.car), remote: !!(p.extensions && p.extensions.remote), board: !!(p.extensions && p.extensions.board) },
+                // "My board" of the program. The account keeps it in a document of its own (hasBoard says there is one)
+                board: p.board && typeof p.board === 'object' ? p.board : null,
+                hasBoard: !!(p.board || p.hasBoard),
+            }));
+    }
+
+    function readList(key) {
+        try {
+            return normalizeSaved(JSON.parse(localStorage.getItem(key) || '[]'));
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function readSaved() {
+        return readList(cacheKey());
+    }
+
+    function writeCache(list) {
+        try {
+            localStorage.setItem(cacheKey(), JSON.stringify(list));
+            return true;
+        } catch (e) {
+            return false; // storage is blocked or full
+        }
+    }
+
+    // Saves the whole list in the account. If that fails, the copy on this device stays and the child is told
+    async function pushToCloud(list) {
+        try {
+            // The boards are big, so each one is saved in its own document and the list only says which programs have one
+            const slim = list.map(({ board, ...rest }) => ({ ...rest, hasBoard: !!board }));
+            await KidLearn.saveData(CLOUD_ID, { programs: slim });
+        } catch (e) {
+            $('libNote').textContent = 'לא הצלחנו לשמור בענן. התוכנית נשמרה במכשיר הזה.';
+        }
+    }
+
+    async function pushBoard(id, board) {
+        if (!KidLearn.currentUser()) return;
+        try {
+            await KidLearn.saveData(BOARD_CLOUD_ID + id, { board: board || null });
+        } catch (e) {
+            $('libNote').textContent = 'לא הצלחנו לשמור את הלוח בענן. הוא נשמר במכשיר הזה.';
+        }
+    }
+
+    async function dropBoardFromCloud(id) {
+        if (!KidLearn.currentUser()) return;
+        try {
+            if (KidLearn.deleteData) await KidLearn.deleteData(BOARD_CLOUD_ID + id);
+            else await KidLearn.saveData(BOARD_CLOUD_ID + id, { board: null });
+        } catch (e) {
+            // a small leftover document in the account does no harm
+        }
+    }
+
+    function writeSaved(list) {
+        const local = writeCache(list);
+        if (KidLearn.currentUser()) pushToCloud(list);
+        return local;
+    }
+
+    // Signed in: the programs in the account are the ones shown. When the account has none yet, the programs
+    // saved on this device before signing in move into it.
+    async function syncFromCloud() {
+        if (!KidLearn.currentUser()) {
+            draftCloudReady = false;
+            clearTimeout(draftCloudTimer);
+            renderLibrary();
+            return;
+        }
+        let cloud;
+        try {
+            cloud = await KidLearn.loadData(CLOUD_ID);
+        } catch (e) {
+            $('libNote').textContent = 'לא הצלחנו לטעון את התוכניות מהענן.';
+            renderLibrary();
+            return;
+        }
+        if (cloud && Array.isArray(cloud.programs)) {
+            const before = readSaved();
+            const programs = normalizeSaved(cloud.programs);
+            // The boards come from their own documents. If one can not be read now, the copy on this device is kept.
+            await Promise.all(programs.map(async (p) => {
+                if (!p.hasBoard) return;
+                try {
+                    const doc = await KidLearn.loadData(BOARD_CLOUD_ID + p.id);
+                    if (doc && doc.board && typeof doc.board === 'object') p.board = doc.board;
+                    else if (!doc) p.board = (before.find(x => x.id === p.id) || {}).board || null;
+                } catch (e) {
+                    p.board = (before.find(x => x.id === p.id) || {}).board || null;
+                }
+            }));
+            writeCache(programs);
+        } else {
+            const guest = readList(SAVED_KEY);
+            if (guest.length) {
+                writeCache(guest);
+                await pushToCloud(guest);
+                for (const p of guest) {
+                    if (p.board) await pushBoard(p.id, p.board);
+                }
+            }
+        }
+        renderLibrary();
+        await syncDraftFromCloud();
+    }
+
+    let draftTimer = 0;
+    // The board changes a lot while a child draws, so its draft is written a moment after the last change
+    function saveDraftSoon() {
+        clearTimeout(draftTimer);
+        draftTimer = setTimeout(saveDraft, 400);
+    }
+
+    // ---- the work on the screen (the draft): on this device, and in the account when someone is signed in ----
+    // Without a login nothing leaves the device. With a login the work is also kept in the account, so a child who
+    // continues on another computer finds it as it was. The newer copy wins, and the account's copy is read before
+    // anything is sent, so an old draft on a device never covers newer work.
+    let lastDraftJson = '';        // the work as it was last saved: the time moves only when the work changes
+    let draftBaseline = '';        // the work as it was when the page opened
+    let draftAt = 0;               // when the work on the screen last changed
+    let draftOwner = null;         // the account the draft on this device belongs to (null: nobody was signed in)
+    let draftCloudReady = false;   // true once the account's draft was read
+    let draftCloudTimer = 0;
+
+    function draftContent() {
+        return { scripts, selected, openId, name: $('progName').value, board: boardData, extensions };
+    }
+
+    function hasDraftWork() {
+        return scripts.length > 0 || hasBoardContent() || $('progName').value.trim() !== '';
+    }
+
+    function saveDraft() {
+        clearTimeout(draftTimer);
+        const content = draftContent();
+        const json = JSON.stringify(content);
+        if (json !== lastDraftJson) {
+            lastDraftJson = json;
+            draftAt = Date.now();
+            pushDraftSoon();
+        }
+        const user = KidLearn.currentUser();
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...content, savedAt: draftAt, uid: user ? user.uid : null }));
+        } catch (e) {
+            // storage is blocked: the work lasts until the page is closed
+        }
+    }
+
+    function pushDraftSoon() {
+        if (!KidLearn.currentUser() || !draftCloudReady) return;
+        clearTimeout(draftCloudTimer);
+        draftCloudTimer = setTimeout(pushDraftNow, 2000);
+    }
+
+    async function pushDraftNow() {
+        if (!KidLearn.currentUser() || !draftCloudReady) return;
+        try {
+            await KidLearn.saveData(DRAFT_CLOUD_ID, { ...draftContent(), savedAt: draftAt });
+        } catch (e) {
+            // quiet: the work is on this device, and the next change tries again
+        }
+    }
+
+    // The account's work comes to the screen only while nothing was changed on this page
+    function applyCloudDraft(d) {
+        scripts = cleanScripts(d.scripts);
+        selected = scripts.length ? Math.min(Math.max(0, Number(d.selected) || 0), scripts.length - 1) : -1;
+        openId = typeof d.openId === 'string' ? d.openId : null;
+        boardData = d.board && typeof d.board === 'object' ? d.board : null;
+        $('progName').value = typeof d.name === 'string' ? d.name.slice(0, 30) : '';
+        applyExtensions(d.extensions || {});
+        enableFor(scripts);
+        draftAt = Number(d.savedAt) || Date.now();
+        lastDraftJson = JSON.stringify(draftContent());   // this is not a change: no new time, nothing is sent back
+        draftBaseline = lastDraftJson;
+        sentThisTime = false;
+        changed();
+        reloadBoard();
+        $('libNote').textContent = 'טענו את העבודה האחרונה מהחשבון שלכם ☁️';
+    }
+
+    async function syncDraftFromCloud() {
+        const user = KidLearn.currentUser();
+        if (!user) return;
+        let cloud;
+        try {
+            cloud = await KidLearn.loadData(DRAFT_CLOUD_ID);
+        } catch (e) {
+            return;   // it could not be read: nothing on the screen is replaced, and nothing is sent
+        }
+        draftCloudReady = true;
+        const edited = JSON.stringify(draftContent()) !== draftBaseline;
+        const cloudAt = (cloud && Number(cloud.savedAt)) || 0;
+        // A draft that another account left on this device is not this account's work
+        const foreign = draftOwner !== null && draftOwner !== user.uid;
+        if (cloud && cloudAt > (foreign ? 0 : draftAt) && !edited) {
+            applyCloudDraft(cloud);
+            return;
+        }
+        if ((!foreign || edited) && hasDraftWork() && cloudAt !== draftAt) pushDraftSoon();
+    }
+
+    function loadDraft() {
+        try {
+            const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+            if (!d) return;
+            scripts = cleanScripts(d.scripts);
+            selected = scripts.length ? Math.min(Math.max(0, Number(d.selected) || 0), scripts.length - 1) : -1;
+            openId = typeof d.openId === 'string' ? d.openId : null;
+            boardData = d.board && typeof d.board === 'object' ? d.board : null;
+            $('progName').value = typeof d.name === 'string' ? d.name.slice(0, 30) : '';
+            draftAt = Number(d.savedAt) || 0;
+            draftOwner = typeof d.uid === 'string' ? d.uid : null;
+            enableFor(scripts);
+        } catch (e) {
+            // a damaged draft is ignored: the child starts with an empty program
+        } finally {
+            lastDraftJson = JSON.stringify(draftContent());
+            draftBaseline = lastDraftJson;
+        }
+    }
+
+    // True when what is on the screen is not what is saved under its name
+    function isDirty() {
+        const open = readSaved().find(p => p.id === openId);
+        if (!open) return scripts.length > 0 || hasBoardContent();
+        return JSON.stringify(scripts) !== JSON.stringify(open.scripts) || $('progName').value.trim() !== open.name
+            || JSON.stringify(boardData || null) !== JSON.stringify(open.board || null);
+    }
+
+    function renderLibrary() {
+        const saved = readSaved();
+        if (openId && !saved.some(p => p.id === openId)) openId = null;
+        const list = $('savedList');
+        list.innerHTML = '';
+        saved.forEach(p => {
+            const li = document.createElement('li');
+            li.className = 'chip' + (p.id === openId ? ' open' : '');
+            const open = document.createElement('button');
+            open.type = 'button';
+            open.className = 'chip-open';
+            open.textContent = p.name;
+            open.setAttribute('aria-pressed', String(p.id === openId));
+            open.addEventListener('click', () => openProgram(p.id));
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'chip-del';
+            del.textContent = '✖';
+            del.setAttribute('aria-label', 'מחיקת ' + p.name);
+            del.addEventListener('click', () => deleteProgram(p.id));
+            li.append(open, del);
+            list.appendChild(li);
+        });
+        $('libCount').textContent = saved.length + '/' + MAX_SAVED;
+        $('libWhere').textContent = KidLearn.currentUser()
+            ? 'התוכניות נשמרו בחשבון שלכם ☁️'
+            : 'נשמר רק במכשיר הזה. ההורים יכולים להתחבר כדי לשמור בענן.';
+        $('libEmpty').hidden = saved.length > 0;
+        const isOpen = saved.some(p => p.id === openId);
+        $('libState').textContent = isDirty()
+            ? (isOpen ? 'יש שינויים שלא נשמרו.' : 'התוכנית הזו עדיין לא שמורה. לחצו "שמרו" 💾')
+            : (isOpen ? 'התוכנית שמורה! ✅' : '');
+    }
+
+    function saveProgram() {
+        if (scripts.length === 0 && !hasBoardContent()) {
+            $('libNote').textContent = 'בנו משהו לפני שמירה 🧩';
+            return;
+        }
+        const typed = $('progName').value.trim().slice(0, 30);
+        const saved = readSaved();
+        let program = saved.find(p => p.id === openId);
+        if (program) {
+            program.name = typed || program.name;
+            program.scripts = copy(scripts);
+            program.extensions = copy(extensions);
+            program.board = boardData ? copy(boardData) : null;
+        } else {
+            if (saved.length >= MAX_SAVED) {
+                $('libNote').textContent = 'יש כבר ' + MAX_SAVED + ' תוכניות. מחקו אחת כדי לשמור עוד.';
+                return;
+            }
+            program = { id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: typed || 'תוכנית ' + (saved.length + 1), scripts: copy(scripts), extensions: copy(extensions), board: boardData ? copy(boardData) : null };
+            saved.push(program);
+            openId = program.id;
+        }
+        if (!writeSaved(saved)) {
+            $('libNote').textContent = 'לא הצלחנו לשמור במכשיר הזה.';
+            return;
+        }
+        if (program.board || program.hasBoard) {
+            pushBoard(program.id, program.board);
+            program.hasBoard = !!program.board;
+        }
+        $('progName').value = program.name;
+        $('libNote').textContent = KidLearn.currentUser() ? 'נשמר בחשבון שלכם!' : 'נשמר! ✅';
+        saveDraft();
+        renderLibrary();
+    }
+
+    function openProgram(id) {
+        const p = readSaved().find(x => x.id === id);
+        if (!p) return renderLibrary();
+        if (isDirty() && !confirm('לפתוח את "' + p.name + '"? מה שלא נשמר ימחק.')) return;
+        scripts = copy(p.scripts);
+        applyExtensions(p.extensions || {});
+        enableFor(scripts);
+        boardData = p.board ? copy(p.board) : null;
+        selected = scripts.length ? 0 : -1;
+        openId = p.id;
+        $('progName').value = p.name;
+        sentThisTime = false;
+        changed();
+        reloadBoard();
+    }
+
+    function deleteProgram(id) {
+        const saved = readSaved();
+        const p = saved.find(x => x.id === id);
+        if (!p || !confirm('למחוק את "' + p.name + '"?')) return;
+        writeSaved(saved.filter(x => x.id !== id));
+        if (p.board || p.hasBoard) dropBoardFromCloud(id);
+        // What is on the screen stays, as work that is not saved
+        if (openId === id) openId = null;
+        $('libNote').textContent = 'נמחקה: ' + p.name;
+        saveDraft();
+        renderLibrary();
+    }
+
+    function newProgram() {
+        if (isDirty() && !confirm('לפתוח תוכנית חדשה? מה שלא נשמר ימחק.')) return;
+        scripts = [];
+        selected = -1;
+        openId = null;
+        $('progName').value = '';
+        sentThisTime = false;
+        // A new program starts with every add-on off, and with an empty board
+        boardData = null;
+        applyExtensions({});
+        changed();
+        reloadBoard();
+    }
+
+    // ---- status ----
+    const ICONS = { checking: '⏳', 'no-extension': '🧩', 'no-app': '🖥️', waiting: '🔌', ready: '✅', sending: '📡', sent: '🎉', off: '🔒', error: '⚠️' };
+    const TONES = { ready: 'ok', sent: 'ok', waiting: 'warn', 'no-app': 'warn', 'no-extension': 'warn', off: 'bad', error: 'bad', sending: 'warn', checking: '' };
+    const TEXTS = {
+        checking: ['בודקים...', ''],
+        'no-extension': ['צריך עזרה מהורה 🙋', 'חסר תוסף Kidlearn בכרום. התקינו אותו ורעננו את הדף.'],
+        'no-app': ['פתחו את Kidlearn במחשב 🖥️', 'האייקון נמצא ליד השעון.'],
+        waiting: ['המיקרוביט לא מחובר 🔌', 'חברו אותו בכבל. זה נבדק לבד.'],
+        ready: ['המיקרוביט מוכן! ✅', 'בנו סיפור ולחצו "שלחו".'],
+        sending: ['שולחים...', 'לא לנתק את המיקרוביט! חכו כמה שניות ⏳'],
+        sent: ['הגיע למיקרוביט! 🎉', 'מנתקים ומשחקים. הוא עושה הכול לבד.'],
+        off: ['התכנות כבוי 😴', 'בקשו מההורה להדליק אותו בדף הבית.'],
+        error: ['אופס, משהו לא עבד 😕', ''],
+    };
+
+    function setStatus(name, detail) {
+        connectionState = name;
+        const [title, text] = TEXTS[name] || [name, ''];
+        $('statusBox').className = 'status' + (TONES[name] ? ' ' + TONES[name] : '');
+        $('statusIcon').textContent = ICONS[name] || '⚠️';
+        $('statusTitle').textContent = title;
+        $('statusText').textContent = detail || text;
+        updateSend();
+    }
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    let statusFailures = 0;
+
+    // The extension can answer a moment after the page loads, so try a few times before saying it is missing
+    async function extensionReady() {
+        for (let i = 0; i < 3; i++) {
+            if (await KidLearnBridge.isInstalled()) return true;
+            await sleep(700);
+        }
+        return false;
+    }
+
+    async function checkStatus() {
+        if (installing || gamesOff === null) return;
+        if (gamesOff) return setStatus('off');
+        if (!(await extensionReady())) return setStatus('no-extension');
+        const reply = await KidLearnBridge.request('microbitStatus');
+        if (!reply.ok) {
+            if (reply.error === 'extension_missing') return setStatus('no-extension');
+            // An older version of the extension is still loaded in Chrome: it does not know this action
+            if (reply.error === 'unknown_action') {
+                return setStatus('no-extension', 'התוסף בכרום ישן. ב-chrome://extensions לחצו על רענון (Reload) ל-Kidlearn, ואז רעננו את הדף.');
+            }
+            // One failed check (for example a slow start) does not change what the child sees
+            statusFailures++;
+            if (statusFailures < 2 && connectionState !== 'checking') return;
+            return setStatus('no-app', 'לא הצלחנו לדבר עם Kidlearn במחשב (' + reply.error + ').');
+        }
+        statusFailures = 0;
+        if (reply.data.connected) {
+            return setStatus(sentThisTime ? 'sent' : 'ready');
+        }
+        sentThisTime = false;
+        setStatus('waiting');
+    }
+
+    // What the child sees for each failure the app reports when it writes to the micro:bit
+    const REASONS = {
+        port_busy: 'הכבל של המיקרוביט תפוס בתוכנה אחרת, למשל עורך Python בדפדפן. סגרו אותה ונסו שוב.',
+        no_answer: 'המיקרוביט לא ענה. נתקו וחברו שוב, ונסו שוב 🔌',
+        port_error: 'לא הצלחנו לשלוח למיקרוביט. נתקו וחברו שוב 🔌',
+        board_error: 'אופס! נסו שוב 🙂',
+    };
+
+    // A send error is shown under the send button, and stays there until the program changes or is sent again.
+    // The status box is checked every few seconds and would hide it, so the error is kept out of the status box.
+    function sendFailed(text) {
+        $('sendError').textContent = text;
+        $('sendError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    $('sendBtn').addEventListener('click', async () => {
+        if (installing) return;
+        const toSend = scripts
+            .map(s => ({ ...s, actions: [...(hasBoardBlocks(s) ? [{ do: 'board' }] : []), ...s.actions.filter(a => KNOWN_ACTIONS.includes(a.do))] }))
+            .filter(s => s.actions.length > 0);
+        // The board's own stories show things on the micro:bit: the program must listen to the page. A story that only
+        // says "board" does that (and a story that already says it is enough).
+        if (boardStoriesDriveMicrobit() && !toSend.some(sc => sc.actions[0].do === 'board')) {
+            if (toSend.length < MAX_SCRIPTS) toSend.push({ event: 'start', actions: [{ do: 'board' }] });
+            else if (toSend[0].actions.length < MAX_ACTIONS) toSend[0].actions.unshift({ do: 'board' });
+        }
+        if (toSend.length === 0) return sendFailed(sendNoteText(0));
+        installing = true;
+        $('sendError').textContent = '';
+        setStatus('sending');
+        // The link holds the cable while the board plays: a send always comes first, and the link comes back after it
+        const resumeLink = link.on;
+        await linkStop();
+        if (resumeLink) setBoardLinked(false, 'sending'); // the board is still playing: it says why nothing happens for a moment
+        const reply = await KidLearnBridge.request('installMicrobit', { program: copy({ scripts: toSend }) }, { timeoutMs: 60000 });
+        installing = false;
+        if (resumeLink) resumeBoardLink();
+        if (reply.ok) {
+            sentThisTime = true;
+            setStatus('sent');
+            return playBoardAfterSend();
+        }
+        sentThisTime = false;
+        if (reply.error === 'extension_missing') {
+            setStatus('no-extension');
+            return sendFailed('צריך עזרה מהורה 🙋 (חסר תוסף Kidlearn בכרום)');
+        }
+        if (reply.error === 'no_microbit') {
+            setStatus('waiting');
+            return sendFailed('המיקרוביט לא מחובר 🔌 חברו בכבל ונסו שוב.');
+        }
+        if (reply.error === 'app_not_running' || reply.error === 'host_unavailable') {
+            setStatus('no-app');
+            return sendFailed('פתחו את Kidlearn במחשב 🖥️ ונסו שוב.');
+        }
+        if (reply.error === 'unknown_action' || reply.error === 'forbidden') {
+            setStatus('error');
+            return sendFailed('צריך לעדכן את Kidlearn במחשב: פתחו את ההתקנה מחדש.');
+        }
+        if (REASONS[reply.error]) {
+            setStatus('ready');
+            return sendFailed(REASONS[reply.error] + (reply.detail ? ' פרטים: ' + reply.detail : ''));
+        }
+        setStatus('ready');
+        sendFailed('התוכנית לא נשלחה (' + reply.error + '). נסו שוב, ואם זה חוזר, פתחו את ההתקנה מחדש.');
+    });
+
+    // ---- the link between "my board" and the micro:bit on the cable ----
+    // While the board plays and a story has blocks of the board, the page asks the app (through the extension) what the
+    // micro:bit said, and the board runs its blocks. What the screens of the board show goes back to the micro:bit's screen.
+    // Everything here is quiet: without the extension, the app or the cable the board still plays, and says what is missing.
+    const LINK_POLL_MS = 400;   // each question starts a small helper program of the extension, so not more often than this
+    const link = { on: false, linked: false, reason: '', timer: 0, slow: 0, queue: Promise.resolve() };
+    const LINK_SLOW_MS = 6000;   // after this long without an answer the child is told to plug the cable again
+
+    function linkReasonFor(error) {
+        if (error === 'extension_missing') return 'extension';
+        if (error === 'app_not_running' || error === 'host_unavailable' || error === 'no_reply' || error === 'timeout') return 'app';
+        if (error === 'no_microbit') return 'cable';
+        if (error === 'port_busy') return 'busy';
+        if (error === 'unknown_action' || error === 'forbidden') return 'update';
+        return 'other';
+    }
+
+    function setBoardLinked(on, reason) {
+        link.linked = on;
+        link.reason = on ? '' : (reason || '');
+        try {
+            if (window.MyBoard) window.MyBoard.setMicrobitLinked(on, reason);
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // The micro:bit said that a story started: "buttonA", "start", "remote:up" ...
+    function deliverFromMicrobit(name) {
+        try {
+            if (name.startsWith('remote:')) window.MyBoard.microbitEvent('remote', name.slice(7));
+            else window.MyBoard.microbitEvent(name);
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    async function linkTick() {
+        if (!link.on) return;
+        let wait = LINK_POLL_MS;
+        try {
+            if (installing) {
+                setBoardLinked(false, 'sending');              // a send is using the cable: say so, and wait
+                wait = 1000;
+            } else if (!document.documentElement.dataset.kidlearnBridge) {
+                setBoardLinked(false, 'extension');            // the page itself says the extension is not installed
+                wait = 4000;
+            } else if (!link.linked) {
+                const reply = await KidLearnBridge.request('boardLinkStart', null, { timeoutMs: 6000 });
+                if (!link.on) return;
+                if (reply.ok) {
+                    setBoardLinked(true);
+                } else {
+                    setBoardLinked(false, linkReasonFor(reply.error));
+                    wait = 3000;
+                }
+            } else {
+                const reply = await KidLearnBridge.request('boardLinkPoll', null, { timeoutMs: 4000 });
+                if (!link.on) return;
+                if (reply.ok && reply.data && reply.data.linked) {
+                    (reply.data.events || []).forEach(deliverFromMicrobit);
+                } else {
+                    setBoardLinked(false, reply.ok ? 'cable' : linkReasonFor(reply.error));
+                    wait = 1000;
+                }
+            }
+        } catch (e) {
+            setBoardLinked(false, 'other');                    // never stay on "connecting" without a way out
+            wait = 3000;
+        }
+        if (link.on) link.timer = setTimeout(linkTick, wait);
+    }
+
+    // The board started playing
+    function linkStart() {
+        if (link.on || !boardNeedsMicrobit()) return;
+        link.on = true;
+        setBoardLinked(false, '');
+        // "connecting..." is for a moment. If it lasts, the child is told what to do.
+        clearTimeout(link.slow);
+        link.slow = setTimeout(() => {
+            if (link.on && !link.linked && link.reason === '') setBoardLinked(false, 'slow');
+        }, LINK_SLOW_MS);
+        linkTick();
+    }
+
+    // The program is on the micro:bit: if the board has something for it, the board opens in "play" and connects by itself
+    function playBoardAfterSend() {
+        try {
+            if (boardReady() && boardNeedsMicrobit()) {
+                showBoardTab(true);
+                window.MyBoard.play();
+            }
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // A send is over: if the board is still playing, it connects again by itself
+    function resumeBoardLink() {
+        try {
+            if (boardReady() && window.MyBoard.isPlaying()) linkStart();
+        } catch (e) {
+            // the board is only an extra
+        }
+    }
+
+    // The board stopped playing, or a send is about to use the cable
+    async function linkStop() {
+        const wasLinked = link.linked;
+        link.on = false;
+        clearTimeout(link.timer);
+        clearTimeout(link.slow);
+        setBoardLinked(false, '');
+        if (wasLinked) {
+            try {
+                await KidLearnBridge.request('boardLinkStop');
+            } catch (e) {
+                // the app closes the link by itself a few seconds after the page stops asking
+            }
+        }
+    }
+
+    // One thing to show on the micro:bit's screen: { kind: 'icon' | 'word' | 'draw' | 'clear', value }. In order, one by one.
+    function sendToMicrobit(payload) {
+        if (!link.on || !link.linked) return;
+        link.queue = link.queue.then(() => KidLearnBridge.request('boardLinkShow', payload)).catch(() => {});
+    }
+
+    // What a screen of the board shows now goes to the micro:bit's own screen (one picture, one word, or clear)
+    function linkShow(state) {
+        const payload = !state ? { kind: 'clear' } : state.icon ? { kind: 'icon', value: state.icon } : state.mb ? { kind: 'word', value: state.mb } : null;
+        if (payload) sendToMicrobit(payload);
+    }
+
+    // A block of the micro:bit in a story of the board (a picture, a word, a drawing, clear)
+    function linkOutput(a) {
+        sendToMicrobit(a.do === 'show' ? { kind: 'icon', value: a.icon }
+            : a.do === 'text' ? { kind: 'word', value: a.word }
+            : a.do === 'draw' ? { kind: 'draw', value: a.pixels }
+            : { kind: 'clear' });
+    }
+
+    window.addEventListener('pagehide', () => {
+        if (link.linked) KidLearnBridge.request('boardLinkStop');
+    });
+
+    // ---- on or off ----
+    // A game is on unless it is switched off. A game marked "defaultOff" in games.json is off until it is switched on.
+    const defaultOffLoaded = fetch('../games.json')
+        .then(r => r.json())
+        .then(data => {
+            const item = (data.items || []).find(i => i.id === GAME_ID);
+            defaultOff = !item || item.defaultOff === true;
+        })
+        .catch(() => { defaultOff = true; });
+
+    const withTimeout = (promise, ms) => Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(null), ms))]);
+
+    // The switch is read from the account, or from this device when nobody is logged in
+    async function loadGameState() {
+        await defaultOffLoaded;
+        const off = (await withTimeout(KidLearn.getGamesOff().catch(() => null), 4000)) || {};
+        gamesOff = typeof off[GAME_ID] === 'boolean' ? off[GAME_ID] : defaultOff;
+        checkStatus();
+    }
+
+    buildPalette();
+    loadExtensions();
+    loadDraft();
+    renderExtensions();
+    changed();
+
+    KidLearn.init();
+    KidLearn.watchKeys(['kidlearn-microbit-extensions']);
+    KidLearn.onAuthChange(() => {
+        loadGameState();
+        syncFromCloud();
+    });
+    // Back from the settings on the home page (or another tab): read the switch again
+    // Back from the settings or the extensions page (or another tab): read the switch and the add-ons again
+    window.addEventListener('focus', () => {
+        loadGameState();
+        loadExtensions();
+        renderExtensions();
+    });
+    window.addEventListener('storage', (e) => {
+        if (e.key === EXT_KEY) {
+            loadExtensions();
+            renderExtensions();
+        }
+    });
+    setInterval(checkStatus, 5000);
+</script>
+</body>
+</html>

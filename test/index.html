@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KidLearn - בחר קטגוריה</title>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #FEC163;
+            --accent: #67D5B5;
+            --purple: #A78BFA;
+            --blue: #60A5FA;
+            --green: #34D399;
+            --orange: #FB923C;
+            --bg: #FFF8F0;
+            --card-bg: #FFFFFF;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Varela Round', 'Fredoka', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(103, 213, 181, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 90%, rgba(254, 193, 99, 0.08) 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: #666;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px var(--shadow);
+            border: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-card.hebrew::before {
+            background: linear-gradient(90deg, #FF6B9D, #FF8AB3);
+        }
+
+        .category-card.english::before {
+            background: linear-gradient(90deg, #60A5FA, #7DD3FC);
+        }
+
+        .category-card.math::before {
+            background: linear-gradient(90deg, #34D399, #5EEAD4);
+        }
+
+        .category-card.knowledge::before {
+            background: linear-gradient(90deg, #F59E0B, #FCD34D);
+        }
+
+        .category-card.series::before {
+            background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+        }
+
+        .category-card.games::before {
+            background: linear-gradient(90deg, #FEC163, #FBBF24);
+        }
+
+        .category-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .category-card.english .category-icon {
+            animation-delay: 0.1s;
+        }
+
+        .category-card.math .category-icon {
+            animation-delay: 0.2s;
+        }
+
+        .category-card.games .category-icon {
+            animation-delay: 0.3s;
+        }
+
+        .category-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .category-subtitle {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .category-count {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .category-card:hover .category-title {
+            color: var(--primary);
+        }
+
+        .message {
+            color: #444;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .categories-grid .category-card:nth-child(1) {
+            animation: fadeInDown 0.6s ease-out 0.1s both;
+        }
+
+        .categories-grid .category-card:nth-child(2) {
+            animation: fadeInDown 0.6s ease-out 0.2s both;
+        }
+
+        .categories-grid .category-card:nth-child(3) {
+            animation: fadeInDown 0.6s ease-out 0.3s both;
+        }
+
+        .categories-grid .category-card:nth-child(4) {
+            animation: fadeInDown 0.6s ease-out 0.4s both;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .category-icon {
+                font-size: 60px;
+            }
+
+            .category-title {
+                font-size: 1.5rem;
+            }
+
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 30px;
+            padding: 45px 40px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-emoji {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .modal h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .modal .modal-sub {
+            color: #999;
+            font-size: 0.95rem;
+            margin-bottom: 28px;
+        }
+
+        .modal label {
+            display: block;
+            text-align: right;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .modal input[type="text"],
+        .modal select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-family: 'Varela Round', sans-serif;
+            color: #333;
+            background: #FAFAFA;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 18px;
+            direction: rtl;
+            appearance: none;
+        }
+
+        .modal input[type="text"]:focus,
+        .modal select:focus {
+            outline: none;
+            border-color: #FF6B9D;
+            box-shadow: 0 0 0 4px rgba(255,107,157,0.15);
+            background: #fff;
+        }
+
+        .modal-save-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Varela Round', sans-serif;
+            transition: all 0.3s ease;
+            margin-top: 4px;
+        }
+
+        .modal-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,107,157,0.4);
+        }
+
+        .modal-cancel-btn {
+            background: none;
+            border: none;
+            color: #bbb;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 14px;
+            font-family: 'Varela Round', sans-serif;
+            transition: color 0.2s;
+        }
+
+        .modal-cancel-btn:hover { color: #999; }
+
+        .settings-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            z-index: 100;
+            font-family: 'Varela Round', sans-serif;
+        }
+
+        .settings-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+        }
+        .hidden { display: none !important; }
+
+        /* "כיבוי משחקים" switch in the settings */
+        .games-off-row { display: flex; gap: 16px; align-items: center; justify-content: space-between; background: #FFF8F0; border-radius: 16px; padding: 14px 16px; margin-top: 14px; }
+        .games-off-title { font-weight: 700; font-size: 17px; color: #2B2433; }
+        .games-off-help { font-size: 14px; line-height: 1.4; color: #5B5366; margin-top: 4px; }
+        .games-off-switch { flex: 0 0 auto; position: relative; width: 60px; height: 34px; padding: 0; border: 0; border-radius: 999px; background: #CFC6BE; cursor: pointer; }
+        .games-off-switch[aria-checked="true"] { background: #C2185B; }
+        .games-off-switch:disabled { background: #E4DCD3; cursor: not-allowed; }
+        .games-off-switch span { position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.15s; }
+        .games-off-switch[aria-checked="true"] span { transform: translateX(26px); }
+        .games-off-switch:focus-visible { outline: 3px solid #FF6B9D; outline-offset: 2px; }
+        .games-off-help { font-size: 14px; line-height: 1.4; color: #5B5366; margin: 8px 0 0; text-align: center; }
+        .games-list { max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+        .games-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #FFF8F0; border-radius: 14px; padding: 10px 14px; }
+        .games-row-name { font-weight: 700; font-size: 16px; color: #2B2433; }
+        .games-row-cat { font-size: 13px; color: #5B5366; margin-top: 2px; }
+
+        /* Decorations: purely visual, behind the content and never clickable */
+        .deco-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .deco {
+            position: absolute;
+            opacity: 0.55;
+            animation: deco-float 7s ease-in-out infinite;
+        }
+
+        .deco:nth-child(even) {
+            animation-delay: -3s;
+        }
+
+        @keyframes deco-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-14px) rotate(8deg); }
+        }
+
+        .bunting {
+            display: block;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            margin: 0 auto 8px;
+        }
+
+        @media (max-width: 768px) {
+            .deco:nth-child(n + 5):not(.heart) {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .deco {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background decorations: purely visual -->
+    <div class="deco-layer" aria-hidden="true">
+        <svg class="deco" style="left: 4%; top: 12%; width: 56px;" viewBox="0 0 48 48"><polygon points="24,7 28.4,17.9 40.2,18.8 31.1,26.3 34,37.8 24,31.5 14,37.8 16.9,26.3 7.8,18.8 19.6,17.9" fill="#FEC163"/></svg>
+        <svg class="deco" style="right: 6%; top: 18%; width: 84px;" viewBox="0 0 48 48"><g fill="#60A5FA"><circle cx="16" cy="30" r="9"/><circle cx="28" cy="24" r="13"/><circle cx="38" cy="31" r="8"/><rect x="7" y="30" width="39" height="10" rx="5"/></g></svg>
+        <svg class="deco" style="left: 10%; top: 58%; width: 40px;" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16" fill="none" stroke="#A78BFA" stroke-width="6"/></svg>
+        <svg class="deco" style="right: 12%; top: 52%; width: 72px;" viewBox="0 0 48 48"><path d="M2 24q6-12 12 0t12 0t12 0t8 0" fill="none" stroke="#34D399" stroke-width="5" stroke-linecap="round"/></svg>
+        <svg class="deco" style="left: 3%; top: 80%; width: 44px;" viewBox="0 0 48 48"><path d="M24 6L42 40H6Z" fill="#67D5B5"/></svg>
+        <svg class="deco" style="right: 4%; top: 80%; width: 44px;" viewBox="0 0 48 48"><path d="M24 4L28 20L44 24L28 28L24 44L20 28L4 24L20 20Z" fill="#FB923C"/></svg>
+        <svg class="deco" style="left: 72%; top: 8%; width: 22px;" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#FF6B9D"/></svg>
+        <svg class="deco heart" style="left: 30%; top: 88%; width: 36px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#FF6B9D"/></svg>
+        <svg class="deco heart" style="left: 20%; top: 34%; width: 28px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#FB923C"/></svg>
+        <svg class="deco heart" style="right: 24%; top: 70%; width: 34px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#FF6B9D"/></svg>
+        <svg class="deco heart" style="left: 56%; top: 92%; width: 26px;" viewBox="0 0 48 48"><path d="M24 40L8 24A10 10 0 0 1 24 12A10 10 0 0 1 40 24Z" fill="#A78BFA"/></svg>
+    </div>
+
+    <!-- Settings / Onboarding Modal -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal">
+            <span class="modal-emoji" id="modalEmoji">🎓</span>
+            <h2 id="modalTitle">ברוכים הבאים!</h2>
+            <p class="modal-sub" id="modalSub">הכנס את הפרטים שלך כדי להתחיל</p>
+
+            <label for="inputName">שם</label>
+            <input type="text" id="inputName" placeholder="למשל: יוסי" maxlength="30" />
+
+            <label for="inputGrade">כיתה</label>
+            <select id="inputGrade">
+                <option value="">בחר כיתה...</option>
+                <option value="preschool">טרום חובה</option>
+                <option value="kindergarten">גן חובה</option>
+                <option value="first">כיתה א׳</option>
+                <option value="second">כיתה ב׳</option>
+                <option value="third">כיתה ג׳</option>
+                <option value="fourth">כיתה ד׳</option>
+                <option value="fifth">כיתה ה׳</option>
+                <option value="sixth">כיתה ו׳</option>
+                <option value="seventh">כיתה ז׳</option>
+                <option value="eighth">כיתה ח׳</option>
+                <option value="ninth">כיתה ט׳</option>
+                <option value="tenth">כיתה י׳</option>
+                <option value="eleventh">כיתה י"א</option>
+                <option value="twelfth">כיתה י"ב</option>
+            </select>
+
+            <button type="button" class="modal-cancel-btn" id="gamesOffOpen" onclick="openGamesModal()">כיבוי משחקים לפי משחק</button>
+            <p class="games-off-help" id="gamesOffHelp">צריך להתחבר לחשבון כדי לשמור את ההגדרות בענן.</p>
+
+            <button class="modal-save-btn" onclick="saveSettings()">✅ שמור והתחל!</button>
+            <br>
+            <button class="modal-cancel-btn hidden" id="modalCancelBtn" onclick="closeModal()">ביטול</button>
+        </div>
+    </div>
+
+    <!-- Per-game switches: each game can be shown or hidden for this account -->
+    <div class="modal-overlay hidden" id="gamesOverlay">
+        <div class="modal">
+            <h2>כיבוי משחקים</h2>
+            <p class="modal-sub">בחרו אילו משחקים יוצגו לחשבון הזה. כל המשחקים דלוקים כברירת מחדל.</p>
+            <p class="games-off-help" id="gamesListNote"></p>
+            <div class="games-list" id="gamesList"></div>
+            <button class="modal-save-btn" onclick="closeGamesModal()">סיום</button>
+        </div>
+    </div>
+
+    <!-- New family-mail notification modal -->
+    <div class="modal-overlay hidden" id="mailModalOverlay">
+        <div class="modal">
+            <span class="modal-emoji">💌</span>
+            <h2 id="mailModalTitle">יש לך מכתב חדש!</h2>
+            <p class="modal-sub">מישהו במשפחה ענה למכתב שלך</p>
+            <button class="modal-save-btn" id="mailModalOpenBtn">📬 פתיחת המכתבים</button>
+            <br>
+            <button class="modal-cancel-btn" id="mailModalCloseBtn">אח"כ</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <svg class="bunting" viewBox="0 0 600 70" aria-hidden="true">
+                <path d="M0 6Q300 60 600 6" fill="none" stroke="#8B6F4E" stroke-width="2.5"/>
+                <polygon points="22,10 58,10 40,43" fill="#FF6B9D"/>
+                <polygon points="97,20 133,20 115,53" fill="#FEC163"/>
+                <polygon points="172,26 208,26 190,59" fill="#34D399"/>
+                <polygon points="247,30 283,30 265,63" fill="#60A5FA"/>
+                <polygon points="322,30 358,30 340,63" fill="#A78BFA"/>
+                <polygon points="397,26 433,26 415,59" fill="#FB923C"/>
+                <polygon points="472,19 508,19 490,52" fill="#67D5B5"/>
+                <polygon points="547,9 583,9 565,42" fill="#FF6B9D"/>
+            </svg>
+            <h1>🎓 KidLearn</h1>
+            <p>בחר את הנושא שלך ותחל ללמוד!</p>
+            <div id="studentInfo" style="margin-top: 15px; font-size: 1.1rem; color: #666;"></div>
+        </div>
+
+        <div style="max-width:480px;margin:0 auto 30px;position:relative;">
+            <input type="text" id="searchInput" placeholder="🔍 חפש משחק או כלי..." oninput="renderSearch()" onkeydown="if (event.key === 'Enter') checkDebugCode()"
+                style="width:100%;padding:14px 20px;font-size:1.1rem;font-family:'Varela Round',sans-serif;border:3px solid #eee;border-radius:50px;outline:none;background:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.08);direction:rtl;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#FF6B9D'" onblur="this.style.borderColor='#eee'">
+        </div>
+        <div id="searchResults" style="display:none;margin-bottom:20px;"></div>
+        <div class="categories-grid" id="categoriesGrid"></div>
+    </div>
+
+    <button class="settings-button hidden" id="settingsBtn" onclick="openSettingsModal()">⚙️ הגדרות</button>
+
+    <script>
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            const isMobile = /Mobi|Android|iPhone|iPod/.test(ua);
+            const isTablet = /iPad|Tablet/.test(ua) || (isMobile && Math.min(screen.width, screen.height) >= 600);
+            if (isTablet) return 'tablet';
+            if (isMobile) return 'mobile';
+            return 'desktop';
+        }
+
+        const GRADE_LABELS = {
+            preschool: 'טרום חובה',
+            kindergarten: 'גן חובה',
+            first: 'כיתה א׳',
+            second: 'כיתה ב׳',
+            third: 'כיתה ג׳',
+            fourth: 'כיתה ד׳',
+            fifth: 'כיתה ה׳',
+            sixth: 'כיתה ו׳',
+            seventh: 'כיתה ז׳',
+            eighth: 'כיתה ח׳',
+            ninth: 'כיתה ט׳',
+            tenth: 'כיתה י׳',
+            eleventh: 'כיתה י"א',
+            twelfth: 'כיתה י"ב'
+        };
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                c = c.trim();
+                if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length));
+            }
+            return null;
+        }
+
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+
+        const GRADE_ORDER = ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
+
+        function checkGradeUpgrade() {
+            const lastUpgradeYear = getCookie("gradeUpgradeYear");
+            const currentYear = new Date().getFullYear();
+            const now = new Date();
+            const isSeptemberOrLater = now.getMonth() >= 8;
+            if (!isSeptemberOrLater) return;
+            if (lastUpgradeYear === String(currentYear)) return;
+            const grade = getCookie("studentGrade");
+            if (!grade) return;
+            const idx = GRADE_ORDER.indexOf(grade);
+            if (idx === -1 || idx === GRADE_ORDER.length - 1) return;
+            const newGrade = GRADE_ORDER[idx + 1];
+            setCookie("studentGrade", newGrade, 365);
+            setCookie("gradeUpgradeYear", String(currentYear), 365);
+        }
+
+        function openSettingsModal() {
+            const name = getCookie('studentName') || '';
+            const grade = getCookie('studentGrade') || '';
+            document.getElementById('inputName').value = name;
+            document.getElementById('inputGrade').value = grade;
+            document.getElementById('modalEmoji').textContent = '⚙️';
+            document.getElementById('modalTitle').textContent = 'הגדרות';
+            document.getElementById('modalSub').textContent = 'ערוך את השם והכיתה שלך';
+            document.getElementById('modalCancelBtn').classList.remove('hidden');
+            updateGamesOpenButton();
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+
+        // Games switched off per account (cloud), and whether the Kidlearn extension is installed.
+        // The extension marks <html> with data-kidlearn-bridge on every page it runs on (see manifest.json).
+        let gamesOff = {};     // { gameId: true | false } as saved; a game that is not saved uses its defaultOff
+        let allGames = [];     // every game from games.json (for the switch list)
+        let allCategories = [];
+        let renderToken = 0;   // only the newest render is shown
+
+        function extensionInstalled() {
+            return document.documentElement.hasAttribute('data-kidlearn-bridge');
+        }
+
+        // The switch list shows the games this child gets (grade, device, extension), switched off or not,
+        // so that a switched-off game can be turned back on
+        function gameListable(item) {
+            const grade = getCookie('studentGrade');
+            const device = detectDevice();
+            if (grade && !item.grade.includes(grade)) return false;
+            if (item.devices && !item.devices.includes(device)) return false;
+            if (item.requiresExtension && !extensionInstalled()) return false;
+            return true;
+        }
+
+        // A game is on unless it is switched off. A game marked "defaultOff" in games.json is off until it is switched on
+        function isGameOff(item) {
+            return typeof gamesOff[item.id] === 'boolean' ? gamesOff[item.id] : item.defaultOff === true;
+        }
+
+        // Shown unless switched off, and a game that needs the extension is shown only when it is installed
+        function gameVisible(item) {
+            if (isGameOff(item)) return false;
+            if (item.requiresExtension && !extensionInstalled()) return false;
+            return true;
+        }
+
+        // Logging in is per address (localhost, 127.0.0.1 and GitHub Pages are separate), so say so with a link
+        function signInNote() {
+            const login = new URL('login/index.html', location.href);
+            login.searchParams.set('next', location.href);
+            return 'כדי לשמור בענן ולשמור על ההגדרות בכל מכשיר, <a href="' + login.href + '">התחברו לחשבון</a> באותה כתובת.';
+        }
+
+        function updateGamesOpenButton() {
+            const loggedIn = !!KidLearn.currentUser();
+            document.getElementById('gamesOffHelp').innerHTML = loggedIn
+                ? 'בחרו אילו משחקים יוצגו. ההגדרות נשמרות בחשבון.'
+                : 'בחרו אילו משחקים יוצגו. ההגדרות נשמרות במכשיר הזה. ' + signInNote();
+        }
+
+        async function loadGamesOff() {
+            try {
+                gamesOff = await KidLearn.getGamesOff();
+            } catch (e) {
+                gamesOff = {};
+            }
+            updateGamesOpenButton();
+            renderCategories();
+            // The account may load after the list was opened: rebuild it so the switches match the account
+            if (!document.getElementById('gamesOverlay').classList.contains('hidden')) {
+                renderGamesList();
+            }
+        }
+
+        function openGamesModal() {
+            renderGamesList();
+            document.getElementById('gamesOverlay').classList.remove('hidden');
+        }
+
+        function closeGamesModal() {
+            document.getElementById('gamesOverlay').classList.add('hidden');
+        }
+
+        function renderGamesList() {
+            const list = document.getElementById('gamesList');
+            list.innerHTML = '';
+            const loggedIn = !!KidLearn.currentUser();
+            document.getElementById('gamesListNote').innerHTML = loggedIn ? '' : 'ההגדרות נשמרות במכשיר הזה. ' + signInNote();
+            allGames.filter(gameListable).forEach((item) => {
+                const on = !isGameOff(item);
+                const row = document.createElement('div');
+                row.className = 'games-row';
+
+                const text = document.createElement('div');
+                text.style.minWidth = '0';
+                const name = document.createElement('div');
+                name.className = 'games-row-name';
+                name.textContent = item.title;
+                const category = allCategories.find(c => item.categories.includes(c.id));
+                const cat = document.createElement('div');
+                cat.className = 'games-row-cat';
+                cat.textContent = category ? category.title : '';
+                text.appendChild(name);
+                text.appendChild(cat);
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'games-off-switch';
+                button.setAttribute('role', 'switch');
+                button.setAttribute('aria-checked', String(on));
+                button.setAttribute('aria-label', item.title);
+                button.disabled = false;
+                button.innerHTML = '<span></span>';
+                button.addEventListener('click', () => toggleGame(item.id));
+
+                row.appendChild(text);
+                row.appendChild(button);
+                list.appendChild(row);
+            });
+        }
+
+        async function toggleGame(gameId) {
+            const item = allGames.find(g => g.id === gameId);
+            if (!item) return;
+            const turnOff = !isGameOff(item);
+            try {
+                await KidLearn.setGameOff(gameId, turnOff);
+                gamesOff[gameId] = turnOff;
+            } catch (e) {
+                document.getElementById('gamesOffHelp').textContent = 'לא הצלחנו לשמור. נסו שוב.';
+                return;
+            }
+            renderGamesList();
+            renderCategories();
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            const name = document.getElementById('inputName').value.trim();
+            const grade = document.getElementById('inputGrade').value;
+            if (!name) {
+                document.getElementById('inputName').focus();
+                document.getElementById('inputName').style.borderColor = '#FF6B9D';
+                return;
+            }
+            if (!grade) {
+                document.getElementById('inputGrade').style.borderColor = '#FF6B9D';
+                return;
+            }
+            setCookie('studentName', name, 365);
+            setCookie('studentGrade', grade, 365);
+            closeModal();
+            checkGradeUpgrade();
+        updateStudentInfo();
+            renderCategories();
+        }
+
+        function updateStudentInfo() {
+            const name = getCookie('studentName');
+            const grade = getCookie('studentGrade');
+            const studentInfo = document.getElementById('studentInfo');
+            const settingsBtn = document.getElementById('settingsBtn');
+            if (name) {
+                const gradeLabel = GRADE_LABELS[grade] || '';
+                studentInfo.textContent = `שלום, ${name}! 👋${gradeLabel ? '  |  ' + gradeLabel : ''}`;
+                settingsBtn.classList.remove('hidden');
+            } else {
+                studentInfo.textContent = '';
+                settingsBtn.classList.add('hidden');
+            }
+        }
+
+        function createCategoryCard(category, visibleCount) {
+            const card = document.createElement('div');
+            card.className = `category-card ${category.id}`;
+            card.onclick = () => {
+                window.location.href = `category.html?category=${category.id}`;
+            };
+            card.innerHTML = `
+                <span class="category-icon">${category.icon}</span>
+                <div class="category-title">${category.title}</div>
+                <div class="category-subtitle">${category.subtitle}</div>
+                <span class="category-count">${visibleCount} כלי${visibleCount === 1 ? '' : 'ים'}</span>
+            `;
+            return card;
+        }
+
+        async function renderCategories() {
+            const categoriesGrid = document.getElementById('categoriesGrid');
+            const token = ++renderToken;
+            categoriesGrid.innerHTML = '';
+            try {
+                const response = await fetch('games.json');
+                const data = await response.json();
+                if (token !== renderToken) return;
+                const grade = getCookie('studentGrade');
+                const device = detectDevice();
+                allItemsCache = data.items;
+                allGames = data.items;
+                allCategories = data.categories;
+
+                const visibleCategories = data.categories.map(category => {
+                    const visibleCount = data.items.filter(item =>
+                        item.categories.includes(category.id) &&
+                        gameVisible(item) &&
+                        (!grade || item.grade.includes(grade)) &&
+                        (!item.devices || item.devices.includes(device))
+                    ).length;
+                    return { category, visibleCount };
+                }).filter(entry => entry.visibleCount > 0);
+
+                if (visibleCategories.length === 0) {
+                    categoriesGrid.innerHTML = '<div class="message">אין קטגוריות זמינות לכיתה זו.</div>';
+                    return;
+                }
+
+                visibleCategories.forEach(entry => {
+                    categoriesGrid.appendChild(createCategoryCard(entry.category, entry.visibleCount));
+                });
+            } catch (error) {
+                categoriesGrid.innerHTML = '<div class="message">שגיאה בטעינת הנתונים. נא לנסות שוב מאוחר יותר.</div>';
+            }
+        }
+
+        let allItemsCache = [];
+
+        // קוד פיתוח: מקלידים DEVDEBUGADDCOINS ומספר (למשל DEVDEBUGADDCOINS100) ולוחצים Enter, והמטבעות נכנסים לארנק
+        function checkDebugCode() {
+            const input = document.getElementById('searchInput');
+            const m = input.value.trim().match(/^DEVDEBUGADDCOINS(\d+)$/i);
+            if (!m) return;
+            const amount = Math.min(parseInt(m[1], 10), 100000);
+            input.value = '';
+            if (window.KidLearnWallet && amount > 0) KidLearnWallet.earn(amount, { reason: 'קוד פיתוח' });
+            renderSearch();
+        }
+
+        function renderSearch() {
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            const resultsEl = document.getElementById('searchResults');
+            const gridEl = document.getElementById('categoriesGrid');
+            if (!q) {
+                resultsEl.style.display = 'none';
+                resultsEl.innerHTML = '';
+                gridEl.style.display = '';
+                return;
+            }
+            gridEl.style.display = 'none';
+            const grade = getCookie('studentGrade');
+            const device = detectDevice();
+            const matches = allItemsCache.filter(item =>
+                gameVisible(item) &&
+                (!grade || item.grade.includes(grade)) &&
+                (!item.devices || item.devices.includes(device)) &&
+                (item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q))
+            );
+            if (matches.length === 0) {
+                resultsEl.innerHTML = '<div class="message">לא נמצאו תוצאות.</div>';
+            } else {
+                resultsEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:30px;">${
+                    matches.map(item => `
+                        <a href="${item.url}" style="background:#fff;border-radius:20px;padding:30px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.1);border-top:4px solid #FF6B9D;text-decoration:none;color:inherit;display:block;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform=''" ${item.url.startsWith('http')?'target="_blank"':''}>
+                            <span style="font-size:50px;display:block;margin-bottom:12px;">${item.icon}</span>
+                            <div style="font-size:1.3rem;font-weight:700;color:#333;margin-bottom:8px;">${item.title}</div>
+                            <div style="font-size:0.9rem;color:#888;">${item.description}</div>
+                        </a>`
+                    ).join('')
+                }</div>`;
+            }
+            resultsEl.style.display = 'block';
+        }
+
+        // On load: show modal if no name set, otherwise show page normally
+        const existingName = getCookie('studentName');
+        if (!existingName) {
+            document.getElementById('modalOverlay').classList.remove('hidden');
+            document.getElementById('modalCancelBtn').classList.add('hidden');
+        }
+
+        checkGradeUpgrade();
+        updateStudentInfo();
+        renderCategories();
+
+        // Close modal on overlay click (only if not first-time)
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this && getCookie('studentName')) closeModal();
+        });
+
+        // Enter key support in name input
+        document.getElementById('inputName').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') saveSettings();
+        });
+    </script>
+    <script src="effects/gamepad-ui.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
+    <script src="shared/kidlearn-firebase-config.js"></script>
+    <script src="shared/kidlearn-cloud.js"></script>
+    <script src="shared/kidlearn-widget.js"></script>
+    <script src="shared/kidlearn-wallet.js"></script>
+    <script src="shared/kidlearn-bridge.js"></script>
+    <script>
+        KidLearn.init();
+
+        document.getElementById('mailModalOpenBtn').onclick = () => {
+            window.location.href = 'family-mail/index.html';
+        };
+        document.getElementById('mailModalCloseBtn').onclick = () => {
+            document.getElementById('mailModalOverlay').classList.add('hidden');
+        };
+
+        KidLearn.onAuthChange(async (profile) => {
+            loadGamesOff();
+            if (!profile) return;
+            try {
+                const unseen = await KidLearn.getUnseenReplies();
+                if (unseen.length > 0) {
+                    document.getElementById('mailModalTitle').textContent =
+                        unseen.length > 1 ? `יש לך ${unseen.length} מכתבים חדשים!` : 'יש לך מכתב חדש!';
+                    document.getElementById('mailModalOverlay').classList.remove('hidden');
+                }
+            } catch (e) { /* not logged into a KidLearn account yet */ }
+        });
+    </script>
+</body>
+</html>

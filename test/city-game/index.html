@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עיר לבנייה</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <button class="back-btn" onclick="window.location.href='../index.html'" data-gamepad-back>← חזור</button>
+        <h1>🏘️ עיר לבנייה</h1>
+        <div class="balance">יש לכם <strong id="balance">0</strong> 🪙</div>
+    </header>
+
+    <!-- העיר תמיד למעלה, והקטלוג למטה: כך העיר לא זזה כשהקטלוג גדל -->
+    <div class="scene-wrap">
+        <div class="scene" id="scene" aria-label="העיר שלכם בתלת-ממד"></div>
+        <button class="tool" id="centerBtn" title="מרכז את העיר">🎯 מרכז</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+
+    <div class="demands" id="demands" aria-live="polite"></div>
+
+    <p class="hint" id="hint">בחרו סוג מהקטלוג ולחצו על חלקה ריקה. לחצו על חלקה בהירה עם דגל צהוב כדי לקנות שטח. לחיצה על מבנה קיים מחזירה חצי מחירו.</p>
+    <div class="shop" id="shop" aria-label="קטלוג: מה לבנות"></div>
+
+    <p class="counts" id="counts"></p>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
+<script src="../shared/kidlearn-wallet.js"></script>
+<script src="game.js"></script>
+<script src="../effects/gamepad-ui.js"></script>
+</body>
+</html>
