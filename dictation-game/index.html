@@ -127,6 +127,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="../shared/kidlearn-firebase-config.js"></script>
 <script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-wallet.js"></script>
 <script>try { KidLearn.init(); KidLearn.watchKeys(['kidlearn-dictation-words', 'kidlearn-dictation-voice']); } catch (e) { /* בלי ענן המשחק ממשיך במכשיר */ }</script>
 <script>
 (function () {
@@ -136,7 +137,7 @@
     if (!Array.isArray(words)) words = [];
 
     var $ = function (id) { return document.getElementById(id); };
-    var queue = [], current = '', total = 0, correct = 0, triedWrong = false;
+    var queue = [], current = '', total = 0, correct = 0, triedWrong = false, earned = 0;
 
     function save() { try { localStorage.setItem(STORE, JSON.stringify(words)); } catch (e) {} if (window.KidLearn) KidLearn.backupKey(STORE); }
     function show(id) {
@@ -226,10 +227,24 @@
         return a;
     }
 
+    // כסף Kidlearn: מילה נכונה בניסיון ראשון = answer, אחרי טעות = smallSuccess.
+    // בסיום: הסיבוב עד round, ורק כשכל המילים נכונות בניסיון ראשון גם perfect.
+    // הסכומים גדלים עם מספר המילים, כך שברשימה של מילה או שתיים לא מקבלים 20 על סיום בלי טעויות.
+    var PER_WORD_ROUND = 2, PER_WORD_PERFECT = 4;
+
+    function reward(kind) { return window.KidLearnWallet ? KidLearnWallet.REWARDS[kind] : 0; }
+
+    function pay(amount, reason) {
+        if (!window.KidLearnWallet || amount <= 0) return;
+        KidLearnWallet.earn(amount, { reason: reason });
+        earned += amount;
+    }
+
     function start() {
         queue = shuffle(words.slice());
         total = queue.length;
         correct = 0;
+        earned = 0;
         show('game');
         next();
     }
@@ -253,6 +268,7 @@
         var fb = $('feedback');
         if (stripNikud(a) === stripNikud(current)) {
             if (!triedWrong) correct++;
+            pay(triedWrong ? reward('smallSuccess') : reward('answer'), 'מילה נכונה');
             fb.textContent = '🎉 נכון!';
             fb.className = 'feedback ok';
             $('checkBtn').disabled = true;
@@ -268,7 +284,11 @@
     function finish() {
         show('end');
         try { new Audio('../effects/newlevel.mp3').play().catch(function () {}); } catch (e) {}
-        $('result').textContent = 'סיימתם! 🏆 כתבתם נכון בניסיון ראשון ' + correct + ' מתוך ' + total;
+        var n = total;
+        pay(Math.min(reward('round'), n * PER_WORD_ROUND), 'סיימתם הכתבה');
+        if (correct === n) pay(Math.min(reward('perfect'), n * PER_WORD_PERFECT), 'הכתבה בלי טעויות!');
+        $('result').textContent = 'סיימתם! 🏆 כתבתם נכון בניסיון ראשון ' + correct + ' מתוך ' + total
+            + (earned ? ' · הרווחתם ' + earned + ' 💰 כסף Kidlearn' : '');
     }
 
     $('addBtn').onclick = addWord;
