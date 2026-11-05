@@ -844,10 +844,32 @@
 
         let allItemsCache = [];
 
+        // איפוס העיר: מקלידים RESET CITY ו-Enter (גם הכתיב RESAT CITY מתקבל). שואלים לפני, ומוחקים את העיר
+        // במכשיר ובחשבון. הכסף נשאר. בחשבון מוחקים קודם: אם המחיקה נכשלה, העיר במכשיר נשארת
+        async function resetCityFromSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            renderSearch();
+            if (!confirm('למחוק את כל העיר שלכם?\n\nהבניינים, הדרכים והשטחים יימחקו, גם בחשבון. הכסף שלכם יישאר.\nאי אפשר לבטל את זה.')) return;
+            const signedIn = !!(window.KidLearn && KidLearn.currentUser && KidLearn.currentUser());
+            try {
+                if (signedIn) await KidLearn.deleteData('kidlearn-city-v2');
+            } catch (e) {
+                alert('לא הצלחנו למחוק את העיר מהחשבון. בדקו את החיבור לאינטרנט ונסו שוב. העיר במכשיר לא נמחקה.');
+                return;
+            }
+            try {
+                localStorage.removeItem('kidlearn-city-v2');
+                localStorage.removeItem('kidlearn-city');
+            } catch (e) {}
+            alert('העיר נמחקה. אפשר להתחיל לבנות מחדש! 🏗️');
+        }
+
         // קוד פיתוח: מקלידים DEVDEBUGADDCOINS ומספר ולוחצים Enter. DEVDEBUGADDCOINS100 מוסיף 100 מטבעות,
         // DEVDEBUGADDCOINS-50 מוריד 50 (לא מתחת ל-0)
         function checkDebugCode() {
             const input = document.getElementById('searchInput');
+            if (/^(RESET|RESAT)\s+CITY$/i.test(input.value.trim())) return resetCityFromSearch();
             const m = input.value.trim().match(/^DEVDEBUGADDCOINS(-?\d+)$/i);
             if (!m) return;
             const n = Math.min(Math.abs(parseInt(m[1], 10)), 100000);
