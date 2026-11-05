@@ -478,6 +478,9 @@
                         <button onclick="changeItemScale(-0.2)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1 rounded-lg border border-slate-500">
                             <i class="fa-solid fa-magnifying-glass-minus"></i> הקטן
                         </button>
+                        <button id="delete-item-btn" onclick="deleteSelectedItem()" class="text-xs bg-red-900/70 hover:bg-red-700 text-red-100 font-bold px-3 py-1 rounded-lg border border-red-500">
+                            מחק
+                        </button>
                         <button onclick="deselectItem()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg">
                             סיום עיצוב ✓
                         </button>
@@ -565,7 +568,7 @@
             <h3 class="text-2xl font-black text-emerald-300 mb-1 flex items-center gap-2">
                 <i class="fa-solid fa-cart-shopping"></i> חנות הפריטים
             </h3>
-            <p class="text-sm text-slate-300 mb-4">קנו פריטים עם הכסף שצברתם כדי לעצב את העולם שלכם!</p>
+            <p class="text-sm text-slate-300 mb-4">קנו פריטים עם הכסף שצברתם כדי לעצב את העולם שלכם! מחיקה של פריט שקניתם מחזירה לכם חצי מהמחיר.</p>
 
             <div class="bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-black text-lg px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 border-2 border-emerald-200 w-fit mb-4 ltr-dir">
                 <i class="fa-solid fa-coins text-yellow-100"></i>
@@ -1665,10 +1668,12 @@
 
             if (op === '+') {
                 n1 = Math.floor(Math.random() * (maxVal / 2)) + 1;
-                n2 = Math.floor(Math.random() * (maxVal / 2)) + 1;
+                // the sum must also stay inside the range (matters for odd custom ranges like 7)
+                n2 = Math.min(Math.floor(Math.random() * (maxVal / 2)) + 1, maxVal - n1);
                 ans = n1 + n2;
             } else if (op === '-') {
-                n1 = Math.floor(Math.random() * maxVal) + 2;
+                // the bigger number must also stay inside the range: with range 10 never "11 - 1"
+                n1 = Math.floor(Math.random() * (maxVal - 1)) + 2;
                 n2 = Math.floor(Math.random() * n1) + 1;
                 ans = n1 - n2;
             } else if (op === '×') {
@@ -1952,6 +1957,7 @@
             e.preventDefault();
             playSound('pop');
             selectedItemId = item.id;
+            disarmDelete();
             
             const itemKey = item.itemType || 'sofa';
             const friendlyName = ITEM_NAMES[itemKey] || 'פריט';
@@ -2059,6 +2065,64 @@
             }
         }
 
+        // Deleting an item the kid bought refunds half of its price. Items the game placed for
+        // free have no `paid` field, so they refund 0 and can't be used to farm coins.
+        let deleteArmed = false;
+        let deleteArmTimer = null;
+
+        function getRefundForItem(item) {
+            return Math.floor((item.paid || 0) / 2);
+        }
+
+        function getSelectedItem() {
+            if (!selectedItemId) return null;
+            return (worldItemsMap[currentWorldId] || []).find(i => i.id === selectedItemId) || null;
+        }
+
+        function updateDeleteButton() {
+            const btn = document.getElementById('delete-item-btn');
+            const item = getSelectedItem();
+            if (!btn || !item) return;
+            const refund = getRefundForItem(item);
+            const refundText = refund > 0 ? ` (+${refund} 💰)` : '';
+            btn.innerText = deleteArmed ? `לחץ שוב לאישור${refundText}` : `מחק${refundText}`;
+            btn.className = deleteArmed
+                ? 'text-xs bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1 rounded-lg border border-red-400'
+                : 'text-xs bg-red-900/70 hover:bg-red-700 text-red-100 font-bold px-3 py-1 rounded-lg border border-red-500';
+        }
+
+        function disarmDelete() {
+            deleteArmed = false;
+            clearTimeout(deleteArmTimer);
+            updateDeleteButton();
+        }
+
+        function deleteSelectedItem() {
+            const item = getSelectedItem();
+            if (!item) return;
+
+            if (!deleteArmed) {
+                // the first tap only asks for confirmation, so a kid can't remove a piece by accident
+                deleteArmed = true;
+                updateDeleteButton();
+                clearTimeout(deleteArmTimer);
+                deleteArmTimer = setTimeout(disarmDelete, 3000);
+                playSound('pop');
+                return;
+            }
+
+            disarmDelete();
+            const refund = getRefundForItem(item);
+            worldItemsMap[currentWorldId] = worldItemsMap[currentWorldId].filter(i => i.id !== item.id);
+            deselectItem();
+            if (refund > 0) {
+                KidLearnWallet.earn(refund, { reason: 'החזר על מחיקה' });
+            } else {
+                KidLearnWallet.toast('הפריט נמחק');
+            }
+            triggerSave();
+        }
+
         function resetCurrentWorldItems() {
             playSound('pop');
             worldItemsMap[currentWorldId] = [];
@@ -2143,7 +2207,8 @@
                 x: 20 + Math.random() * 60,
                 y: 25 + Math.random() * 50,
                 scale: 1.0,
-                color: 'none'
+                color: 'none',
+                paid: cost // what the kid paid; deleting the item refunds half of this
             };
 
             if (!worldItemsMap[currentWorldId]) {
@@ -2339,7 +2404,8 @@
                 x: 20 + Math.random() * 60,
                 y: 25 + Math.random() * 50,
                 scale: 1.0,
-                color: 'none'
+                color: 'none',
+                paid: DRAW_COST
             };
 
             if (!worldItemsMap[currentWorldId]) {

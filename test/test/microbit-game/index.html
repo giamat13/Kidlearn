@@ -504,6 +504,7 @@
         extensions[name] = on;
         try {
             localStorage.setItem(EXT_KEY, JSON.stringify(extensions));
+            if (window.KidLearn) KidLearn.backupKey(EXT_KEY);
         } catch (e) {
             // storage is blocked: the setting lasts until the page is closed
         }
@@ -521,6 +522,7 @@
         extensions = { car: !!next.car, remote: !!next.remote, board: !!next.board };
         try {
             localStorage.setItem(EXT_KEY, JSON.stringify(extensions));
+            if (window.KidLearn) KidLearn.backupKey(EXT_KEY);
         } catch (e) {
             // storage is blocked: the setting lasts until the page is closed
         }
@@ -1746,6 +1748,7 @@
     changed();
 
     KidLearn.init();
+    KidLearn.watchKeys(['kidlearn-microbit-extensions']);
     KidLearn.onAuthChange(() => {
         loadGameState();
         syncFromCloud();

@@ -13,3 +13,10 @@
 - כל הטקסט לילדים ולהורים בעברית. קוד ותגובות בקוד: לפי הסגנון של הקובץ.
 - לא לדחוף ל-`main` בלי אישור. ענף שאינו `main` מפעיל את ה-workflow "Deploy test".
 - חוקי Firestore (`firestore.rules`) לא נפרסים אוטומטית. אחרי שינוי יש לעדכן אותם ידנית בפיירבייס, ורק אחר כך למזג.
+
+## שמירת נתוני משחקים בענן (Firebase)
+
+- כל משחק חדש שיש לו נתונים (התקדמות, מבנים, ניקוד, הגדרות אישיות וכד') חייב לשמור אותם ב-Firebase, בחשבון של הילד, ולא רק ב-`localStorage`.
+- הדרך: `users/{uid}/saves/{gameId}` דרך `KidLearn.saveData` / `KidLearn.loadData`, או `KidLearn.pushLocalStorageKey` / `KidLearn.pullLocalStorageKey` כשהנתונים נשמרים כמחרוזת ב-`localStorage`. ראו `shared/kidlearn-cloud.js` ו-`shared/kidlearn-wallet.js`.
+- בלי התחברות המשחק ממשיך לעבוד מקומית, בלי לשבור כלום.
+- לפני שמוסיפים משחק כזה בודקים ש-`firestore.rules` מאפשר את הנתיב (כיום `users/{uid}/saves/{gameId}` פתוח לבעלים). אם צריך שינוי ב-rules, מעדכנים ידנית בפיירבייס לפני המיזוג, כמו בכלל למעלה.

@@ -13,67 +13,74 @@ const START_ROWS = 4;
 const STORE_KEY = 'kidlearn-city-v2';
 const OLD_STORE_KEY = 'kidlearn-city';   // הגרסה הקודמת (רשת קבועה 5×4), לצורך מעבר חלק
 const MERGE_MAX = 5;                     // מקסימום בתי ספר שמתאחדים לאחד
+// שער הכניסה לעיר: כביש שמגיע מבחוץ. תמיד קיים ואי אפשר להסיר אותו.
+// הוא תמיד על החלקה המערבית ביותר בעיר. כשקונים שטח שהוא מערב לכל העיר, השער זז לשטח החדש (נשמר בשמירה)
+let entranceC = 0;
+let entranceR = 1;
 
 const W = window.KidLearnWallet;
 const R = W ? W.REWARDS : { answer: 2, smallSuccess: 1, round: 8, level: 10, perfect: 20, create: 5 };
+// כל המחירים בעיר יורדים בחצי (ומעוגלים). הפרסים שהילד מקבל לא משתנים
+const PRICE_FACTOR = 0.5;
+const cheap = (p) => Math.max(1, Math.round(p * PRICE_FACTOR));
 
 // --- קטגוריות ---
 const CATS = [
-    { id: 'road',   name: 'דרכים',           icon: '🛣️' },
-    { id: 'tree',   name: 'עצים וצמחייה',    icon: '🌳' },
-    { id: 'house',  name: 'בתים',            icon: '🏠' },
-    { id: 'apt',    name: 'דירות',           icon: '🏢' },
-    { id: 'school', name: 'חינוך',           icon: '🏫' },
-    { id: 'shop',   name: 'חנויות',          icon: '🏪' },
-    { id: 'clinic', name: 'בריאות',          icon: '🏥' },
-    { id: 'park',   name: 'פנאי ופארקים',    icon: '🏞️' },
-    { id: 'props',  name: 'דברים קטנים',     icon: '⛲' },
+    { id: 'road',   name: 'דרכים',           icon: '🛣️', color: '#607d8b' },
+    { id: 'tree',   name: 'עצים וצמחייה',    icon: '🌳', color: '#43a047' },
+    { id: 'house',  name: 'בתים',            icon: '🏠', color: '#ef6c00' },
+    { id: 'apt',    name: 'דירות',           icon: '🏢', color: '#5c6bc0' },
+    { id: 'school', name: 'חינוך',           icon: '🏫', color: '#fbc02d' },
+    { id: 'shop',   name: 'חנויות',          icon: '🏪', color: '#ec407a' },
+    { id: 'clinic', name: 'בריאות',          icon: '🏥', color: '#e53935' },
+    { id: 'park',   name: 'פנאי ופארקים',    icon: '🏞️', color: '#26a69a' },
+    { id: 'props',  name: 'דברים קטנים',     icon: '⛲', color: '#8d6e63' },
 ];
 
 // --- סוגים: לכל סוג מחיר, תיאור, ותושבים (אם הוא מגורים) ---
 // id של סוג הוא גם מזהה השמור ב-localStorage, לכן אל תשנו אותם
 const VARIANTS = [
-    { id: 'road',       cat: 'road',   name: 'כביש אספלט',  icon: '🛣️', price: R.create,        desc: 'כביש רחב עם קווים לבנים' },
-    { id: 'dirt',       cat: 'road',   name: 'דרך עפר',     icon: '🟫', price: R.answer,        desc: 'דרך פשוטה וזולה' },
-    { id: 'stone',      cat: 'road',   name: 'שביל אבן',    icon: '🪨', price: R.answer * 2,    desc: 'שביל מרוצף בחלוקי נחל' },
+    { id: 'road',       cat: 'road',   name: 'כביש אספלט',  icon: '🛣️', price: cheap(R.create),        desc: 'כביש רחב עם קווים לבנים' },
+    { id: 'dirt',       cat: 'road',   name: 'דרך עפר',     icon: '🟫', price: cheap(R.answer),        desc: 'דרך פשוטה וזולה' },
+    { id: 'stone',      cat: 'road',   name: 'שביל אבן',    icon: '🪨', price: cheap(R.answer * 2),    desc: 'שביל מרוצף בחלוקי נחל' },
 
-    { id: 'tree',       cat: 'tree',   name: 'עץ',          icon: '🌳', price: R.create,        desc: 'עץ יפה שנותן צל' },
-    { id: 'palm',       cat: 'tree',   name: 'דקל',         icon: '🌴', price: R.create,        desc: 'דקל גבוה לאזור חם' },
-    { id: 'blossom',    cat: 'tree',   name: 'עץ פריחה',    icon: '🌸', price: R.level,         desc: 'פורח בוורוד באביב' },
+    { id: 'tree',       cat: 'tree',   name: 'עץ',          icon: '🌳', price: cheap(R.create),        desc: 'עץ יפה שנותן צל' },
+    { id: 'palm',       cat: 'tree',   name: 'דקל',         icon: '🌴', price: cheap(R.create),        desc: 'דקל גבוה לאזור חם' },
+    { id: 'blossom',    cat: 'tree',   name: 'עץ פריחה',    icon: '🌸', price: cheap(R.level),         desc: 'פורח בוורוד באביב' },
 
-    { id: 'house',      cat: 'house',  name: 'בית',         icon: '🏠', price: R.level,         pop: 2, desc: 'בית למשפחה קטנה' },
-    { id: 'cabin',      cat: 'house',  name: 'בקתת עץ',     icon: '🛖', price: R.create,        pop: 1, desc: 'בקתה קטנה לאדם אחד' },
-    { id: 'villa',      cat: 'house',  name: 'וילה',        icon: '🏡', price: R.perfect,       pop: 4, desc: 'בית גדול למשפחה גדולה' },
+    { id: 'house',      cat: 'house',  name: 'בית',         icon: '🏠', price: cheap(R.level),         pop: 2, desc: 'בית למשפחה קטנה' },
+    { id: 'cabin',      cat: 'house',  name: 'בקתת עץ',     icon: '🛖', price: cheap(R.create),        pop: 1, desc: 'בקתה קטנה לאדם אחד' },
+    { id: 'villa',      cat: 'house',  name: 'וילה',        icon: '🏡', price: cheap(R.perfect),       pop: 4, desc: 'בית גדול למשפחה גדולה' },
 
-    { id: 'apt',        cat: 'apt',    name: 'בניין דירות', icon: '🏢', price: R.perfect,       pop: 6,  desc: 'הרבה משפחות בבניין אחד' },
-    { id: 'tower',      cat: 'apt',    name: 'מגדל דירות',  icon: '🏙️', price: R.round * 5,     pop: 12, desc: 'מגדל גבוה לעיר גדולה' },
+    { id: 'apt',        cat: 'apt',    name: 'בניין דירות', icon: '🏢', price: cheap(R.perfect),       pop: 6,  desc: 'הרבה משפחות בבניין אחד' },
+    { id: 'tower',      cat: 'apt',    name: 'מגדל דירות',  icon: '🏙️', price: cheap(R.round * 5),     pop: 12, desc: 'מגדל גבוה לעיר גדולה' },
 
-    { id: 'school',     cat: 'school', name: 'בית ספר יסודי', icon: '🏫', price: R.perfect,     desc: 'לכיתות א׳ עד ו׳' },
-    { id: 'kinder',     cat: 'school', name: 'גן ילדים',    icon: '🧸', price: R.level,         desc: 'לגיל הרך' },
-    { id: 'highschool', cat: 'school', name: 'תיכון',       icon: '🎓', price: R.round * 5,     desc: 'לתלמידים בוגרים' },
+    { id: 'school',     cat: 'school', name: 'בית ספר יסודי', icon: '🏫', price: cheap(R.perfect),     desc: 'לכיתות א׳ עד ו׳' },
+    { id: 'kinder',     cat: 'school', name: 'גן ילדים',    icon: '🧸', price: cheap(R.level),         desc: 'לגיל הרך' },
+    { id: 'highschool', cat: 'school', name: 'תיכון',       icon: '🎓', price: cheap(R.round * 5),     desc: 'לתלמידים בוגרים' },
 
-    { id: 'shop',       cat: 'shop',   name: 'חנות',        icon: '🏪', price: R.level,         desc: 'חנות שכונתית' },
-    { id: 'mini',       cat: 'shop',   name: 'מכולת',       icon: '🧺', price: R.create,        desc: 'מכולת קטנה ליד הבית' },
-    { id: 'mall',       cat: 'shop',   name: 'קניון',       icon: '🛍️', price: R.round * 5,     desc: 'הרבה חנויות במקום אחד' },
+    { id: 'shop',       cat: 'shop',   name: 'חנות',        icon: '🏪', price: cheap(R.level),         desc: 'חנות שכונתית' },
+    { id: 'mini',       cat: 'shop',   name: 'מכולת',       icon: '🧺', price: cheap(R.create),        desc: 'מכולת קטנה ליד הבית' },
+    { id: 'mall',       cat: 'shop',   name: 'קניון',       icon: '🛍️', price: cheap(R.round * 5),     desc: 'הרבה חנויות במקום אחד' },
 
-    { id: 'clinic',     cat: 'clinic', name: 'מרפאה',       icon: '🏥', price: R.perfect,       desc: 'טיפול בסיסי לתושבים' },
-    { id: 'hospital',   cat: 'clinic', name: 'בית חולים',   icon: '🏨', price: R.round * 5,     desc: 'טיפול מורכב ודחוף' },
+    { id: 'clinic',     cat: 'clinic', name: 'מרפאה',       icon: '🏥', price: cheap(R.perfect),       desc: 'טיפול בסיסי לתושבים' },
+    { id: 'hospital',   cat: 'clinic', name: 'בית חולים',   icon: '🏨', price: cheap(R.round * 5),     desc: 'טיפול מורכב ודחוף' },
 
-    { id: 'park',       cat: 'park',   name: 'פארק',        icon: '🏞️', price: R.level,         desc: 'מקום לטיולים ולשחק' },
-    { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: R.create,        desc: 'פרחים וספסל' },
-    { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: R.level,         desc: 'מגלשה ונדנדה' },
+    { id: 'park',       cat: 'park',   name: 'פארק',        icon: '🏞️', price: cheap(R.level),         desc: 'מקום לטיולים ולשחק' },
+    { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: cheap(R.create),        desc: 'פרחים וספסל' },
+    { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: cheap(R.level),         desc: 'מגלשה ונדנדה' },
 
-    { id: 'bench',      cat: 'props',  name: 'ספסל',        icon: '🪑', price: R.answer,        desc: 'מקום לשבת ולנוח' },
-    { id: 'fountain',   cat: 'props',  name: 'מזרקה',       icon: '⛲', price: R.create,        desc: 'מים שזורמים במרכז' },
-    { id: 'tap',        cat: 'props',  name: 'ברזייה',      icon: '🚰', price: R.answer,        desc: 'ברז מים לשתייה' },
-    { id: 'lamp',       cat: 'props',  name: 'פנס רחוב',    icon: '🪔', price: R.answer,        desc: 'מאיר בערב' },
-    { id: 'bin',        cat: 'props',  name: 'פח אשפה',     icon: '🗑️', price: R.smallSuccess,  desc: 'שומר על העיר נקייה' },
-    { id: 'flowers',    cat: 'props',  name: 'ערוגת פרחים', icon: '💐', price: R.answer,        desc: 'צבעים לעיר' },
+    { id: 'bench',      cat: 'props',  name: 'ספסל',        icon: '🪑', price: cheap(R.answer),        desc: 'מקום לשבת ולנוח' },
+    { id: 'fountain',   cat: 'props',  name: 'מזרקה',       icon: '⛲', price: cheap(R.create),        desc: 'מים שזורמים במרכז' },
+    { id: 'tap',        cat: 'props',  name: 'ברזייה',      icon: '🚰', price: cheap(R.answer),        desc: 'ברז מים לשתייה' },
+    { id: 'lamp',       cat: 'props',  name: 'פנס רחוב',    icon: '🪔', price: cheap(R.answer),        desc: 'מאיר בערב' },
+    { id: 'bin',        cat: 'props',  name: 'פח אשפה',     icon: '🗑️', price: cheap(R.smallSuccess),  desc: 'שומר על העיר נקייה' },
+    { id: 'flowers',    cat: 'props',  name: 'ערוגת פרחים', icon: '💐', price: cheap(R.answer),        desc: 'צבעים לעיר' },
 ];
 const VARIANT_BY_ID = Object.fromEntries(VARIANTS.map(v => [v.id, v]));
 const START_COUNT = START_COLS * START_ROWS;
-const LAND_BASE = R.perfect;     // מחיר השטח הנוסף הראשון
-const LAND_STEP = R.create;      // כל שטח נוסף יקר עוד צעד אחד
+const LAND_BASE = cheap(R.perfect);   // מחיר השטח הנוסף הראשון
+const LAND_STEP = cheap(R.create);    // כל שטח נוסף יקר עוד צעד אחד
 
 // מה התושבים דורשים, לפי מספר התושבים. כל דרישה היא קטגוריה שצריך מבנה פעיל ממנה
 const DEMANDS = [
@@ -155,11 +162,15 @@ function startingPlots() {
     return s;
 }
 
-function loadState() {
+function loadStateRaw() {
+    entranceC = 0;
+    entranceR = 1;
     try {
         const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
         if (saved && Array.isArray(saved.owned)) {
             owned = new Set(saved.owned);
+            entranceC = Number.isInteger(saved.entranceC) ? saved.entranceC : 0;
+            entranceR = Number.isInteger(saved.entranceR) ? saved.entranceR : 1;
             // מבנים שסוגם כבר לא קיים מוסרים בשקט
             buildings = new Map(Object.entries(saved.buildings || {}).filter(([, id]) => VARIANT_BY_ID[id]));
             met = Array.isArray(saved.met) ? saved.met : [];
@@ -181,12 +192,23 @@ function loadState() {
     } catch (e) {}
 }
 
+function loadState() {
+    loadStateRaw();
+    // כביש הכניסה תמיד קיים (גם בשמירות ישנות)
+    const k = key(entranceC, entranceR);
+    if (!buildings.has(k) && owned.has(k)) buildings.set(k, 'road');
+}
+
+function isEntrance(c, r) { return c === entranceC && r === entranceR; }
+
 function saveState() {
     try {
         localStorage.setItem(STORE_KEY, JSON.stringify({
             owned: [...owned],
             buildings: Object.fromEntries(buildings),
             met,
+            entranceC,
+            entranceR,
             savedAt: Date.now(),
         }));
     } catch (e) {}
@@ -379,6 +401,7 @@ function buildCell(c, r) {
     const cat = v ? v.cat : null;
     let top = 0.9;
     if (cat === 'road') buildRoad(group, c, r, v);
+    if (cat === 'road' && isEntrance(c, r)) buildGate(group);
     else if (cat === 'tree') buildTree(group, seed, v);
     else if (cat === 'house') top = buildHouse(group, seed, c, r, v);
     else if (cat === 'apt') top = buildApartments(group, seed, c, r, v);
@@ -387,7 +410,7 @@ function buildCell(c, r) {
     else if (cat === 'clinic') top = buildClinic(group, c, r, v);
     else if (cat === 'park') buildPark(group, seed, v);
     else if (cat === 'props') buildProp(group, seed, v);
-    else if (rnd(seed, 8) < 0.3) buildBush(group, seed);   // שיחים קטנים על שטח ריק
+    else if (!cat && rnd(seed, 8) < 0.3) buildBush(group, seed);   // שיחים קטנים על שטח ריק בלבד
 
     // מבנה בלי דרך לא עובד: מסמנים אותו בעמוד אדום מעל הגג
     if (cat && !buildingActive(c, r)) {
@@ -419,7 +442,8 @@ function buildRoad(group, c, r, v) {
     part(group, boxG(0.42, 0.024, 0.42), style.base, 0, y, 0);
 
     for (const d of DIRS) {
-        if (!roadAt(c + d.dc, r + d.dr)) continue;
+        const outside = isEntrance(c, r) && d.name === 'W';   // הכביש ממשיך החוצה
+        if (!roadAt(c + d.dc, r + d.dr) && !outside) continue;
         const sx = d.dc !== 0 ? 0.5 : 0.42;
         const sz = d.dr !== 0 ? 0.5 : 0.42;
         part(group, boxG(sx, 0.024, sz), style.base, d.dc * 0.25, y, d.dr * 0.25);
@@ -677,6 +701,34 @@ function buildSchool(group, c, r, v) {
     }
 }
 
+// שער בכניסה לעיר: שני עמודים וקורה מעל הכביש (בקואורדינטות של החלקה)
+function buildGate(group) {
+    part(group, boxG(0.05, 0.4, 0.05), '#8d6e63', -0.5, 0.2, -0.26);
+    part(group, boxG(0.05, 0.4, 0.05), '#8d6e63', -0.5, 0.2, 0.26);
+    part(group, boxG(0.06, 0.06, 0.6), '#ffca28', -0.5, 0.41, 0);
+}
+
+// הכביש שמגיע מבחוץ: מהשער עד הקצה של השטח שבבעלות הילד. לא עובר דרך חלקות שנקנו
+let outsideGroup = null;
+function drawOutsideRoad() {
+    if (!scene) return;
+    if (outsideGroup) scene.remove(outsideGroup);
+    outsideGroup = new THREE.Group();
+    scene.add(outsideGroup);
+
+    const row = entranceR;
+    let c = entranceC - 1;
+    while (c > -29 && !isOwned(c, row)) c--;
+    const startX = entranceC - 0.5;    // המערב של השער
+    const endX = c + 0.5;              // המזרח של החלקה הראשונה שבבעלות, או הקצה
+    const len = startX - endX;
+    if (len <= 0.01) return;
+    part(outsideGroup, boxG(len, 0.024, 0.42), '#3d3f47', (startX + endX) / 2, 0.034, row);
+    for (let x = startX - 0.4; x > endX + 0.1; x -= 0.8) {
+        part(outsideGroup, boxG(0.12, 0.006, 0.03), '#f5f5f5', x, 0.049, row);
+    }
+}
+
 // --- סצנה ---
 let renderer = null;
 let scene = null;
@@ -699,7 +751,9 @@ function init3D() {
         container.textContent = 'המכשיר הזה לא תומך בתלת-ממד.';
         return false;
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    // במכשיר שנוגעים בו (טלפון, טאבלט) מורידים את רמת הפירוט כדי שהסיבוב יהיה חלק
+    const touchScreen = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, touchScreen ? 1.5 : 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.innerHTML = '';
@@ -719,7 +773,7 @@ function init3D() {
     const sun = new THREE.DirectionalLight('#ffffff', 0.9);
     sun.position.set(4, 9, 5);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(touchScreen ? 1024 : 2048, touchScreen ? 1024 : 2048);
     Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
     sun.shadow.camera.updateProjectionMatrix();
     scene.add(sun);
@@ -747,22 +801,34 @@ function init3D() {
     window.addEventListener('resize', resize);
 
     const canvas = renderer.domElement;
+    const pointers = new Set();   // האצבעות (או העכבר) שנמצאים על המסך עכשיו
     let pressX = 0;
     let pressY = 0;
-    let dragged = false;
+    let dragged = false;          // הייתה גרירה, או יותר מאצבע אחת: זה לא נחשב לחיצה
     canvas.addEventListener('pointerdown', (e) => {
-        pressX = e.clientX;
-        pressY = e.clientY;
-        dragged = false;
+        pointers.add(e.pointerId);
+        if (pointers.size > 1) {
+            dragged = true;       // שתי אצבעות = זום או הזזה, לא בנייה
+        } else {
+            pressX = e.clientX;
+            pressY = e.clientY;
+            dragged = false;
+        }
     });
     canvas.addEventListener('pointermove', (e) => {
         if (Math.hypot(e.clientX - pressX, e.clientY - pressY) > 6) dragged = true;
         updateHover(e);
     });
     canvas.addEventListener('pointerup', (e) => {
-        if (dragged) return;   // גרירה לסיבוב, לא לחיצה
+        const isTap = pointers.size === 1 && !dragged;
+        pointers.delete(e.pointerId);
+        if (!isTap) return;
         const cell = cellAt(e);
         if (cell) onCell(cell.c, cell.r);
+    });
+    canvas.addEventListener('pointercancel', (e) => {
+        dragged = true;           // הדפדפן לקח את המגע (למשל גלילה): לא לחיצה
+        pointers.delete(e.pointerId);
     });
     canvas.addEventListener('pointerleave', () => { hoverMesh.visible = false; });
 
@@ -860,6 +926,7 @@ function drawAll() {
         const { c, r } = parseKey(k);
         drawCell(c, r);
     });
+    drawOutsideRoad();
 }
 
 // --- קטלוג: לשוניות לכל קטגוריה, ומוצגים רק הסוגים של הלשונית שנבחרה ---
@@ -880,12 +947,13 @@ function renderCatalog() {
     const tabs = document.createElement('div');
     tabs.className = 'tabs';
     tabs.setAttribute('role', 'tablist');
-    [...CATS, { id: 'land', name: 'שטח', icon: '🗺️' }].forEach(t => {
+    [...CATS, { id: 'land', name: 'שטח', icon: '🗺️', color: '#7cb342' }].forEach(t => {
         const b = document.createElement('button');
         b.className = 'tab' + (t.id === selectedCat ? ' on' : '');
         b.setAttribute('role', 'tab');
         b.setAttribute('aria-selected', String(t.id === selectedCat));
         b.textContent = `${t.icon} ${t.name}`;
+        b.style.setProperty('--tab', t.color);
         b.onclick = () => { selectedCat = t.id; renderCatalog(); };
         tabs.appendChild(b);
     });
@@ -971,6 +1039,7 @@ function setBuilding(c, r, id) {
 // לחיצה על חלקה: שטח חדש אם היא למכירה, הסרה אם יש בה מבנה, ובנייה אחרת
 function onCell(c, r) {
     if (!isOwned(c, r)) return buyLand(c, r);
+    if (isEntrance(c, r) && roadAt(c, r)) return feedback('הכביש הזה מחבר את העיר לעולם החיצון, לכן אי אפשר להסיר אותו');
     if (buildingAt(c, r)) return removeAt(c, r);
     place(c, r);
 }
@@ -981,12 +1050,19 @@ function buyLand(c, r) {
     const bal = balance();
     if (bal < price) return feedback(`חסרים לכם ${price - bal} 🪙 כדי לקנות שטח נוסף`);
     if (!W.spend(price)) return feedback('משהו השתבש, נסו שוב');
+    // שטח חדש שהוא מערב לכל העיר: השער זז אליו (גם אם הוא בשורה אחרת), והכביש החוצה ממשיך ממנו
+    const gateMoved = c < bounds().minC;
     owned.add(key(c, r));
+    if (gateMoved) {
+        entranceC = c;
+        entranceR = r;
+        buildings.set(key(c, r), 'road');
+    }
     saveState();
     drawAll();
     fitCamera();
     renderAll();
-    feedback(`קניתם שטח חדש! −${price} 🪙`);
+    feedback(gateMoved ? `קניתם שטח חדש, והשער זז אליו! −${price} 🪙` : `קניתם שטח חדש! −${price} 🪙`);
 }
 
 function place(c, r) {

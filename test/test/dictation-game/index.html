@@ -122,6 +122,12 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script>try { KidLearn.init(); KidLearn.watchKeys(['kidlearn-dictation-words', 'kidlearn-dictation-voice']); } catch (e) { /* בלי ענן המשחק ממשיך במכשיר */ }</script>
 <script>
 (function () {
     var STORE = 'kidlearn-dictation-words';
@@ -132,7 +138,7 @@
     var $ = function (id) { return document.getElementById(id); };
     var queue = [], current = '', total = 0, correct = 0, triedWrong = false;
 
-    function save() { try { localStorage.setItem(STORE, JSON.stringify(words)); } catch (e) {} }
+    function save() { try { localStorage.setItem(STORE, JSON.stringify(words)); } catch (e) {} if (window.KidLearn) KidLearn.backupKey(STORE); }
     function show(id) {
         ['setup', 'game', 'end'].forEach(function (s) { $(s).classList.toggle('hidden', s !== id); });
     }
@@ -275,7 +281,7 @@
     $('againBtn').onclick = start;
     $('editBtn').onclick = function () { show('setup'); };
     $('voiceSelect').onchange = function () {
-        try { localStorage.setItem(VOICE_KEY, this.value); } catch (e) {}
+        try { localStorage.setItem(VOICE_KEY, this.value); } catch (e) {} if (window.KidLearn) KidLearn.backupKey(VOICE_KEY);
         speak('שלום, ככה אני נשמע');
     };
 

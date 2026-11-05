@@ -256,6 +256,7 @@
 <script src="../shared/kidlearn-firebase-config.js"></script>
 <script src="../shared/kidlearn-cloud.js"></script>
 <script src="../shared/kidlearn-bridge.js"></script>
+<script src="../shared/kidlearn-wallet.js"></script>
 <script>
     const GAME_ID = 'microbit-programming';
     const MAX_SCRIPTS = 6;     // scripts in one program (the app checks the same limit)
@@ -317,6 +318,12 @@
         { key: 'eight', label: '8', mark: '8️⃣' }, { key: 'nine', label: '9', mark: '9️⃣' },
     ];
     const EXT_KEY = 'kidlearn-microbit-extensions';
+    // Kidlearn money: a new program saved pays SAVE_REWARD, a program sent to the micro:bit pays SEND_REWARD.
+    // Each program pays once for each of them, and the micro:bit pays at most DAILY_REWARD_CAP a day.
+    const REWARD_KEY = 'kidlearn-microbit-rewards';   // which programs were paid, and today's total (kept in the account too)
+    const SAVE_REWARD = 5;
+    const SEND_REWARD = 40;
+    const DAILY_REWARD_CAP = 100;
 
     let scripts = [];        // the program: [{ event, actions: [...] }], each script runs once
     let selected = -1;       // the script the child is working on (-1 = none)
@@ -1367,6 +1374,30 @@
             : (isOpen ? 'התוכנית שמורה! ✅' : '');
     }
 
+    // ---- Kidlearn money for saving a program and for sending it to the micro:bit ----
+    // Sending again and again does not pay again: each program pays once, and the day's total is capped.
+    // A program that did not fit under today's cap stays unpaid, so it can be paid another day.
+    function todayKey() { return new Date().toLocaleDateString('en-CA'); }   // for example 2026-11-05
+    function readRewards() {
+        let r = null;
+        try { r = JSON.parse(localStorage.getItem(REWARD_KEY)); } catch (e) { r = null; }
+        if (!r || typeof r !== 'object') r = {};
+        if (!r.paid || typeof r.paid !== 'object') r.paid = {};
+        if (r.day !== todayKey() || typeof r.today !== 'number') { r.day = todayKey(); r.today = 0; }
+        return r;
+    }
+    function payForProgram(programId, kind, amount) {
+        if (!window.KidLearnWallet || !programId) return;
+        const r = readRewards();
+        const done = r.paid[programId] || {};
+        if (done[kind] || r.today + amount > DAILY_REWARD_CAP) return;
+        r.paid[programId] = { ...done, [kind]: true };
+        r.today += amount;
+        try { localStorage.setItem(REWARD_KEY, JSON.stringify(r)); } catch (e) { return; } // no record here, no money
+        if (window.KidLearn) KidLearn.backupKey(REWARD_KEY);
+        KidLearnWallet.earn(amount, { reason: kind === 'save' ? 'שמרתם תוכנית' : 'שלחתם תוכנית למיקרוביט!' });
+    }
+
     function saveProgram() {
         if (scripts.length === 0 && !hasBoardContent()) {
             $('libNote').textContent = 'בנו משהו לפני שמירה 🧩';
@@ -1393,6 +1424,7 @@
             $('libNote').textContent = 'לא הצלחנו לשמור במכשיר הזה.';
             return;
         }
+        payForProgram(program.id, 'save', SAVE_REWARD);
         if (program.board || program.hasBoard) {
             pushBoard(program.id, program.board);
             program.hasBoard = !!program.board;
@@ -1541,11 +1573,13 @@
         const resumeLink = link.on;
         await linkStop();
         if (resumeLink) setBoardLinked(false, 'sending'); // the board is still playing: it says why nothing happens for a moment
+        const sentId = openId;   // the saved program this is, if any (it pays once, when it first reaches the micro:bit)
         const reply = await KidLearnBridge.request('installMicrobit', { program: copy({ scripts: toSend }) }, { timeoutMs: 60000 });
         installing = false;
         if (resumeLink) resumeBoardLink();
         if (reply.ok) {
             sentThisTime = true;
+            payForProgram(sentId, 'send', SEND_REWARD);
             setStatus('sent');
             return playBoardAfterSend();
         }
@@ -1738,6 +1772,7 @@
         await defaultOffLoaded;
         const off = (await withTimeout(KidLearn.getGamesOff().catch(() => null), 4000)) || {};
         gamesOff = typeof off[GAME_ID] === 'boolean' ? off[GAME_ID] : defaultOff;
+        updateSend(); // the send button depends on the switch, which may come after the program was drawn
         checkStatus();
     }
 
@@ -1748,7 +1783,7 @@
     changed();
 
     KidLearn.init();
-    KidLearn.watchKeys(['kidlearn-microbit-extensions']);
+    KidLearn.watchKeys(['kidlearn-microbit-extensions', REWARD_KEY]);
     KidLearn.onAuthChange(() => {
         loadGameState();
         syncFromCloud();

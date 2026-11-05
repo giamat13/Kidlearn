@@ -589,20 +589,27 @@
 
         const GRADE_ORDER = ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
 
+        // שנת הלימודים מתחילה בספטמבר. כיתה שנבחרה (גם ביוני או באוגוסט) שייכת לשנת הלימודים שבה נבחרה
+        function schoolYear(now) {
+            return now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+        }
+
+        // מעלים כיתה פעם בשנה, כשעוברים לשנת לימודים חדשה (ספטמבר).
+        // כיתה שהילד בחר כבר משייכת לשנה הנוכחית ולא מתעדכנת מיד.
         function checkGradeUpgrade() {
-            const lastUpgradeYear = getCookie("gradeUpgradeYear");
-            const currentYear = new Date().getFullYear();
-            const now = new Date();
-            const isSeptemberOrLater = now.getMonth() >= 8;
-            if (!isSeptemberOrLater) return;
-            if (lastUpgradeYear === String(currentYear)) return;
+            const year = schoolYear(new Date());
+            const marked = getCookie("gradeUpgradeYear");
+            if (!marked) {
+                setCookie("gradeUpgradeYear", String(year), 365);
+                return;
+            }
+            if (Number(marked) >= year) return;
             const grade = getCookie("studentGrade");
-            if (!grade) return;
-            const idx = GRADE_ORDER.indexOf(grade);
-            if (idx === -1 || idx === GRADE_ORDER.length - 1) return;
-            const newGrade = GRADE_ORDER[idx + 1];
-            setCookie("studentGrade", newGrade, 365);
-            setCookie("gradeUpgradeYear", String(currentYear), 365);
+            const idx = GRADE_ORDER.indexOf(grade || '');
+            if (idx !== -1 && idx < GRADE_ORDER.length - 1) {
+                setCookie("studentGrade", GRADE_ORDER[idx + 1], 365);
+            }
+            setCookie("gradeUpgradeYear", String(year), 365);
         }
 
         function openSettingsModal() {
@@ -760,6 +767,8 @@
             }
             setCookie('studentName', name, 365);
             setCookie('studentGrade', grade, 365);
+            // הילד בחר את הכיתה לשנת הלימודים הנוכחית: לא מעלים אותה עכשיו
+            setCookie('gradeUpgradeYear', String(schoolYear(new Date())), 365);
             closeModal();
             checkGradeUpgrade();
         updateStudentInfo();
@@ -835,14 +844,48 @@
 
         let allItemsCache = [];
 
-        // קוד פיתוח: מקלידים DEVDEBUGADDCOINS ומספר (למשל DEVDEBUGADDCOINS100) ולוחצים Enter, והמטבעות נכנסים לארנק
+        // איפוס העיר: מקלידים RESET CITY ו-Enter (גם הכתיב RESAT CITY מתקבל). שואלים לפני, ומוחקים את העיר
+        // במכשיר ובחשבון. הכסף נשאר. בחשבון מוחקים קודם: אם המחיקה נכשלה, העיר במכשיר נשארת
+        async function resetCityFromSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            renderSearch();
+            if (!confirm('למחוק את כל העיר שלכם?\n\nהבניינים, הדרכים והשטחים יימחקו, גם בחשבון. הכסף שלכם יישאר.\nאי אפשר לבטל את זה.')) return;
+            const signedIn = !!(window.KidLearn && KidLearn.currentUser && KidLearn.currentUser());
+            try {
+                if (signedIn) await KidLearn.deleteData('kidlearn-city-v2');
+            } catch (e) {
+                alert('לא הצלחנו למחוק את העיר מהחשבון. בדקו את החיבור לאינטרנט ונסו שוב. העיר במכשיר לא נמחקה.');
+                return;
+            }
+            try {
+                localStorage.removeItem('kidlearn-city-v2');
+                localStorage.removeItem('kidlearn-city');
+            } catch (e) {}
+            alert('העיר נמחקה. אפשר להתחיל לבנות מחדש! 🏗️');
+        }
+
+        // קוד פיתוח: מקלידים DEVDEBUGADDCOINS ומספר ולוחצים Enter. DEVDEBUGADDCOINS100 מוסיף 100 מטבעות,
+        // DEVDEBUGADDCOINS-50 מוריד 50 (לא מתחת ל-0)
         function checkDebugCode() {
             const input = document.getElementById('searchInput');
-            const m = input.value.trim().match(/^DEVDEBUGADDCOINS(\d+)$/i);
+            if (/^(RESET|RESAT)\s+CITY$/i.test(input.value.trim())) return resetCityFromSearch();
+            const m = input.value.trim().match(/^DEVDEBUGADDCOINS(-?\d+)$/i);
             if (!m) return;
-            const amount = Math.min(parseInt(m[1], 10), 100000);
+            const n = Math.min(Math.abs(parseInt(m[1], 10)), 100000);
+            const adding = parseInt(m[1], 10) > 0;
             input.value = '';
-            if (window.KidLearnWallet && amount > 0) KidLearnWallet.earn(amount, { reason: 'קוד פיתוח' });
+            if (window.KidLearnWallet && n > 0) {
+                if (adding) {
+                    KidLearnWallet.earn(n, { reason: 'קוד פיתוח' });
+                } else {
+                    const take = Math.min(n, KidLearnWallet.balance());
+                    if (take > 0) {
+                        KidLearnWallet.spend(take);
+                        KidLearnWallet.toast(`−${take} 💰 קוד פיתוח`);
+                    }
+                }
+            }
             renderSearch();
         }
 

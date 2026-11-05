@@ -289,11 +289,47 @@
     await db.collection("messages").doc(messageId).update({ replySeenByKid: true });
   }
 
+  // Keeps localStorage keys in step with the account (games that save to localStorage).
+  // Signed in: a cloud copy replaces a different local copy (returns true if anything changed);
+  // with no cloud copy, the local copy is uploaded.
+  async function syncKeys(keys) {
+    if (!auth || !auth.currentUser) return false;
+    let changed = false;
+    for (const key of keys) {
+      try {
+        const cloud = await loadData(key);
+        if (cloud && typeof cloud.raw === "string") {
+          if (localStorage.getItem(key) !== cloud.raw) {
+            localStorage.setItem(key, cloud.raw);
+            changed = true;
+          }
+        } else {
+          await pushLocalStorageKey(key);
+        }
+      } catch (e) { /* offline: the game keeps working on this device */ }
+    }
+    return changed;
+  }
+
+  // Call once after init(). On every sign-in the keys are synced, and the page reloads once
+  // if the cloud brought new data, so the game reads it at startup.
+  function watchKeys(keys) {
+    onAuthChange(async (profile) => {
+      if (!profile) return;
+      if (await syncKeys(keys)) location.reload();
+    });
+  }
+
+  // Upload one localStorage key after a write. Never throws (offline is fine).
+  function backupKey(key) {
+    return pushLocalStorageKey(key).catch(() => {});
+  }
+
   window.KidLearn = {
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
     saveData, loadData, deleteData, contacts, sendFamilyMessage, listSentMessages,
     getUnseenReplies, markReplySeen, setAvatar, getGamesOff, setGameOff,
-    pullLocalStorageKey, pushLocalStorageKey,
+    pullLocalStorageKey, pushLocalStorageKey, syncKeys, watchKeys, backupKey,
     _internal: { usernameToAuthEmail, isValidUsername, isValidDisplayName, isValidGrade },
   };
 })();
