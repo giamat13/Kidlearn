@@ -69,6 +69,7 @@
         <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
         <script src="../shared/kidlearn-firebase-config.js"></script>
         <script src="../shared/kidlearn-cloud.js"></script>
+        <script src="../shared/kidlearn-wallet.js"></script>
     <script>
         const params = new URLSearchParams(location.search);
         // כמו ב-live-cam: דף אחד לכל הסדרות, וקובץ JSON נפרד לכל סדרה (?config=data/<id>.json)
@@ -77,8 +78,23 @@
         // מפתח בלי / ו-. כדי שאפשר יהיה לשמור אותו כמסמך בענן. המפתח הישן נקרא כגיבוי
         const storeKey = 'kidlearn-series-' + configUrl.replace(/[^\w-]/g, '_');
         const oldStoreKey = 'kidlearn-series-' + configUrl;
-        try { if (window.KidLearn) { KidLearn.init(); KidLearn.watchKeys([storeKey]); } } catch (e) { /* בלי ענן הסדרה ממשיכה במכשיר */ }
+        // כסף Kidlearn: סיום פרק עד הסוף = סיבוב אחד (REWARDS.round), פעם אחת לכל פרק. הרשימה נשמרת גם בענן
+        const REWARD_KEY = 'kidlearn-series-rewarded';
+        try { if (window.KidLearn) { KidLearn.init(); KidLearn.watchKeys([storeKey, REWARD_KEY]); } } catch (e) { /* בלי ענן הסדרה ממשיכה במכשיר */ }
         let videos = [], index = 0, player = null;
+        const paidEpisodes = new Set(readPaidEpisodes());
+
+        function readPaidEpisodes() {
+            try { const a = JSON.parse(localStorage.getItem(REWARD_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+        }
+
+        function rewardFinishedEpisode(id) {
+            if (!window.KidLearnWallet || !id || paidEpisodes.has(id)) return;
+            paidEpisodes.add(id); // נרשם גם בזיכרון, כדי שלא ישולם פעמיים גם אם השמירה נכשלה
+            try { localStorage.setItem(REWARD_KEY, JSON.stringify([...paidEpisodes])); } catch (e) {}
+            if (window.KidLearn) KidLearn.backupKey(REWARD_KEY);
+            KidLearnWallet.earn(KidLearnWallet.REWARDS.round, { reason: 'סיימתם פרק' });
+        }
 
         function goBack() {
             if (history.length > 1) history.back(); else location.href = '../category.html?category=series';
@@ -168,7 +184,11 @@
                 videoId: videos[index].id,
                 host: 'https://www.youtube-nocookie.com',
                 playerVars: { rel: 0, playsinline: 1, hl: 'he' },
-                events: { onStateChange: e => { if (e.data === YT.PlayerState.ENDED && index < videos.length - 1) play(index + 1, true); } }
+                events: { onStateChange: e => {
+                    if (e.data !== YT.PlayerState.ENDED) return;
+                    rewardFinishedEpisode(videos[index].id);
+                    if (index < videos.length - 1) play(index + 1, true);
+                } }
             });
         }
 
