@@ -149,6 +149,20 @@ h1 { font-size: 2rem; margin-top: 44px; }
 .meter-note { font-size: 0.85rem; color: #6b6b8a; }
 @media (prefers-reduced-motion: reduce) { .meter-fill { transition: none; } }
 
+/* --- אטרקציות: כניסה למשחקים --- */
+.attractions { text-align: right; background: #fff; border-radius: 16px; padding: 12px 16px; margin-top: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.attractions[hidden] { display: none; }
+.attr-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid #eee; flex-wrap: wrap; }
+.attr-name { font-weight: 700; }
+.attr-name small { display: block; font-weight: 400; color: #6b6b8a; }
+.enter-btn {
+  display: inline-block; font: inherit; font-weight: 700; color: #fff; background: #8e24aa; text-decoration: none;
+  border-radius: 999px; padding: 8px 18px; min-height: 44px; line-height: 28px; box-shadow: 0 3px 0 #5e1670;
+}
+.enter-btn:hover { background: #a02fbe; }
+.enter-btn:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
+.enter-off { color: #e65100; font-weight: 700; }
+
 /* --- מה התושבים אוהבים --- */
 .loves { text-align: right; background: #fff; border-radius: 16px; padding: 12px 16px; margin-top: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
 .loves-title { font-weight: 800; margin-bottom: 8px; }

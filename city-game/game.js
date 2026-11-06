@@ -10,6 +10,10 @@
 //     ושמחה (מושפעת מהדרישות, מהסביבה ומהבנייה). התושבים כותבים מה הם אוהבים בעיר.
 //   • עוד מדדים: ביטחון, בריאות, חינוך, תעסוקה, פנאי ותנועה (לפי מבנים ביחס לתושבים). העיר משלמת מטבעות בזמן שהילד בעיר, לפי השמחה ושאר המדדים.
 //   • העיר מתרחבת: קונים שטח חדש ליד השטח הקיים. מחיר השטח קבוע, והמצלמה לא מתרחקת ככל שהעיר גדלה.
+//   • מסים אוטומטיים: כל מבנה מביא הכנסה קבועה, יש בונוס לשילובים (חנות ליד בתים...) ופי 1.5 כשכל המדדים גבוהים.
+//     הכסף מצטבר גם כשהילד לא בעיר, עד 3 שעות, ומשולם לבד כשחוזרים (בלי כפתור).
+//   • אטרקציות (גן חיות ולונה פארק): בלי הגבלת כמות. בכל אחת יש כניסה למשחק נפרד (zoo-game, amusement-game),
+//     והמשחק שומר את ההכנסה שלה לפי החלקה. ההכנסה נכנסת למסים של העיר.
 // המחירים והפרסים נגזרים מ-REWARDS כדי להישאר בפרופורציה לשאר המשחקים.
 
 const START_COLS = 5;      // השטח ההתחלתי: 5 על 4 חלקות
@@ -19,6 +23,16 @@ const OLD_STORE_KEY = 'kidlearn-city';   // הגרסה הקודמת (רשת קב
 const MERGE_MAX = 5;                     // מקסימום בתי ספר שמתאחדים לאחד
 const DECOR_MAX = 7;                     // מקסימום עצים וקישוטים בחלקה אחת
 const GOOD_LEVEL = 70;                   // מעל הערך הזה במדד מקבלים פרס (פעם אחת)
+const TAX_CAP_MS = 3 * 60 * 60 * 1000;   // הכסף שנצבר כשהילד לא בעיר נעצר אחרי 3 שעות
+const TAX_MIN_AWAY_MS = 30 * 1000;       // פחות מזה לא נחשב "לא הייתם בעיר"
+const CITY_RATE_MAX = 9;                 // תקרה למטבעות בדקה: בערך 30% ממה שמשחקי הלימוד מכניסים
+const TAX_KEY = 'kidlearn-city-tax';     // מתי הילד היה בעיר לאחרונה (במכשיר בלבד, מתעדכן כל כמה שניות)
+// אטרקציות: לכל סוג יש משחק משלו ומפתח שמירה משלו (נתונים לפי חלקה). הם לא מופיעים ב-games.json
+const ATTRACTIONS = {
+    zoo:       { key: 'kidlearn-zoo',       page: '../zoo-game/index.html',       label: 'גן החיות' },
+    amusement: { key: 'kidlearn-amusement', page: '../amusement-game/index.html', label: 'הלונה פארק' },
+};
+const TOURIST_RATE = 0.3;                // מטבעות בדקה מתיירים לכל אטרקציה פעילה, גם לפני שנכנסים אליה
 // שער הכניסה לעיר: כביש שמגיע מבחוץ. תמיד קיים ואי אפשר להסיר אותו.
 // הוא תמיד על החלקה המערבית ביותר בעיר. כשקונים שטח שהוא מערב לכל העיר, השער זז לשטח החדש (נשמר בשמירה)
 let entranceC = 0;
@@ -41,7 +55,8 @@ const CATS = [
     { id: 'clinic', name: 'בריאות',          icon: '🏥', color: '#e53935' },
     { id: 'civic', name: 'שירותי עיר', icon: '🚓', color: '#3949ab' },
     { id: 'park',   name: 'פנאי ופארקים',    icon: '🏞️', color: '#26a69a' },
-    { id: 'props',  name: 'דברים קטנים',     icon: '⛲', color: '#8d6e63' },
+    { id: 'attr',   name: 'אטרקציות',        icon: '🎡', color: '#8e24aa' },
+    { id: 'props', name: 'דברים קטנים',     icon: '⛲', color: '#8d6e63' },
 ];
 
 // --- סוגים: לכל סוג מחיר, תיאור, ותושבים (אם הוא מגורים) ---
@@ -87,7 +102,10 @@ const VARIANTS = [
     { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: cheap(R.create),        eco: 1.5,  love: 'הגינה הקטנה מלאה פרחים וריח טוב', desc: 'פרחים וספסל' },
     { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: cheap(R.level),         eco: 1,    love: 'בגן השעשועים הילדים משחקים כל היום', desc: 'מגלשה ונדנדה' },
 
-    { id: 'bench',      cat: 'props',  name: 'ספסל',        icon: '🪑', price: cheap(R.answer),        eco: 0,    size: 0.6,  love: 'כיף לשבת על הספסל ולנוח', desc: 'מקום לשבת ולנוח' },
+    { id: 'zoo',        cat: 'attr',   name: 'גן חיות',     icon: '🦁', price: cheap(R.round * 10),    eco: 0.5,  love: 'בגן החיות אפשר לראות חיות מכל העולם', desc: 'יש כניסה למשחק: קונים חיות ומרוויחים מכרטיסים' },
+    { id: 'amusement', cat: 'attr',   name: 'לונה פארק',   icon: '🎡', price: cheap(R.round * 12),    eco: -0.5, love: 'בלונה פארק כיף לעלות על המתקנים', desc: 'יש כניסה למשחק: קונים מתקנים ומרוויחים מכרטיסים' },
+
+    { id: 'bench',      cat: 'props', name: 'ספסל',        icon: '🪑', price: cheap(R.answer),        eco: 0,    size: 0.6,  love: 'כיף לשבת על הספסל ולנוח', desc: 'מקום לשבת ולנוח' },
     { id: 'fountain',   cat: 'props',  name: 'מזרקה',       icon: '⛲', price: cheap(R.create),        eco: 1,    size: 0.5,  love: 'המזרקה נעימה לשמוע', desc: 'מים שזורמים במרכז' },
     { id: 'tap',        cat: 'props',  name: 'ברזייה',      icon: '🚰', price: cheap(R.answer),        eco: 0.5,  size: 0.8,  love: 'הברזייה מאפשרת לשתות מים קרים', desc: 'ברז מים לשתייה' },
     { id: 'lamp',       cat: 'props',  name: 'פנס רחוב',    icon: '🪔', price: cheap(R.answer),        eco: 0,    size: 0.7,  love: 'פנסי הרחוב מאירים לנו בערב', desc: 'מאיר בערב' },
@@ -240,6 +258,7 @@ function loadStateRaw() {
                 }
             }
             met = Array.isArray(saved.met) ? saved.met : [];
+            taxAt = Math.max(taxAt, +saved.lastTaxAt || 0, readTaxTouch());
             return;
         }
     } catch (e) { /* אין אחסון — מתחילים מחדש */ }
@@ -277,6 +296,7 @@ function saveState() {
             met,
             entranceC,
             entranceR,
+            lastTaxAt: taxAt,
             savedAt: Date.now(),
         }));
     } catch (e) {}
@@ -307,7 +327,23 @@ async function cloudSync() {
         } else {
             cloudPush();
         }
+        await syncAttractionKeys();
+        renderAll();
     } catch (e) { /* אין רשת: נמשיך לשמור במכשיר */ }
+}
+
+// נתוני האטרקציות (גן חיות ולונה פארק) נשמרים בחשבון באותה דרך: הגרסה החדשה יותר מנצחת
+async function syncAttractionKeys() {
+    for (const id of Object.keys(ATTRACTIONS)) {
+        const key = ATTRACTIONS[id].key;
+        try {
+            const cloud = await KidLearn.loadData(key);
+            const remote = cloud && typeof cloud.raw === 'string' ? JSON.parse(cloud.raw) : null;
+            const local = JSON.parse(localStorage.getItem(key) || 'null');
+            if (remote && (!local || (remote.savedAt || 0) > (local.savedAt || 0))) localStorage.setItem(key, cloud.raw);
+            else if (local) KidLearn.pushLocalStorageKey(key).catch(() => {});
+        } catch (e) { /* ללא רשת: ממשיכים עם מה שיש במכשיר */ }
+    }
 }
 
 function redrawAll() {
@@ -478,7 +514,8 @@ function extraMeters(st, env) {
     if (pop <= 0) return { safety: 0, health: 0, education: 0, jobs: 0, leisure: 0, traffic: 0 };
     const law = (b.police || 0) + (b.court || 0) + (b.prison || 0);
     const edu = (st.active.school || 0) + (b.library || 0) + (b.university || 0);
-    const leisure = (st.active.park || 0) + (b.bench || 0) + (b.fountain || 0) + (b.flowers || 0);
+    // גן חיות ולונה פארק שווים לשני פארקים בפנאי
+    const leisure = (st.active.park || 0) + 2 * (st.active.attr || 0) + (b.bench || 0) + (b.fountain || 0) + (b.flowers || 0);
     return {
         safety: clamp(100 * coverage(law, pop, 10)),
         health: clamp(75 * coverage(st.active.clinic || 0, pop, 8) + 25 * env / 100),
@@ -497,18 +534,113 @@ function cityMeters() {
     return { st, env, loved, happy: happyScore(st, env, loved.length), extra: extraMeters(st, env) };
 }
 
-// כמה מטבעות לדקה העיר מביאה בזמן שהילד בעיר: עד 2 לפי השמחה, ועד 1 לפי הממוצע של שאר המדדים
-function cityCoinsPerMinute(m) {
+// הכנסה לפי מצב רוח: עד 2 לפי השמחה, ועד 1 לפי הממוצע של שאר המדדים
+function cityBaseRate(m) {
     if (m.st.pop <= 0) return 0;
     const others = [m.env, ...Object.values(m.extra)];
     const avg = others.reduce((a, b) => a + b, 0) / others.length;
     return 2 * m.happy / 100 + avg / 100;
 }
 
+// מס קבוע לכל מבנה פעיל (מטבעות בדקה): מגורים וחנויות משלמים, שירותי עיר לא
+const BUILDING_TAX = { cabin: 0.05, house: 0.1, villa: 0.2, apt: 0.3, tower: 0.6, mini: 0.1, shop: 0.2, mall: 0.6 };
+const COMBO_BONUS = 0.15;   // לכל חנות, בית ספר, פארק או מרפאה פעילים שיש לידם מגורים פעילים
+const HOME_CATS = ['house', 'apt'];
+const COMBO_CATS = ['shop', 'school', 'park', 'clinic'];
+const ALL_GOOD_MULT = 1.5;  // כשכל המדדים (סביבה, שמחה ו-6 הנוספים) הם לפחות GOOD_LEVEL
+
+// שילובים: מבנה שירות פעיל שנוגע (גם באלכסון) במגורים פעילים. כל מבנה נספר פעם אחת
+function comboCount() {
+    let n = 0;
+    for (const [k, id] of buildings) {
+        const v = VARIANT_BY_ID[id];
+        if (!v || !COMBO_CATS.includes(v.cat)) continue;
+        const { c, r } = parseKey(k);
+        if (!buildingActive(c, r)) continue;
+        let near = false;
+        for (let dc = -1; dc <= 1 && !near; dc++) {
+            for (let dr = -1; dr <= 1 && !near; dr++) {
+                if ((dc || dr) && HOME_CATS.includes(catAt(c + dc, r + dr)) && buildingActive(c + dc, r + dr)) near = true;
+            }
+        }
+        if (near) n++;
+    }
+    return n;
+}
+
+// הכנסה של אטרקציה אחת מהמשחק שלה (נשמרת לפי חלקה). בלי כניסה אליה עדיין מקבלים רק את התיירים
+function attractionData(k, id) {
+    const a = ATTRACTIONS[id];
+    try {
+        const all = JSON.parse(localStorage.getItem(a.key) || 'null');
+        const cell = all && all.cells && all.cells[k];
+        if (cell && typeof cell === 'object') return cell;
+    } catch (e) {}
+    return null;
+}
+function attractionRate(k, id) {
+    const d = attractionData(k, id);
+    const stored = d ? Math.max(0, Math.min(5, +d.rate || 0)) : 0;
+    return Math.max(TOURIST_RATE, stored);
+}
+
+// כל ההכנסה של העיר, מפורטת: בסיס, מסי מבנים, שילובים, פי 1.5 על הכל ואטרקציות, ותקרה כוללת
+function cityIncome(m) {
+    const out = { base: 0, tax: 0, combo: 0, mult: 1, attr: 0, total: 0 };
+    if (m.st.pop <= 0) return out;
+    out.base = cityBaseRate(m);
+    for (const [k, id] of buildings) {
+        const { c, r } = parseKey(k);
+        if (!VARIANT_BY_ID[id] || !buildingActive(c, r)) continue;
+        if (BUILDING_TAX[id]) out.tax += BUILDING_TAX[id];
+        if (ATTRACTIONS[id]) out.attr += attractionRate(k, id);
+    }
+    out.combo = comboCount() * COMBO_BONUS;
+    const all = [m.env, m.happy, ...Object.values(m.extra)];
+    if (all.every(x => x >= GOOD_LEVEL)) out.mult = ALL_GOOD_MULT;
+    out.total = Math.min(CITY_RATE_MAX, (out.base + out.tax + out.combo) * out.mult + out.attr);
+    return out;
+}
+
+// כמה מטבעות לדקה העיר מביאה
+function cityCoinsPerMinute(m) { return cityIncome(m).total; }
+
 // התשלום: שברי מטבע נצברים, ומשולמים כשיש מטבע שלם. נשמר בזיכרון בלבד (לא בשמירה)
 let cityRate = 0;     // מטבעות לדקה, מתעדכן בכל ציור של התפריט
 let cityTaxAcc = 0;
+let taxAt = 0;        // מתי העיר שילמה בפעם האחרונה (או שהילד היה בה). נשמר, כדי לחשב כסף שנצבר בהיעדרו
+let taxTouchClock = 0;
+
+function readTaxTouch() {
+    try { return +JSON.parse(localStorage.getItem(TAX_KEY) || '{}').at || 0; } catch (e) { return 0; }
+}
+// "הילד בעיר עכשיו": מעדכנים כל כמה שניות ובעזיבת הדף, בלי לשמור את כל העיר ובלי רשת
+function touchTax() {
+    taxAt = Date.now();
+    try { localStorage.setItem(TAX_KEY, JSON.stringify({ at: taxAt })); } catch (e) {}
+}
+
+// כסף שנצבר כשהילד לא היה בעיר (דף סגור, בתוך משחק האטרקציה או לשונית מוסתרת): עד 3 שעות, משולם אוטומטית.
+// מחזיר כמה מטבעות שולמו
+function payOffline(now) {
+    now = now || Date.now();
+    const last = taxAt;
+    touchTax();
+    if (!last || !W || cityRate <= 0) return 0;
+    const away = now - last;
+    if (away < TAX_MIN_AWAY_MS) return 0;
+    const ms = Math.min(TAX_CAP_MS, away);
+    const coins = Math.floor(cityRate * ms / 60000);
+    if (coins < 1) return 0;
+    W.earn(coins, { reason: 'העיר הכניסה בזמן שלא הייתם', silent: true });
+    const mins = Math.round(ms / 60000);
+    const capped = away > TAX_CAP_MS ? ' (זה המקסימום, 3 שעות)' : '';
+    notes.push(`בזמן שלא הייתם העיר הכניסה ${coins} 🪙 על ${mins} דקות${capped}`);
+    return coins;
+}
 function payCityTaxes(dt) {
+    taxTouchClock += dt;
+    if (taxTouchClock >= 10) { taxTouchClock = 0; touchTax(); }
     if (!W || cityRate <= 0) return;
     cityTaxAcc += cityRate * dt / 60;
     const whole = Math.floor(cityTaxAcc);
@@ -620,6 +752,7 @@ function buildCell(c, r) {
     else if (cat === 'clinic') top = buildClinic(group, c, r, v);
     else if (cat === 'civic') top = buildCivic(group, c, r, v);
     else if (cat === 'park') buildPark(group, seed, v, parkSides(c, r));
+    else if (cat === 'attr') top = buildAttraction(group, c, r, v);
 
     // עצים וקישוטים קטנים: כמה שיש בחלקה, כל אחד במקומו
     if (list.length) buildDecor(group, seed, list);
@@ -910,6 +1043,74 @@ function buildCivic(group, c, r, v) {
 
     // לרכבים יש פתח משלו. לשאר יש דלת רגילה
     if (v.id !== 'fire' && v.id !== 'ambulance') part(b, boxG(0.16, 0.22, 0.02), '#6d4c41', 0, 0.11, front);
+    addDoorPath(b, roadNextTo(c, r), front);
+    group.add(b);
+    return top;
+}
+
+// אטרקציה: גן חיות (גדר, שער וחיות) או לונה פארק (גלגל ענק ואוהל). השער פונה לדרך
+function torusG(r, tube) { return cached(geoCache, `t${r}|${tube}`, () => new THREE.TorusGeometry(r, tube, 6, 20)); }
+function buildAttraction(group, c, r, v) {
+    const b = new THREE.Group();
+    b.rotation.y = facingRot(c, r);
+    const front = 0.44;
+    let top = 0.5;
+    if (v.id === 'zoo') {
+        part(b, boxG(0.9, 0.02, 0.9), '#a5d6a7', 0, 0.01, 0);
+        // גדר סביב, עם פתח בחזית
+        const wood = '#8d6e63';
+        part(b, boxG(0.9, 0.12, 0.03), wood, 0, 0.07, -0.44);
+        part(b, boxG(0.03, 0.12, 0.9), wood, -0.44, 0.07, 0);
+        part(b, boxG(0.03, 0.12, 0.9), wood, 0.44, 0.07, 0);
+        part(b, boxG(0.28, 0.12, 0.03), wood, -0.31, 0.07, front);
+        part(b, boxG(0.28, 0.12, 0.03), wood, 0.31, 0.07, front);
+        // שער עם שלט
+        part(b, boxG(0.04, 0.34, 0.04), '#5d4037', -0.14, 0.17, front);
+        part(b, boxG(0.04, 0.34, 0.04), '#5d4037', 0.14, 0.17, front);
+        part(b, boxG(0.36, 0.08, 0.04), '#ffca28', 0, 0.36, front);
+        // פיל: גוף, ראש וחדק
+        part(b, icoG(0.15), '#9e9e9e', -0.2, 0.2, -0.15);
+        part(b, icoG(0.09), '#9e9e9e', -0.08, 0.26, -0.15);
+        part(b, cylG(0.02, 0.02, 0.12, 6), '#9e9e9e', -0.02, 0.2, -0.15).rotation.z = 1.2;
+        // ג'ירפה: גוף וצוואר גבוה
+        part(b, boxG(0.16, 0.1, 0.1), '#ffb300', 0.22, 0.14, -0.1);
+        part(b, cylG(0.025, 0.03, 0.3, 6), '#ffb300', 0.28, 0.3, -0.1);
+        part(b, icoG(0.04), '#ffb300', 0.3, 0.46, -0.1);
+        // עץ קטן
+        part(b, cylG(0.02, 0.025, 0.12, 6), '#6d4c41', 0.25, 0.06, 0.2);
+        part(b, icoG(0.1), '#43a047', 0.25, 0.2, 0.2);
+        top = 0.56;
+    } else {
+        part(b, boxG(0.9, 0.02, 0.9), '#e1bee7', 0, 0.01, 0);
+        // גלגל ענק: טבעת, קרניים וקרונות
+        const wheel = new THREE.Group();
+        wheel.position.set(0.12, 0.5, -0.1);
+        const ring = new THREE.Mesh(torusG(0.3, 0.02), mat('#e53935'));
+        ring.castShadow = true;
+        wheel.add(ring);
+        for (let k = 0; k < 4; k++) {
+            const spoke = new THREE.Mesh(boxG(0.6, 0.015, 0.015), mat('#fafafa'));
+            spoke.rotation.z = k * Math.PI / 4;
+            wheel.add(spoke);
+        }
+        for (let k = 0; k < 8; k++) {
+            const a = k * Math.PI / 4;
+            const pod = new THREE.Mesh(boxG(0.07, 0.07, 0.07), mat(['#ffca28', '#42a5f5', '#66bb6a', '#ec407a'][k % 4]));
+            pod.position.set(Math.cos(a) * 0.3, Math.sin(a) * 0.3, 0);
+            wheel.add(pod);
+        }
+        b.add(wheel);
+        part(b, boxG(0.03, 0.5, 0.03), '#78909c', 0.02, 0.25, -0.1);
+        part(b, boxG(0.03, 0.5, 0.03), '#78909c', 0.22, 0.25, -0.1);
+        // אוהל פסים
+        part(b, cylG(0.14, 0.14, 0.14, 8), '#ff7043', -0.24, 0.09, 0.14);
+        part(b, coneG(0.17, 0.16, 8), '#fafafa', -0.24, 0.24, 0.14);
+        // שער
+        part(b, boxG(0.04, 0.34, 0.04), '#8e24aa', -0.14, 0.17, front);
+        part(b, boxG(0.04, 0.34, 0.04), '#8e24aa', 0.14, 0.17, front);
+        part(b, boxG(0.36, 0.08, 0.04), '#ffca28', 0, 0.36, front);
+        top = 0.85;
+    }
     addDoorPath(b, roadNextTo(c, r), front);
     group.add(b);
     return top;
@@ -1382,7 +1583,13 @@ function renderMeters(m) {
             <div class="meter-note">${note}</div>
         </div>`;
     const extra = EXTRA_METERS.map(d => meter(d.title, m.extra[d.id], d.id, d.notes[levelOf(m.extra[d.id])])).join('');
-    const income = `<div class="meter"><div class="meter-head"><span>💰 העיר מביאה</span><strong>${cityRate.toFixed(1)}</strong></div><div class="meter-note">מטבעות בדקה, בזמן שאתם בעיר. ככל שהתושבים שמחים יותר, מביאים יותר</div></div>`;
+    const inc = cityIncome(m);
+    const bits = [];
+    if (inc.tax > 0) bits.push(`מסי מבנים ${inc.tax.toFixed(1)}`);
+    if (inc.combo > 0) bits.push(`שילובים ${inc.combo.toFixed(1)}`);
+    if (inc.attr > 0) bits.push(`אטרקציות ${inc.attr.toFixed(1)}`);
+    if (inc.mult > 1) bits.push('⭐ פי 1.5 כי כל המדדים גבוהים');
+    const income = `<div class="meter"><div class="meter-head"><span>💰 העיר מביאה</span><strong>${cityRate.toFixed(1)}</strong></div><div class="meter-note">מטבעות בדקה, משולם לבד. הכסף מצטבר גם כשאתם לא בעיר, עד 3 שעות.${bits.length ? ' (' + bits.join(' · ') + ')' : ''}</div></div>`;
     $('meters').innerHTML = meter('🌿 מד שמירה על הסביבה', m.env, 'env', envNote)
         + meter('😊 מד שמחה', m.happy, 'happy', happyNote)
         + extra + income;
@@ -1430,11 +1637,40 @@ function renderLoves(m) {
         + complaints.map(t => `<div class="complaint">💭 ${t}</div>`).join('');
 }
 
+// אטרקציות בעיר: לכל אחת כפתור כניסה למשחק שלה (החלקה נשלחת בכתובת). נדרשת דרך כדי להיכנס
+function renderAttractions() {
+    const box = $('attractions');
+    if (!box) return;
+    const list = [];
+    for (const [k, id] of buildings) {
+        if (!ATTRACTIONS[id]) continue;
+        const { c, r } = parseKey(k);
+        list.push({ k, id, c, r, v: VARIANT_BY_ID[id], active: buildingActive(c, r) });
+    }
+    if (!list.length) { box.innerHTML = ''; box.hidden = true; return; }
+    list.sort((a, b) => a.id.localeCompare(b.id) || a.r - b.r || a.c - b.c);
+    box.hidden = false;
+    const seen = {};
+    const rows = list.map(a => {
+        seen[a.id] = (seen[a.id] || 0) + 1;
+        const d = attractionData(a.k, a.id);
+        const rate = a.active ? attractionRate(a.k, a.id) : 0;
+        const sum = d && d.summary ? ` · ${String(d.summary).slice(0, 60)}` : ' · עוד לא נכנסתם';
+        const name = `${a.v.icon} ${ATTRACTIONS[a.id].label} ${seen[a.id]} (חלקה ${a.c + 1},${a.r + 1})`;
+        const action = a.active
+            ? `<a class="enter-btn" href="${ATTRACTIONS[a.id].page}?cell=${encodeURIComponent(a.k)}">🚪 כניסה</a>`
+            : '<span class="enter-off">🚧 צריך דרך לידו</span>';
+        return `<div class="attr-row"><span class="attr-name">${name}<small>${a.active ? ` · ${rate.toFixed(1)} 🪙 לדקה` : ''}${a.active ? sum : ''}</small></span>${action}</div>`;
+    });
+    box.innerHTML = '<div class="loves-title">🎡 אטרקציות: לחצו על כניסה כדי לנהל</div>' + rows.join('');
+}
+
 function renderAll() {
     renderCatalog();
     renderCounts();
     const m = cityMeters();
     cityRate = cityCoinsPerMinute(m);
+    renderAttractions();
     renderMeters(m);
     renderDemands(m.st);
     renderLoves(m);
@@ -1784,3 +2020,17 @@ if (window.KidLearn && KidLearn.onAuthChange) {
     KidLearn.onAuthChange((profile) => { if (profile) cloudSync(); });
 }
 renderAll();
+// מסים אוטומטיים: כסף שנצבר בזמן שהילד לא בעיר (עד 3 שעות) משולם בכניסה, וגם כשחוזרים ללשונית
+if (payOffline() > 0) feedback('ברוכים השבים!');
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { touchTax(); return; }
+    if (payOffline() > 0) feedback('ברוכים השבים!');
+    renderAll();
+});
+window.addEventListener('pagehide', touchTax);
+window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    loadState();
+    redrawAll();
+    if (payOffline() > 0) feedback('ברוכים השבים!');
+});
