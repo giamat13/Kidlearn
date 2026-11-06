@@ -95,6 +95,24 @@ function calcBasePoints(remaining) {
     return Math.round(MIN_BASE_POINTS + (MAX_BASE_POINTS - MIN_BASE_POINTS) * ratio);
 }
 
+// --- כסף (לא נקודות) ---
+const COIN_BASE = 5;            // לכל תשובה נכונה
+const COIN_FAST_BONUS = 2;      // בונוס מהירות: עונים בתוך הזמן שמתאים לכיתה
+const COIN_STREAK_STEP = 3;     // כל 3 תשובות נכונות ברצף מוסיפות 1 לכל תשובה...
+const COIN_STREAK_MAX = 3;      // ...עד +3
+// כמה שניות לוקחת תשובה "מהירה", לפי כיתה. בכיתות הצעירות יש יותר זמן (הערכה, לכוונן לפי ניסיון)
+const FAST_SECONDS_BY_GRADE = { preschool: 20, kindergarten: 20, first: 15, second: 12, third: 10, fourth: 9, fifth: 8, sixth: 7, seventh: 6, eighth: 6, ninth: 5, tenth: 5, eleventh: 5, twelfth: 5 };
+const FAST_SECONDS_DEFAULT = 10;  // בלי כיתה מוגדרת (למשל לא מחוברים)
+
+// כמה מטבעות מקבלים על תשובה נכונה. נקרא אחרי שהרצף עודכן כולל התשובה הנוכחית
+function coinsForCorrect() {
+    const grade = (window.KidLearn && KidLearn.currentUser() || {}).grade;
+    const fastSeconds = FAST_SECONDS_BY_GRADE[grade] || FAST_SECONDS_DEFAULT;
+    const fast = timeLeft >= QUESTION_TIME - fastSeconds;   // timeLeft יורד מ-30 לכיוון 0
+    const streakBonus = Math.min(COIN_STREAK_MAX, Math.floor(streak / COIN_STREAK_STEP));
+    return COIN_BASE + (fast ? COIN_FAST_BONUS : 0) + streakBonus;
+}
+
 // --- משחק ---
 function startGame() {
     score = 0;
@@ -192,8 +210,8 @@ function handleAnswer(chosen, correct, btn) {
         correctCount++;
         showFeedback(true);
         showScorePopup(btn, '+' + pts);
-        // 1 לתשובה נכונה, +1 אם ענו מהר (בשליש הראשון של הזמן)
-        window.KidLearnWallet && KidLearnWallet.earn(timeLeft >= QUESTION_TIME * 0.66 ? 2 : 1, { reason: 'תשובה נכונה' });
+        // כסף: 5 לתשובה נכונה, + בונוס מהירות (לפי הכיתה), + בונוס רצף
+        window.KidLearnWallet && KidLearnWallet.earn(coinsForCorrect(), { reason: 'תשובה נכונה' });
     } else {
         btn.classList.add('wrong');
         allBtns.forEach(b => {

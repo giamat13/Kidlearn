@@ -758,16 +758,16 @@
 
         // Coin price for each shop item (used by the item shop)
         const ITEM_COSTS = {
-            sofa: 6, armchair: 6, plant: 4, tv: 8, lamp: 5, window: 5, clock: 6, table: 5,
-            tree: 5, flower: 4, fountain: 8, bench: 5, bicycle: 6, balloon: 4, bird: 5, rock: 4,
-            palm: 6, tent: 7, gem: 9, totem: 8, flower_exotic: 6, mushroom: 5, chest: 9, vine: 5,
-            beach_umbrella: 6, beach_chair: 7, surfboard: 7, sailboat: 9, sandcastle: 7, shell: 4, crab: 5, coconut: 5, ball: 4,
-            snowman: 8, snowflake: 4, ice_castle: 10, sleigh: 9, pine_tree: 6, crown: 9, gift: 6, candle: 5,
-            unicorn: 12, rainbow: 10, star_sparkle: 6, cloud_cute: 6, castle_pink: 12, flower_magic: 7, moon_magic: 8, gem_heart: 10,
-            lion: 11, giraffe: 10, elephant: 12, zebra: 9, acacia: 6, watering_hole: 7, vulture: 6, sun_savanna: 5,
-            cactus: 6, camel: 10, pyramid: 12, oasis: 8, dune: 5, scorpion: 7, desert_sun: 5, tumbleweed: 4,
-            rocket: 13, planet_ringed: 11, ufo: 10, astronaut: 12, satellite: 9, comet: 7, moon_crater: 6, alien: 9,
-            mars_rover: 14, mars_flag: 8, mars_crater: 6, mars_rock: 5, mars_dome: 13, mars_moon: 8, mars_alien: 10, satellite_dish: 9
+            sofa: 12, armchair: 12, plant: 8, tv: 16, lamp: 10, window: 10, clock: 12, table: 10,
+            tree: 10, flower: 8, fountain: 16, bench: 10, bicycle: 12, balloon: 8, bird: 10, rock: 8,
+            palm: 12, tent: 14, gem: 18, totem: 16, flower_exotic: 12, mushroom: 10, chest: 18, vine: 10,
+            beach_umbrella: 12, beach_chair: 14, surfboard: 14, sailboat: 18, sandcastle: 14, shell: 8, crab: 10, coconut: 10, ball: 8,
+            snowman: 16, snowflake: 8, ice_castle: 20, sleigh: 18, pine_tree: 12, crown: 18, gift: 12, candle: 10,
+            unicorn: 24, rainbow: 20, star_sparkle: 12, cloud_cute: 12, castle_pink: 24, flower_magic: 14, moon_magic: 16, gem_heart: 20,
+            lion: 22, giraffe: 20, elephant: 24, zebra: 18, acacia: 12, watering_hole: 14, vulture: 12, sun_savanna: 10,
+            cactus: 12, camel: 20, pyramid: 24, oasis: 16, dune: 10, scorpion: 14, desert_sun: 10, tumbleweed: 8,
+            rocket: 26, planet_ringed: 22, ufo: 20, astronaut: 24, satellite: 18, comet: 14, moon_crater: 12, alien: 18,
+            mars_rover: 28, mars_flag: 16, mars_crater: 12, mars_rock: 10, mars_dome: 26, mars_moon: 16, mars_alien: 20, satellite_dish: 18
         };
 
         // Item names translation map for friendly label text
@@ -2169,7 +2169,7 @@
             const pool = WORLD_DECOR_POOL[currentWorldId] || [];
 
             pool.forEach(itemType => {
-                const cost = ITEM_COSTS[itemType] || 5;
+                const cost = ITEM_COSTS[itemType] || 10;
                 const name = ITEM_NAMES[itemType] || 'פריט';
                 const canAfford = coins >= cost;
 
@@ -2236,7 +2236,7 @@
         // --- Custom drawing tool: freehand brush + stampable shapes ---
         const DRAW_TOOLS = ['brush', 'circle', 'square', 'triangle', 'star', 'heart'];
         const DRAW_COLORS = ['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#1e293b'];
-        const DRAW_COST = 5;
+        const DRAW_COST = 10;
         let drawSelectedTool = 'brush';
         let drawSelectedColor = DRAW_COLORS[0];
         let drawActions = []; // ordered list of { type: 'shape'|'stroke', ... } so undo removes the true last action

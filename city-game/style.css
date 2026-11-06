@@ -140,6 +140,12 @@ h1 { font-size: 2rem; margin-top: 44px; }
 .meter-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
 .meter-fill.env { background: linear-gradient(90deg, #9ccc65, #2e7d32); }
 .meter-fill.happy { background: linear-gradient(90deg, #ffd54f, #ff7043); }
+.meter-fill.safety { background: linear-gradient(90deg, #90a4ae, #37474f); }
+.meter-fill.health { background: linear-gradient(90deg, #ef9a9a, #e53935); }
+.meter-fill.education { background: linear-gradient(90deg, #fff176, #fbc02d); }
+.meter-fill.jobs { background: linear-gradient(90deg, #f48fb1, #d81b60); }
+.meter-fill.leisure { background: linear-gradient(90deg, #80cbc4, #26a69a); }
+.meter-fill.traffic { background: linear-gradient(90deg, #b0bec5, #607d8b); }
 .meter-note { font-size: 0.85rem; color: #6b6b8a; }
 @media (prefers-reduced-motion: reduce) { .meter-fill { transition: none; } }
 

@@ -12,7 +12,7 @@ let answered = false;
 let hintUsed = false;
 let nextTimer = null;
 
-const HINT_COST = 2;    // מטבעות לרמז
+const HINT_COST = 4;    // מטבעות לרמז
 
 const $ = (id) => document.getElementById(id);
 

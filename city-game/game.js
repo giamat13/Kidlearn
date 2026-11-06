@@ -8,6 +8,7 @@
 //   • ככל שיש יותר תושבים, התושבים דורשים מבנים מכל קטגוריה. כל דרישה שמתמלאת בפעם הראשונה מזכה בכסף.
 //   • שני מדדים: שמירה על הסביבה (עצים, פארקים ופחים מעלים; כבישי אספלט ובנייה גדולה מורידים)
 //     ושמחה (מושפעת מהדרישות, מהסביבה ומהבנייה). התושבים כותבים מה הם אוהבים בעיר.
+//   • עוד מדדים: ביטחון, בריאות, חינוך, תעסוקה, פנאי ותנועה (לפי מבנים ביחס לתושבים). העיר משלמת מטבעות בזמן שהילד בעיר, לפי השמחה ושאר המדדים.
 //   • העיר מתרחבת: קונים שטח חדש ליד השטח הקיים. מחיר השטח קבוע, והמצלמה לא מתרחקת ככל שהעיר גדלה.
 // המחירים והפרסים נגזרים מ-REWARDS כדי להישאר בפרופורציה לשאר המשחקים.
 
@@ -25,8 +26,8 @@ let entranceR = 1;
 
 const W = window.KidLearnWallet;
 const R = W ? W.REWARDS : { answer: 2, smallSuccess: 1, round: 8, level: 10, perfect: 20, create: 5 };
-// כל המחירים בעיר יורדים בחצי (ומעוגלים). הפרסים שהילד מקבל לא משתנים
-const PRICE_FACTOR = 0.5;
+// מחירי העיר הם מחירי הבסיס (בלי הנחה). הפרסים שהילד מקבל לא משתנים
+const PRICE_FACTOR = 1;
 const cheap = (p) => Math.max(1, Math.round(p * PRICE_FACTOR));
 
 // --- קטגוריות ---
@@ -404,20 +405,26 @@ function stats() {
     refreshSchoolGroups();
     let pop = 0;
     let inactive = 0;
+    let roads = 0;
     const active = {};
+    const byId = {};   // כמה מבנים פעילים מכל סוג (לפי מזהה), לחישוב המדדים
     for (const [k, id] of buildings) {
         const v = VARIANT_BY_ID[id];
-        if (!v || v.cat === 'road' || v.cat === 'school') continue;
+        if (!v) continue;
+        if (v.cat === 'road') { roads++; continue; }
+        if (v.cat === 'school') continue;
         const { c, r } = parseKey(k);
         if (!buildingActive(c, r)) { inactive++; continue; }
         pop += v.pop || 0;
         active[v.cat] = (active[v.cat] || 0) + 1;
+        byId[v.id] = (byId[v.id] || 0) + 1;
     }
+    for (const list of decor.values()) list.forEach(id => { byId[id] = (byId[id] || 0) + 1; });
     // בתי ספר נספרים לפי קבוצה מאוחדת
     const groupCount = new Set(schoolGid.values()).size;
     active.school = schoolActiveGids.size;
     inactive += groupCount - schoolActiveGids.size;
-    return { pop, active, inactive };
+    return { pop, active, inactive, byId, roads };
 }
 
 // --- מדדים: סביבה ושמחה ---
@@ -458,11 +465,56 @@ function happyScore(st, env, lovedCount) {
     return clamp(h);
 }
 
+// חלקה של מבנים: כמה מבנים צריך לפי התושבים (מבנה אחד לכל perResidents תושבים). מחזיר בין 0 ל-1
+function coverage(count, pop, perResidents) {
+    if (pop <= 0) return 0;
+    return Math.min(1, count / Math.max(1, pop / perResidents));
+}
+
+// מדדים נוספים (0-100): ביטחון, בריאות, חינוך, תעסוקה, פנאי ותנועה. נמדדים לפי מבנים פעילים ביחס לתושבים
+function extraMeters(st, env) {
+    const b = st.byId;
+    const pop = st.pop;
+    if (pop <= 0) return { safety: 0, health: 0, education: 0, jobs: 0, leisure: 0, traffic: 0 };
+    const law = (b.police || 0) + (b.court || 0) + (b.prison || 0);
+    const edu = (st.active.school || 0) + (b.library || 0) + (b.university || 0);
+    const leisure = (st.active.park || 0) + (b.bench || 0) + (b.fountain || 0) + (b.flowers || 0);
+    return {
+        safety: clamp(100 * coverage(law, pop, 10)),
+        health: clamp(75 * coverage(st.active.clinic || 0, pop, 8) + 25 * env / 100),
+        education: clamp(100 * coverage(edu, pop, 6)),
+        jobs: clamp(100 * coverage(st.active.shop || 0, pop, 8)),
+        leisure: clamp(100 * coverage(leisure, pop, 6)),
+        // פקקים: הרבה תושבים על מעט דרכים
+        traffic: clamp(100 - Math.max(0, pop / Math.max(1, st.roads) - 4) * 10),
+    };
+}
+
 function cityMeters() {
     const st = stats();
     const env = envScore();
     const loved = lovedKinds();
-    return { st, env, loved, happy: happyScore(st, env, loved.length) };
+    return { st, env, loved, happy: happyScore(st, env, loved.length), extra: extraMeters(st, env) };
+}
+
+// כמה מטבעות לדקה העיר מביאה בזמן שהילד בעיר: עד 2 לפי השמחה, ועד 1 לפי הממוצע של שאר המדדים
+function cityCoinsPerMinute(m) {
+    if (m.st.pop <= 0) return 0;
+    const others = [m.env, ...Object.values(m.extra)];
+    const avg = others.reduce((a, b) => a + b, 0) / others.length;
+    return 2 * m.happy / 100 + avg / 100;
+}
+
+// התשלום: שברי מטבע נצברים, ומשולמים כשיש מטבע שלם. נשמר בזיכרון בלבד (לא בשמירה)
+let cityRate = 0;     // מטבעות לדקה, מתעדכן בכל ציור של התפריט
+let cityTaxAcc = 0;
+function payCityTaxes(dt) {
+    if (!W || cityRate <= 0) return;
+    cityTaxAcc += cityRate * dt / 60;
+    const whole = Math.floor(cityTaxAcc);
+    if (whole < 1) return;
+    cityTaxAcc -= whole;
+    W.earn(whole, { reason: 'העיר משלמת מסים', silent: true });
 }
 
 // דרישות התושבים והמדדים שנענו בפעם הראשונה מזכים בכסף, פעם אחת בלבד
@@ -1152,6 +1204,7 @@ function animate() {
     lastFrameMs = now;
     controls.update();
     if (scene) updateMovers(dt);
+    payCityTaxes(dt);
     renderer.render(scene, camera);
 }
 
@@ -1302,6 +1355,17 @@ function renderCounts() {
     $('counts').textContent = parts.length ? `${land} · ${parts.join(' · ')}` : `${land}. העיר עוד ריקה, זמן לבנות!`;
 }
 
+// המדדים הנוספים: כותרת, הודעה לפי הערך (0 = טוב, 1 = בסדר, 2 = צריך שיפור), ומשפט של התושבים כשהמד נמוך
+const EXTRA_METERS = [
+    { id: 'safety', title: '🚓 מד ביטחון (פחות פשע)', notes: ['🛡️ בטוח ושקט', '🙂 בסדר, אפשר עוד משטרה', '⚠️ יש פשע, צריך משטרה או בית משפט'], complaint: 'אנחנו לא מרגישים בטוחים, צריך משטרה 🚓' },
+    { id: 'health', title: '🏥 מד בריאות', notes: ['💚 בריאים ומטופלים', '🙂 בסדר, אפשר עוד מרפאה', '🤒 צריך מרפאה או בית חולים'], complaint: 'אנחנו צריכים מרפאה קרובה 🏥' },
+    { id: 'education', title: '🎓 מד חינוך', notes: ['📚 לומדים הרבה', '🙂 בסדר, אפשר עוד בית ספר', '✏️ צריך בית ספר או גן'], complaint: 'אנחנו רוצים בית ספר וגן 🏫' },
+    { id: 'jobs', title: '💼 מד תעסוקה', notes: ['💼 יש עבודה לכולם', '🙂 בסדר, אפשר עוד חנויות', '😟 מעט עבודה, צריך חנויות'], complaint: 'צריך עוד חנויות שייתנו עבודה 🏪' },
+    { id: 'leisure', title: '🎈 מד פנאי ותרבות', notes: ['🎈 כיף לצאת', '🙂 בסדר, אפשר עוד פארק', '😐 משעמם, צריך פארק וספסלים'], complaint: 'משעמם לנו, צריך פארק 🏞️' },
+    { id: 'traffic', title: '🚦 מד תנועה', notes: ['🚦 הדרכים זורמות', '🙂 קצת עומס', '🚗 פקקים, צריך עוד דרכים'], complaint: 'יש פקקים, צריך עוד דרכים 🚗' },
+];
+const levelOf = (v) => v >= GOOD_LEVEL ? 0 : v >= 40 ? 1 : 2;
+
 // שני מדדים: שמירה על הסביבה ושמחה. כל מד צבוע לפי הערך שלו
 function renderMeters(m) {
     const envNote = m.env >= GOOD_LEVEL ? '🌳 ירוק ונקי'
@@ -1317,8 +1381,11 @@ function renderMeters(m) {
             <div class="meter-bar"><div class="meter-fill ${cls}" style="width:${value}%"></div></div>
             <div class="meter-note">${note}</div>
         </div>`;
+    const extra = EXTRA_METERS.map(d => meter(d.title, m.extra[d.id], d.id, d.notes[levelOf(m.extra[d.id])])).join('');
+    const income = `<div class="meter"><div class="meter-head"><span>💰 העיר מביאה</span><strong>${cityRate.toFixed(1)}</strong></div><div class="meter-note">מטבעות בדקה, בזמן שאתם בעיר. ככל שהתושבים שמחים יותר, מביאים יותר</div></div>`;
     $('meters').innerHTML = meter('🌿 מד שמירה על הסביבה', m.env, 'env', envNote)
-        + meter('😊 מד שמחה', m.happy, 'happy', happyNote);
+        + meter('😊 מד שמחה', m.happy, 'happy', happyNote)
+        + extra + income;
 }
 
 // לוח התושבים: כמה יש, מה הם דורשים, ומה כבר נענה
@@ -1356,6 +1423,7 @@ function renderLoves(m) {
     const bubbles = m.loved.map(v => `<div class="bubble">${v.icon} „${v.love}“</div>`).join('');
     const complaints = [];
     if (m.env < 40) complaints.push('אנחנו צריכים עוד עצים ופארקים 🌳');
+    EXTRA_METERS.forEach(d => { if (m.extra[d.id] < 40) complaints.push(d.complaint); });
     if (m.st.inactive > 0) complaints.push('יש בית שמחכה לדרך, כדי שנוכל להגיע אליו 🚧');
     box.innerHTML = title
         + (bubbles ? `<div class="bubbles">${bubbles}</div>` : '<div class="loves-empty">עוד לא בנינו משהו שאוהבים</div>')
@@ -1366,6 +1434,7 @@ function renderAll() {
     renderCatalog();
     renderCounts();
     const m = cityMeters();
+    cityRate = cityCoinsPerMinute(m);
     renderMeters(m);
     renderDemands(m.st);
     renderLoves(m);
@@ -1508,6 +1577,8 @@ const CAR_COLORS = ['#e53935', '#1e88e5', '#fdd835', '#ffffff', '#8e24aa', '#43a
 const MOVERS_OFF = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 // אנשים הולכים על המדרכה, לצד הכביש (האספלט רחב כ-0.42 בחלקה)
 const SIDEWALK_OFFSET = 0.36;
+// גובה כפות הרגליים: מעל הדשא והכביש, כדי שההולכים לא ייבלעו בתוך הקרקע
+const WALK_Y = 0.03;
 const movers = [];
 let roadsNow = [];          // הכבישים שבבעלות הילד, מתעדכנים פעם בחצי שנייה
 let moversClock = 0;
@@ -1573,6 +1644,25 @@ function placeOnRoad(m) {
     m.t = 1; m.mode = 'walk'; m.timer = 0;
 }
 
+// צד ההליכה: הולכים בצד של הכביש שבו אין בניין או עץ צמוד, כדי שלא יסתתרו מאחורי מבנים.
+// אם שני הצדדים חסומים, הולכים באמצע הכביש. מכוניות תמיד באמצע
+function pickSide(m) {
+    const dx = m.toC - m.fromC, dz = m.toR - m.fromR;
+    const blockedOn = (s) => [[m.fromC, m.fromR], [m.toC, m.toR]].some(([c, r]) => blockedCell(c - dz * s, r + dx * s));
+    const freeLeft = !blockedOn(1), freeRight = !blockedOn(-1);
+    if (freeLeft && freeRight) return m.side || 1;
+    if (freeLeft) return 1;
+    if (freeRight) return -1;
+    return 0;
+}
+
+// חסום: בניין, או עץ וקישוט בחלקה. דרך לא חוסמת
+function blockedCell(c, r) {
+    const v = variantAt(c, r);
+    if (v && v.cat !== 'road') return true;
+    return decorAt(c, r).length > 0;
+}
+
 // בוחרים כביש שכן להמשיך אליו. לא חוזרים בחזרה אלא אם אין ברירה
 function chooseNext(m) {
     const options = DIRS.map(d => ({ c: m.c + d.dc, r: m.r + d.dr })).filter(o => roadAt(o.c, o.r));
@@ -1580,6 +1670,7 @@ function chooseNext(m) {
     const fresh = options.filter(o => o.c !== m.prevC || o.r !== m.prevR);
     const next = pickRandom(fresh.length ? fresh : options);
     m.fromC = m.c; m.fromR = m.r; m.toC = next.c; m.toR = next.r; m.t = 0;
+    if (m.kind === 'person') m.side = pickSide(m);
     return true;
 }
 
@@ -1601,10 +1692,10 @@ function poseWalk(p, dt) {
 // הפעולה של אדם שעצר: מנפנף, קופץ או מדבר
 function stepAction(p, dt) {
     p.timer -= dt;
-    p.g.position.set(p.c + p.latX, 0, p.r + p.latZ);
+    p.g.position.set(p.c + p.latX, WALK_Y, p.r + p.latZ);
     poseStill(p);
     if (p.mode === 'wave') p.arms[1].rotation.set(Math.PI * 0.9, 0, Math.sin(p.time * 12) * 0.4);
-    else if (p.mode === 'jump') p.g.position.y = Math.abs(Math.sin(p.time * 9)) * 0.14;
+    else if (p.mode === 'jump') p.g.position.y = WALK_Y + Math.abs(Math.sin(p.time * 9)) * 0.14;
     else p.arms[0].rotation.set(-0.6 + Math.sin(p.time * 5) * 0.25, 0, 0);
     if (p.timer <= 0) {
         p.mode = 'walk';
@@ -1640,7 +1731,7 @@ function stepMover(m, dt) {
         m.latX += (tx - m.latX) * k;
         m.latZ += (tz - m.latZ) * k;
     }
-    m.g.position.set(m.fromC + dx * m.t + m.latX, 0, m.fromR + dz * m.t + m.latZ);
+    m.g.position.set(m.fromC + dx * m.t + m.latX, WALK_Y, m.fromR + dz * m.t + m.latZ);
     if (dx || dz) m.g.rotation.y = Math.atan2(dx, dz);
     if (m.kind === 'person') poseWalk(m, dt);
 }
