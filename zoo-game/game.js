@@ -88,6 +88,35 @@
     onTap: (x, y) => onPen(x + y * COLS),
   });
   const anims = [];
+  const walks = new Map();   // מספר גדר -> מצב ההליכה של החיה שבה
+  const SPEED = { rabbit: 0.38, sheep: 0.16, penguin: 0.16, monkey: 0.32, giraffe: 0.13, elephant: 0.1, lion: 0.2, panda: 0.1 };
+  const WALK_LIM = 0.27;   // עד כמה החיה מתרחקת מהמרכז, כדי לא לעבור דרך הגדר
+
+  function stepWalk(w, node, dt, t) {
+    if (w.wait > 0) {
+      w.wait -= dt;
+      w.moving = false;
+      if (w.wait <= 0) {
+        w.tx = (Math.random() * 2 - 1) * WALK_LIM;
+        w.tz = (Math.random() * 2 - 1) * WALK_LIM;
+        w.moving = true;
+      }
+    } else {
+      const dx = w.tx - w.x, dz = w.tz - w.z, d = Math.hypot(dx, dz);
+      const step = (SPEED[w.id] || 0.15) * dt;
+      if (d <= step) { w.x = w.tx; w.z = w.tz; w.wait = 1 + Math.random() * 3; w.moving = false; }
+      else { w.x += dx / d * step; w.z += dz / d * step; w.rot = -Math.atan2(dz, dx); }
+    }
+    node.position.x = w.x;
+    node.position.z = w.z;
+    // פונים בהדרגה לכיוון ההליכה
+    let diff = w.rot - node.rotation.y;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    node.rotation.y += diff * Math.min(1, dt * 6);
+    // צעדים: קפיצה קטנה ונדנוד בזמן הליכה
+    node.position.y = 0.03 + (w.moving ? Math.abs(Math.sin(t * 9)) * 0.02 : 0);
+    node.rotation.z = w.moving ? Math.sin(t * 9) * 0.06 : 0;
+  }
 
   function rowsNow() { return Math.ceil(L.capacity(state) / COLS); }
   // איזו חיה נמצאת בכל גדר: לפי סדר הרשימה, בלי חורים באמצע
@@ -206,10 +235,19 @@
       return g;
     }
     const an = buildAnimal(id, seed);
-    an.position.set(-0.05, 0.03, -0.05);
-    an.rotation.y = -0.5 + (seed % 3) * 0.4;
     an.scale.setScalar(1.15);
-    g.add(an);
+    // הליכה: הילד רואה את החיה מסתובבת בגדר. המצב נשמר בין ציורים כדי שהחיה לא תקפוץ למקום אחר
+    const walker = new T.Group();
+    walker.add(an);
+    let w = walks.get(seed);
+    if (!w || w.id !== id) {
+      w = { id, x: (S.rnd(seed, 1) - 0.5) * 0.4, z: (S.rnd(seed, 2) - 0.5) * 0.4, tx: 0, tz: 0, wait: S.rnd(seed, 3) * 2, rot: S.rnd(seed, 4) * 6.28, moving: false };
+      walks.set(seed, w);
+    }
+    walker.position.set(w.x, 0.03, w.z);
+    walker.rotation.y = w.rot;
+    g.add(walker);
+    anims.push((t, dt) => stepWalk(w, walker, dt, t));
     // עץ קטן
     S.part(g, S.cyl(0.02, 0.025, 0.16, 6), '#6d4c41', -0.33, 0.1, -0.3);
     S.part(g, S.ico(0.11), '#43a047', -0.33, 0.27, -0.3);
@@ -246,7 +284,7 @@
   }
 
   if (S.ok) {
-    S.onFrame((dt, t) => { if (!S.reduceMotion) anims.forEach((fn) => fn(t)); });
+    S.onFrame((dt, t) => { if (!S.reduceMotion) anims.forEach((fn) => fn(t, dt)); });
     $('centerBtn').onclick = () => S.fit();
     S.fit();
   } else {
