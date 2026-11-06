@@ -1,7 +1,3 @@
-// YouTube API Configuration
-const YOUTUBE_API_KEY = 'AIzaSyDVVJI-VJTfMlR8wLPGmNJhjVRQ5Ax7vkk'; // Public key for search only
-const SEARCH_ENDPOINT = 'https://www.googleapis.com/youtube/v3/search';
-
 let currentVideo = null;
 let favorites = [];
 
@@ -18,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-async function searchSongs() {
+function searchSongs() {
     const query = document.getElementById('songInput').value.trim();
 
     if (!query) {
@@ -30,31 +26,15 @@ async function searchSongs() {
     clearError();
 
     try {
-        // Search for videos
-        const searchResults = await fetch(
-            `${SEARCH_ENDPOINT}?` + new URLSearchParams({
-                q: query,
-                type: 'video',
-                part: 'snippet',
-                maxResults: 8,
-                key: YOUTUBE_API_KEY,
-                relevanceLanguage: 'he',
-                order: 'relevance'
-            })
-        );
+        // Search locally in songs database
+        const results = searchSongsLocal(query);
 
-        if (!searchResults.ok) {
-            throw new Error('שגיאה בחיפוש - בדוק את החיבור לאינטרנט');
-        }
-
-        const data = await searchResults.json();
-
-        if (!data.items || data.items.length === 0) {
+        if (results.length === 0) {
             document.getElementById('noResults').textContent = `לא נמצאו תוצאות עבור "${query}"`;
             document.getElementById('noResults').style.display = 'block';
             document.getElementById('results').innerHTML = '';
         } else {
-            displayResults(data.items);
+            displayResults(results);
             document.getElementById('noResults').style.display = 'none';
         }
     } catch (error) {
@@ -65,25 +45,20 @@ async function searchSongs() {
     }
 }
 
-function displayResults(items) {
+function displayResults(songs) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
-    items.forEach(item => {
-        const videoId = item.id.videoId;
-        const title = item.snippet.title;
-        const channelTitle = item.snippet.channelTitle;
-        const thumbnail = item.snippet.thumbnails.medium.url;
-
+    songs.forEach(song => {
         const resultDiv = document.createElement('div');
         resultDiv.className = 'result-item';
         resultDiv.innerHTML = `
-            <img src="${escapeHtml(thumbnail)}" alt="${escapeHtml(title)}" class="result-thumbnail">
-            <div class="result-title">${escapeHtml(title)}</div>
-            <div class="result-channel">${escapeHtml(channelTitle)}</div>
+            <img src="${escapeHtml(song.thumbnail)}" alt="${escapeHtml(song.title)}" class="result-thumbnail" onerror="this.src='https://via.placeholder.com/320x180?text=No+Image'">
+            <div class="result-title">${escapeHtml(song.title)}</div>
+            <div class="result-channel">${escapeHtml(song.artist)}</div>
         `;
 
-        resultDiv.onclick = () => playVideo(videoId, title);
+        resultDiv.onclick = () => playVideo(song.id, song.title);
         resultsDiv.appendChild(resultDiv);
     });
 }
