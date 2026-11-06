@@ -368,7 +368,13 @@ function buildingActive(c, r) {
     if (cat === 'school') return schoolActiveGids.has(schoolGid.get(key(c, r)));
     if (cat === 'road') return true;
     if (cat === 'park') return parkActive(c, r);
+    if (cat === 'civic' && variantAt(c, r).id === 'library') return roadNextTo(c, r) || schoolActiveNextTo(c, r);
     return roadNextTo(c, r);
+}
+
+// ספרייה שנוגעת בבית ספר פעיל מתחברת אליו, ולא צריכה כביש משלה
+function schoolActiveNextTo(c, r) {
+    return DIRS.some(d => catAt(c + d.dc, r + d.dr) === 'school' && buildingActive(c + d.dc, r + d.dr));
 }
 
 // פארקים שנוגעים זה בזה (גם מסוגים שונים) הם פארק אחד גדול. מספיק שדרך תגיע לאחד מהם, והם כולם פעילים
