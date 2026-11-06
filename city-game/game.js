@@ -79,6 +79,9 @@ const VARIANTS = [
     { id: 'ambulance', cat: 'civic',  name: 'תחנת אמבולנס', icon: '🚑', price: cheap(R.perfect),       eco: 0,    love: 'האמבולנס מגיע מהר כשצריך', desc: 'צוות חירום לכל מקרה' },
     { id: 'post',      cat: 'civic',  name: 'דואר',         icon: '📮', price: cheap(R.level),         eco: 0,    love: 'הדואר מביא לנו מכתבים מכל העולם', desc: 'שולחים ומקבלים מכתבים' },
     { id: 'library',   cat: 'civic',  name: 'ספרייה',       icon: '📚', price: cheap(R.round * 2),     eco: 0,    love: 'בספרייה יש המון ספרים לקרוא', desc: 'ספרים לכל הגילאים' },
+    { id: 'university', cat: 'civic', name: 'אוניברסיטה', icon: '🎓', price: cheap(R.round * 5), eco: 0.5, love: 'באוניברסיטה לומדים דברים חדשים כל יום', desc: 'לימודים לבוגרים' },
+    { id: 'court', cat: 'civic', name: 'בית משפט', icon: '⚖️', price: cheap(R.round * 5), eco: 0, love: 'בבית המשפט שומרים על הצדק בעיר', desc: 'שופטים שמחליטים בעניינים של העיר' },
+    { id: 'prison', cat: 'civic', name: 'כלא', icon: '🔒', price: cheap(R.round * 3), eco: 0, love: 'בכלא שומרים על כולם בטוחים', desc: 'מקום שבו מי שעבר עבירה מרצה עונש' },
     { id: 'park',       cat: 'park',   name: 'פארק',        icon: '🏞️', price: cheap(R.level),         eco: 2,    love: 'הפארק הוא המקום שאנחנו הכי אוהבים', desc: 'מקום לטיולים ולשחק' },
     { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: cheap(R.create),        eco: 1.5,  love: 'הגינה הקטנה מלאה פרחים וריח טוב', desc: 'פרחים וספסל' },
     { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: cheap(R.level),         eco: 1,    love: 'בגן השעשועים הילדים משחקים כל היום', desc: 'מגלשה ונדנדה' },
@@ -796,6 +799,9 @@ const CIVIC_STYLE = {
     ambulance: { w: 0.7,  h: 0.46, body: '#ffffff', roof: '#90a4ae' },
     post:      { w: 0.7,  h: 0.42, body: '#ffd54f', roof: '#c62828' },
     library:   { w: 0.72, h: 0.44, body: '#d7ccc8', roof: '#6d4c41' },
+    university: { w: 0.8, h: 0.55, body: '#8d6e63', roof: '#4e342e' },
+    court:     { w: 0.76, h: 0.5, body: '#f5f5f5', roof: '#6d4c41' },
+    prison:    { w: 0.74, h: 0.42, body: '#78909c', roof: '#37474f' },
 };
 function buildCivic(group, c, r, v) {
     const st = CIVIC_STYLE[v.id];
@@ -805,7 +811,7 @@ function buildCivic(group, c, r, v) {
     const front = st.w / 2 + 0.005;
     let top = h + 0.04;
     part(b, boxG(st.w, h, st.w), st.body, 0, h / 2, 0);
-    if (v.id === 'library') {
+    if (v.id === 'library' || v.id === 'court') {
         // גג משולש (פירמידה) ושני עמודים בחזית
         part(b, coneG(st.w * 0.72, 0.2, 4), st.roof, 0, h + 0.1, 0).rotation.y = Math.PI / 4;
         [-0.26, 0.26].forEach(x => part(b, cylG(0.03, 0.03, h * 0.9, 8), '#ffffff', x, h * 0.45, front));
@@ -833,8 +839,20 @@ function buildCivic(group, c, r, v) {
         // שלט דואר וקופסת דואר אדומה בחזית
         part(b, boxG(0.3, 0.07, 0.02), '#1565c0', 0, h * 0.72, front);
         part(b, boxG(0.12, 0.16, 0.12), '#e53935', 0.27, 0.08, front + 0.05);
+    } else if (v.id === 'prison') {
+        // חלונות קטנים עם סורגים כהים בחזית
+        [-0.22, 0, 0.22].forEach(x => {
+            part(b, boxG(0.1, 0.08, 0.02), '#cfd8dc', x, h * 0.6, front);
+            part(b, boxG(0.02, 0.08, 0.03), '#263238', x, h * 0.6, front + 0.01);
+        });
+    } else if (v.id === 'university') {
+        // חלונות גדולים ודגל כחול על הגג
+        [-0.22, 0, 0.22].forEach(x => part(b, boxG(0.1, 0.12, 0.02), '#e3f2fd', x, h * 0.55, front));
+        part(b, cylG(0.01, 0.01, 0.3, 5), '#eeeeee', 0, h + 0.17, 0);
+        part(b, boxG(0.12, 0.07, 0.01), '#1e88e5', 0.06, h + 0.25, 0);
+        top = h + 0.32;
     } else {
-        // ספרייה: שלט קטן מעל הדלת
+        // ספרייה ובית משפט: שלט קטן מעל הדלת
         part(b, boxG(0.3, 0.06, 0.02), '#8d6e63', 0, h * 0.72, front);
     }
 
