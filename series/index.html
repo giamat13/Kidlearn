@@ -78,23 +78,110 @@
         // מפתח בלי / ו-. כדי שאפשר יהיה לשמור אותו כמסמך בענן. המפתח הישן נקרא כגיבוי
         const storeKey = 'kidlearn-series-' + configUrl.replace(/[^\w-]/g, '_');
         const oldStoreKey = 'kidlearn-series-' + configUrl;
-        // כסף Kidlearn: סיום פרק עד הסוף = 30 מטבעות, פעם אחת לכל פרק. הרשימה נשמרת גם בענן
-        const EPISODE_REWARD = 30;
-        const REWARD_KEY = 'kidlearn-series-rewarded';
-        try { if (window.KidLearn) { KidLearn.init(); KidLearn.watchKeys([storeKey, REWARD_KEY]); } } catch (e) { /* בלי ענן הסדרה ממשיכה במכשיר */ }
+        // כסף Kidlearn: 2 מטבעות על כל דקה שנצפתה בפועל, תוך כדי הצפייה (דקה שדילגו עליה לא נספרת).
+        // בונוס 10 בסוף הפרק אם סך הדילוגים עד 5 דקות (או אם אי אפשר למדוד). בלי משך לפרק: 45 בסוף.
+        // כל דקה משולמת פעם אחת לכל פרק, והבונוס פעם אחת. פרק ששולם בגרסה הישנה (30 מטבעות) לא משלם שוב.
+        const COINS_PER_MINUTE = 2;
+        const END_BONUS = 10;
+        const MAX_SKIP_SECONDS = 300;
+        const NO_LENGTH_REWARD = 45;
+        const REWARD_KEY = 'kidlearn-series-rewarded';   // הגרסה הישנה: רשימת פרקים ששולמו
+        const PROGRESS_KEY = 'kidlearn-series-progress'; // דקות שנצפו, דילוגים ובונוסים לכל פרק
+        try { if (window.KidLearn) { KidLearn.init(); KidLearn.watchKeys([storeKey, REWARD_KEY, PROGRESS_KEY]); } } catch (e) { /* בלי ענן הסדרה ממשיכה במכשיר */ }
         let videos = [], index = 0, player = null;
         const paidEpisodes = new Set(readPaidEpisodes());
+        const progress = readProgress();
 
         function readPaidEpisodes() {
             try { const a = JSON.parse(localStorage.getItem(REWARD_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
         }
 
-        function rewardFinishedEpisode(id) {
-            if (!window.KidLearnWallet || !id || paidEpisodes.has(id)) return;
-            paidEpisodes.add(id); // נרשם גם בזיכרון, כדי שלא ישולם פעמיים גם אם השמירה נכשלה
-            try { localStorage.setItem(REWARD_KEY, JSON.stringify([...paidEpisodes])); } catch (e) {}
-            if (window.KidLearn) KidLearn.backupKey(REWARD_KEY);
-            KidLearnWallet.earn(EPISODE_REWARD, { reason: 'סיימתם פרק' });
+        function readProgress() {
+            try { const o = JSON.parse(localStorage.getItem(PROGRESS_KEY)); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; }
+        }
+
+        function saveProgress(toCloud) {
+            try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch (e) {}
+            if (toCloud && window.KidLearn) KidLearn.backupKey(PROGRESS_KEY);
+        }
+
+        function award(amount, reason, silent) {
+            if (window.KidLearnWallet) KidLearnWallet.earn(amount, { reason, silent });
+        }
+
+        function currentId() { return videos[index] ? videos[index].id : ''; }
+
+        function episodeProgress(id) {
+            if (!progress[id]) progress[id] = { watched: {}, paid: [], skipped: 0, done: false };
+            return progress[id];
+        }
+
+        function episodeLength() {
+            const fromFile = videos[index] && videos[index].duration;
+            if (fromFile) return fromFile;
+            try { const d = player && player.getDuration ? player.getDuration() : 0; return d > 0 ? d : 0; } catch (e) { return 0; }
+        }
+
+        // מעקב צפייה: רץ רק כשהסרטון מנגן. הפרש בין זמן הסרטון לזמן האמיתי מזהה דילוג
+        let lastTime = null, lastWall = 0, ticker = null;
+        function trackerTick() {
+            const id = currentId();
+            if (!player || !id || paidEpisodes.has(id)) return;
+            const now = player.getCurrentTime();
+            const wall = Date.now();
+            if (lastTime === null) { lastTime = now; lastWall = wall; return; }
+            const moved = now - lastTime; // שניות של סרטון מאז הבדיקה הקודמת
+            const expected = (wall - lastWall) / 1000 * (player.getPlaybackRate ? player.getPlaybackRate() : 1);
+            lastTime = now; lastWall = wall;
+            const p = episodeProgress(id);
+            if (Math.abs(moved - expected) > 1.5) { // קפיצה: דילוג קדימה או אחורה
+                p.skipped += Math.abs(moved - expected);
+                saveProgress(false);
+                return;
+            }
+            if (moved <= 0) return;
+            const bucket = Math.floor((now - moved) / 60); // הדקה שבה נצפה החלק הזה
+            p.watched[bucket] = (p.watched[bucket] || 0) + moved;
+            const dur = episodeLength();
+            if (p.watched[bucket] >= 59.5 && !p.paid.includes(bucket) && dur && (bucket + 1) * 60 <= dur) {
+                p.paid.push(bucket);
+                award(COINS_PER_MINUTE, 'דקה נצפתה', true);
+                saveProgress(true);
+            } else {
+                saveProgress(false);
+            }
+        }
+
+        function startTracking() {
+            if (ticker) return;
+            lastTime = null;
+            ticker = setInterval(trackerTick, 500);
+        }
+
+        function stopTracking() {
+            clearInterval(ticker);
+            ticker = null;
+            lastTime = null;
+        }
+
+        function finishEpisode() {
+            const id = currentId();
+            if (!id || paidEpisodes.has(id)) return;
+            const p = episodeProgress(id);
+            if (p.done) return;
+            p.done = true;
+            if (!episodeLength()) award(NO_LENGTH_REWARD, 'סיימתם פרק');
+            else if (p.skipped <= MAX_SKIP_SECONDS) award(END_BONUS, 'סיימתם פרק');
+            p.skipped = 0;
+            saveProgress(true);
+        }
+
+        function onPlayerState(state) {
+            if (state === YT.PlayerState.PLAYING) startTracking();
+            else stopTracking();
+            if (state !== YT.PlayerState.ENDED) return;
+            finishEpisode();
+            if (index < videos.length - 1) play(index + 1, true);
         }
 
         function goBack() {
@@ -171,6 +258,7 @@
         }
 
         function play(i, autoplay) {
+            stopTracking();
             index = Math.max(0, Math.min(videos.length - 1, i));
             saveIndex();
             render();
@@ -185,11 +273,7 @@
                 videoId: videos[index].id,
                 host: 'https://www.youtube-nocookie.com',
                 playerVars: { rel: 0, playsinline: 1, hl: 'he' },
-                events: { onStateChange: e => {
-                    if (e.data !== YT.PlayerState.ENDED) return;
-                    rewardFinishedEpisode(videos[index].id);
-                    if (index < videos.length - 1) play(index + 1, true);
-                } }
+                events: { onStateChange: e => onPlayerState(e.data) }
             });
         }
 
