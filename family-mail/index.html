@@ -358,10 +358,12 @@ document.getElementById("send").onclick = async () => {
   const sendBtn = document.getElementById("send");
   sendBtn.disabled = true;
   status.textContent = "שולח...";
+  const stats = letterStats();
   try {
     await KidLearn.sendFamilyMessage(contactId, subject, body, selectedBg, selectedImage);
+    rewardLetter(stats);
     status.textContent = "נשלח! 🎉";
-    window.KidLearnWallet && KidLearnWallet.earn(5,{reason:'מכתב נשלח'});
+    resetWriting();
     document.getElementById("body").value = "";
     document.getElementById("subject").value = "";
     selectedBg = null;
@@ -375,6 +377,76 @@ document.getElementById("send").onclick = async () => {
   }
   sendBtn.disabled = false;
 };
+
+// ---- Writing bonus: counts words typed on the keyboard in the letter body ----
+// Words the microphone put in are subtracted. Pasting is blocked. Emojis have no
+// letters or digits, so they never count as words.
+const WORD_RE = /[\p{L}\p{N}]+/gu;
+const BASE_REWARD = 10;          // coins per sent letter
+const LETTER_REWARD_FACTOR = 2;  // everything a letter earns is doubled
+// Per grade: minWords = typed words needed for the keyboard bonus and speed bonus.
+// start = words per minute where the speed bonus is +5, full = where it is +10.
+const GRADE_WRITING = {
+  preschool:    { minWords: 3,  start: 1,  full: 3 },
+  kindergarten: { minWords: 3,  start: 1,  full: 5 },
+  first:        { minWords: 3,  start: 1,  full: 8 },
+  second:       { minWords: 5,  start: 3,  full: 10 },
+  third:        { minWords: 10, start: 5,  full: 13 },
+  fourth:       { minWords: 10, start: 7,  full: 16 },
+  fifth:        { minWords: 10, start: 9,  full: 20 },
+  sixth:        { minWords: 10, start: 11, full: 22 },
+  seventh:      { minWords: 10, start: 13, full: 25 },
+  eighth:       { minWords: 10, start: 15, full: 28 },
+  ninth:        { minWords: 10, start: 17, full: 30 },
+  tenth:        { minWords: 10, start: 19, full: 32 },
+  eleventh:     { minWords: 10, start: 21, full: 34 },
+  twelfth:      { minWords: 10, start: 23, full: 36 },
+};
+
+let micWordCount = 0; // words the microphone put into the body
+let firstKeyAt = 0;   // time of the first keyboard input in the body
+let lastKeyAt = 0;    // time of the latest keyboard input in the body
+const bodyField = document.getElementById("body");
+
+bodyField.addEventListener("paste", (e) => e.preventDefault());
+bodyField.addEventListener("input", () => {
+  // The microphone sets .value in code, which does not fire "input", so only typing gets here.
+  const now = Date.now();
+  if (!firstKeyAt) firstKeyAt = now;
+  lastKeyAt = now;
+});
+
+function countWords(text) {
+  return (String(text).match(WORD_RE) || []).length;
+}
+
+function resetWriting() {
+  micWordCount = 0;
+  firstKeyAt = 0;
+  lastKeyAt = 0;
+}
+
+function letterStats() {
+  const total = countWords(bodyField.value);
+  const typed = Math.max(0, total - micWordCount);
+  const minutes = (lastKeyAt - firstKeyAt) / 60000;
+  const wpm = typed > 0 && minutes > 0 ? typed / minutes : 0;
+  return { total, typed, wpm };
+}
+
+function coinsForLetter(stats, grade) {
+  const levels = GRADE_WRITING[grade] || GRADE_WRITING.third;
+  if (stats.typed < levels.minWords) return BASE_REWARD * LETTER_REWARD_FACTOR;
+  const multiplier = 1 + 4 * (stats.typed / stats.total); // x1 all spoken, x5 all typed
+  const speedBonus = stats.wpm < levels.start ? 0 : stats.wpm < levels.full ? 5 : 10;
+  return Math.round((BASE_REWARD * multiplier + speedBonus) * LETTER_REWARD_FACTOR);
+}
+
+// Gives coins for a sent letter.
+function rewardLetter(stats) {
+  const grade = (KidLearn.currentUser() || {}).grade;
+  window.KidLearnWallet && KidLearnWallet.earn(coinsForLetter(stats, grade), { reason: "מכתב נשלח" });
+}
 
 const STICKERS = ["☀️", "🌈", "❤️", "🐻", "🎈", "⭐", "🍀", "🦄", "🐶", "🌸",
   "🐱", "🐰", "🦋", "🌻", "🍎", "🍭", "🎨", "🎵", "😊", "😍", "🥳", "👍", "💐", "🍕",
@@ -725,6 +797,7 @@ function attachMic(fieldId, micBtnId, statusId, idleLabel) {
     for (let i = e.resultIndex; i < e.results.length; i++) {
       addition += e.results[i][0].transcript;
     }
+    if (field.id === "body") micWordCount += countWords(addition);
     field.value = (field.value + " " + addition).trim();
   };
   recognition.onerror = () => { micStatus.textContent = "לא הצלחתי לשמוע, נסו שוב"; };
