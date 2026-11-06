@@ -86,7 +86,7 @@ const VARIANTS = [
 ];
 const VARIANT_BY_ID = Object.fromEntries(VARIANTS.map(v => [v.id, v]));
 const START_COUNT = START_COLS * START_ROWS;
-const LAND_PRICE = cheap(R.create);   // מחיר קבוע לכל שטח נוסף (לא עולה ככל שהעיר גדלה)
+const LAND_PRICE = cheap(R.round * 2);   // מחיר קבוע לכל שטח נוסף (לא עולה ככל שהעיר גדלה)
 
 // מה התושבים דורשים, לפי מספר התושבים. כל דרישה היא קטגוריה שצריך מבנה פעיל ממנה
 const DEMANDS = [
@@ -118,6 +118,9 @@ const BUSH = ['#558b2f', '#689f38'];
 const $ = (id) => document.getElementById(id);
 let selected = 'house';
 let selectedCat = 'house';
+// מצב מחיקה: כשהוא דולק, לחיצה על חלקה מוחקת את מה שיש בה (ולא בונה)
+let deleteMode = false;
+const HINT_BASE = $('hint').textContent;
 
 // --- מצב העיר ---
 // owned:     Set של מפתחות "c,r" של החלקות שבבעלות הילד
@@ -1140,6 +1143,7 @@ function renderCatalog() {
             btn.innerHTML = `<span class="icon">${v.icon}</span><span class="name">${v.name}</span><span class="desc">${v.desc}</span>${pop}${cap}${eco}<span class="price">${v.price} 🪙</span>`;
             btn.onclick = () => {
                 selected = v.id;
+                setDeleteMode(false);
                 renderCatalog();
                 $('hint').textContent = isDecorVariant(v)
                     ? `נבחר: ${v.name}. לחצו על חלקה ריקה או על חלקה עם עצים כדי להוסיף (עד ${DECOR_MAX} בחלקה).`
@@ -1238,6 +1242,7 @@ function commit() {
 
 // לחיצה על חלקה: שטח חדש אם היא למכירה. אחרת: מבנה גדול נמחק, עץ או קישוט מתווסף או מוסר, ובנייה רגילה
 function onCell(c, r) {
+    if (deleteMode) return deleteAt(c, r);
     if (!isOwned(c, r)) return buyLand(c, r);
     if (buildingAt(c, r)) {
         if (isEntrance(c, r) && roadAt(c, r)) return feedback('הכביש הזה מחבר את העיר לעולם החיצון, לכן אי אפשר להסיר אותו');
@@ -1320,6 +1325,37 @@ function removeDecorAt(c, r) {
     feedback(`הורדתם ${v.name} מהחלקה (נשארו ${list.length - 1} מתוך ${DECOR_MAX}). הוחזרו ${refund} 🪙`);
 }
 
+// מחיקה: מוחקים את המבנה, או את כל העצים והקישוטים בחלקה. מחזירים חצי מחיר לכל דבר (כמו בהסרה רגילה)
+function deleteAt(c, r) {
+    if (!isOwned(c, r)) return feedback('החלקה הזו עוד לא שלכם, אז אין מה למחוק בה');
+    if (buildingAt(c, r)) {
+        if (isEntrance(c, r) && roadAt(c, r)) return feedback('הכביש הזה מחבר את העיר לעולם החיצון, לכן אי אפשר למחוק אותו');
+        return removeAt(c, r);
+    }
+    if (decorAt(c, r).length) return removeAllDecorAt(c, r);
+    feedback('אין מה למחוק בחלקה הזו');
+}
+
+function removeAllDecorAt(c, r) {
+    const list = decorAt(c, r);
+    const refund = list.reduce((sum, id) => sum + Math.floor(VARIANT_BY_ID[id].price / 2), 0);
+    decor.delete(key(c, r));
+    commit();
+    if (W && refund > 0) W.earn(refund, { reason: 'החזר עצים וקישוטים' });
+    feedback(`מחקתם ${list.length} פריטים מהחלקה. הוחזרו ${refund} 🪙`);
+}
+
+// כפתור המחיקה: דולק או כבוי. כשהוא דולק, ההינט מסביר מה לעשות
+function setDeleteMode(on) {
+    deleteMode = on;
+    const btn = $('deleteBtn');
+    btn.setAttribute('aria-pressed', String(on));
+    btn.classList.toggle('on', on);
+    $('hint').textContent = on
+        ? 'מצב מחיקה: לחצו על חלקה כדי למחוק את כל מה שיש בה. מחזירים חצי מהמחיר. לחצו שוב על 🗑️ מחיקה כדי לחזור לבנייה.'
+        : HINT_BASE;
+}
+
 // --- התחלה ---
 loadState();
 if (!init3D()) {
@@ -1334,6 +1370,7 @@ if (W) {
     $('balance').textContent = 0;
 }
 $('centerBtn').onclick = () => fitCamera();
+$('deleteBtn').onclick = () => setDeleteMode(!deleteMode);
 if (window.KidLearn && KidLearn.onAuthChange) {
     KidLearn.onAuthChange((profile) => { if (profile) cloudSync(); });
 }

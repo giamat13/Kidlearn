@@ -101,6 +101,21 @@ h1 { font-size: 2rem; margin-top: 44px; }
 #centerBtn:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { #centerBtn, #centerBtn:hover, #centerBtn:active { transition: none; transform: none; } }
 
+/* כפתור "מחיקה" צף בפינה התחתונה מימין. דולק באדום כשמצב המחיקה פעיל */
+#deleteBtn {
+  position: absolute; bottom: 12px; inset-inline-end: 12px;
+  font: inherit; font-weight: 700; color: #2d2d4a; background: #fff;
+  border: 3px solid #e53935; border-radius: 999px;
+  padding: 6px 14px; min-height: 44px; cursor: pointer;
+  box-shadow: 0 3px 0 #e53935;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+#deleteBtn:hover { transform: translateY(-1px); }
+#deleteBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #e53935; }
+#deleteBtn:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
+#deleteBtn.on { background: #e53935; color: #fff; }
+@media (prefers-reduced-motion: reduce) { #deleteBtn, #deleteBtn:hover, #deleteBtn:active { transition: none; transform: none; } }
+
 /* --- תושבים --- */
 .demands {
   text-align: right; background: #fff; border-radius: 16px; padding: 12px 16px;
