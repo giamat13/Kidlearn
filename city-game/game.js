@@ -1750,6 +1750,7 @@ function place(c, r) {
 
 function removeAt(c, r) {
     const v = variantAt(c, r);
+    if (!confirm(`למחוק את ${v.name}? יוחזר חצי מהמחיר.`)) return;
     const refund = Math.floor(v.price / 2);
     buildings.delete(key(c, r));
     commit();
@@ -1762,6 +1763,7 @@ function removeDecorAt(c, r) {
     const list = decorAt(c, r);
     const id = list[list.length - 1];
     const v = VARIANT_BY_ID[id];
+    if (!confirm(`למחוק את ${v.name}? יוחזר חצי מהמחיר.`)) return;
     const refund = Math.floor(v.price / 2);
     if (list.length > 1) decor.set(key(c, r), list.slice(0, -1));
     else decor.delete(key(c, r));
@@ -1783,6 +1785,7 @@ function deleteAt(c, r) {
 
 function removeAllDecorAt(c, r) {
     const list = decorAt(c, r);
+    if (!confirm(`למחוק ${list.length} פריטים מהחלקה? יוחזר חצי מהמחיר.`)) return;
     const refund = list.reduce((sum, id) => sum + Math.floor(VARIANT_BY_ID[id].price / 2), 0);
     decor.delete(key(c, r));
     commit();

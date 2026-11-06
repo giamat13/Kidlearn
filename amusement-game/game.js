@@ -280,6 +280,8 @@
 
   function onCell(x, y) {
     if (state.grid[L.cellKey(x, y)]) {
+      const cur = L.RIDE_BY_ID[state.grid[L.cellKey(x, y)]];
+      if (!confirm(`למחוק את ${cur.name}? יוחזר חצי מהמחיר.`)) return;
       const r = L.remove(state, x, y);
       if (W) W.earn(r.refund, { reason: 'החזר מתקן', silent: true });
       persist();

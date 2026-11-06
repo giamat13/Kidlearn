@@ -315,6 +315,7 @@
     }
     if (hit) {
       const a = L.ANIMAL_BY_ID[hit];
+      if (!confirm(`למכור את ${a.name}? יוחזר חצי מהמחיר.`)) return;
       const r = L.sell(state, hit);
       if (!r.ok) return say(r.msg);
       if (W) W.earn(r.refund, { reason: `מכרתם ${a.name}`, silent: true });
