@@ -2,10 +2,13 @@
 // כללים:
 //   • דרך מתחברת אוטומטית לכל דרך שלידה (כביש, דרך עפר, שביל אבן).
 //   • מבנה פעיל רק אם יש לידו דרך. מבנה בלי דרך לא עושה כלום (מסומן באדום).
+//   • עצים וקישוטים קטנים תופסים רק חלק מחלקה: עד 7 מהם בחלקה אחת.
 //   • עד 5 בתי ספר שנמצאים זה ליד זה מתאחדים לבית ספר גדול אחד.
-//   • יש קטלוג: כל קטגוריה (בית, בית ספר, חנות...) מכילה סוגים, לכל סוג מחיר, מראה ותושבים.
+//   • יש קטלוג: כל קטגוריה (בית, בית ספר, חנות...) מכילה סוגים, לכל סוג מחיר, מראה, תושבים והשפעה על הסביבה.
 //   • ככל שיש יותר תושבים, התושבים דורשים מבנים מכל קטגוריה. כל דרישה שמתמלאת בפעם הראשונה מזכה בכסף.
-//   • העיר מתרחבת: קונים שטח חדש ליד השטח הקיים.
+//   • שני מדדים: שמירה על הסביבה (עצים, פארקים ופחים מעלים; כבישי אספלט ובנייה גדולה מורידים)
+//     ושמחה (מושפעת מהדרישות, מהסביבה ומהבנייה). התושבים כותבים מה הם אוהבים בעיר.
+//   • העיר מתרחבת: קונים שטח חדש ליד השטח הקיים. מחיר השטח קבוע, והמצלמה לא מתרחקת ככל שהעיר גדלה.
 // המחירים והפרסים נגזרים מ-REWARDS כדי להישאר בפרופורציה לשאר המשחקים.
 
 const START_COLS = 5;      // השטח ההתחלתי: 5 על 4 חלקות
@@ -13,6 +16,8 @@ const START_ROWS = 4;
 const STORE_KEY = 'kidlearn-city-v2';
 const OLD_STORE_KEY = 'kidlearn-city';   // הגרסה הקודמת (רשת קבועה 5×4), לצורך מעבר חלק
 const MERGE_MAX = 5;                     // מקסימום בתי ספר שמתאחדים לאחד
+const DECOR_MAX = 7;                     // מקסימום עצים וקישוטים בחלקה אחת
+const GOOD_LEVEL = 70;                   // מעל הערך הזה במדד מקבלים פרס (פעם אחת)
 // שער הכניסה לעיר: כביש שמגיע מבחוץ. תמיד קיים ואי אפשר להסיר אותו.
 // הוא תמיד על החלקה המערבית ביותר בעיר. כשקונים שטח שהוא מערב לכל העיר, השער זז לשטח החדש (נשמר בשמירה)
 let entranceC = 0;
@@ -38,49 +43,50 @@ const CATS = [
 ];
 
 // --- סוגים: לכל סוג מחיר, תיאור, ותושבים (אם הוא מגורים) ---
+// eco: השפעה על הסביבה (חיובי = עוזר, שלילי = פוגע). love: מה התושבים אוהבים בסוג הזה
+// size: גודל של עץ או קישוט (הם קטנים מחלקה, ולכן יש להם גודל משלהם)
 // id של סוג הוא גם מזהה השמור ב-localStorage, לכן אל תשנו אותם
 const VARIANTS = [
-    { id: 'road',       cat: 'road',   name: 'כביש אספלט',  icon: '🛣️', price: cheap(R.create),        desc: 'כביש רחב עם קווים לבנים' },
-    { id: 'dirt',       cat: 'road',   name: 'דרך עפר',     icon: '🟫', price: cheap(R.answer),        desc: 'דרך פשוטה וזולה' },
-    { id: 'stone',      cat: 'road',   name: 'שביל אבן',    icon: '🪨', price: cheap(R.answer * 2),    desc: 'שביל מרוצף בחלוקי נחל' },
+    { id: 'road',       cat: 'road',   name: 'כביש אספלט',  icon: '🛣️', price: cheap(R.create),        eco: -1,   love: 'הדרכים מחברות בין כל הבתים', desc: 'כביש רחב עם קווים לבנים' },
+    { id: 'dirt',       cat: 'road',   name: 'דרך עפר',     icon: '🟫', price: cheap(R.answer),        eco: 0,    love: 'אנחנו אוהבים את דרך העפר הפשוטה שלנו', desc: 'דרך פשוטה וזולה' },
+    { id: 'stone',      cat: 'road',   name: 'שביל אבן',    icon: '🪨', price: cheap(R.answer * 2),    eco: 0,    love: 'השביל המרוצף בחלוקי נחל נראה מדהים', desc: 'שביל מרוצף בחלוקי נחל' },
 
-    { id: 'tree',       cat: 'tree',   name: 'עץ',          icon: '🌳', price: cheap(R.create),        desc: 'עץ יפה שנותן צל' },
-    { id: 'palm',       cat: 'tree',   name: 'דקל',         icon: '🌴', price: cheap(R.create),        desc: 'דקל גבוה לאזור חם' },
-    { id: 'blossom',    cat: 'tree',   name: 'עץ פריחה',    icon: '🌸', price: cheap(R.level),         desc: 'פורח בוורוד באביב' },
+    { id: 'tree',       cat: 'tree',   name: 'עץ',          icon: '🌳', price: cheap(R.create),        eco: 0.5,  size: 0.5,  love: 'אנחנו אוהבים את העצים שנותנים צל', desc: 'עץ יפה שנותן צל' },
+    { id: 'palm',       cat: 'tree',   name: 'דקל',         icon: '🌴', price: cheap(R.create),        eco: 0.5,  size: 0.55, love: 'הדקלים מזכירים לנו חופשה', desc: 'דקל גבוה לאזור חם' },
+    { id: 'blossom',    cat: 'tree',   name: 'עץ פריחה',    icon: '🌸', price: cheap(R.level),         eco: 0.6,  size: 0.5,  love: 'עץ הפריחה הוורוד הוא היופי של האביב', desc: 'פורח בוורוד באביב' },
 
-    { id: 'house',      cat: 'house',  name: 'בית',         icon: '🏠', price: cheap(R.level),         pop: 2, desc: 'בית למשפחה קטנה' },
-    { id: 'cabin',      cat: 'house',  name: 'בקתת עץ',     icon: '🛖', price: cheap(R.create),        pop: 1, desc: 'בקתה קטנה לאדם אחד' },
-    { id: 'villa',      cat: 'house',  name: 'וילה',        icon: '🏡', price: cheap(R.perfect),       pop: 4, desc: 'בית גדול למשפחה גדולה' },
+    { id: 'house',      cat: 'house',  name: 'בית',         icon: '🏠', price: cheap(R.level),         eco: 0,    pop: 2, love: 'הבית שלנו חם ונעים', desc: 'בית למשפחה קטנה' },
+    { id: 'cabin',      cat: 'house',  name: 'בקתת עץ',     icon: '🛖', price: cheap(R.create),        eco: 0,    pop: 1, love: 'הבקתה הקטנה נראית כמו חלום', desc: 'בקתה קטנה לאדם אחד' },
+    { id: 'villa',      cat: 'house',  name: 'וילה',        icon: '🏡', price: cheap(R.perfect),       eco: 0,    pop: 4, love: 'הווילה הגדולה מרשימה מאוד', desc: 'בית גדול למשפחה גדולה' },
 
-    { id: 'apt',        cat: 'apt',    name: 'בניין דירות', icon: '🏢', price: cheap(R.perfect),       pop: 6,  desc: 'הרבה משפחות בבניין אחד' },
-    { id: 'tower',      cat: 'apt',    name: 'מגדל דירות',  icon: '🏙️', price: cheap(R.round * 5),     pop: 12, desc: 'מגדל גבוה לעיר גדולה' },
+    { id: 'apt',        cat: 'apt',    name: 'בניין דירות', icon: '🏢', price: cheap(R.perfect),       eco: -0.5, pop: 6,  love: 'בבניין הדירות יש הרבה שכנים טובים', desc: 'הרבה משפחות בבניין אחד' },
+    { id: 'tower',      cat: 'apt',    name: 'מגדל דירות',  icon: '🏙️', price: cheap(R.round * 5),     eco: -1,   pop: 12, love: 'מהמגדל הגבוה יש נוף יפה לכולם', desc: 'מגדל גבוה לעיר גדולה' },
 
-    { id: 'school',     cat: 'school', name: 'בית ספר יסודי', icon: '🏫', price: cheap(R.perfect),     desc: 'לכיתות א׳ עד ו׳' },
-    { id: 'kinder',     cat: 'school', name: 'גן ילדים',    icon: '🧸', price: cheap(R.level),         desc: 'לגיל הרך' },
-    { id: 'highschool', cat: 'school', name: 'תיכון',       icon: '🎓', price: cheap(R.round * 5),     desc: 'לתלמידים בוגרים' },
+    { id: 'school',     cat: 'school', name: 'בית ספר יסודי', icon: '🏫', price: cheap(R.perfect),     eco: 0,    love: 'בית הספר עוזר לילדים ללמוד ולגדול', desc: 'לכיתות א׳ עד ו׳' },
+    { id: 'kinder',     cat: 'school', name: 'גן ילדים',    icon: '🧸', price: cheap(R.level),         eco: 0,    love: 'הגן הקטן מלא בצחוק של ילדים', desc: 'לגיל הרך' },
+    { id: 'highschool', cat: 'school', name: 'תיכון',       icon: '🎓', price: cheap(R.round * 5),     eco: 0,    love: 'התיכון מכין את הבוגרים של העיר', desc: 'לתלמידים בוגרים' },
 
-    { id: 'shop',       cat: 'shop',   name: 'חנות',        icon: '🏪', price: cheap(R.level),         desc: 'חנות שכונתית' },
-    { id: 'mini',       cat: 'shop',   name: 'מכולת',       icon: '🧺', price: cheap(R.create),        desc: 'מכולת קטנה ליד הבית' },
-    { id: 'mall',       cat: 'shop',   name: 'קניון',       icon: '🛍️', price: cheap(R.round * 5),     desc: 'הרבה חנויות במקום אחד' },
+    { id: 'shop',       cat: 'shop',   name: 'חנות',        icon: '🏪', price: cheap(R.level),         eco: -0.5, love: 'אנחנו אוהבים ללכת לחנות השכונתית', desc: 'חנות שכונתית' },
+    { id: 'mini',       cat: 'shop',   name: 'מכולת',       icon: '🧺', price: cheap(R.create),        eco: 0,    love: 'המכולת הקטנה ליד הבית נוחה מאוד', desc: 'מכולת קטנה ליד הבית' },
+    { id: 'mall',       cat: 'shop',   name: 'קניון',       icon: '🛍️', price: cheap(R.round * 5),     eco: -1.5, love: 'בקניון יש הרבה דברים לקנות', desc: 'הרבה חנויות במקום אחד' },
 
-    { id: 'clinic',     cat: 'clinic', name: 'מרפאה',       icon: '🏥', price: cheap(R.perfect),       desc: 'טיפול בסיסי לתושבים' },
-    { id: 'hospital',   cat: 'clinic', name: 'בית חולים',   icon: '🏨', price: cheap(R.round * 5),     desc: 'טיפול מורכב ודחוף' },
+    { id: 'clinic',     cat: 'clinic', name: 'מרפאה',       icon: '🏥', price: cheap(R.perfect),       eco: 0,    love: 'טוב לדעת שיש מרפאה קרובה', desc: 'טיפול בסיסי לתושבים' },
+    { id: 'hospital',   cat: 'clinic', name: 'בית חולים',   icon: '🏨', price: cheap(R.round * 5),     eco: -0.5, love: 'בית החולים שומר על כולנו', desc: 'טיפול מורכב ודחוף' },
 
-    { id: 'park',       cat: 'park',   name: 'פארק',        icon: '🏞️', price: cheap(R.level),         desc: 'מקום לטיולים ולשחק' },
-    { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: cheap(R.create),        desc: 'פרחים וספסל' },
-    { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: cheap(R.level),         desc: 'מגלשה ונדנדה' },
+    { id: 'park',       cat: 'park',   name: 'פארק',        icon: '🏞️', price: cheap(R.level),         eco: 2,    love: 'הפארק הוא המקום שאנחנו הכי אוהבים', desc: 'מקום לטיולים ולשחק' },
+    { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: cheap(R.create),        eco: 1.5,  love: 'הגינה הקטנה מלאה פרחים וריח טוב', desc: 'פרחים וספסל' },
+    { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: cheap(R.level),         eco: 1,    love: 'בגן השעשועים הילדים משחקים כל היום', desc: 'מגלשה ונדנדה' },
 
-    { id: 'bench',      cat: 'props',  name: 'ספסל',        icon: '🪑', price: cheap(R.answer),        desc: 'מקום לשבת ולנוח' },
-    { id: 'fountain',   cat: 'props',  name: 'מזרקה',       icon: '⛲', price: cheap(R.create),        desc: 'מים שזורמים במרכז' },
-    { id: 'tap',        cat: 'props',  name: 'ברזייה',      icon: '🚰', price: cheap(R.answer),        desc: 'ברז מים לשתייה' },
-    { id: 'lamp',       cat: 'props',  name: 'פנס רחוב',    icon: '🪔', price: cheap(R.answer),        desc: 'מאיר בערב' },
-    { id: 'bin',        cat: 'props',  name: 'פח אשפה',     icon: '🗑️', price: cheap(R.smallSuccess),  desc: 'שומר על העיר נקייה' },
-    { id: 'flowers',    cat: 'props',  name: 'ערוגת פרחים', icon: '💐', price: cheap(R.answer),        desc: 'צבעים לעיר' },
+    { id: 'bench',      cat: 'props',  name: 'ספסל',        icon: '🪑', price: cheap(R.answer),        eco: 0,    size: 0.6,  love: 'כיף לשבת על הספסל ולנוח', desc: 'מקום לשבת ולנוח' },
+    { id: 'fountain',   cat: 'props',  name: 'מזרקה',       icon: '⛲', price: cheap(R.create),        eco: 1,    size: 0.5,  love: 'המזרקה נעימה לשמוע', desc: 'מים שזורמים במרכז' },
+    { id: 'tap',        cat: 'props',  name: 'ברזייה',      icon: '🚰', price: cheap(R.answer),        eco: 0.5,  size: 0.8,  love: 'הברזייה מאפשרת לשתות מים קרים', desc: 'ברז מים לשתייה' },
+    { id: 'lamp',       cat: 'props',  name: 'פנס רחוב',    icon: '🪔', price: cheap(R.answer),        eco: 0,    size: 0.7,  love: 'פנסי הרחוב מאירים לנו בערב', desc: 'מאיר בערב' },
+    { id: 'bin',        cat: 'props',  name: 'פח אשפה',     icon: '🗑️', price: cheap(R.smallSuccess),  eco: 1,    size: 0.8,  love: 'בזכות פחי האשפה העיר נקייה', desc: 'שומר על העיר נקייה' },
+    { id: 'flowers',    cat: 'props',  name: 'ערוגת פרחים', icon: '💐', price: cheap(R.answer),        eco: 1,    size: 0.6,  love: 'ערוגת הפרחים מצבעת את העיר', desc: 'צבעים לעיר' },
 ];
 const VARIANT_BY_ID = Object.fromEntries(VARIANTS.map(v => [v.id, v]));
 const START_COUNT = START_COLS * START_ROWS;
-const LAND_BASE = cheap(R.perfect);   // מחיר השטח הנוסף הראשון
-const LAND_STEP = cheap(R.create);    // כל שטח נוסף יקר עוד צעד אחד
+const LAND_PRICE = cheap(R.create);   // מחיר קבוע לכל שטח נוסף (לא עולה ככל שהעיר גדלה)
 
 // מה התושבים דורשים, לפי מספר התושבים. כל דרישה היא קטגוריה שצריך מבנה פעיל ממנה
 const DEMANDS = [
@@ -100,6 +106,9 @@ const DIRS = [
 // סיבוב (סביב ציר Y) שמפנה את החזית של המבנה (+z) לעבר כיוון הדרך
 const FACE_ROT = { S: 0, E: Math.PI / 2, N: Math.PI, W: -Math.PI / 2 };
 
+// מקומות לעצים וקישוטים בתוך חלקה אחת (לפי סדר ההוספה). קודם המרכז, אחר כך הפינות
+const DECOR_SLOTS = [[0, 0], [-0.26, -0.26], [0.26, 0.26], [0.26, -0.26], [-0.26, 0.26], [0, -0.26], [0, 0.26]];
+
 const GRASS = ['#7cc35a', '#86cc62', '#72b651'];
 const HOUSE_WALLS = ['#ffe0b2', '#c8e6c9', '#bbdefb', '#f8bbd0', '#fff59d'];
 const HOUSE_ROOFS = ['#c0392b', '#6d4c41', '#5d4037'];
@@ -112,11 +121,14 @@ let selectedCat = 'house';
 
 // --- מצב העיר ---
 // owned:     Set של מפתחות "c,r" של החלקות שבבעלות הילד
-// buildings: Map של "c,r" -> מזהה סוג מבנה (רק לחלקות שבבעלות)
-// met:       דרישות התושבים שכבר נענו (כל אחת מזכה בכסף פעם אחת)
+// buildings: Map של "c,r" -> מזהה מבנה גדול (בית, דרך, בית ספר, פארק...). חלקה אחת לכל מבנה
+// decor:     Map של "c,r" -> רשימת מזהים של עצים וקישוטים (עד DECOR_MAX, לפי סדר ההוספה)
+// met:       דרישות התושבים והמדדים שכבר נענו (כל אחד מזכה בכסף פעם אחת)
 let owned = new Set();
 let buildings = new Map();
+let decor = new Map();
 let met = [];
+let notes = [];   // פרסים שנענו עכשיו, מוצגים יחד עם ההודעה הבאה
 
 // --- חישוב בתי ספר מאוחדים (מתעדכן בכל ציור) ---
 let schoolGid = new Map();          // "c,r" -> מזהה קבוצה
@@ -126,17 +138,20 @@ let schoolActiveGids = new Set();   // קבוצות שיש להן דרך
 // --- עזרים לנתונים ---
 function key(c, r) { return c + ',' + r; }
 function parseKey(k) { const [c, r] = k.split(',').map(Number); return { c, r }; }
+function clamp(x) { return Math.max(0, Math.min(100, Math.round(x))); }
 function isOwned(c, r) { return owned.has(key(c, r)); }
 function buildingAt(c, r) { return buildings.get(key(c, r)) || null; }
 function variantAt(c, r) { return VARIANT_BY_ID[buildingAt(c, r)] || null; }
 function catAt(c, r) { const v = variantAt(c, r); return v ? v.cat : null; }
 function roadAt(c, r) { return catAt(c, r) === 'road'; }
+function decorAt(c, r) { return decor.get(key(c, r)) || []; }
+function isDecorVariant(v) { return !!v && (v.cat === 'tree' || v.cat === 'props'); }
 function balance() { return W ? W.balance() : 0; }
-function feedback(msg) { $('feedback').textContent = msg; }
-
-function landPrice() {
-    return LAND_BASE + LAND_STEP * Math.max(0, owned.size - START_COUNT);
+function feedback(msg) {
+    const extra = notes.splice(0).map(n => ` 🎉 ${n}`).join('');
+    $('feedback').textContent = msg + extra;
 }
+function isEntrance(c, r) { return c === entranceC && r === entranceR; }
 
 // חלקה שעוד לא נקנתה, אבל נוגעת בשטח שבבעלות הילד
 function isSale(c, r) {
@@ -162,6 +177,18 @@ function startingPlots() {
     return s;
 }
 
+// מחלקת מבנים לשתי הקבוצות: מבנה גדול, או עץ/קישוט (שנכנסים לרשימה של החלקה)
+function assignBuildings(entries) {
+    buildings = new Map();
+    decor = new Map();
+    for (const [k, id] of entries) {
+        const v = VARIANT_BY_ID[id];
+        if (!v) continue;   // מבנה שסוגו כבר לא קיים מוסרים בשקט
+        if (isDecorVariant(v)) decor.set(k, [...(decor.get(k) || []), id].slice(0, DECOR_MAX));
+        else buildings.set(k, id);
+    }
+}
+
 function loadStateRaw() {
     entranceC = 0;
     entranceR = 1;
@@ -171,8 +198,16 @@ function loadStateRaw() {
             owned = new Set(saved.owned);
             entranceC = Number.isInteger(saved.entranceC) ? saved.entranceC : 0;
             entranceR = Number.isInteger(saved.entranceR) ? saved.entranceR : 1;
-            // מבנים שסוגם כבר לא קיים מוסרים בשקט
-            buildings = new Map(Object.entries(saved.buildings || {}).filter(([, id]) => VARIANT_BY_ID[id]));
+            assignBuildings(Object.entries(saved.buildings || {}));
+            // עצים וקישוטים בשמירה החדשה: רשימה לכל חלקה
+            if (saved.decor && typeof saved.decor === 'object') {
+                for (const [k, ids] of Object.entries(saved.decor)) {
+                    const list = (Array.isArray(ids) ? ids : [])
+                        .filter(id => isDecorVariant(VARIANT_BY_ID[id]))
+                        .slice(0, DECOR_MAX);
+                    if (list.length) decor.set(k, list);
+                }
+            }
             met = Array.isArray(saved.met) ? saved.met : [];
             return;
         }
@@ -180,32 +215,34 @@ function loadStateRaw() {
 
     // מעבר מהגרסה הקודמת: אותו שטח 5×4 ואותם מבנים
     owned = startingPlots();
-    buildings = new Map();
     met = [];
+    assignBuildings([]);
     try {
         const old = JSON.parse(localStorage.getItem(OLD_STORE_KEY) || 'null');
         if (Array.isArray(old) && old.length === START_COUNT) {
+            const entries = [];
             old.forEach((id, i) => {
-                if (id && VARIANT_BY_ID[id]) buildings.set(key(i % START_COLS, Math.floor(i / START_COLS)), id);
+                if (id) entries.push([key(i % START_COLS, Math.floor(i / START_COLS)), id]);
             });
+            assignBuildings(entries);
         }
     } catch (e) {}
 }
 
 function loadState() {
     loadStateRaw();
-    // כביש הכניסה תמיד קיים (גם בשמירות ישנות)
+    // כביש הכניסה תמיד קיים (גם בשמירות ישנות). בחלקה שלו לא יכולים להיות קישוטים
     const k = key(entranceC, entranceR);
+    decor.delete(k);
     if (!buildings.has(k) && owned.has(k)) buildings.set(k, 'road');
 }
-
-function isEntrance(c, r) { return c === entranceC && r === entranceR; }
 
 function saveState() {
     try {
         localStorage.setItem(STORE_KEY, JSON.stringify({
             owned: [...owned],
             buildings: Object.fromEntries(buildings),
+            decor: Object.fromEntries(decor),
             met,
             entranceC,
             entranceR,
@@ -298,11 +335,11 @@ function refreshSchoolGroups() {
     }
 }
 
-// מבנה פעיל = יש לידו דרך. דרך ועצים לא צריכים דרך
+// מבנה גדול פעיל = יש לידו דרך. דרך תמיד פעילה
 function buildingActive(c, r) {
     const cat = catAt(c, r);
     if (cat === 'school') return schoolActiveGids.has(schoolGid.get(key(c, r)));
-    if (cat === 'road' || cat === 'tree' || cat === 'props') return true;
+    if (cat === 'road') return true;
     return roadNextTo(c, r);
 }
 
@@ -314,7 +351,7 @@ function stats() {
     const active = {};
     for (const [k, id] of buildings) {
         const v = VARIANT_BY_ID[id];
-        if (!v || v.cat === 'road' || v.cat === 'tree' || v.cat === 'props' || v.cat === 'school') continue;
+        if (!v || v.cat === 'road' || v.cat === 'school') continue;
         const { c, r } = parseKey(k);
         if (!roadNextTo(c, r)) { inactive++; continue; }
         pop += v.pop || 0;
@@ -327,16 +364,73 @@ function stats() {
     return { pop, active, inactive };
 }
 
-// דרישות התושבים שנענו בפעם הראשונה מזכות בכסף, פעם אחת בלבד
-function checkDemands() {
-    const st = stats();
-    let changed = false;
+// --- מדדים: סביבה ושמחה ---
+// הסביבה: סכום ההשפעות של כל המבנים והעצים, חלקי גודל העיר. החלקה של הכניסה לא נספרת
+function envScore() {
+    const entranceKey = key(entranceC, entranceR);
+    let sum = 0;
+    for (const [k, id] of buildings) {
+        const v = VARIANT_BY_ID[id];
+        if (k !== entranceKey && v) sum += v.eco || 0;
+    }
+    for (const list of decor.values()) {
+        for (const id of list) {
+            const v = VARIANT_BY_ID[id];
+            if (v) sum += v.eco || 0;
+        }
+    }
+    // חלקי גודל העיר: עיר גדולה צריכה יותר ירק כדי להיות ירוקה באותה מידה
+    return clamp(50 + 150 * sum / Math.max(1, owned.size));
+}
+
+// מה התושבים אוהבים: כל סוג שיש בעיר ויש לו משפט אהבה
+function lovedKinds() {
+    const present = new Set([...buildings.values(), ...[...decor.values()].flat()]);
+    return VARIANTS.filter(v => v.love && present.has(v.id));
+}
+
+// השמחה: בסיס, דרישות שנענו (+) ושלא נענו (−), הסביבה, מגוון מה שאוהבים, ומבנים שמחכים לדרך (−)
+function happyScore(st, env, lovedCount) {
+    if (st.pop <= 0) return 0;
+    let h = 20;
     DEMANDS.forEach(d => {
-        if (st.pop < d.pop || !(st.active[d.id] > 0) || met.includes(d.id)) return;
-        met.push(d.id);
-        changed = true;
-        if (W) W.earn(R.round, { reason: `התושבים מרוצים: ${d.text}` });
+        if (st.pop >= d.pop) h += st.active[d.id] > 0 ? 6 : -6;
     });
+    h += env * 0.3;
+    h += Math.min(16, lovedCount * 2);
+    h -= Math.min(16, st.inactive * 4);
+    return clamp(h);
+}
+
+function cityMeters() {
+    const st = stats();
+    const env = envScore();
+    const loved = lovedKinds();
+    return { st, env, loved, happy: happyScore(st, env, loved.length) };
+}
+
+// דרישות התושבים והמדדים שנענו בפעם הראשונה מזכים בכסף, פעם אחת בלבד
+function checkRewards() {
+    const m = cityMeters();
+    const st = m.st;
+    let changed = false;
+    const reward = (id, amount, text) => {
+        if (met.includes(id)) return;
+        met.push(id);
+        changed = true;
+        if (W) {
+            W.earn(amount, { reason: text });
+            notes.push(`${text} (+${amount} 🪙)`);
+        } else {
+            notes.push(text);
+        }
+    };
+    DEMANDS.forEach(d => {
+        if (st.pop < d.pop || !(st.active[d.id] > 0)) return;
+        reward(d.id, R.round, `התושבים מרוצים: ${d.text}`);
+    });
+    if (st.pop > 0 && m.env >= GOOD_LEVEL) reward('env-good', R.round, 'הסביבה ירוקה ונקייה!');
+    if (st.pop > 0 && m.happy >= GOOD_LEVEL) reward('happy-good', R.round, 'התושבים מאושרים בעיר!');
     if (changed) saveState();
 }
 
@@ -352,7 +446,8 @@ function cached(cache, k, make) {
 function boxG(w, h, d) { return cached(geoCache, `b${w}|${h}|${d}`, () => new THREE.BoxGeometry(w, h, d)); }
 function cylG(rt, rb, h, seg) { return cached(geoCache, `c${rt}|${rb}|${h}|${seg}`, () => new THREE.CylinderGeometry(rt, rb, h, seg)); }
 function coneG(r, h, seg) { return cached(geoCache, `k${r}|${h}|${seg}`, () => new THREE.ConeGeometry(r, h, seg)); }
-function icoG(r) { return cached(geoCache, `i${r}`, () => new THREE.IcosahedronGeometry(r, 0)); }
+// כדור עם משולשים מעודנים (רמה 1): כתרי עצים ופרחים נראים עגולים יותר
+function icoG(r) { return cached(geoCache, `i${r}`, () => new THREE.IcosahedronGeometry(r, 1)); }
 
 function mat(color, extra) {
     const k = color + '|' + JSON.stringify(extra || {});
@@ -368,6 +463,13 @@ function part(parent, geometry, color, x, y, z, extra) {
     m.receiveShadow = true;
     parent.add(m);
     return m;
+}
+
+// גוון בהיר (f>1) או כהה (f<1) של צבע הקס
+function tint(hex, f) {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = (shift) => Math.max(0, Math.min(255, Math.round(((n >> shift) & 255) * f)));
+    return '#' + [16, 8, 0].map(s => ch(s).toString(16).padStart(2, '0')).join('');
 }
 
 // מספר "אקראי" קבוע לכל חלקה (כדי שהעיר לא תשתנה בכל רענון)
@@ -388,28 +490,30 @@ function facingRot(c, r) {
 }
 
 // --- בניית חלקה שבבעלות הילד ---
-// כל בונה מחזיר את גובה המבנה, כדי לשים את סימן "אין דרך" מעליו
 function buildCell(c, r) {
     const group = new THREE.Group();
     group.position.set(c, 0, r);
     const seed = seedOf(c, r);
 
-    // קרקע: קובייה שהחלק העליון שלה בגובה 0
-    part(group, boxG(1, 0.1, 1), GRASS[Math.floor(rnd(seed, 1) * GRASS.length)], 0, -0.05, 0);
+    // קרקע: קובייה כהה כמסגרת, ומעליה לוח דשא קצת קטן יותר. כך רואים את גבולות החלקות
+    part(group, boxG(1, 0.1, 1), '#4f8a3a', 0, -0.05, 0);
+    part(group, boxG(0.96, 0.02, 0.96), GRASS[Math.floor(rnd(seed, 1) * GRASS.length)], 0, 0, 0);
 
     const v = variantAt(c, r);
     const cat = v ? v.cat : null;
+    const list = decorAt(c, r);
     let top = 0.9;
     if (cat === 'road') buildRoad(group, c, r, v);
     if (cat === 'road' && isEntrance(c, r)) buildGate(group);
-    else if (cat === 'tree') buildTree(group, seed, v);
     else if (cat === 'house') top = buildHouse(group, seed, c, r, v);
     else if (cat === 'apt') top = buildApartments(group, seed, c, r, v);
     else if (cat === 'school') buildSchool(group, c, r, v);
     else if (cat === 'shop') top = buildShop(group, c, r, v);
     else if (cat === 'clinic') top = buildClinic(group, c, r, v);
     else if (cat === 'park') buildPark(group, seed, v);
-    else if (cat === 'props') buildProp(group, seed, v);
+
+    // עצים וקישוטים קטנים: כמה שיש בחלקה, כל אחד במקומו
+    if (list.length) buildDecor(group, seed, list);
     else if (!cat && rnd(seed, 8) < 0.3) buildBush(group, seed);   // שיחים קטנים על שטח ריק בלבד
 
     // מבנה בלי דרך לא עובד: מסמנים אותו בעמוד אדום מעל הגג
@@ -433,7 +537,7 @@ function buildSale(c, r) {
 // ולכן דרך מחוברת בדיוק לדרך שלידה (גם אם הסוגים שונים)
 function buildRoad(group, c, r, v) {
     const style = {
-        road:   { base: '#3d3f47', dashes: true },
+        road:   { base: '#41444f', dashes: true },
         dirt:   { base: '#b08968', dashes: false },
         stone:  { base: '#bdbdbd', dashes: false },
     }[v.id];
@@ -454,25 +558,39 @@ function buildRoad(group, c, r, v) {
             part(group, boxG(lx, 0.006, lz), LINE, d.dc * 0.36, y + 0.015, d.dr * 0.36);
         }
     }
+
+    // פרטים לפי סוג: חלוקי נחל בשביל האבן, אבנים קטנות בדרך העפר
+    if (v.id === 'stone') {
+        [[-0.12, -0.1, '#9e9e9e'], [0.1, -0.12, '#8d8d8d'], [0.02, 0.04, '#a1887f'], [-0.09, 0.11, '#8d8d8d'], [0.12, 0.09, '#9e9e9e']]
+            .forEach(([x, z, col]) => part(group, icoG(0.035), col, x, 0.026, z));
+    } else if (v.id === 'dirt') {
+        [[-0.1, 0.05, '#8d6e63'], [0.12, -0.08, '#8d6e63'], [0.03, 0.13, '#795548']]
+            .forEach(([x, z, col]) => part(group, icoG(0.022), col, x, 0.02, z));
+    }
 }
 
+// עץ או דקל. בחלקה יכולים להיות כמה, לכן גודלם נקבע לפי VARIANTS.size
 function buildTree(group, seed, v) {
-    const s = 0.85 + rnd(seed, 2) * 0.35;
+    const s = 0.9 + rnd(seed, 2) * 0.3;
     const ox = (rnd(seed, 3) - 0.5) * 0.25;
     const oz = (rnd(seed, 4) - 0.5) * 0.25;
     if (v.id === 'palm') {
-        part(group, cylG(0.035, 0.05, 0.55, 6), '#a1887f', ox, 0.275, oz);
+        // דקל: גזע דק, כמה עלים ארוכים שנפרשים לכל הכיוונים, וקוקוס
+        part(group, cylG(0.03, 0.05, 0.55, 7), '#a1887f', ox, 0.275, oz);
         for (let k = 0; k < 4; k++) {
             const frond = part(group, icoG(0.16), '#388e3c', ox, 0.58, oz);
             frond.scale.set(1.6, 0.22, 0.45);
             frond.rotation.y = k * Math.PI / 2 + rnd(seed, 12) * 0.5;
         }
+        part(group, icoG(0.04), '#795548', ox + 0.02, 0.54, oz + 0.02);
         return;
     }
-    part(group, cylG(0.05, 0.07, 0.3, 7), '#6d4c41', ox, 0.15, oz);
-    const crownColor = v.id === 'blossom' ? '#f48fb1' : FOLIAGE[Math.floor(rnd(seed, 5) * FOLIAGE.length)];
-    const crown = part(group, icoG(0.24), crownColor, ox, 0.46, oz);
-    crown.scale.setScalar(s);
+    // עץ רגיל: גזע מחודד, וכתר של שלושה כדורים שמתלכדים, כל אחד בגוון קצת אחר
+    const base = v.id === 'blossom' ? '#f48fb1' : FOLIAGE[Math.floor(rnd(seed, 5) * FOLIAGE.length)];
+    part(group, cylG(0.045, 0.07, 0.32, 8), '#6d4c41', ox, 0.16, oz);
+    part(group, icoG(0.23), base, ox, 0.46, oz).scale.setScalar(s);
+    part(group, icoG(0.15), tint(base, 1.14), ox + 0.12 * s, 0.38, oz - 0.07 * s).scale.setScalar(s);
+    part(group, icoG(0.14), tint(base, 0.88), ox - 0.11 * s, 0.36, oz + 0.09 * s).scale.setScalar(s);
 }
 
 function buildBush(group, seed) {
@@ -480,6 +598,23 @@ function buildBush(group, seed) {
     const oz = (rnd(seed, 10) - 0.5) * 0.6;
     const b = part(group, icoG(0.12), BUSH[Math.floor(rnd(seed, 11) * BUSH.length)], ox, 0.09, oz);
     b.scale.set(1, 0.8, 1);
+}
+
+// עצים וקישוטים בחלקה: כל פריט בקטן ובמקום שלו (לפי DECOR_SLOTS), עם מעט אקראיות קבועה
+function buildDecor(group, seed, ids) {
+    ids.forEach((id, i) => {
+        const v = VARIANT_BY_ID[id];
+        if (!v) return;
+        const [sx, sz] = DECOR_SLOTS[i];
+        const g = new THREE.Group();
+        g.position.set(sx + (rnd(seed, 40 + i) - 0.5) * 0.06, 0, sz + (rnd(seed, 50 + i) - 0.5) * 0.06);
+        g.rotation.y = rnd(seed, 60 + i) * Math.PI * 2;
+        g.scale.setScalar(v.size || 0.6);
+        group.add(g);
+        const itemSeed = seed + (i + 1) * 17;   // זרע משלו לכל פריט, כדי שכל עץ ייראה קצת אחרת
+        if (v.cat === 'tree') buildTree(g, itemSeed, v);
+        else buildProp(g, itemSeed, v);
+    });
 }
 
 // שביל קצר מהכניסה אל הדרך (רק אם יש דרך סמוכה)
@@ -506,9 +641,19 @@ function buildHouse(group, seed, c, r, v) {
     const roof = part(b, coneG(dims.w * 0.72, dims.rh, 4), dims.roof, 0, dims.h + dims.rh / 2, 0);
     roof.rotation.y = Math.PI / 4;   // פינות הגג באלכסון, כדי שהצלעות יתיישרו עם הקירות
     part(b, boxG(0.08, 0.2, 0.08), '#8d6e63', dims.w * 0.27, dims.h + 0.18, -dims.w * 0.18);   // ארובה
-    part(b, boxG(0.12, 0.2, 0.02), '#6d4c41', 0, 0.1, front);                                  // דלת
-    part(b, boxG(0.12, 0.12, 0.02), '#90caf9', -dims.w * 0.28, 0.27, front, { roughness: 0.3 });
-    part(b, boxG(0.12, 0.12, 0.02), '#90caf9', dims.w * 0.28, 0.27, front, { roughness: 0.3 });
+
+    // חלונות עם מסגרת לבנה (צלב), ודלת במסגרת
+    const win = (x, y) => {
+        part(b, boxG(0.13, 0.13, 0.02), '#90caf9', x, y, front, { roughness: 0.3 });
+        part(b, boxG(0.13, 0.014, 0.024), '#ffffff', x, y, front + 0.002);
+        part(b, boxG(0.014, 0.13, 0.024), '#ffffff', x, y, front + 0.002);
+    };
+    win(-dims.w * 0.28, 0.27);
+    win(dims.w * 0.28, 0.27);
+    part(b, boxG(0.17, 0.25, 0.012), '#fff3e0', 0, 0.125, front);       // מסגרת הדלת
+    part(b, boxG(0.12, 0.2, 0.02), '#6d4c41', 0, 0.1, front + 0.006);   // דלת
+    part(b, icoG(0.012), '#ffca28', 0.04, 0.1, front + 0.02);            // ידית
+
     if (v.id === 'villa') {
         // עמודים לפני הכניסה
         part(b, boxG(0.04, 0.4, 0.04), '#ffffff', -0.14, 0.2, front + 0.05);
@@ -519,7 +664,7 @@ function buildHouse(group, seed, c, r, v) {
     return dims.h + dims.rh;
 }
 
-// בניין דירות (קטן) או מגדל דירות: שורות חלונות לפי מספר הקומות
+// בניין דירות (קטן) או מגדל דירות: שורות חלונות ומרפסות לפי מספר הקומות
 function buildApartments(group, seed, c, r, v) {
     const tower = v.id === 'tower';
     const w = tower ? 0.44 : 0.5;
@@ -530,9 +675,10 @@ function buildApartments(group, seed, c, r, v) {
     b.rotation.y = facingRot(c, r);
     const front = w / 2 + 0.005;
     part(b, boxG(w, h, w), wall, 0, h / 2, 0);
-    part(b, boxG(w + 0.04, 0.05, w + 0.04), '#6d4c41', 0, h + 0.025, 0);
+    part(b, boxG(w + 0.04, 0.05, w + 0.04), '#6d4c41', 0, h + 0.025, 0);   // גג
     for (let row = 0; row < floors; row++) {
         const y = 0.12 + row * 0.16;
+        part(b, boxG(w + 0.03, 0.02, 0.06), '#b0bec5', 0, y - 0.075, front + 0.02);   // מרפסת
         for (const x of [-w * 0.24, w * 0.24]) part(b, boxG(0.1, 0.1, 0.02), '#90caf9', x, y, front, { roughness: 0.3 });
     }
     part(b, boxG(0.14, 0.2, 0.02), '#6d4c41', 0, 0.1, front);   // דלת
@@ -541,7 +687,7 @@ function buildApartments(group, seed, c, r, v) {
     return h + 0.05;
 }
 
-// חנות: גג בצבעי פסים לפי הסוג, שלט מעל הכניסה
+// חנות: גג בצבעי פסים לפי הסוג, שלט מעל הכניסה, וחלונות ראווה משני צדי הדלת
 const SHOP_STYLE = {
     shop:  { w: 0.70, h: 0.42, body: '#ffe082', awn: ['#ef5350', '#ffffff', '#ef5350'] },
     mini:  { w: 0.56, h: 0.34, body: '#c5e1a5', awn: ['#43a047', '#ffffff'] },
@@ -559,6 +705,7 @@ function buildShop(group, c, r, v) {
         const x = -st.w / 2 + (i + 0.5) * (st.w / n);
         part(b, boxG(st.w / n, 0.1, 0.08), color, x, st.h - 0.06, front + 0.03);
     });
+    [-1, 1].forEach(sg => part(b, boxG(st.w * 0.22, 0.14, 0.02), '#b3e5fc', sg * st.w * 0.27, 0.2, front, { roughness: 0.3 }));
     part(b, boxG(st.w * 0.55, 0.1, 0.02), '#8d6e63', 0, st.h + 0.08, front);   // שלט
     part(b, boxG(0.16, 0.2, 0.02), '#6d4c41', 0, 0.1, front);                  // דלת
     addDoorPath(b, roadNextTo(c, r), front);
@@ -592,7 +739,8 @@ function buildClinic(group, c, r, v) {
 function buildPark(group, seed, v) {
     part(group, boxG(0.9, 0.02, 0.9), '#a5d6a7', 0, 0.01, 0);
     if (v.id === 'park') {
-        part(group, cylG(0.18, 0.18, 0.02, 12), '#4fc3f7', 0, 0.03, 0);
+        part(group, cylG(0.2, 0.2, 0.03, 14), '#eceff1', 0, 0.015, 0);       // שפת הבריכה
+        part(group, cylG(0.18, 0.18, 0.02, 14), '#4fc3f7', 0, 0.03, 0, { roughness: 0.2 });
         part(group, boxG(0.2, 0.05, 0.06), '#8d6e63', -0.3, 0.05, 0.3);
         part(group, boxG(0.2, 0.05, 0.06), '#8d6e63', 0.3, 0.05, -0.3);
         part(group, icoG(0.12), '#2e7d32', 0.3, 0.16, 0.3);
@@ -613,7 +761,7 @@ function buildPark(group, seed, v) {
     }
 }
 
-// דברים קטנים: ספסל, מזרקה, ברזייה, פנס, פח ופרחים. לא צריכים דרך
+// דברים קטנים: ספסל, מזרקה, ברזייה, פנס, פח ופרחים. לא צריכים דרך. נבנים בגודל קטן בתוך החלקה
 function buildProp(group, seed, v) {
     const ox = (rnd(seed, 13) - 0.5) * 0.2;
     const oz = (rnd(seed, 14) - 0.5) * 0.2;
@@ -677,15 +825,15 @@ function buildSchool(group, c, r, v) {
     const exposed = DIRS.filter(d => !linked[d.name]);
     const entrance = exposed.find(d => roadAt(c + d.dc, r + d.dr)) || exposed[0];
     exposed.forEach(d => {
-        const isEntrance = d === entrance;
-        const offs = isEntrance ? [-0.24, 0.24] : [-0.24, 0, 0.24];
+        const isEntr = d === entrance;
+        const offs = isEntr ? [-0.24, 0.24] : [-0.24, 0, 0.24];
         const winSize = d.dr !== 0 ? [0.14, 0.14, 0.02] : [0.02, 0.14, 0.14];
         offs.forEach(t => {
             const x = d.dr !== 0 ? t : 0.41 * d.dc;
             const z = d.dr !== 0 ? 0.41 * d.dr : t;
             part(group, boxG(...winSize), '#90caf9', x, 0.36, z, { roughness: 0.3 });
         });
-        if (isEntrance) {
+        if (isEntr) {
             const doorSize = d.dr !== 0 ? [0.16, 0.22, 0.02] : [0.02, 0.22, 0.16];
             part(group, boxG(...doorSize), '#6d4c41', 0.41 * d.dc, 0.11, 0.41 * d.dr);
             const len = 0.1;
@@ -723,7 +871,7 @@ function drawOutsideRoad() {
     const endX = c + 0.5;              // המזרח של החלקה הראשונה שבבעלות, או הקצה
     const len = startX - endX;
     if (len <= 0.01) return;
-    part(outsideGroup, boxG(len, 0.024, 0.42), '#3d3f47', (startX + endX) / 2, 0.034, row);
+    part(outsideGroup, boxG(len, 0.024, 0.42), '#41444f', (startX + endX) / 2, 0.034, row);
     for (let x = startX - 0.4; x > endX + 0.1; x -= 0.8) {
         part(outsideGroup, boxG(0.12, 0.006, 0.03), '#f5f5f5', x, 0.049, row);
     }
@@ -761,6 +909,8 @@ function init3D() {
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color('#bfe9ff');
+    // ערפל עדין בקצה העיר: נותן עומק, והדשא מסתיים בלי קו חד
+    scene.fog = new THREE.Fog('#bfe9ff', 22, 70);
 
     camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 
@@ -838,17 +988,15 @@ function init3D() {
     return true;
 }
 
-// מכוון את המצלמה למרכז העיר, ומרחיק אותה ככל שהעיר גדלה
+// מכוון את המצלמה למרכז העיר. המרחק קבוע: העיר לא "מתרחקת" כשהיא גדלה
 function fitCamera() {
     if (!controls) return;
     const b = bounds();
     const cx = (b.minC + b.maxC) / 2;
     const cz = (b.minR + b.maxR) / 2;
-    const span = Math.max(b.maxC - b.minC + 1, b.maxR - b.minR + 1);
-    const k = Math.max(1, span / START_COLS);
     controls.target.set(cx, 0, cz);
-    camera.position.set(cx, 6.4 * k, cz + 6.6 * k);
-    controls.maxDistance = 14 * k;
+    camera.position.set(cx, 6.4, cz + 6.6);
+    controls.maxDistance = 14;
     controls.update();
 }
 
@@ -881,6 +1029,19 @@ function cellAt(e) {
     return (isOwned(c, r) || isSale(c, r)) ? { c, r } : null;
 }
 
+// צבע הסמן: כחול = קנייה של שטח, כתום = יוסר, צהוב = לבנייה או להוספת עץ/קישוט
+function hoverColor(c, r) {
+    if (!isOwned(c, r)) return '#4fc3f7';
+    if (buildingAt(c, r)) return '#ff9800';
+    const list = decorAt(c, r);
+    if (list.length) {
+        const v = VARIANT_BY_ID[selected];
+        const canAdd = isDecorVariant(v) && list.length < DECOR_MAX;
+        return canAdd ? '#ffeb3b' : '#ff9800';
+    }
+    return '#ffeb3b';
+}
+
 function updateHover(e) {
     const cell = cellAt(e);
     if (!cell) {
@@ -890,9 +1051,7 @@ function updateHover(e) {
     const { c, r } = cell;
     hoverMesh.position.x = c;
     hoverMesh.position.z = r;
-    let color = '#4fc3f7';                       // כחול = קנייה של שטח
-    if (isOwned(c, r)) color = buildingAt(c, r) ? '#ff9800' : '#ffeb3b';   // כתום = יוסר, צהוב = לבנייה
-    hoverMesh.material.color.set(color);
+    hoverMesh.material.color.set(hoverColor(c, r));
     hoverMesh.visible = true;
 }
 
@@ -962,12 +1121,11 @@ function renderCatalog() {
     const grid = document.createElement('div');
     grid.className = 'cards';
     if (selectedCat === 'land') {
-        const price = landPrice();
         const land = document.createElement('button');
-        land.className = 'card info' + (bal < price ? ' cant' : '');
-        land.innerHTML = `<span class="icon">🗺️</span><span class="name">שטח חדש</span><span class="desc">חלקה ליד העיר. לחצו עליה במפה</span><span class="price">${price} 🪙</span>`;
+        land.className = 'card info' + (bal < LAND_PRICE ? ' cant' : '');
+        land.innerHTML = `<span class="icon">🗺️</span><span class="name">שטח חדש</span><span class="desc">חלקה ליד העיר. לחצו עליה במפה</span><span class="price">${LAND_PRICE} 🪙</span>`;
         land.onclick = () => {
-            $('hint').textContent = 'לחצו על חלקה בהירה עם דגל צהוב במפה כדי לקנות אותה. כל שטח חדש מרחיב את העיר.';
+            $('hint').textContent = 'לחצו על חלקה בהירה עם דגל צהוב במפה כדי לקנות אותה. המחיר קבוע, והעיר לא מתרחקת כשהיא גדלה.';
         };
         grid.appendChild(land);
     } else {
@@ -976,11 +1134,16 @@ function renderCatalog() {
             btn.className = 'card' + (v.id === selected ? ' selected' : '') + (bal < v.price ? ' cant' : '');
             btn.setAttribute('aria-pressed', String(v.id === selected));
             const pop = v.pop ? `<span class="pop">👥 +${v.pop} תושבים</span>` : '';
-            btn.innerHTML = `<span class="icon">${v.icon}</span><span class="name">${v.name}</span><span class="desc">${v.desc}</span>${pop}<span class="price">${v.price} 🪙</span>`;
+            const cap = isDecorVariant(v) ? `<span class="note">🔢 עד ${DECOR_MAX} בחלקה</span>` : '';
+            const eco = v.eco > 0 ? '<span class="eco good">🌿 עוזר לסביבה</span>'
+                : v.eco < 0 ? '<span class="eco bad">🏭 פוגע בסביבה</span>' : '';
+            btn.innerHTML = `<span class="icon">${v.icon}</span><span class="name">${v.name}</span><span class="desc">${v.desc}</span>${pop}${cap}${eco}<span class="price">${v.price} 🪙</span>`;
             btn.onclick = () => {
                 selected = v.id;
                 renderCatalog();
-                $('hint').textContent = `נבחר: ${v.name}. לחצו על חלקה ריקה כדי לבנות.`;
+                $('hint').textContent = isDecorVariant(v)
+                    ? `נבחר: ${v.name}. לחצו על חלקה ריקה או על חלקה עם עצים כדי להוסיף (עד ${DECOR_MAX} בחלקה).`
+                    : `נבחר: ${v.name}. לחצו על חלקה ריקה כדי לבנות.`;
             };
             grid.appendChild(btn);
         });
@@ -991,14 +1154,33 @@ function renderCatalog() {
 function renderCounts() {
     const counts = {};
     buildings.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+    decor.forEach(list => list.forEach(id => { counts[id] = (counts[id] || 0) + 1; }));
     const parts = VARIANTS.filter(v => counts[v.id]).map(v => `${v.icon} ${counts[v.id]} ${v.name}`);
     const land = `🗺️ ${owned.size} חלקות`;
     $('counts').textContent = parts.length ? `${land} · ${parts.join(' · ')}` : `${land}. העיר עוד ריקה, זמן לבנות!`;
 }
 
+// שני מדדים: שמירה על הסביבה ושמחה. כל מד צבוע לפי הערך שלו
+function renderMeters(m) {
+    const envNote = m.env >= GOOD_LEVEL ? '🌳 ירוק ונקי'
+        : m.env >= 40 ? '🌿 בסדר, אפשר עוד ירק'
+        : '🏭 צריך הרבה יותר ירק';
+    const happyNote = m.st.pop === 0 ? 'בנו בית עם דרך כדי שיגיעו תושבים'
+        : m.happy >= GOOD_LEVEL ? '😄 מאושרים מאוד'
+        : m.happy >= 40 ? '🙂 בסדר'
+        : '😟 עוד לא מרוצים';
+    const meter = (title, value, cls, note) => `
+        <div class="meter">
+            <div class="meter-head"><span>${title}</span><strong>${value}%</strong></div>
+            <div class="meter-bar"><div class="meter-fill ${cls}" style="width:${value}%"></div></div>
+            <div class="meter-note">${note}</div>
+        </div>`;
+    $('meters').innerHTML = meter('🌿 מד שמירה על הסביבה', m.env, 'env', envNote)
+        + meter('😊 מד שמחה', m.happy, 'happy', happyNote);
+}
+
 // לוח התושבים: כמה יש, מה הם דורשים, ומה כבר נענה
-function renderDemands() {
-    const st = stats();
+function renderDemands(st) {
     const asking = [];
     const done = [];
     const soon = [];
@@ -1019,34 +1201,61 @@ function renderDemands() {
     $('demands').innerHTML = lines.join('');
 }
 
+// מה התושבים אוהבים בעיר: משפט בשם התושבים לכל דבר שבנוי בעיר, ומה מפריע להם
+function renderLoves(m) {
+    const box = $('loves');
+    const title = '<div class="loves-title">💬 מה התושבים אוהבים בעיר</div>';
+    if (m.st.pop === 0) {
+        box.innerHTML = title + '<div class="loves-empty">עוד אין תושבים. בנו בית עם דרך והם יגיעו!</div>';
+        return;
+    }
+    const bubbles = m.loved.map(v => `<div class="bubble">${v.icon} „${v.love}“</div>`).join('');
+    const complaints = [];
+    if (m.env < 40) complaints.push('אנחנו צריכים עוד עצים ופארקים 🌳');
+    if (m.st.inactive > 0) complaints.push('יש בית שמחכה לדרך, כדי שנוכל להגיע אליו 🚧');
+    box.innerHTML = title
+        + (bubbles ? `<div class="bubbles">${bubbles}</div>` : '<div class="loves-empty">עוד לא בנינו משהו שאוהבים</div>')
+        + complaints.map(t => `<div class="complaint">💭 ${t}</div>`).join('');
+}
+
 function renderAll() {
     renderCatalog();
     renderCounts();
-    renderDemands();
+    const m = cityMeters();
+    renderMeters(m);
+    renderDemands(m.st);
+    renderLoves(m);
 }
 
 // --- פעולות ---
-// שינוי מבנה: מחשבים הכול מחדש (דרכים ובתי ספר מסתכלים על השכנים), ואז בודקים דרישות
-function setBuilding(c, r, id) {
-    if (id) buildings.set(key(c, r), id);
-    else buildings.delete(key(c, r));
+// שינוי בעיר: שומרים, מציירים מחדש (דרכים ובתי ספר מסתכלים על השכנים), בודקים פרסים, ומציגים
+function commit() {
     saveState();
     drawAll();
-    checkDemands();
+    checkRewards();
     renderAll();
 }
 
-// לחיצה על חלקה: שטח חדש אם היא למכירה, הסרה אם יש בה מבנה, ובנייה אחרת
+// לחיצה על חלקה: שטח חדש אם היא למכירה. אחרת: מבנה גדול נמחק, עץ או קישוט מתווסף או מוסר, ובנייה רגילה
 function onCell(c, r) {
     if (!isOwned(c, r)) return buyLand(c, r);
-    if (isEntrance(c, r) && roadAt(c, r)) return feedback('הכביש הזה מחבר את העיר לעולם החיצון, לכן אי אפשר להסיר אותו');
-    if (buildingAt(c, r)) return removeAt(c, r);
+    if (buildingAt(c, r)) {
+        if (isEntrance(c, r) && roadAt(c, r)) return feedback('הכביש הזה מחבר את העיר לעולם החיצון, לכן אי אפשר להסיר אותו');
+        return removeAt(c, r);
+    }
+    const list = decorAt(c, r);
+    if (list.length) {
+        // יש עצים או קישוטים: אם בחרתם עץ או קישוט חדש ויש מקום, מוסיפים. אחרת מסירים את האחרון
+        const v = VARIANT_BY_ID[selected];
+        if (isDecorVariant(v) && list.length < DECOR_MAX) return place(c, r);
+        return removeDecorAt(c, r);
+    }
     place(c, r);
 }
 
 function buyLand(c, r) {
-    const price = landPrice();
     if (!W) return feedback('אי אפשר לקנות עכשיו 🪙');
+    const price = LAND_PRICE;
     const bal = balance();
     if (bal < price) return feedback(`חסרים לכם ${price - bal} 🪙 כדי לקנות שטח נוסף`);
     if (!W.spend(price)) return feedback('משהו השתבש, נסו שוב');
@@ -1058,23 +1267,31 @@ function buyLand(c, r) {
         entranceR = r;
         buildings.set(key(c, r), 'road');
     }
-    saveState();
-    drawAll();
+    commit();
     fitCamera();
-    renderAll();
     feedback(gateMoved ? `קניתם שטח חדש, והשער זז אליו! −${price} 🪙` : `קניתם שטח חדש! −${price} 🪙`);
 }
 
 function place(c, r) {
     const v = VARIANT_BY_ID[selected];
+    if (!v) return;
     const bal = balance();
     if (!W) return feedback('אי אפשר לבנות עכשיו 🪙');
     if (bal < v.price) {
         return feedback(`חסרים לכם ${v.price - bal} 🪙 כדי לבנות ${v.name}`);
     }
     if (!W.spend(v.price)) return feedback('משהו השתבש, נסו שוב');
-    setBuilding(c, r, v.id);
-    if (v.cat === 'road' || v.cat === 'tree' || buildingActive(c, r)) {
+
+    if (isDecorVariant(v)) {
+        const list = [...decorAt(c, r), v.id];
+        decor.set(key(c, r), list);
+        commit();
+        return feedback(`הוספתם ${v.name} לחלקה (${list.length} מתוך ${DECOR_MAX}). −${v.price} 🪙`);
+    }
+
+    buildings.set(key(c, r), v.id);
+    commit();
+    if (v.cat === 'road' || buildingActive(c, r)) {
         feedback(`בניתם ${v.name}! −${v.price} 🪙`);
     } else {
         feedback(`בניתם ${v.name}, אבל בלי דרך לידו הוא לא יעבוד 🚧 (−${v.price} 🪙)`);
@@ -1084,9 +1301,23 @@ function place(c, r) {
 function removeAt(c, r) {
     const v = variantAt(c, r);
     const refund = Math.floor(v.price / 2);
-    setBuilding(c, r, null);
+    buildings.delete(key(c, r));
+    commit();
     if (W && refund > 0) W.earn(refund, { reason: `החזר ${v.name}` });
     feedback(`הורדתם ${v.name}. הוחזרו ${refund} 🪙`);
+}
+
+// מסירים את העץ או הקישוט האחרון שנוסף לחלקה
+function removeDecorAt(c, r) {
+    const list = decorAt(c, r);
+    const id = list[list.length - 1];
+    const v = VARIANT_BY_ID[id];
+    const refund = Math.floor(v.price / 2);
+    if (list.length > 1) decor.set(key(c, r), list.slice(0, -1));
+    else decor.delete(key(c, r));
+    commit();
+    if (W && refund > 0) W.earn(refund, { reason: `החזר ${v.name}` });
+    feedback(`הורדתם ${v.name} מהחלקה (נשארו ${list.length - 1} מתוך ${DECOR_MAX}). הוחזרו ${refund} 🪙`);
 }
 
 // --- התחלה ---

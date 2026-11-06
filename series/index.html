@@ -78,7 +78,8 @@
         // מפתח בלי / ו-. כדי שאפשר יהיה לשמור אותו כמסמך בענן. המפתח הישן נקרא כגיבוי
         const storeKey = 'kidlearn-series-' + configUrl.replace(/[^\w-]/g, '_');
         const oldStoreKey = 'kidlearn-series-' + configUrl;
-        // כסף Kidlearn: סיום פרק עד הסוף = סיבוב אחד (REWARDS.round), פעם אחת לכל פרק. הרשימה נשמרת גם בענן
+        // כסף Kidlearn: סיום פרק עד הסוף = 30 מטבעות, פעם אחת לכל פרק. הרשימה נשמרת גם בענן
+        const EPISODE_REWARD = 30;
         const REWARD_KEY = 'kidlearn-series-rewarded';
         try { if (window.KidLearn) { KidLearn.init(); KidLearn.watchKeys([storeKey, REWARD_KEY]); } } catch (e) { /* בלי ענן הסדרה ממשיכה במכשיר */ }
         let videos = [], index = 0, player = null;
@@ -93,7 +94,7 @@
             paidEpisodes.add(id); // נרשם גם בזיכרון, כדי שלא ישולם פעמיים גם אם השמירה נכשלה
             try { localStorage.setItem(REWARD_KEY, JSON.stringify([...paidEpisodes])); } catch (e) {}
             if (window.KidLearn) KidLearn.backupKey(REWARD_KEY);
-            KidLearnWallet.earn(KidLearnWallet.REWARDS.round, { reason: 'סיימתם פרק' });
+            KidLearnWallet.earn(EPISODE_REWARD, { reason: 'סיימתם פרק' });
         }
 
         function goBack() {

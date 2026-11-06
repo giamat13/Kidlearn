@@ -1,5 +1,4 @@
-const ROUNDS = 10;
-const POINTS = 10;
+const POINTS = 10;   // בלי הגבלה על מספר השאלות: המשחק נמשך עד שלוחצים על סיום
 
 // דקות שמותר לתרגל, לפי הרמה שנבחרה
 const LEVELS = {
@@ -9,7 +8,8 @@ const LEVELS = {
 };
 
 let level = 'half';
-let round = 0;
+let round = 0;          // מספר השאלה הנוכחית
+let answeredCount = 0;  // כמה שאלות נענו (לסיכום בסיום)
 let score = 0;
 let correctCount = 0;
 let target = null;      // { h, m } — השעה שהשעון מראה
@@ -120,6 +120,7 @@ function startGame() {
     clearTimeout(nextTimer);
     level = document.querySelector('.opt.selected').dataset.level;
     round = 0;
+    answeredCount = 0;
     score = 0;
     correctCount = 0;
     showScreen('game-screen');
@@ -132,7 +133,7 @@ function nextRound() {
     hintUsed = false;
     target = randomTime();
 
-    $('qNum').textContent = `${round}/${ROUNDS}`;
+    $('qNum').textContent = round;
     $('score').textContent = score;
     $('feedback').textContent = '';
     $('hintBtn').disabled = false;
@@ -166,6 +167,7 @@ function useHint() {
 function answer(t, btn) {
     if (answered) return;
     answered = true;
+    answeredCount++;
     $('hintBtn').disabled = true;
 
     const right = fmt(target);
@@ -187,16 +189,16 @@ function answer(t, btn) {
     }
     $('score').textContent = score;
 
-    nextTimer = setTimeout(() => {
-        if (round >= ROUNDS) endGame();
-        else nextRound();
-    }, 1600);
+    nextTimer = setTimeout(nextRound, 1600);
 }
 
+// סיום המשחק (לחיצה על "סיום") והצגת הסיכום
 function endGame() {
+    clearTimeout(nextTimer);
+    const good = answeredCount > 0 && correctCount / answeredCount >= 0.7;
     $('finalScore').textContent = score;
-    $('endInfo').textContent = `${correctCount} מתוך ${ROUNDS} נכונות`;
-    $('endTitle').textContent = correctCount >= 7 ? 'כל הכבוד! 🎉' : 'יפה מאוד! המשיכו להתאמן 💪';
+    $('endInfo').textContent = `${correctCount} מתוך ${answeredCount} נכונות`;
+    $('endTitle').textContent = good ? 'כל הכבוד! 🎉' : 'יפה מאוד! המשיכו להתאמן 💪';
     showScreen('end-screen');
 }
 
@@ -211,6 +213,7 @@ document.querySelectorAll('.opt').forEach(btn => {
 $('startBtn').addEventListener('click', startGame);
 $('hintBtn').addEventListener('click', useHint);
 $('againBtn').addEventListener('click', startGame);
+$('stopBtn').addEventListener('click', endGame);
 $('setupBtn').addEventListener('click', () => {
     clearTimeout(nextTimer);
     showScreen('setup-screen');

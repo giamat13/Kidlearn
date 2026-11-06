@@ -1,9 +1,9 @@
-const ROUNDS = 10;
-const POINTS = 10;
+const POINTS = 10;   // בלי הגבלה על מספר השאלות: המשחק נמשך עד שלוחצים על סיום
 const EQUAL_CHANCE = 0.2;   // כמה אחוז מהסיבובים יהיו שני מספרים שווים
 
 let maxN = 20;
-let round = 0;
+let round = 0;          // מספר השאלה הנוכחית
+let answeredCount = 0;  // כמה שאלות נענו (לסיכום בסיום)
 let score = 0;
 let correctCount = 0;
 let a = 0;
@@ -44,7 +44,7 @@ function nextRound() {
     hintUsed = false;
     [a, b] = newPair();
 
-    $('qNum').textContent = `${round}/${ROUNDS}`;
+    $('qNum').textContent = round;
     $('score').textContent = score;
     $('numA').textContent = a;
     $('numB').textContent = b;
@@ -87,6 +87,7 @@ function useHint() {
 function answer(btn) {
     if (answered) return;
     answered = true;
+    answeredCount++;
     $('hintBtn').disabled = true;
 
     const chosen = btn.dataset.sign;
@@ -112,26 +113,27 @@ function answer(btn) {
     }
     $('score').textContent = score;
 
-    nextTimer = setTimeout(() => {
-        if (round >= ROUNDS) endGame();
-        else nextRound();
-    }, 1600);
+    nextTimer = setTimeout(nextRound, 1600);
 }
 
 function startGame() {
     clearTimeout(nextTimer);
     maxN = +document.querySelector('.opt.selected').dataset.max;
     round = 0;
+    answeredCount = 0;
     score = 0;
     correctCount = 0;
     showScreen('game-screen');
     nextRound();
 }
 
+// סיום המשחק (לחיצה על "סיום") והצגת הסיכום
 function endGame() {
+    clearTimeout(nextTimer);
+    const good = answeredCount > 0 && correctCount / answeredCount >= 0.7;
     $('finalScore').textContent = score;
-    $('endInfo').textContent = `${correctCount} מתוך ${ROUNDS} נכונות`;
-    $('endTitle').textContent = correctCount >= 7 ? 'כל הכבוד! 🎉' : 'יפה מאוד! המשיכו להתאמן 💪';
+    $('endInfo').textContent = `${correctCount} מתוך ${answeredCount} נכונות`;
+    $('endTitle').textContent = good ? 'כל הכבוד! 🎉' : 'יפה מאוד! המשיכו להתאמן 💪';
     showScreen('end-screen');
 }
 
@@ -149,6 +151,7 @@ document.querySelectorAll('.choice').forEach(btn => {
 $('startBtn').addEventListener('click', startGame);
 $('hintBtn').addEventListener('click', useHint);
 $('againBtn').addEventListener('click', startGame);
+$('stopBtn').addEventListener('click', endGame);
 $('setupBtn').addEventListener('click', () => {
     clearTimeout(nextTimer);
     showScreen('setup-screen');
