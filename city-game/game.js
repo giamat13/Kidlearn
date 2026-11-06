@@ -367,7 +367,27 @@ function buildingActive(c, r) {
     const cat = catAt(c, r);
     if (cat === 'school') return schoolActiveGids.has(schoolGid.get(key(c, r)));
     if (cat === 'road') return true;
+    if (cat === 'park') return parkActive(c, r);
     return roadNextTo(c, r);
+}
+
+// פארקים שנוגעים זה בזה (גם מסוגים שונים) הם פארק אחד גדול. מספיק שדרך תגיע לאחד מהם, והם כולם פעילים
+function parkActive(c, r) {
+    const seen = new Set([key(c, r)]);
+    const queue = [{ c, r }];
+    while (queue.length) {
+        const cur = queue.pop();
+        if (roadNextTo(cur.c, cur.r)) return true;
+        DIRS.forEach(d => {
+            const nc = cur.c + d.dc;
+            const nr = cur.r + d.dr;
+            const nk = key(nc, nr);
+            if (seen.has(nk) || catAt(nc, nr) !== 'park') return;
+            seen.add(nk);
+            queue.push({ c: nc, r: nr });
+        });
+    }
+    return false;
 }
 
 // סטטיסטיקה של העיר: כמה תושבים, כמה מבנים פעילים מכל קטגוריה, וכמה מחכים לדרך
@@ -380,7 +400,7 @@ function stats() {
         const v = VARIANT_BY_ID[id];
         if (!v || v.cat === 'road' || v.cat === 'school') continue;
         const { c, r } = parseKey(k);
-        if (!roadNextTo(c, r)) { inactive++; continue; }
+        if (!buildingActive(c, r)) { inactive++; continue; }
         pop += v.pop || 0;
         active[v.cat] = (active[v.cat] || 0) + 1;
     }
