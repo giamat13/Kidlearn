@@ -1,0 +1,78 @@
+/* ===========================
+   הלונה פארק — משחק אטרקציה בעיר
+   =========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Varela Round', Arial, sans-serif;
+  background: linear-gradient(135deg, #f3e5f5, #e3f2fd);
+  color: #2d2d4a;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.container { max-width: 640px; margin: 0 auto; text-align: center; }
+
+header { position: relative; padding-top: 8px; }
+.back-btn {
+  position: absolute; top: 0; right: 0;
+  background: #FF6B9D; color: #fff; border: none;
+  padding: 10px 16px; border-radius: 10px; cursor: pointer;
+  font: inherit; min-height: 44px;
+}
+h1 { font-size: 2rem; margin-top: 44px; }
+h2 { font-size: 1.1rem; margin-bottom: 8px; text-align: right; }
+.subtitle { color: #6b6b8a; margin: 6px 0 12px; }
+
+.balance {
+  display: inline-block; background: #fff8dc; border: 2px solid #f2b705; color: #7a5200;
+  border-radius: 20px; padding: 8px 18px; font-size: 1.1rem; margin-bottom: 8px;
+}
+.balance strong { font-size: 1.3rem; }
+
+.feedback { min-height: 2em; font-size: 1.1rem; font-weight: 700; margin: 6px 0; }
+.hint { color: #6b6b8a; font-size: 0.95rem; margin-bottom: 8px; text-align: right; }
+
+.panel { background: #fff; border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: right; }
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 480px) { .stats { grid-template-columns: 1fr; } }
+.stat { background: #fafafa; border-radius: 12px; padding: 8px 10px; }
+.stat b { display: block; font-size: 1.2rem; }
+.stat small { color: #6b6b8a; }
+.bar { height: 12px; background: #e0e0e0; border-radius: 999px; overflow: hidden; margin-top: 4px; }
+.bar > i { display: block; height: 100%; border-radius: 999px; }
+.bar.safe > i { background: linear-gradient(90deg, #ffcc80, #43a047); }
+.bar.queue > i { background: linear-gradient(90deg, #81d4fa, #e53935); }
+
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.chip, .act {
+  font: inherit; font-weight: 700; color: #2d2d4a; background: #fff;
+  border: 3px solid #8e24aa; border-radius: 999px; padding: 6px 14px; min-height: 44px; cursor: pointer;
+  box-shadow: 0 3px 0 #8e24aa;
+}
+.chip.on { background: #8e24aa; color: #fff; }
+.act:disabled, .card:disabled { opacity: 0.5; cursor: not-allowed; }
+.chip:focus-visible, .act:focus-visible, .card:focus-visible, .cell:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
+
+.park { display: grid; gap: 6px; }
+.cell {
+  font: inherit; font-size: 1.8rem; aspect-ratio: 1; min-height: 52px; cursor: pointer;
+  background: #f1f8e9; border: 2px dashed #aed581; border-radius: 12px;
+}
+.cell.has { background: #fff; border: 2px solid #ce93d8; }
+.cell.fun { box-shadow: 0 0 0 3px #ffd54f; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.card {
+  font: inherit; color: #2d2d4a; background: #fafafa; border: 3px solid transparent;
+  border-radius: 14px; padding: 8px; cursor: pointer; box-shadow: 0 2px 0 #d0cbe6;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 110px;
+}
+.card.selected { border-color: #8e24aa; background: #fbf3fd; }
+.card .icon { font-size: 1.8rem; }
+.card small { color: #6b6b8a; font-size: 0.78rem; }
+.card .price { color: #7a5200; margin-top: auto; }

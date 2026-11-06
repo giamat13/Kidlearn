@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הלונה פארק</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <button class="back-btn" onclick="window.location.href='../city-game/index.html'" data-gamepad-back>← חזרה לעיר</button>
+        <h1>🎡 הלונה פארק</h1>
+        <div class="balance">יש לכם <strong id="balance">0</strong> 🪙</div>
+        <p class="subtitle">קונים מתקנים וסידרו אותם בשטח. מבקרים משלמים כניסה או על כל מתקן. ההכנסה נכנסת לעיר לבד, גם כשאתם לא כאן.</p>
+    </header>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+
+    <section class="panel stats" id="stats" aria-live="polite"></section>
+
+    <section class="panel">
+        <h2>🎟️ תשלום ובטיחות</h2>
+        <div class="row" id="modes" role="group" aria-label="סוג תשלום"></div>
+        <div class="row" id="prices" role="group" aria-label="מחיר כרטיס כניסה"></div>
+        <div class="row">
+            <button class="act" id="inspectBtn">🛠️ בדיקת בטיחות</button>
+            <button class="act" id="expandBtn">➕ הרחבת השטח</button>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>🗺️ שטח הלונה פארק</h2>
+        <p class="hint" id="hint">בחרו מתקן מהחנות ולחצו על משבצת ריקה. לחיצה על מתקן מחזירה חצי ממחירו. מתקנים מסוגים שונים זה ליד זה נותנים בונוס.</p>
+        <div class="park" id="park" role="grid" aria-label="שטח הלונה פארק"></div>
+    </section>
+
+    <section class="panel">
+        <h2>🛒 חנות מתקנים</h2>
+        <div class="cards" id="shop"></div>
+    </section>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
+<script src="../shared/kidlearn-wallet.js"></script>
+<script src="../shared/kidlearn-attraction.js"></script>
+<script src="logic.js"></script>
+<script src="game.js"></script>
+<script src="../effects/gamepad-ui.js"></script>
+</body>
+</html>
