@@ -38,6 +38,7 @@ const CATS = [
     { id: 'school', name: 'חינוך',           icon: '🏫', color: '#fbc02d' },
     { id: 'shop',   name: 'חנויות',          icon: '🏪', color: '#ec407a' },
     { id: 'clinic', name: 'בריאות',          icon: '🏥', color: '#e53935' },
+    { id: 'civic', name: 'שירותי עיר', icon: '🚓', color: '#3949ab' },
     { id: 'park',   name: 'פנאי ופארקים',    icon: '🏞️', color: '#26a69a' },
     { id: 'props',  name: 'דברים קטנים',     icon: '⛲', color: '#8d6e63' },
 ];
@@ -73,6 +74,11 @@ const VARIANTS = [
     { id: 'clinic',     cat: 'clinic', name: 'מרפאה',       icon: '🏥', price: cheap(R.perfect),       eco: 0,    love: 'טוב לדעת שיש מרפאה קרובה', desc: 'טיפול בסיסי לתושבים' },
     { id: 'hospital',   cat: 'clinic', name: 'בית חולים',   icon: '🏨', price: cheap(R.round * 5),     eco: -0.5, love: 'בית החולים שומר על כולנו', desc: 'טיפול מורכב ודחוף' },
 
+    { id: 'police',    cat: 'civic',  name: 'תחנת משטרה',   icon: '🚓', price: cheap(R.perfect),       eco: 0,    love: 'בזכות המשטרה אנחנו מרגישים בטוחים', desc: 'שומרת על הסדר והביטחון בעיר' },
+    { id: 'fire',      cat: 'civic',  name: 'תחנת כיבוי',   icon: '🚒', price: cheap(R.round * 5),     eco: 0,    love: 'הכבאים תמיד מוכנים לעזור', desc: 'כבאים שמכבים שריפות' },
+    { id: 'ambulance', cat: 'civic',  name: 'תחנת אמבולנס', icon: '🚑', price: cheap(R.perfect),       eco: 0,    love: 'האמבולנס מגיע מהר כשצריך', desc: 'צוות חירום לכל מקרה' },
+    { id: 'post',      cat: 'civic',  name: 'דואר',         icon: '📮', price: cheap(R.level),         eco: 0,    love: 'הדואר מביא לנו מכתבים מכל העולם', desc: 'שולחים ומקבלים מכתבים' },
+    { id: 'library',   cat: 'civic',  name: 'ספרייה',       icon: '📚', price: cheap(R.round * 2),     eco: 0,    love: 'בספרייה יש המון ספרים לקרוא', desc: 'ספרים לכל הגילאים' },
     { id: 'park',       cat: 'park',   name: 'פארק',        icon: '🏞️', price: cheap(R.level),         eco: 2,    love: 'הפארק הוא המקום שאנחנו הכי אוהבים', desc: 'מקום לטיולים ולשחק' },
     { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: cheap(R.create),        eco: 1.5,  love: 'הגינה הקטנה מלאה פרחים וריח טוב', desc: 'פרחים וספסל' },
     { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: cheap(R.level),         eco: 1,    love: 'בגן השעשועים הילדים משחקים כל היום', desc: 'מגלשה ונדנדה' },
@@ -513,6 +519,7 @@ function buildCell(c, r) {
     else if (cat === 'school') buildSchool(group, c, r, v);
     else if (cat === 'shop') top = buildShop(group, c, r, v);
     else if (cat === 'clinic') top = buildClinic(group, c, r, v);
+    else if (cat === 'civic') top = buildCivic(group, c, r, v);
     else if (cat === 'park') buildPark(group, seed, v);
 
     // עצים וקישוטים קטנים: כמה שיש בחלקה, כל אחד במקומו
@@ -736,6 +743,62 @@ function buildClinic(group, c, r, v) {
     addDoorPath(b, roadNextTo(c, r), front);
     group.add(b);
     return h + 0.04;
+}
+
+// שירותי עיר: משטרה, כבאים, אמבולנס, דואר וספרייה. לכל אחד מבנה וצבעים משלו
+const CIVIC_STYLE = {
+    police:    { w: 0.72, h: 0.5,  body: '#eceff1', roof: '#1e4fa3' },
+    fire:      { w: 0.8,  h: 0.45, body: '#ef5350', roof: '#8e0000' },
+    ambulance: { w: 0.7,  h: 0.46, body: '#ffffff', roof: '#90a4ae' },
+    post:      { w: 0.7,  h: 0.42, body: '#ffd54f', roof: '#c62828' },
+    library:   { w: 0.72, h: 0.44, body: '#d7ccc8', roof: '#6d4c41' },
+};
+function buildCivic(group, c, r, v) {
+    const st = CIVIC_STYLE[v.id];
+    const b = new THREE.Group();
+    b.rotation.y = facingRot(c, r);
+    const h = st.h;
+    const front = st.w / 2 + 0.005;
+    let top = h + 0.04;
+    part(b, boxG(st.w, h, st.w), st.body, 0, h / 2, 0);
+    if (v.id === 'library') {
+        // גג משולש (פירמידה) ושני עמודים בחזית
+        part(b, coneG(st.w * 0.72, 0.2, 4), st.roof, 0, h + 0.1, 0).rotation.y = Math.PI / 4;
+        [-0.26, 0.26].forEach(x => part(b, cylG(0.03, 0.03, h * 0.9, 8), '#ffffff', x, h * 0.45, front));
+        top = h + 0.2;
+    } else {
+        part(b, boxG(st.w + 0.02, 0.04, st.w + 0.02), st.roof, 0, h + 0.02, 0);
+    }
+
+    if (v.id === 'police') {
+        // פס לבן ופנס כחול על הגג
+        part(b, boxG(st.w * 0.92, 0.05, 0.02), '#ffffff', 0, h * 0.62, front);
+        part(b, boxG(0.16, 0.08, 0.12), '#42a5f5', 0, h + 0.08, 0, { emissive: '#42a5f5', emissiveIntensity: 0.5 });
+        top = h + 0.12;
+    } else if (v.id === 'fire') {
+        // מגדל ייבוש צינורות ופתח גדול לרכבי הכיבוי
+        part(b, cylG(0.08, 0.08, 0.62, 10), '#ffcdd2', 0.2, h + 0.31, -0.2);
+        part(b, boxG(st.w * 0.5, h * 0.55, 0.02), '#37474f', 0, h * 0.28, front);
+        top = h + 0.62;
+    } else if (v.id === 'ambulance') {
+        // צלב אדום ופתח גדול לאמבולנס
+        part(b, boxG(0.24, 0.06, 0.02), '#e53935', 0, h * 0.7, front);
+        part(b, boxG(0.06, 0.22, 0.02), '#e53935', 0, h * 0.7, front);
+        part(b, boxG(st.w * 0.5, h * 0.5, 0.02), '#90a4ae', 0, h * 0.25, front);
+    } else if (v.id === 'post') {
+        // שלט דואר וקופסת דואר אדומה בחזית
+        part(b, boxG(0.3, 0.07, 0.02), '#1565c0', 0, h * 0.72, front);
+        part(b, boxG(0.12, 0.16, 0.12), '#e53935', 0.27, 0.08, front + 0.05);
+    } else {
+        // ספרייה: שלט קטן מעל הדלת
+        part(b, boxG(0.3, 0.06, 0.02), '#8d6e63', 0, h * 0.72, front);
+    }
+
+    // לרכבים יש פתח משלו. לשאר יש דלת רגילה
+    if (v.id !== 'fire' && v.id !== 'ambulance') part(b, boxG(0.16, 0.22, 0.02), '#6d4c41', 0, 0.11, front);
+    addDoorPath(b, roadNextTo(c, r), front);
+    group.add(b);
+    return top;
 }
 
 // פארק, גינה קטנה או גן שעשועים
