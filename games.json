@@ -597,6 +597,16 @@
       "devices": ["desktop"],
       "requiresExtension": true,
       "defaultOff": true
+    },
+    {
+      "id": "song-search-game",
+      "title": "חיפוש שירים 🎵",
+      "description": "חפש שיר לפי שם או זמר, תנגן ודרג את השירים האהובים עליך!",
+      "icon": "🎵",
+      "url": "song-search-game/index.html",
+      "categories": ["games"],
+      "grade": ["kindergarten", "first", "second", "third", "fourth", "fifth", "sixth"],
+      "devices": ["mobile", "tablet", "desktop"]
     }
   ]
 }
