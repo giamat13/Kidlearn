@@ -63,9 +63,9 @@ const VARIANTS = [
     { id: 'apt',        cat: 'apt',    name: 'בניין דירות', icon: '🏢', price: cheap(R.perfect),       eco: -0.5, pop: 6,  love: 'בבניין הדירות יש הרבה שכנים טובים', desc: 'הרבה משפחות בבניין אחד' },
     { id: 'tower',      cat: 'apt',    name: 'מגדל דירות',  icon: '🏙️', price: cheap(R.round * 5),     eco: -1,   pop: 12, love: 'מהמגדל הגבוה יש נוף יפה לכולם', desc: 'מגדל גבוה לעיר גדולה' },
 
-    { id: 'school',     cat: 'school', name: 'בית ספר יסודי', icon: '🏫', price: cheap(R.perfect),     eco: 0,    love: 'בית הספר עוזר לילדים ללמוד ולגדול', desc: 'לכיתות א׳ עד ו׳' },
-    { id: 'kinder',     cat: 'school', name: 'גן ילדים',    icon: '🧸', price: cheap(R.level),         eco: 0,    love: 'הגן הקטן מלא בצחוק של ילדים', desc: 'לגיל הרך' },
-    { id: 'highschool', cat: 'school', name: 'תיכון',       icon: '🎓', price: cheap(R.round * 5),     eco: 0,    love: 'התיכון מכין את הבוגרים של העיר', desc: 'לתלמידים בוגרים' },
+    { id: 'school',     cat: 'school', name: 'בית ספר יסודי', icon: '🏫', price: cheap(R.perfect),     eco: 1,    love: 'בית הספר עוזר לילדים ללמוד ולגדול', desc: 'לכיתות א׳ עד ו׳' },
+    { id: 'kinder',     cat: 'school', name: 'גן ילדים',    icon: '🧸', price: cheap(R.level),         eco: 0.5,  love: 'הגן הקטן מלא בצחוק של ילדים', desc: 'לגיל הרך' },
+    { id: 'highschool', cat: 'school', name: 'תיכון',       icon: '🎓', price: cheap(R.round * 5),     eco: 1,    love: 'התיכון מכין את הבוגרים של העיר', desc: 'לתלמידים בוגרים' },
 
     { id: 'shop',       cat: 'shop',   name: 'חנות',        icon: '🏪', price: cheap(R.level),         eco: -0.5, love: 'אנחנו אוהבים ללכת לחנות השכונתית', desc: 'חנות שכונתית' },
     { id: 'mini',       cat: 'shop',   name: 'מכולת',       icon: '🧺', price: cheap(R.create),        eco: 0,    love: 'המכולת הקטנה ליד הבית נוחה מאוד', desc: 'מכולת קטנה ליד הבית' },
@@ -101,6 +101,24 @@ const DEMANDS = [
     { id: 'clinic', pop: 12, icon: '🏥', text: 'מרפאה לחולים' },
     { id: 'park',   pop: 16, icon: '🏞️', text: 'פארק לטיולים' },
 ];
+
+// מעל 20 תושבים התושבים ממשיכים לבקש: כל סוג דורש עוד מבנים ככל שהעיר גדלה
+const LATE_POP = 20;
+const LATE_DEMANDS = [
+    { id: 'clinic', every: 10, icon: '🏥', text: 'עוד מרפאות לחולים' },
+    { id: 'school', every: 12, icon: '🏫', text: 'עוד בתי ספר וגנים' },
+    { id: 'shop',   every: 10, icon: '🏪', text: 'עוד חנויות קרובות לבית' },
+    { id: 'park',   every: 14, icon: '🏞️', text: 'עוד פארקים וגנים' },
+    { id: 'civic',  every: 10, icon: '🚓', text: 'עוד שירותי עיר: משטרה, כבאים, דואר' },
+];
+// רשימת הדרישות לפי מספר התושבים, וכמה מבנים מכל סוג צריך (need)
+function demandsNow(pop) {
+    if (pop < LATE_POP) return DEMANDS.map(d => ({ ...d, need: 1 }));
+    const lateIds = new Set(LATE_DEMANDS.map(d => d.id));
+    const list = DEMANDS.filter(d => !lateIds.has(d.id)).map(d => ({ ...d, need: 1 }));
+    LATE_DEMANDS.forEach(d => list.push({ ...d, pop: LATE_POP, need: Math.max(1, Math.floor(pop / d.every) - 1), late: true }));
+    return list;
+}
 
 // שכנים: צפון = -z, מזרח = +x, דרום = +z, מערב = -x
 const DIRS = [
@@ -402,8 +420,8 @@ function lovedKinds() {
 function happyScore(st, env, lovedCount) {
     if (st.pop <= 0) return 0;
     let h = 20;
-    DEMANDS.forEach(d => {
-        if (st.pop >= d.pop) h += st.active[d.id] > 0 ? 6 : -6;
+    demandsNow(st.pop).forEach(d => {
+        if (st.pop >= d.pop) h += (st.active[d.id] || 0) >= d.need ? 6 : -6;
     });
     h += env * 0.3;
     h += Math.min(16, lovedCount * 2);
@@ -434,9 +452,9 @@ function checkRewards() {
             notes.push(text);
         }
     };
-    DEMANDS.forEach(d => {
-        if (st.pop < d.pop || !(st.active[d.id] > 0)) return;
-        reward(d.id, R.round, `התושבים מרוצים: ${d.text}`);
+    demandsNow(st.pop).forEach(d => {
+        if (st.pop < d.pop || !((st.active[d.id] || 0) >= d.need)) return;
+        reward(d.late ? `late-${d.id}-${d.need}` : d.id, R.round, `התושבים מרוצים: ${d.text}`);
     });
     if (st.pop > 0 && m.env >= GOOD_LEVEL) reward('env-good', R.round, 'הסביבה ירוקה ונקייה!');
     if (st.pop > 0 && m.happy >= GOOD_LEVEL) reward('happy-good', R.round, 'התושבים מאושרים בעיר!');
@@ -520,7 +538,7 @@ function buildCell(c, r) {
     else if (cat === 'shop') top = buildShop(group, c, r, v);
     else if (cat === 'clinic') top = buildClinic(group, c, r, v);
     else if (cat === 'civic') top = buildCivic(group, c, r, v);
-    else if (cat === 'park') buildPark(group, seed, v);
+    else if (cat === 'park') buildPark(group, seed, v, parkSides(c, r));
 
     // עצים וקישוטים קטנים: כמה שיש בחלקה, כל אחד במקומו
     if (list.length) buildDecor(group, seed, list);
@@ -802,8 +820,17 @@ function buildCivic(group, c, r, v) {
 }
 
 // פארק, גינה קטנה או גן שעשועים
-function buildPark(group, seed, v) {
-    part(group, boxG(0.9, 0.02, 0.9), '#a5d6a7', 0, 0.01, 0);
+// חלקות פארק שכנות מתחברות לפארק אחד: בודקים לאילו כיוונים יש חלקת פארק שכנה
+function parkSides(c, r) {
+    const sides = {};
+    DIRS.forEach(d => { sides[d.name] = catAt(c + d.dc, r + d.dr) === 'park'; });
+    return sides;
+}
+function buildPark(group, seed, v, sides) {
+    // הדשא מתרחב עד הקו המשותף עם השכנה, כך שאין קו בין החלקות
+    const x0 = sides.W ? -0.5 : -0.45, x1 = sides.E ? 0.5 : 0.45;
+    const z0 = sides.N ? -0.5 : -0.45, z1 = sides.S ? 0.5 : 0.45;
+    part(group, boxG(x1 - x0, 0.02, z1 - z0), '#a5d6a7', (x0 + x1) / 2, 0.01, (z0 + z1) / 2);
     if (v.id === 'park') {
         part(group, cylG(0.2, 0.2, 0.03, 14), '#eceff1', 0, 0.015, 0);       // שפת הבריכה
         part(group, cylG(0.18, 0.18, 0.02, 14), '#4fc3f7', 0, 0.03, 0, { roughness: 0.2 });
@@ -1076,7 +1103,11 @@ function resize() {
 
 function animate() {
     requestAnimationFrame(animate);
+    const now = performance.now();
+    const dt = lastFrameMs ? Math.min(0.1, (now - lastFrameMs) / 1000) : 0;
+    lastFrameMs = now;
     controls.update();
+    if (scene) updateMovers(dt);
     renderer.render(scene, camera);
 }
 
@@ -1251,11 +1282,13 @@ function renderDemands(st) {
     const asking = [];
     const done = [];
     const soon = [];
-    DEMANDS.forEach(d => {
-        const ok = st.active[d.id] > 0;
-        if (st.pop < d.pop) soon.push(`${d.icon} ${d.text} (מ־${d.pop} תושבים)`);
-        else if (ok) done.push(`✅ ${d.icon} ${d.text}`);
-        else asking.push(`${d.icon} ${d.text}`);
+    demandsNow(st.pop).forEach(d => {
+        const have = st.active[d.id] || 0;
+        const ok = have >= d.need;
+        const text = d.need > 1 ? `${d.text} (יש ${have} מתוך ${d.need})` : d.text;
+        if (st.pop < d.pop) soon.push(`${d.icon} ${text} (מ־${d.pop} תושבים)`);
+        else if (ok) done.push(`✅ ${d.icon} ${text}`);
+        else asking.push(`${d.icon} ${text}`);
     });
 
     const lines = [];
@@ -1417,6 +1450,169 @@ function setDeleteMode(on) {
     $('hint').textContent = on
         ? 'מצב מחיקה: לחצו על חלקה כדי למחוק את כל מה שיש בה. מחזירים חצי מהמחיר. לחצו שוב על 🗑️ מחיקה כדי לחזור לבנייה.'
         : HINT_BASE;
+}
+
+// --- אנשים ומכוניות ברחובות: הולכים ונוסעים לאורך הכבישים שבבעלות הילד ---
+// אנשים גם עוצרים ומנפנפים, קופצים או מדברים עם מישהו. מכוניות רק נוסעות
+const MOVERS_PEOPLE_MAX = 14;
+const MOVERS_CARS_MAX = 6;
+const PEOPLE_SHIRTS = ['#e53935', '#1e88e5', '#43a047', '#fdd835', '#8e24aa', '#ff7043'];
+const PEOPLE_PANTS = ['#37474f', '#5d4037', '#1a237e'];
+const PEOPLE_SKINS = ['#f1c27d', '#8d5524', '#ffdbac'];
+const CAR_COLORS = ['#e53935', '#1e88e5', '#fdd835', '#ffffff', '#8e24aa', '#43a047'];
+// מי שביקש להפחית תנועה במערכת לא רואה אנשים ומכוניות שזזים
+const MOVERS_OFF = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const movers = [];
+let roadsNow = [];          // הכבישים שבבעלות הילד, מתעדכנים פעם בחצי שנייה
+let moversClock = 0;
+let lastFrameMs = 0;
+const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+function roadCellsNow() {
+    const list = [];
+    for (const [k, id] of buildings) {
+        const v = VARIANT_BY_ID[id];
+        if (v && v.cat === 'road') list.push(parseKey(k));
+    }
+    return list;
+}
+
+function makePerson() {
+    const g = new THREE.Group();
+    const shirt = pickRandom(PEOPLE_SHIRTS);
+    part(g, boxG(0.13, 0.16, 0.08), shirt, 0, 0.22, 0);                        // גוף
+    part(g, icoG(0.055), pickRandom(PEOPLE_SKINS), 0, 0.38, 0);               // ראש
+    part(g, boxG(0.12, 0.035, 0.1), '#3e2723', 0, 0.435, 0);                   // שיער
+    const pants = pickRandom(PEOPLE_PANTS);
+    // רגליים וזרועות על ציר בירך ובכתף, כך שהן מתנדנדות בהליכה
+    const legs = [-0.035, 0.035].map(x => {
+        const pivot = new THREE.Group();
+        pivot.position.set(x, 0.14, 0);
+        part(pivot, boxG(0.05, 0.14, 0.05), pants, 0, -0.07, 0);
+        g.add(pivot);
+        return pivot;
+    });
+    const arms = [-0.085, 0.085].map(x => {
+        const pivot = new THREE.Group();
+        pivot.position.set(x, 0.29, 0);
+        part(pivot, boxG(0.04, 0.16, 0.04), shirt, 0, -0.08, 0);
+        g.add(pivot);
+        return pivot;
+    });
+    return { kind: 'person', g, legs, arms, speed: 0.6 + Math.random() * 0.4, time: Math.random() * 10, phase: Math.random() * 6 };
+}
+
+function makeCar() {
+    const g = new THREE.Group();
+    part(g, boxG(0.2, 0.1, 0.36), pickRandom(CAR_COLORS), 0, 0.1, 0);          // גוף
+    part(g, boxG(0.16, 0.08, 0.18), '#b3e5fc', 0, 0.19, -0.02, { roughness: 0.3 }); // חלון
+    [[-0.1, 0.12], [0.1, 0.12], [-0.1, -0.12], [0.1, -0.12]].forEach(([x, z]) => {
+        const wheel = part(g, cylG(0.05, 0.05, 0.04, 8), '#263238', x, 0.05, z);
+        wheel.rotation.z = Math.PI / 2;
+    });
+    return { kind: 'car', g, speed: 1.2 + Math.random() * 0.5 };
+}
+
+// מעמידים את הדמות או המכונית על כביש אקראי
+function placeOnRoad(m) {
+    if (!roadsNow.length) return;
+    const s = pickRandom(roadsNow);
+    m.c = m.fromC = m.toC = s.c;
+    m.r = m.fromR = m.toR = s.r;
+    m.prevC = null; m.prevR = null;
+    m.t = 1; m.mode = 'walk'; m.timer = 0;
+}
+
+// בוחרים כביש שכן להמשיך אליו. לא חוזרים בחזרה אלא אם אין ברירה
+function chooseNext(m) {
+    const options = DIRS.map(d => ({ c: m.c + d.dc, r: m.r + d.dr })).filter(o => roadAt(o.c, o.r));
+    if (!options.length) return false;
+    const fresh = options.filter(o => o.c !== m.prevC || o.r !== m.prevR);
+    const next = pickRandom(fresh.length ? fresh : options);
+    m.fromC = m.c; m.fromR = m.r; m.toC = next.c; m.toR = next.r; m.t = 0;
+    return true;
+}
+
+function startAction(p, mode, seconds) { p.mode = mode; p.timer = seconds; }
+
+function poseStill(p) {
+    [...p.legs, ...p.arms].forEach(j => j.rotation.set(0, 0, 0));
+}
+
+function poseWalk(p, dt) {
+    p.phase += dt * 9 * p.speed;
+    const s = Math.sin(p.phase);
+    p.legs[0].rotation.set(s * 0.6, 0, 0);
+    p.legs[1].rotation.set(-s * 0.6, 0, 0);
+    p.arms[0].rotation.set(-s * 0.5, 0, 0);
+    p.arms[1].rotation.set(s * 0.5, 0, 0);
+}
+
+// הפעולה של אדם שעצר: מנפנף, קופץ או מדבר
+function stepAction(p, dt) {
+    p.timer -= dt;
+    p.g.position.set(p.c, 0, p.r);
+    poseStill(p);
+    if (p.mode === 'wave') p.arms[1].rotation.set(Math.PI * 0.9, 0, Math.sin(p.time * 12) * 0.4);
+    else if (p.mode === 'jump') p.g.position.y = Math.abs(Math.sin(p.time * 9)) * 0.14;
+    else p.arms[0].rotation.set(-0.6 + Math.sin(p.time * 5) * 0.25, 0, 0);
+    if (p.timer <= 0) {
+        p.mode = 'walk';
+        if (!chooseNext(p)) placeOnRoad(p);
+    }
+}
+
+function stepMover(m, dt) {
+    if (!roadAt(m.c, m.r)) { placeOnRoad(m); return; }
+    m.time = (m.time || 0) + dt;
+    if (m.mode !== 'walk') { stepAction(m, dt); return; }
+    m.t += dt * m.speed;
+    if (m.t >= 1) {
+        // הגענו לחלקה הבאה
+        m.prevC = m.c; m.prevR = m.r;
+        m.c = m.toC; m.r = m.toR; m.t = 0;
+        if (m.kind === 'person') {
+            const roll = Math.random();
+            if (roll < 0.1) { startAction(m, 'wave', 1.6); return; }
+            if (roll < 0.18) { startAction(m, 'jump', 1.0); return; }
+            if (roll < 0.25) { startAction(m, 'chat', 2.0); return; }
+        }
+        if (!chooseNext(m)) { placeOnRoad(m); return; }
+    }
+    const dx = m.toC - m.fromC;
+    const dz = m.toR - m.fromR;
+    m.g.position.set(m.fromC + dx * m.t, 0, m.fromR + dz * m.t);
+    if (dx || dz) m.g.rotation.y = Math.atan2(dx, dz);
+    if (m.kind === 'person') poseWalk(m, dt);
+}
+
+// מוסיפים או מסירים דמויות/מכוניות עד שיש מספר מתאים לגודל העיר
+function syncKind(kind, want, make) {
+    const have = movers.filter(m => m.kind === kind);
+    while (have.length < want) {
+        const m = make();
+        placeOnRoad(m);
+        scene.add(m.g);
+        movers.push(m);
+        have.push(m);
+    }
+    while (have.length > want) {
+        const m = have.pop();
+        scene.remove(m.g);
+        movers.splice(movers.indexOf(m), 1);
+    }
+}
+
+function updateMovers(dt) {
+    moversClock -= dt;
+    if (moversClock <= 0) {
+        moversClock = 0.5;
+        roadsNow = roadCellsNow();
+        const ok = !MOVERS_OFF && roadsNow.length >= 2;
+        syncKind('person', ok ? Math.min(MOVERS_PEOPLE_MAX, 1 + Math.floor(roadsNow.length / 2)) : 0, makePerson);
+        syncKind('car', ok ? Math.min(MOVERS_CARS_MAX, Math.floor(roadsNow.length / 4)) : 0, makeCar);
+    }
+    movers.forEach(m => stepMover(m, dt));
 }
 
 // --- התחלה ---
