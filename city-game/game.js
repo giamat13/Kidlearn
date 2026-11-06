@@ -1462,6 +1462,8 @@ const PEOPLE_SKINS = ['#f1c27d', '#8d5524', '#ffdbac'];
 const CAR_COLORS = ['#e53935', '#1e88e5', '#fdd835', '#ffffff', '#8e24aa', '#43a047'];
 // מי שביקש להפחית תנועה במערכת לא רואה אנשים ומכוניות שזזים
 const MOVERS_OFF = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+// אנשים הולכים על המדרכה, לצד הכביש (האספלט רחב כ-0.42 בחלקה)
+const SIDEWALK_OFFSET = 0.36;
 const movers = [];
 let roadsNow = [];          // הכבישים שבבעלות הילד, מתעדכנים פעם בחצי שנייה
 let moversClock = 0;
@@ -1479,6 +1481,7 @@ function roadCellsNow() {
 
 function makePerson() {
     const g = new THREE.Group();
+    g.scale.set(0.6, 0.6, 0.6);   // קטנים יותר
     const shirt = pickRandom(PEOPLE_SHIRTS);
     part(g, boxG(0.13, 0.16, 0.08), shirt, 0, 0.22, 0);                        // גוף
     part(g, icoG(0.055), pickRandom(PEOPLE_SKINS), 0, 0.38, 0);               // ראש
@@ -1499,7 +1502,10 @@ function makePerson() {
         g.add(pivot);
         return pivot;
     });
-    return { kind: 'person', g, legs, arms, speed: 0.6 + Math.random() * 0.4, time: Math.random() * 10, phase: Math.random() * 6 };
+    return {
+        kind: 'person', g, legs, arms, speed: 0.6 + Math.random() * 0.4, time: Math.random() * 10, phase: Math.random() * 6,
+        side: Math.random() < 0.5 ? -1 : 1, latX: 0, latZ: 0,   // לאיזה צד של הכביש, והיסט נוכחי מהמרכז
+    };
 }
 
 function makeCar() {
@@ -1510,7 +1516,7 @@ function makeCar() {
         const wheel = part(g, cylG(0.05, 0.05, 0.04, 8), '#263238', x, 0.05, z);
         wheel.rotation.z = Math.PI / 2;
     });
-    return { kind: 'car', g, speed: 1.2 + Math.random() * 0.5 };
+    return { kind: 'car', g, speed: 1.2 + Math.random() * 0.5, side: 0, latX: 0, latZ: 0 };
 }
 
 // מעמידים את הדמות או המכונית על כביש אקראי
@@ -1551,7 +1557,7 @@ function poseWalk(p, dt) {
 // הפעולה של אדם שעצר: מנפנף, קופץ או מדבר
 function stepAction(p, dt) {
     p.timer -= dt;
-    p.g.position.set(p.c, 0, p.r);
+    p.g.position.set(p.c + p.latX, 0, p.r + p.latZ);
     poseStill(p);
     if (p.mode === 'wave') p.arms[1].rotation.set(Math.PI * 0.9, 0, Math.sin(p.time * 12) * 0.4);
     else if (p.mode === 'jump') p.g.position.y = Math.abs(Math.sin(p.time * 9)) * 0.14;
@@ -1581,7 +1587,16 @@ function stepMover(m, dt) {
     }
     const dx = m.toC - m.fromC;
     const dz = m.toR - m.fromR;
-    m.g.position.set(m.fromC + dx * m.t, 0, m.fromR + dz * m.t);
+    // הולכים בצד הכביש, לא על האספלט. ההיסט זז בעדינות, כך שבפנייה אין קפיצה
+    const len = Math.hypot(dx, dz);
+    if (len) {
+        const tx = (-dz / len) * m.side * SIDEWALK_OFFSET;
+        const tz = (dx / len) * m.side * SIDEWALK_OFFSET;
+        const k = Math.min(1, dt * 6);
+        m.latX += (tx - m.latX) * k;
+        m.latZ += (tz - m.latZ) * k;
+    }
+    m.g.position.set(m.fromC + dx * m.t + m.latX, 0, m.fromR + dz * m.t + m.latZ);
     if (dx || dz) m.g.rotation.y = Math.atan2(dx, dz);
     if (m.kind === 'person') poseWalk(m, dt);
 }
