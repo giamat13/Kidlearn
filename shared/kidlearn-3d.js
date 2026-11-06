@@ -28,6 +28,7 @@
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
+    const size = opts.cellSize || 1;   // גודל חלקה בעולם (ברירת מחדל 1)
     const sky = opts.sky || '#bfe9ff';
     const scene = new T.Scene();
     scene.background = new T.Color(sky);
@@ -79,6 +80,7 @@
       new T.MeshBasicMaterial({ color: '#ffeb3b', transparent: true, opacity: 0.45, depthWrite: false })
     );
     hoverMesh.rotation.x = -Math.PI / 2;
+    hoverMesh.scale.set(size, size, 1);
     hoverMesh.position.y = 0.04;
     hoverMesh.visible = false;
     scene.add(hoverMesh);
@@ -94,14 +96,14 @@
       raycaster.setFromCamera(ndc, camera);
       const p = new T.Vector3();
       if (!raycaster.ray.intersectPlane(groundPlane, p)) return null;
-      const c = Math.round(p.x), r = Math.round(p.z);
-      return opts.hoverColor(c, r) ? { c, r } : null;
+      const c = Math.round(p.x / size), r = Math.round(p.z / size);
+      return opts.hoverColor(c, r) ? { c, r, x: p.x, z: p.z } : null;
     }
     function updateHover(e) {
       const cell = cellAt(e);
       if (!cell) { hoverMesh.visible = false; return; }
-      hoverMesh.position.x = cell.c;
-      hoverMesh.position.z = cell.r;
+      hoverMesh.position.x = cell.c * size;
+      hoverMesh.position.z = cell.r * size;
       hoverMesh.material.color.set(opts.hoverColor(cell.c, cell.r));
       hoverMesh.visible = true;
     }
@@ -123,7 +125,7 @@
       pointers.delete(e.pointerId);
       if (!isTap) return;
       const cell = cellAt(e);
-      if (cell && opts.onTap) opts.onTap(cell.c, cell.r);
+      if (cell && opts.onTap) opts.onTap(cell.c, cell.r, cell.x, cell.z);
     });
     canvas.addEventListener('pointercancel', (e) => { dragged = true; pointers.delete(e.pointerId); });
     canvas.addEventListener('pointerleave', () => { hoverMesh.visible = false; });
@@ -137,10 +139,10 @@
     }
     function fit() {
       const b = opts.bounds();
-      const cx = (b.minC + b.maxC) / 2, cz = (b.minR + b.maxR) / 2;
+      const cx = (b.minC + b.maxC) / 2 * size, cz = (b.minR + b.maxR) / 2 * size;
       controls.target.set(cx, 0, cz);
       // שטח קטן: המצלמה קרובה יותר, כדי שהגן לא ייראה זעיר
-      const k = Math.max(0.6, Math.min(1.5, (Math.max(b.maxC - b.minC, b.maxR - b.minR) + 3) / 7));
+      const k = Math.max(0.6, Math.min(1.5, (Math.max(b.maxC - b.minC, b.maxR - b.minR) * size + 3) / 7));
       camera.position.set(cx, 6.4 * k, cz + 6.6 * k);
       controls.update();
     }
