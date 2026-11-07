@@ -53,15 +53,9 @@
     color:var(--ink);font-family:inherit;font-size:14px;cursor:pointer}
   .day-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-  .clock-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:18px;
     padding-bottom:18px;border-bottom:1px dashed var(--sky-dark)}
-  .clock-hint{font-size:12px;color:var(--muted)}
-  #pick-clock{touch-action:none;cursor:grab;user-select:none}
-  .clock-controls{display:flex;align-items:center;gap:10px}
-  .clock-readout{font-family:'Suez One',serif;font-size:1.1rem;color:var(--accent);min-width:70px}
-  #ampm-toggle{padding:7px 14px;font-size:16px;border:2px solid var(--sky-dark);border-radius:999px;
-    background:#fff;cursor:pointer;font-family:inherit}
 
+  .rain-note{font-size:14px;color:var(--ink);margin:6px 0 0}
   .sunset-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;
     padding-top:14px;border-top:1px dashed var(--sky-dark);font-size:14px;color:var(--ink)}
 </style>
@@ -80,20 +74,6 @@
     <button type="button" class="day-btn" data-offset="0">היום</button>
     <button type="button" class="day-btn" data-offset="1">מחר</button>
     <button type="button" class="day-btn" data-offset="2">מחרתיים</button>
-  </div>
-
-  <div class="clock-wrap">
-    <svg id="pick-clock" width="140" height="140" viewBox="0 0 140 140" aria-hidden="true">
-      <circle cx="70" cy="70" r="66" fill="#fff" stroke="#dbe6ec" stroke-width="3"/>
-      <g id="clock-ticks"></g>
-      <line id="clock-hand" x1="70" y1="70" x2="70" y2="26" stroke="#1E88C7" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="70" cy="70" r="5" fill="#1E88C7"/>
-    </svg>
-    <div class="clock-controls">
-      <button type="button" id="ampm-toggle"></button>
-      <span class="clock-readout" id="clock-readout"></span>
-    </div>
-    <div class="clock-hint">גררו את המחוג לשעה שמעניינת אתכם</div>
   </div>
 
   <div id="weather-box"><p class="loading">טוען...</p></div>
@@ -152,18 +132,19 @@ function shirtIcon(long) {
   </svg>`;
 }
 // Outfit decisions look at the whole day's forecast (min/max temp, whether
-// it rains or snows at ANY hour that day), not just the moment the clock is
-// set to - a kid heading out in the morning still needs to know it'll rain
+// it rains or snows at ANY hour that day), not just a single moment
+// - a kid heading out in the morning still needs to know it'll rain
 // in the afternoon, or that a currently-warm evening started off cold.
 function outfitFor(dayStats, uvMax) {
-  const { minTemp, maxTemp, hasRain, hasSnow } = dayStats;
+  const { minTemp, maxTemp, hasRain, maybeRain, hasSnow } = dayStats;
   return {
     shirtLong: minTemp < 20,
     pantsLong: minTemp < 22,
     // Sandals go by the day's HOT end, not the cold end - if it gets hot at
     // any point, that's sandal weather, as long as it won't be rained/snowed on.
-    sandals: maxTemp >= 24 && !hasRain && !hasSnow,
+    sandals: maxTemp >= 24 && !hasRain && !maybeRain && !hasSnow,
     umbrella: hasRain,
+    maybeUmbrella: maybeRain,
     coat: minTemp < 10 || hasSnow,
     sweater: minTemp >= 10 && minTemp < 16,
     // Sourced cutoffs (see the guides checked for this card):
@@ -194,6 +175,7 @@ function outfitRows(dayStats, uvMax) {
   }
   if (out.hot) rows.push({ icon: "💧", text: "בקבוק מים" });
   if (out.umbrella) rows.push({ icon: "☂️", text: "מטרייה" });
+  else if (out.maybeUmbrella) rows.push({ icon: "☂️", text: "אולי מטרייה, למקרה שירד גשם" });
   if (out.coat) rows.push({ icon: "🧥", text: out.umbrella ? "מעיל עמיד למים" : "מעיל" });
   if (out.sweater) rows.push({ icon: "🧶", text: "סווצ'ר" });
   if (out.freezing) rows.push({ icon: "🧤", text: "כפפות וצעיף חם" });
@@ -214,87 +196,65 @@ function outfitTips(dayStats, uvMax) {
 }
 
 // Forecast for today + the next 2 days, at hourly resolution, fetched once.
-// The day buttons and the draggable clock just pick an (offset, hour) into
-// this already-downloaded data - no extra request per selection.
 let weatherData = null;
 let selectedOffset = 0;
-let selectedHour = new Date().getHours();
-let isPM = selectedHour >= 12;
-
-function staticClockSvg(hour24, minute) {
-  const hourAngle = ((hour24 % 12) + minute / 60) * 30;
-  const minuteAngle = minute * 6;
-  let numbers = "";
-  for (let h = 1; h <= 12; h++) {
-    const angle = (h / 12) * 2 * Math.PI - Math.PI / 2;
-    const x = 70 + Math.cos(angle) * 52;
-    const y = 70 + Math.sin(angle) * 52;
-    numbers += `<text x="${x}" y="${y + 5}" font-size="13" text-anchor="middle" fill="#22303A">${h}</text>`;
-  }
-  return `<svg width="110" height="110" viewBox="0 0 140 140" aria-hidden="true">
-    <circle cx="70" cy="70" r="66" fill="#fff" stroke="#dbe6ec" stroke-width="3"/>
-    ${numbers}
-    <line x1="70" y1="70" x2="70" y2="32" stroke="#F2994A" stroke-width="5" stroke-linecap="round"
-      transform="rotate(${hourAngle} 70 70)"/>
-    <line x1="70" y1="70" x2="70" y2="20" stroke="#7B8C97" stroke-width="3" stroke-linecap="round"
-      transform="rotate(${minuteAngle} 70 70)"/>
-    <circle cx="70" cy="70" r="5" fill="#22303A"/>
-  </svg>`;
-}
 
 function dayStartIndex(offset) {
   const dayStr = weatherData.daily.time[offset];
   return weatherData.hourly.time.findIndex((t) => t.slice(0, 10) === dayStr);
 }
-function hourlyIndex(offset, hour) {
-  return dayStartIndex(offset) + hour;
-}
-// Only waking hours count toward the outfit recommendation - a cold 3am
-// doesn't mean pack a coat, nobody's outside then.
+// Only waking hours count - a cold or rainy 3am doesn't matter, nobody's outside.
 const WAKE_START_HOUR = 7;
 const WAKE_END_HOUR = 21; // exclusive
+// Rain is only stated when the chance is fairly high; a middling chance says
+// "maybe rain"; anything lower is ignored.
+const RAIN_SURE_PCT = 60;
+const RAIN_MAYBE_PCT = 40;
 function dayStats(offset) {
   const start = dayStartIndex(offset) + WAKE_START_HOUR;
   const count = WAKE_END_HOUR - WAKE_START_HOUR;
-  const temps = weatherData.hourly.temperature_2m.slice(start, start + count);
-  const codes = weatherData.hourly.weathercode.slice(start, start + count);
+  const h = weatherData.hourly;
+  const temps = h.temperature_2m.slice(start, start + count);
+  const codes = h.weathercode.slice(start, start + count);
+  const probs = h.precipitation_probability.slice(start, start + count);
+  let rainProb = 0, snowProb = 0;
+  codes.forEach((c, i) => {
+    const p = probs[i] || 0;
+    if (RAIN_CODES.includes(c)) rainProb = Math.max(rainProb, p);
+    if (SNOW_CODES.includes(c)) snowProb = Math.max(snowProb, p);
+  });
+  // Most common non-precipitation code = the day's general look.
+  const tally = {};
+  codes.forEach((c) => {
+    if (RAIN_CODES.includes(c) || SNOW_CODES.includes(c)) return;
+    tally[c] = (tally[c] || 0) + 1;
+  });
+  const top = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
   return {
     minTemp: Math.min(...temps),
     maxTemp: Math.max(...temps),
-    hasRain: codes.some((c) => RAIN_CODES.includes(c)),
-    hasSnow: codes.some((c) => SNOW_CODES.includes(c)),
+    hasRain: rainProb >= RAIN_SURE_PCT,
+    maybeRain: rainProb >= RAIN_MAYBE_PCT && rainProb < RAIN_SURE_PCT,
+    hasSnow: snowProb >= RAIN_MAYBE_PCT,
+    baseCode: top === undefined ? 1 : Number(top),
   };
 }
 
 function renderForSelection() {
   const box = document.getElementById("weather-box");
   if (!weatherData) return;
-  const idx = hourlyIndex(selectedOffset, selectedHour);
-  const temp = Math.round(weatherData.hourly.temperature_2m[idx]);
-  const code = weatherData.hourly.weathercode[idx];
+  const stats = dayStats(selectedOffset);
   const uvMax = weatherData.daily.uv_index_max[selectedOffset];
-  let [emoji, label] = WEATHER_CODES[code] || ["🌡️", "מזג אוויר"];
+  const minT = Math.round(stats.minTemp), maxT = Math.round(stats.maxTemp);
+
+  let [emoji, label] = WEATHER_CODES[stats.baseCode] || ["🌡️", "מזג אוויר"];
+  if (stats.hasSnow) { emoji = "🌨️"; label = "שלג"; }
+  else if (stats.hasRain) { emoji = "🌧️"; label = "גשם"; }
+  else if (stats.maybeRain) { emoji = "🌦️"; label = `${label}, אולי גשם`; }
 
   const [sh, sm] = weatherData.daily.sunset[selectedOffset].split("T")[1].split(":").map(Number);
-  const now = new Date();
-  const isToday = selectedOffset === 0;
-  const minsToSunset = isToday ? sh * 60 + sm - (now.getHours() * 60 + now.getMinutes()) : null;
-  const sunsetText = isToday && minsToSunset > 0
-    ? `שקיעה בעוד ${Math.floor(minsToSunset / 60)} שעות ו-${minsToSunset % 60} דקות (${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")})`
-    : `שקיעה בשעה ${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`;
+  const sunsetText = `שקיעה בשעה ${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`;
 
-  // Night = before sunrise (early morning) or after sunset. Any icon starting
-  // with the sun glyph (clear, partly cloudy, sunny showers, ...) gets just
-  // the sun swapped for the moon phase, keeping the rest of the icon
-  // (clouds, rain, ...) as-is.
-  const [rh, rm] = weatherData.daily.sunrise[selectedOffset].split("T")[1].split(":").map(Number);
-  const selectedMinutes = selectedHour * 60;
-  const isNight = selectedMinutes < rh * 60 + rm || selectedMinutes >= sh * 60 + sm;
-  if (emoji.startsWith("☀️") && isNight) {
-    emoji = moonPhaseFor(selectedOffset)[0] + emoji.slice("☀️".length);
-  }
-
-  const stats = dayStats(selectedOffset);
   box.innerHTML = `
     <div class="thermo-row">
       <svg width="46" height="140" viewBox="0 0 46 140" aria-hidden="true">
@@ -305,70 +265,22 @@ function renderForSelection() {
       </svg>
       <div>
         <div class="weather-emoji">${emoji}</div>
-        <div class="weather-temp">${temp}°C</div>
+        <div class="weather-temp">${minT}°–${maxT}°C</div>
         <div class="weather-label">${label}</div>
       </div>
     </div>
-    <div class="outfit-title">מה ללבוש היום? (לפי כל היום, לא רק השעה שנבחרה)</div>
+    <div class="outfit-title">מה ללבוש היום? (לפי כל היום)</div>
     <div class="outfit-list">${outfitRows(stats, uvMax).map((r) =>
       `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
     ).join("")}</div>
     ${outfitTips(stats, uvMax).map((t) => `<p class="outfit-tip">${t}</p>`).join("")}
-    <div class="sunset-row">${staticClockSvg(sh, sm)}<span>🌇 ${sunsetText}</span></div>
+    <div class="sunset-row"><span>🌇 ${sunsetText}</span></div>
   `;
-  renderThermometer(temp);
+  renderThermometer(maxT);
   document.getElementById("weather-card").style.backgroundColor =
-    temp >= 25 ? "#FFF6EC" : temp < 10 ? "#EEF6FC" : "#fff";
+    maxT >= 25 ? "#FFF6EC" : maxT < 10 ? "#EEF6FC" : "#fff";
 }
 
-function buildClockFace() {
-  const g = document.getElementById("clock-ticks");
-  let svg = "";
-  for (let h = 1; h <= 12; h++) {
-    const angle = (h / 12) * 2 * Math.PI - Math.PI / 2;
-    const x = 70 + Math.cos(angle) * 52;
-    const y = 70 + Math.sin(angle) * 52;
-    svg += `<text x="${x}" y="${y + 5}" font-size="13" text-anchor="middle" fill="#22303A">${h === 12 ? 12 : h}</text>`;
-  }
-  g.innerHTML = svg;
-}
-function updateClockUi() {
-  const hour12 = selectedHour % 12;
-  const hand = document.getElementById("clock-hand");
-  hand.style.transformOrigin = "70px 70px";
-  hand.style.transform = `rotate(${hour12 * 30}deg)`;
-  document.getElementById("ampm-toggle").textContent = isPM ? "🌙 אחה״צ/ערב" : "☀️ בוקר/צהריים";
-  document.getElementById("clock-readout").textContent = `${String(selectedHour).padStart(2, "0")}:00`;
-}
-function angleToHour12(svg, clientX, clientY) {
-  const rect = svg.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  let angle = Math.atan2(clientY - cy, clientX - cx) + Math.PI / 2;
-  if (angle < 0) angle += 2 * Math.PI;
-  return Math.round((angle / (2 * Math.PI)) * 12) % 12;
-}
-function setupClock() {
-  buildClockFace();
-  const svg = document.getElementById("pick-clock");
-  let dragging = false;
-  const handlePointer = (e) => {
-    const hour12 = angleToHour12(svg, e.clientX, e.clientY);
-    selectedHour = hour12 + (isPM ? 12 : 0);
-    updateClockUi();
-    renderForSelection();
-  };
-  svg.addEventListener("pointerdown", (e) => { dragging = true; svg.setPointerCapture(e.pointerId); handlePointer(e); });
-  svg.addEventListener("pointermove", (e) => { if (dragging) handlePointer(e); });
-  svg.addEventListener("pointerup", () => { dragging = false; });
-  document.getElementById("ampm-toggle").onclick = () => {
-    isPM = !isPM;
-    selectedHour = (selectedHour % 12) + (isPM ? 12 : 0);
-    updateClockUi();
-    renderForSelection();
-  };
-  updateClockUi();
-}
 function setupDayButtons() {
   document.querySelectorAll(".day-btn").forEach((btn) => {
     if (btn.dataset.offset === "0") btn.classList.add("selected");
@@ -384,10 +296,9 @@ function setupDayButtons() {
 async function loadWeather(lat, lon) {
   const box = document.getElementById("weather-box");
   try {
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&daily=uv_index_max,sunrise,sunset&timezone=auto&forecast_days=3`);
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode,precipitation_probability&daily=uv_index_max,sunrise,sunset&timezone=auto&forecast_days=3`);
     if (!res.ok) throw new Error("weather fetch failed");
     weatherData = await res.json();
-    setupClock();
     setupDayButtons();
     renderForSelection();
   } catch {
