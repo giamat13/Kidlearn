@@ -154,7 +154,11 @@ function outfitFor(dayStats, uvMax) {
     hot: maxTemp >= 25,
     // - WHO / Australian guidance: sun protection from UV index 3 and up
     //   (sunscreen, hat, sunglasses). Clouds only filter UV partly.
-    sun: uvMax >= 3,
+    sun: uvMax >= 3 && !hasRain && !hasSnow,
+    // Rain or snow: boots instead of shoes.
+    boots: hasRain || hasSnow,
+    // Cold enough for a wool hat (a bit above the "freezing" gloves cutoff).
+    woolHat: minTemp <= 8,
   };
 }
 // Shirt/pants/shoes always show, state told by both the symbol and the word.
@@ -164,15 +168,14 @@ function outfitRows(dayStats, uvMax) {
   const rows = [
     { icon: shirtIcon(out.shirtLong), text: `חולצה ${out.shirtLong ? "ארוכה" : "קצרה"}` },
     { icon: out.pantsLong ? "👖" : "🩳", text: `מכנסיים ${out.pantsLong ? "ארוכים" : "קצרים"}` },
-    { icon: out.sandals ? "👡" : "👟", text: out.sandals ? "סנדלים" : "נעליים" },
+    { icon: out.boots ? "🥾" : out.sandals ? "👡" : "👟", text: out.boots ? "מגפיים" : out.sandals ? "סנדלים" : "נעליים" },
   ];
   if (out.sun) {
     rows.push({ icon: "🧴", text: "קרם הגנה" });
     rows.push({ icon: "🕶️", text: "משקפי שמש" });
   }
-  if (out.freezing || out.sun) {
-    rows.push({ icon: out.freezing ? "🧢" : "👒", text: out.freezing ? "כובע חם" : "כובע (מגן מהשמש)" });
-  }
+  if (out.woolHat) rows.push({ icon: "🧢", text: "כובע צמר" });
+  else if (out.sun) rows.push({ icon: "👒", text: "כובע (מגן מהשמש)" });
   if (out.hot) rows.push({ icon: "💧", text: "בקבוק מים" });
   if (out.umbrella) rows.push({ icon: "☂️", text: "מטרייה" });
   else if (out.maybeUmbrella) rows.push({ icon: "☂️", text: "אולי מטרייה, למקרה שירד גשם" });
@@ -185,12 +188,12 @@ function outfitRows(dayStats, uvMax) {
 // chills, layers should be easy to take off indoors, pale loose clothes and
 // frequent water in heat, clouds don't block UV, wet kids get cold faster.
 function outfitTips(dayStats, uvMax) {
-  const { minTemp, maxTemp, hasRain } = dayStats;
+  const { minTemp, maxTemp, hasRain, hasSnow } = dayStats;
   const tips = [];
   if (minTemp < 10) tips.push("בקור: שכבות דקות. תחתונית של צמר או סינטטי (לא כותנה, היא נשארת רטובה), שכבת פליז באמצע, ומעיל עמיד לרוח ולגשם למעלה.");
   if (minTemp < 10) tips.push("בתוך הבית מתחממים מהר, לכן כדאי שכבות שקל להוריד.");
   if (maxTemp >= 25) tips.push("בחום: בגדים בהירים, רפויים ודקים. שתו כל כ-20 דקות והביאו יותר מבקבוק אחד.");
-  if (uvMax >= 3) tips.push("גם כשיש עננים השמש פוגעת. הצל בשעות 10–16, כובע וקרם הגנה עוזרים.");
+  if (uvMax >= 3 && !hasRain && !hasSnow) tips.push("גם כשיש עננים השמש פוגעת. הצל בשעות 10–16, כובע וקרם הגנה עוזרים.");
   if (hasRain) tips.push("בגשם חשוב להישאר יבשים, כי ילד רטוב מתקרר מהר.");
   return tips;
 }
@@ -198,6 +201,27 @@ function outfitTips(dayStats, uvMax) {
 // Forecast for today + the next 2 days, at hourly resolution, fetched once.
 let weatherData = null;
 let selectedOffset = 0;
+
+function staticClockSvg(hour24, minute) {
+  const hourAngle = ((hour24 % 12) + minute / 60) * 30;
+  const minuteAngle = minute * 6;
+  let numbers = "";
+  for (let h = 1; h <= 12; h++) {
+    const angle = (h / 12) * 2 * Math.PI - Math.PI / 2;
+    const x = 70 + Math.cos(angle) * 52;
+    const y = 70 + Math.sin(angle) * 52;
+    numbers += `<text x="${x}" y="${y + 5}" font-size="13" text-anchor="middle" fill="#22303A">${h}</text>`;
+  }
+  return `<svg width="110" height="110" viewBox="0 0 140 140" aria-hidden="true">
+    <circle cx="70" cy="70" r="66" fill="#fff" stroke="#dbe6ec" stroke-width="3"/>
+    ${numbers}
+    <line x1="70" y1="70" x2="70" y2="32" stroke="#F2994A" stroke-width="5" stroke-linecap="round"
+      transform="rotate(${hourAngle} 70 70)"/>
+    <line x1="70" y1="70" x2="70" y2="20" stroke="#7B8C97" stroke-width="3" stroke-linecap="round"
+      transform="rotate(${minuteAngle} 70 70)"/>
+    <circle cx="70" cy="70" r="5" fill="#22303A"/>
+  </svg>`;
+}
 
 function dayStartIndex(offset) {
   const dayStr = weatherData.daily.time[offset];
@@ -288,7 +312,7 @@ function renderForSelection() {
       `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
     ).join("")}</div>
     ${outfitTips(stats, uvMax).map((t) => `<p class="outfit-tip">${t}</p>`).join("")}
-    <div class="sunset-row"><span>🌇 ${sunsetText}</span></div>
+    <div class="sunset-row">${staticClockSvg(sh, sm)}<span>🌇 ${sunsetText}</span></div>
   `;
   renderThermometer(maxT);
   document.getElementById("weather-card").style.backgroundColor =
