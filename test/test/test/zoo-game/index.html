@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>גן החיות</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <button class="back-btn" onclick="window.location.href='../city-game/index.html'" data-gamepad-back>← חזרה לעיר</button>
+        <h1>🦁 גן החיות</h1>
+        <div class="balance">יש לכם <strong id="balance">0</strong> 🪙</div>
+        <p class="subtitle">קונים חיות, מטפלים בהן, ומבקרים משלמים כניסה. ההכנסה נכנסת לעיר לבד, גם כשאתם לא כאן.</p>
+    </header>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+
+    <section class="panel stats" id="stats" aria-live="polite"></section>
+
+    <section class="panel">
+        <h2>🏞️ הגדרות הגן</h2>
+        <div class="row" id="prices" role="group" aria-label="מחיר כרטיס כניסה"></div>
+        <div class="row">
+            <button class="act" id="feedBtn">🥕 האכלה</button>
+            <button class="act" id="cleanBtn">🧹 ניקיון</button>
+            <button class="act" id="expandBtn">➕ הרחבת הגן</button>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>🐾 החיות בגן</h2>
+        <div class="zoo" id="zoo"></div>
+    </section>
+
+    <section class="panel">
+        <h2>🛒 קניית חיות</h2>
+        <div class="cards" id="shop"></div>
+    </section>
+
+    <p class="counts" id="note"></p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
+<script src="../shared/kidlearn-wallet.js"></script>
+<script src="../shared/kidlearn-attraction.js"></script>
+<script src="logic.js"></script>
+<script src="game.js"></script>
+<script src="../effects/gamepad-ui.js"></script>
+</body>
+</html>

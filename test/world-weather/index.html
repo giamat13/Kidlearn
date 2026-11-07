@@ -210,6 +210,18 @@ const WAKE_END_HOUR = 21; // exclusive
 // "maybe rain"; anything lower is ignored.
 const RAIN_SURE_PCT = 60;
 const RAIN_MAYBE_PCT = 40;
+// A different sentence for each chance band. Below RAIN_MAYBE_PCT: nothing.
+const RAIN_PHRASES = [
+  [90, "כמעט בטוח שירד גשם. קחו מטרייה ומעיל!"],
+  [75, "כנראה שירד גשם, כדאי לקחת מטרייה."],
+  [60, "סביר שירד גשם, עדיף להיות מוכנים."],
+  [50, "יכול להיות שירד גשם, בערך חצי חצי."],
+  [40, "אולי ירד קצת גשם, אבל לא בטוח."],
+];
+function rainPhrase(pct) {
+  const hit = RAIN_PHRASES.find(([min]) => pct >= min);
+  return hit ? hit[1] : "";
+}
 function dayStats(offset) {
   const start = dayStartIndex(offset) + WAKE_START_HOUR;
   const count = WAKE_END_HOUR - WAKE_START_HOUR;
@@ -236,6 +248,7 @@ function dayStats(offset) {
     hasRain: rainProb >= RAIN_SURE_PCT,
     maybeRain: rainProb >= RAIN_MAYBE_PCT && rainProb < RAIN_SURE_PCT,
     hasSnow: snowProb >= RAIN_MAYBE_PCT,
+    rainProb,
     baseCode: top === undefined ? 1 : Number(top),
   };
 }
@@ -269,6 +282,7 @@ function renderForSelection() {
         <div class="weather-label">${label}</div>
       </div>
     </div>
+    ${rainPhrase(stats.rainProb) ? `<p class="rain-note">☔ ${rainPhrase(stats.rainProb)} (${Math.round(stats.rainProb)}%)</p>` : ""}
     <div class="outfit-title">מה ללבוש היום? (לפי כל היום)</div>
     <div class="outfit-list">${outfitRows(stats, uvMax).map((r) =>
       `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
