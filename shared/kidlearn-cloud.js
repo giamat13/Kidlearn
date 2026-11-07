@@ -196,6 +196,11 @@
       });
       return ref.id;
     },
+    // Merge extra fields onto a contact (e.g. { city, lat, lon } used by the weather game).
+    async update(contactId, fields) {
+      requireAuth();
+      await db.collection("users").doc(auth.currentUser.uid).collection("contacts").doc(contactId).set(fields, { merge: true });
+    },
     async remove(contactId) {
       requireAuth();
       await db.collection("users").doc(auth.currentUser.uid).collection("contacts").doc(contactId).delete();

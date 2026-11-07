@@ -55,6 +55,20 @@
 
     padding-bottom:18px;border-bottom:1px dashed var(--sky-dark)}
 
+  .day-row{flex-wrap:wrap}
+  .place-row .row-label{width:100%;font-size:13px;color:var(--muted)}
+  .rain-times{font-size:14px;margin:8px 0 0;line-height:1.9}
+  .show-clock{padding:2px 10px;border:1.5px solid var(--sky-dark);border-radius:999px;background:#fff;
+    font-family:inherit;font-size:12px;color:var(--accent);cursor:pointer}
+  .mini-clock{display:block}
+  .mini-clock svg{width:80px;height:80px}
+  .activity{background:#FFF6EC;border-radius:12px;padding:10px 14px;margin:14px 0 0;font-size:14px;text-align:start}
+  #city-editor summary{cursor:pointer;font-weight:600;color:var(--accent)}
+  .city-list{list-style:none;padding:0;margin:10px 0 0;text-align:start}
+  .city-list li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;
+    border-bottom:1px dashed var(--sky-dark)}
+  .city-form{display:flex;gap:6px}
+  .city-form input{width:110px;padding:6px 10px;border:2px solid var(--sky-dark);border-radius:999px;font-family:inherit}
   .rain-note{font-size:14px;color:var(--ink);margin:6px 0 0}
   .sunset-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;
     padding-top:14px;border-top:1px dashed var(--sky-dark);font-size:14px;color:var(--ink)}
@@ -76,14 +90,29 @@
     <button type="button" class="day-btn" data-offset="2">מחרתיים</button>
   </div>
 
+  <div class="day-row" id="part-row"></div>
+  <div class="day-row place-row" id="place-row" hidden></div>
+
   <div id="weather-box"><p class="loading">טוען...</p></div>
 </div>
+
+<details class="card" id="city-editor" hidden>
+  <summary>👪 עיר לקרובים</summary>
+  <p class="loading">הוסיפו עיר לקרוב/ה מרשימת הקרובים, ואז אפשר לראות מה מזג האוויר אצלם.</p>
+  <ul id="city-list" class="city-list"></ul>
+  <p class="loading" id="city-msg" aria-live="polite"></p>
+</details>
 
 <div class="card">
   <h2 id="moon-title">🌙 הירח הלילה</h2>
   <div id="moon-box"><p class="loading">טוען...</p></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
 <script>
 // Icons are composed from a small set of parts (☀️/☁️/🌧️/⛈️) rather than
 // picked from unrelated single glyphs, so any code that includes a sun can
@@ -96,10 +125,14 @@ const WEATHER_CODES = {
   61: ["🌧️", "גשם קל"], 63: ["🌧️", "גשם"], 65: ["🌧️", "גשם חזק"],
   71: ["🌨️", "שלג קל"], 73: ["🌨️", "שלג"], 75: ["❄️", "שלג כבד"],
   80: ["☀️🌧️", "ממטרים"], 81: ["☀️🌧️", "ממטרים"], 82: ["⛈️", "ממטרים עזים"],
-  95: ["⛈️", "סופת רעמים"],
+  56: ["🌧️", "טפטוף קפוא"], 66: ["🌧️", "גשם קפוא"], 67: ["🌧️", "גשם קפוא חזק"],
+  77: ["🌨️", "שלג"], 85: ["🌨️", "ממטרי שלג"], 86: ["❄️", "ממטרי שלג כבדים"],
+  95: ["⛈️", "סופת רעמים"], 96: ["⛈️", "סופת רעמים וברד"], 99: ["⛈️", "סופת רעמים וברד כבד"],
 };
-const RAIN_CODES = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95];
-const SNOW_CODES = [71, 73, 75];
+const RAIN_CODES = [51, 53, 55, 56, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99];
+const SNOW_CODES = [71, 73, 75, 77, 85, 86];
+const STORM_CODES = [95, 96, 99];
+const FOG_CODES = [45, 48];
 
 // Picture-based cues (thermometer color/height + an outfit checklist) so a
 // child who can't read yet can still tell hot-vs-cold and what to put on.
@@ -136,7 +169,7 @@ function shirtIcon(long) {
 // - a kid heading out in the morning still needs to know it'll rain
 // in the afternoon, or that a currently-warm evening started off cold.
 function outfitFor(dayStats, uvMax) {
-  const { minTemp, maxTemp, hasRain, maybeRain, hasSnow } = dayStats;
+  const { minTemp, maxTemp, hasRain, maybeRain, hasSnow, maxWind, part } = dayStats;
   return {
     shirtLong: minTemp < 20,
     pantsLong: minTemp < 22,
@@ -154,7 +187,9 @@ function outfitFor(dayStats, uvMax) {
     hot: maxTemp >= 25,
     // - WHO / Australian guidance: sun protection from UV index 3 and up
     //   (sunscreen, hat, sunglasses). Clouds only filter UV partly.
-    sun: uvMax >= 6 && maxTemp >= 28 && !hasRain && !hasSnow,
+    sun: (part === "all" || part === "noon") && uvMax >= 6 && maxTemp >= 28 && !hasRain && !hasSnow,
+    // Strong wind: a light windproof layer even when it isn't cold enough for a coat.
+    windy: maxWind >= 30,
     // Rain or snow: boots instead of shoes.
     boots: hasRain || hasSnow,
     // Cold enough for a wool hat (a bit above the "freezing" gloves cutoff).
@@ -179,7 +214,8 @@ function outfitRows(dayStats, uvMax) {
   if (out.hot) rows.push({ icon: "💧", text: "בקבוק מים" });
   if (out.umbrella) rows.push({ icon: "☂️", text: "מטרייה" });
   else if (out.maybeUmbrella) rows.push({ icon: "☂️", text: "אולי מטרייה, למקרה שירד גשם" });
-  if (out.coat) rows.push({ icon: "🧥", text: out.umbrella ? "מעיל עמיד למים" : "מעיל" });
+  if (out.coat) rows.push({ icon: "🧥", text: out.umbrella ? "מעיל עמיד למים" : out.windy ? "מעיל שחוסם רוח" : "מעיל" });
+  else if (out.windy) rows.push({ icon: "🧥", text: "מעיל קל שחוסם רוח" });
   if (out.sweater) rows.push({ icon: "🧶", text: "סווצ'ר" });
   if (out.freezing) rows.push({ icon: "🧤", text: "כפפות וצעיף חם" });
   return rows;
@@ -188,19 +224,25 @@ function outfitRows(dayStats, uvMax) {
 // chills, layers should be easy to take off indoors, pale loose clothes and
 // frequent water in heat, clouds don't block UV, wet kids get cold faster.
 function outfitTips(dayStats, uvMax) {
-  const { minTemp, maxTemp, hasRain, hasSnow } = dayStats;
+  const { minTemp, maxTemp, hasRain, hasSnow, maxWind, hasFog } = dayStats;
   const tips = [];
   if (minTemp < 10) tips.push("בקור: שכבות דקות. תחתונית של צמר או סינטטי (לא כותנה, היא נשארת רטובה), שכבת פליז באמצע, ומעיל עמיד לרוח ולגשם למעלה.");
   if (minTemp < 10) tips.push("בתוך הבית מתחממים מהר, לכן כדאי שכבות שקל להוריד.");
   if (maxTemp >= 25) tips.push("בחום: בגדים בהירים, רפויים ודקים. שתו כל כ-20 דקות והביאו יותר מבקבוק אחד.");
-  if (uvMax >= 6 && maxTemp >= 28 && !hasRain && !hasSnow) tips.push("גם כשיש עננים השמש פוגעת. הצל בשעות 10–16, כובע וקרם הגנה עוזרים.");
+  if (dayStats.part !== "night" && uvMax >= 6 && maxTemp >= 28 && !hasRain && !hasSnow) tips.push("גם כשיש עננים השמש פוגעת. הצל בשעות 10–16, כובע וקרם הגנה עוזרים.");
+  if (maxWind >= 40) tips.push("ברוח חזקה מטרייה יכולה להתהפך. עדיף מעיל עם ברדס, ולהחזיק חזק בכובע.");
+  if (hasFog) tips.push("בערפל קשה לראות רחוק. הולכים ליד מבוגר, מתלבשים בצבעים בולטים ולא רצים לכביש.");
   if (hasRain) tips.push("בגשם חשוב להישאר יבשים, כי ילד רטוב מתקרר מהר.");
   return tips;
 }
 
-// Forecast for today + the next 2 days, at hourly resolution, fetched once.
+// Forecast for 3 days at hourly resolution, fetched once per place. The day
+// and part-of-day buttons just pick a slice of this downloaded data.
 let weatherData = null;
 let selectedOffset = 0;
+let selectedPart = "all";
+let currentPlace = { label: "", lat: null, lon: null };
+let contactsList = [];
 
 function staticClockSvg(hour24, minute) {
   const hourAngle = ((hour24 % 12) + minute / 60) * 30;
@@ -223,25 +265,40 @@ function staticClockSvg(hour24, minute) {
   </svg>`;
 }
 
+// Parts of the day as [startHour, endHour) counted from midnight of the chosen
+// day; "night" runs past midnight into the next morning. "all" is waking hours.
+const PARTS = {
+  all: { label: "כל היום", icon: "🕒", from: 7, to: 21 },
+  morning: { label: "בוקר", icon: "🌅", from: 6, to: 12 },
+  noon: { label: "צהריים", icon: "☀️", from: 12, to: 17 },
+  evening: { label: "ערב", icon: "🌇", from: 17, to: 21 },
+  night: { label: "לילה", icon: "🌙", from: 21, to: 30 },
+};
+// Rain timing is listed by these four parts.
+const TIMING_PARTS = ["morning", "noon", "evening", "night"];
+const PART_WORD_AT = { morning: "בבוקר", noon: "בצהריים", evening: "בערב", night: "בלילה" };
+
 function dayStartIndex(offset) {
   const dayStr = weatherData.daily.time[offset];
   return weatherData.hourly.time.findIndex((t) => t.slice(0, 10) === dayStr);
 }
-// Only waking hours count - a cold or rainy 3am doesn't matter, nobody's outside.
-const WAKE_START_HOUR = 7;
-const WAKE_END_HOUR = 21; // exclusive
+function partRange(offset, part) {
+  const base = dayStartIndex(offset);
+  const total = weatherData.hourly.time.length;
+  return [base + PARTS[part].from, Math.min(base + PARTS[part].to, total)];
+}
 // Rain is only stated when the chance is fairly high; a middling chance says
 // "maybe rain"; anything lower is ignored.
 const RAIN_SURE_PCT = 60;
 const RAIN_MAYBE_PCT = 40;
-// A different sentence for each chance band. Below RAIN_MAYBE_PCT: nothing.
+// A different sentence for each chance band. Below RAIN_MAYBE_PCT: non-committal,
+// no umbrella or icon change.
 const RAIN_PHRASES = [
   [90, "כמעט בטוח שירד גשם. קחו מטרייה ומעיל!"],
   [75, "כנראה שירד גשם, כדאי לקחת מטרייה."],
   [60, "סביר שירד גשם, עדיף להיות מוכנים."],
   [50, "יכול להיות שירד גשם, בערך חצי חצי."],
   [40, "אולי ירד קצת גשם, אבל לא בטוח."],
-  // Below the "maybe rain" line: non-committal, no umbrella or icon change.
   [30, "יש סיכוי קטן לטיפות, אבל אי אפשר להבטיח כלום."],
   [20, "סיכוי נמוך לגשם, כנראה שיהיה יבש, אבל מי יודע."],
   [10, "כמעט בטוח שלא ירד גשם, אבל השמיים לא תמיד מקשיבים לתחזית."],
@@ -251,13 +308,23 @@ function rainPhrase(pct) {
   const hit = RAIN_PHRASES.find(([min]) => pct >= min);
   return hit ? hit[1] : "";
 }
-function dayStats(offset) {
-  const start = dayStartIndex(offset) + WAKE_START_HOUR;
-  const count = WAKE_END_HOUR - WAKE_START_HOUR;
+const WIND_PHRASES = [
+  [55, "רוח חזקה מאוד! עדיף להישאר בפנים."],
+  [40, "רוח חזקה, צריך להחזיק חזק בכובע."],
+  [25, "יש רוח, ומרגיש קר יותר ממה שהמדחום מראה."],
+];
+function windPhrase(kmh) {
+  const hit = WIND_PHRASES.find(([min]) => kmh >= min);
+  return hit ? hit[1] : "";
+}
+
+function partStats(offset, part) {
+  const [start, end] = partRange(offset, part);
   const h = weatherData.hourly;
-  const temps = h.temperature_2m.slice(start, start + count);
-  const codes = h.weathercode.slice(start, start + count);
-  const probs = h.precipitation_probability.slice(start, start + count);
+  const temps = h.temperature_2m.slice(start, end);
+  const codes = h.weathercode.slice(start, end);
+  const probs = h.precipitation_probability.slice(start, end);
+  const winds = h.windspeed_10m.slice(start, end);
   let rainProb = 0, snowProb = 0, precipMax = 0;
   codes.forEach((c, i) => {
     const p = probs[i] || 0;
@@ -265,7 +332,7 @@ function dayStats(offset) {
     if (RAIN_CODES.includes(c)) rainProb = Math.max(rainProb, p);
     if (SNOW_CODES.includes(c)) snowProb = Math.max(snowProb, p);
   });
-  // Most common non-precipitation code = the day's general look.
+  // Most common non-precipitation code = the part's general look.
   const tally = {};
   codes.forEach((c) => {
     if (RAIN_CODES.includes(c) || SNOW_CODES.includes(c)) return;
@@ -273,11 +340,15 @@ function dayStats(offset) {
   });
   const top = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
   return {
+    part,
     minTemp: Math.min(...temps),
     maxTemp: Math.max(...temps),
+    maxWind: Math.max(...winds),
     hasRain: rainProb >= RAIN_SURE_PCT,
     maybeRain: rainProb >= RAIN_MAYBE_PCT && rainProb < RAIN_SURE_PCT,
     hasSnow: snowProb >= RAIN_MAYBE_PCT,
+    hasStorm: codes.some((c, i) => STORM_CODES.includes(c) && (probs[i] || 0) >= RAIN_MAYBE_PCT),
+    hasFog: codes.some((c) => FOG_CODES.includes(c)),
     rainProb,
     // Shown in the sentence: real rain chance, or (below the maybe line) the general precipitation chance.
     shownProb: rainProb >= RAIN_MAYBE_PCT ? rainProb : Math.min(precipMax, RAIN_MAYBE_PCT - 1),
@@ -285,20 +356,75 @@ function dayStats(offset) {
   };
 }
 
+// The hour with the highest precipitation chance inside each part of the day
+// (only parts whose peak reaches the "maybe rain" line, and only parts that
+// overlap the part being viewed).
+function rainTimes(offset, viewPart) {
+  const [vs, ve] = partRange(offset, viewPart);
+  const h = weatherData.hourly;
+  const base = dayStartIndex(offset);
+  const out = [];
+  TIMING_PARTS.forEach((part) => {
+    const [ps, pe] = partRange(offset, part);
+    const start = Math.max(ps, vs), end = Math.min(pe, ve);
+    let best = -1, bestP = 0;
+    for (let i = start; i < end; i++) {
+      const p = h.precipitation_probability[i] || 0;
+      if (p > bestP) { bestP = p; best = i; }
+    }
+    if (best >= 0 && bestP >= RAIN_MAYBE_PCT) out.push({ part, hour: (best - base) % 24, pct: bestP });
+  });
+  return out;
+}
+
+// What to do outside (or inside), picked from the part's weather. First match wins.
+function activityFor(st) {
+  if (st.hasStorm) return ["🏠", "סופת רעמים: נשארים בבית. זמן טוב לבנות מבצר משמיכות או לשחק משחקי קופסה."];
+  if (st.hasSnow) return ["⛄", "שלג! בונים איש שלג, עושים קרב כדורי שלג ושותים קקאו חם."];
+  if (st.maxWind >= 55) return ["🏠", "הרוח חזקה מאוד, כדאי להישאר בפנים ולצייר או לאפות."];
+  if (st.hasRain) return ["🎲", "יום טוב לשחק בבית: משחקי קופסה, בישול משותף, או קפיצה בשלוליות עם מגפיים אם יש מבוגר."];
+  if (st.hasFog) return ["🏠", "ערפל: משחקים בבית או ליד הבית, ורק עם מבוגר."];
+  if (st.maxWind >= 20) return ["🪁", "יום מצוין להפריח עפיפון!"];
+  if (st.maxTemp >= 30) return ["💦", "חם! משחקי מים, בריכה או גלידה בצל."];
+  if (st.maybeRain) return ["⛅", "אולי ירד גשם, אז משחקים קרוב לבית ולוקחים מטרייה."];
+  if (st.maxTemp >= 17 && st.minTemp < 33) return ["🛝", "יום מושלם לפארק, אופניים או כדורגל!"];
+  if (st.minTemp >= 8) return ["🚶", "קריר אבל נעים: הליכה או ריצה קצרה בחוץ."];
+  return ["🧣", "קר: מתלבשים חם ויוצאים לטיול קצר, ואז חוזרים לשוקו חם."];
+}
+
+function esc(x) {
+  return String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+const pad2 = (n) => String(n).padStart(2, "0");
+
 function renderForSelection() {
   const box = document.getElementById("weather-box");
   if (!weatherData) return;
-  const stats = dayStats(selectedOffset);
+  const stats = partStats(selectedOffset, selectedPart);
   const uvMax = weatherData.daily.uv_index_max[selectedOffset];
   const minT = Math.round(stats.minTemp), maxT = Math.round(stats.maxTemp);
 
   let [emoji, label] = WEATHER_CODES[stats.baseCode] || ["🌡️", "מזג אוויר"];
-  if (stats.hasSnow) { emoji = "🌨️"; label = "שלג"; }
+  if (stats.hasStorm) { emoji = "⛈️"; label = "סופת רעמים"; }
+  else if (stats.hasSnow) { emoji = "🌨️"; label = "שלג"; }
   else if (stats.hasRain) { emoji = "🌧️"; label = "גשם"; }
   else if (stats.maybeRain) { emoji = "🌦️"; label = `${label}, אולי גשם`; }
+  else if (selectedPart === "night" && emoji.startsWith("☀️")) {
+    emoji = moonPhaseFor(selectedOffset)[0] + emoji.slice("☀️".length);
+  }
 
   const [sh, sm] = weatherData.daily.sunset[selectedOffset].split("T")[1].split(":").map(Number);
-  const sunsetText = `שקיעה בשעה ${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`;
+  const sunsetText = `שקיעה בשעה ${pad2(sh)}:${pad2(sm)}`;
+
+  const timing = rainTimes(selectedOffset, selectedPart);
+  const timingHtml = timing.length ? `<div class="rain-times">⏰ הכי סביר ${timing.map((t, i) =>
+    `${PART_WORD_AT[t.part]} בשעה ${pad2(t.hour)}:00 <button type="button" class="show-clock" data-hour="${t.hour}" data-i="${i}">הצג בשעון</button><span class="clock-slot" id="clock-slot-${i}"></span>`
+  ).join(" ו") }</div>` : "";
+
+  const [actIcon, actText] = activityFor(stats);
+  const wind = windPhrase(stats.maxWind);
+  const rp = rainPhrase(stats.shownProb);
+  const where = currentPlace.label ? ` אצל ${esc(currentPlace.label)}` : "";
 
   box.innerHTML = `
     <div class="thermo-row">
@@ -314,8 +440,11 @@ function renderForSelection() {
         <div class="weather-label">${label}</div>
       </div>
     </div>
-    ${rainPhrase(stats.shownProb) ? `<p class="rain-note">☔ ${rainPhrase(stats.shownProb)} (${Math.round(stats.shownProb)}%)</p>` : ""}
-    <div class="outfit-title">מה ללבוש היום? (לפי כל היום)</div>
+    ${rp ? `<p class="rain-note">☔ ${rp} (${Math.round(stats.shownProb)}%)</p>` : ""}
+    ${timingHtml}
+    ${wind ? `<p class="rain-note">💨 ${wind} (${Math.round(stats.maxWind)} קמ״ש)</p>` : ""}
+    <div class="activity">${actIcon} ${actText}</div>
+    <div class="outfit-title">מה ללבוש${where}? (${PARTS[selectedPart].label})</div>
     <div class="outfit-list">${outfitRows(stats, uvMax).map((r) =>
       `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
     ).join("")}</div>
@@ -325,6 +454,14 @@ function renderForSelection() {
   renderThermometer(maxT);
   document.getElementById("weather-card").style.backgroundColor =
     maxT >= 25 ? "#FFF6EC" : maxT < 10 ? "#EEF6FC" : "#fff";
+  box.querySelectorAll(".show-clock").forEach((btn) => {
+    btn.onclick = () => {
+      const slot = document.getElementById("clock-slot-" + btn.dataset.i);
+      if (slot.innerHTML) { slot.innerHTML = ""; btn.textContent = "הצג בשעון"; return; }
+      slot.innerHTML = `<span class="mini-clock">${staticClockSvg(Number(btn.dataset.hour), 0)}</span>`;
+      btn.textContent = "הסתר שעון";
+    };
+  });
 }
 
 function setupDayButtons() {
@@ -338,25 +475,126 @@ function setupDayButtons() {
     };
   });
 }
+function setupPartButtons() {
+  const row = document.getElementById("part-row");
+  row.innerHTML = Object.entries(PARTS).map(([key, p]) =>
+    `<button type="button" class="day-btn part-btn${key === selectedPart ? " selected" : ""}" data-part="${key}">${p.icon} ${p.label}</button>`
+  ).join("");
+  row.querySelectorAll(".part-btn").forEach((btn) => {
+    btn.onclick = () => {
+      selectedPart = btn.dataset.part;
+      row.querySelectorAll(".part-btn").forEach((b) => b.classList.toggle("selected", b === btn));
+      renderForSelection();
+    };
+  });
+}
 
-async function loadWeather(lat, lon) {
+async function loadWeather(lat, lon, label = "") {
   const box = document.getElementById("weather-box");
+  box.innerHTML = `<p class="loading">טוען...</p>`;
+  currentPlace = { label, lat, lon };
   try {
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode,precipitation_probability&daily=uv_index_max,sunrise,sunset&timezone=auto&forecast_days=3`);
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode,precipitation_probability,windspeed_10m&daily=uv_index_max,sunrise,sunset&timezone=auto&forecast_days=4`);
     if (!res.ok) throw new Error("weather fetch failed");
     weatherData = await res.json();
-    setupDayButtons();
     renderForSelection();
   } catch {
     box.innerHTML = `<p class="err">לא הצלחנו לטעון את מזג האוויר. נסו שוב מאוחר יותר ☁️</p>`;
   }
 }
+
+// ---- Places: "me" (device location, Tel Aviv fallback) plus relatives from
+// the family-mail contact list that have a city saved. All optional - without
+// the cloud / without login only "me" shows and everything still works.
+const TEL_AVIV = [32.0853, 34.7818];
+let myPlace = { lat: TEL_AVIV[0], lon: TEL_AVIV[1] };
+let selectedPlaceId = "me";
+
+function renderPlaceRow() {
+  const row = document.getElementById("place-row");
+  const withCity = contactsList.filter((c) => c.lat != null && c.lon != null);
+  if (!withCity.length) { row.hidden = true; return; }
+  row.hidden = false;
+  row.innerHTML = `<span class="row-label">מזג אוויר אצל:</span>` +
+    [`<button type="button" class="day-btn place-btn${selectedPlaceId === "me" ? " selected" : ""}" data-id="me">📍 אצלי</button>`]
+      .concat(withCity.map((c) => `<button type="button" class="day-btn place-btn${selectedPlaceId === c.id ? " selected" : ""}" data-id="${esc(c.id)}">👤 ${esc(c.name)} (${esc(c.city || "")})</button>`)).join("");
+  row.querySelectorAll(".place-btn").forEach((btn) => {
+    btn.onclick = () => {
+      selectedPlaceId = btn.dataset.id;
+      if (selectedPlaceId === "me") loadWeather(myPlace.lat, myPlace.lon);
+      else {
+        const c = contactsList.find((x) => x.id === selectedPlaceId);
+        loadWeather(c.lat, c.lon, c.name);
+      }
+      renderPlaceRow();
+    };
+  });
+}
+
+async function geocodeCity(name) {
+  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=he`);
+  if (!res.ok) throw new Error("geocode failed");
+  const data = await res.json();
+  const hit = data.results && data.results[0];
+  if (!hit) return null;
+  return { city: hit.name, lat: hit.latitude, lon: hit.longitude };
+}
+
+function renderCityEditor() {
+  const box = document.getElementById("city-editor");
+  if (!contactsList.length) { box.hidden = true; return; }
+  box.hidden = false;
+  const list = document.getElementById("city-list");
+  list.innerHTML = contactsList.map((c) => `
+    <li data-id="${esc(c.id)}"><span>👤 ${esc(c.name)}${c.city ? " - " + esc(c.city) : ""}</span>
+      <span class="city-form"><input placeholder="עיר" aria-label="עיר של ${esc(c.name)}" value="">
+      <button type="button" class="day-btn city-save">שמירה</button></span></li>`).join("");
+  list.querySelectorAll("li").forEach((li) => {
+    const input = li.querySelector("input");
+    li.querySelector(".city-save").onclick = async () => {
+      const name = input.value.trim();
+      if (!name) return;
+      const msg = document.getElementById("city-msg");
+      msg.textContent = "מחפש...";
+      try {
+        const geo = await geocodeCity(name);
+        if (!geo) { msg.textContent = "לא מצאנו את העיר הזאת, נסו כתיב אחר"; return; }
+        await KidLearn.contacts.update(li.dataset.id, geo);
+        msg.textContent = "נשמר ✔";
+        await loadContactsForWeather();
+      } catch { msg.textContent = "לא הצלחנו לשמור, נסו שוב"; }
+    };
+  });
+}
+
+async function loadContactsForWeather() {
+  try {
+    contactsList = await KidLearn.contacts.list();
+  } catch { contactsList = []; }
+  renderPlaceRow();
+  renderCityEditor();
+}
+
+function initCloud() {
+  if (!window.KidLearn || !window.firebase) return;
+  try {
+    KidLearn.init();
+    KidLearn.onAuthChange((profile) => {
+      if (profile) loadContactsForWeather();
+      else { contactsList = []; selectedPlaceId = "me"; renderPlaceRow(); renderCityEditor(); }
+    });
+  } catch { /* the weather works without the cloud */ }
+}
+
 function initWeather() {
-  const TEL_AVIV = [32.0853, 34.7818];
-  if (!navigator.geolocation) { loadWeather(...TEL_AVIV); return; }
+  setupDayButtons();
+  setupPartButtons();
+  initCloud();
+  const start = (lat, lon) => { myPlace = { lat, lon }; if (selectedPlaceId === "me") loadWeather(lat, lon); };
+  if (!navigator.geolocation) { start(...TEL_AVIV); return; }
   navigator.geolocation.getCurrentPosition(
-    (pos) => loadWeather(pos.coords.latitude, pos.coords.longitude),
-    () => loadWeather(...TEL_AVIV),
+    (pos) => start(pos.coords.latitude, pos.coords.longitude),
+    () => start(...TEL_AVIV),
     { timeout: 5000 }
   );
 }
