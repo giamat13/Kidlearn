@@ -111,6 +111,75 @@ const VARIANTS = [
     { id: 'lamp',       cat: 'props',  name: 'פנס רחוב',    icon: '🪔', price: cheap(R.answer),        eco: 0,    size: 0.7,  love: 'פנסי הרחוב מאירים לנו בערב', desc: 'מאיר בערב' },
     { id: 'bin',        cat: 'props',  name: 'פח אשפה',     icon: '🗑️', price: cheap(R.smallSuccess),  eco: 1,    size: 0.8,  love: 'בזכות פחי האשפה העיר נקייה', desc: 'שומר על העיר נקייה' },
     { id: 'flowers',    cat: 'props',  name: 'ערוגת פרחים', icon: '💐', price: cheap(R.answer),        eco: 1,    size: 0.6,  love: 'ערוגת הפרחים מצבעת את העיר', desc: 'צבעים לעיר' },
+
+    // --- מבנים נוספים (כל קטגוריה לפחות שתי שורות) ---
+    { id: 'bike',       cat: 'road',   name: 'שביל אופניים', icon: '🚲', price: cheap(R.answer * 2),   eco: 0.3,  love: 'שביל האופניים הירוק בטוח ונעים', desc: 'שביל ירוק לרוכבי אופניים' },
+    { id: 'brick',      cat: 'road',   name: 'מדרכת לבנים', icon: '🧱', price: cheap(R.answer * 2),    eco: 0,    love: 'מדרכת הלבנים האדומה יפה מאוד', desc: 'מרוצפת בלבנים אדומות' },
+    { id: 'sand',       cat: 'road',   name: 'דרך חול',     icon: '🏜️', price: cheap(R.answer),        eco: 0,    love: 'דרך החול רכה ונעימה להליכה', desc: 'דרך זולה בצבע חול' },
+    { id: 'plank',      cat: 'road',   name: 'שביל עץ',     icon: '🪵', price: cheap(R.answer * 2),    eco: 0.2,  love: 'שביל העץ מרגיש כמו בטבע', desc: 'קרשי עץ לצעידה' },
+    { id: 'highway',    cat: 'road',   name: 'כביש מהיר',   icon: '🏎️', price: cheap(R.create * 2),    eco: -1.5, love: 'הכביש המהיר מגיע מהר לכל מקום', desc: 'כביש כהה עם פסים צהובים' },
+
+    { id: 'pine',       cat: 'tree',   name: 'אורן',        icon: '🌲', price: cheap(R.create),        eco: 0.6,  size: 0.5,  love: 'האורנים ירוקים כל השנה', desc: 'עץ מחודד שנשאר ירוק' },
+    { id: 'apple',      cat: 'tree',   name: 'עץ תפוחים',   icon: '🍎', price: cheap(R.level),         eco: 0.6,  size: 0.5,  love: 'מעץ התפוחים אפשר לקטוף פירות', desc: 'עץ עם תפוחים אדומים' },
+    { id: 'olive',      cat: 'tree',   name: 'עץ זית',      icon: '🫒', price: cheap(R.level),         eco: 0.6,  size: 0.5,  love: 'עץ הזית הוא סמל של שלום', desc: 'עץ עתיק עם עלים כסופים' },
+    { id: 'willow',     cat: 'tree',   name: 'ערבה בוכייה', icon: '🍃', price: cheap(R.level),         eco: 0.7,  size: 0.55, love: 'ענפי הערבה יורדים בעדינות עד המים', desc: 'ענפים ארוכים שנופלים למטה' },
+    { id: 'cactus',     cat: 'tree',   name: 'קקטוס',       icon: '🌵', price: cheap(R.answer),        eco: 0.3,  size: 0.5,  love: 'הקקטוס חזק ולא צריך הרבה מים', desc: 'צמח מדבר עם קוצים' },
+
+    { id: 'cottage',    cat: 'house',  name: 'קוטג׳',       icon: '🏘️', price: cheap(R.level + R.create), eco: 0, pop: 3, love: 'הקוטג׳ קטן, חמוד ומשפחתי', desc: 'בית קטן לשלושה' },
+    { id: 'duplex',     cat: 'house',  name: 'בית דו-משפחתי', icon: '🏠', price: cheap(R.create * 5),  eco: 0,    pop: 4, love: 'בבית הדו-משפחתי יש שכנים נחמדים', desc: 'שתי דלתות, שתי משפחות' },
+    { id: 'modern',     cat: 'house',  name: 'בית מודרני',  icon: '🏡', price: cheap(R.create * 6),    eco: 0,    pop: 5, love: 'הבית המודרני עם החלונות הגדולים מדהים', desc: 'גג שטוח וחלונות גדולים' },
+    { id: 'farm',       cat: 'house',  name: 'חווה',        icon: '🚜', price: cheap(R.perfect + R.level), eco: 0.5, pop: 3, love: 'בחווה יש אוויר נקי ושקט', desc: 'אסם אדום וממגורה' },
+    { id: 'mansion',    cat: 'house',  name: 'אחוזה',       icon: '🏰', price: cheap(R.round * 5),     eco: 0,    pop: 8, love: 'האחוזה הענקית היא גאווה של העיר', desc: 'בית ענק עם מגדלון' },
+
+    { id: 'studio',     cat: 'apt',    name: 'בניין סטודיו', icon: '🏬', price: cheap(R.level + R.create), eco: -0.3, pop: 4, love: 'דירות הסטודיו קטנות ונוחות', desc: 'דירות קטנות לזוגות' },
+    { id: 'senior',     cat: 'apt',    name: 'בית אבות',    icon: '👵', price: cheap(R.perfect + R.level), eco: 0.5, pop: 8, love: 'בבית האבות יש הרבה סבים וסבתות מחייכים', desc: 'בית נעים עם גינה לקשישים' },
+    { id: 'terrace',    cat: 'apt',    name: 'בניין מדורג', icon: '🏗️', price: cheap(R.perfect + R.level), eco: -0.3, pop: 8, love: 'במרפסות של הבניין המדורג יש פרחים', desc: 'קומות שמצטמצמות כמו מדרגות' },
+    { id: 'dorm',       cat: 'apt',    name: 'מעונות סטודנטים', icon: '🛏️', price: cheap(R.perfect + R.level + R.create), eco: -0.3, pop: 10, love: 'במעונות גרים סטודנטים שוקקי חיים', desc: 'חדרים לסטודנטים' },
+    { id: 'twin',       cat: 'apt',    name: 'מגדלים תאומים', icon: '🌆', price: cheap(R.round * 9),   eco: -1.5, pop: 22, love: 'המגדלים התאומים נראים מכל מקום בעיר', desc: 'שני מגדלים גבוהים יחד' },
+    { id: 'skyscraper', cat: 'apt',    name: 'גורד שחקים',  icon: '🌃', price: cheap(R.round * 12),    eco: -2,   pop: 30, love: 'מגורד השחקים רואים את כל העיר', desc: 'הבניין הכי גבוה בעיר' },
+
+    { id: 'nursery',    cat: 'school', name: 'מעון יום',    icon: '👶', price: cheap(R.level + R.smallSuccess * 2), eco: 0.5, love: 'במעון היום תינוקות ישנים ומשחקים', desc: 'שמירה על הקטנים' },
+    { id: 'music',      cat: 'school', name: 'בית ספר למוזיקה', icon: '🎻', price: cheap(R.perfect + R.level), eco: 0.5, love: 'מבית הספר למוזיקה נשמעים צלילים יפים', desc: 'לומדים נגינה ושירה' },
+    { id: 'art',        cat: 'school', name: 'בית ספר לאמנות', icon: '🎨', price: cheap(R.perfect + R.level), eco: 0.5, love: 'ילדי האמנות מציירים את העיר בצבעים', desc: 'ציור, פיסול ויצירה' },
+    { id: 'science',    cat: 'school', name: 'בית ספר למדעים', icon: '🔭', price: cheap(R.perfect + R.level + R.create), eco: 0.5, love: 'בבית הספר למדעים מגלים דברים חדשים', desc: 'ניסויים וטלסקופ' },
+    { id: 'sports',     cat: 'school', name: 'בית ספר לספורט', icon: '🏅', price: cheap(R.perfect + R.level), eco: 0.5, love: 'בבית הספר לספורט כולם רצים וקופצים', desc: 'כדורגל, ריצה וכושר' },
+
+    { id: 'bakery',     cat: 'shop',   name: 'מאפייה',      icon: '🥖', price: cheap(R.level + R.create), eco: -0.3, love: 'ריח הלחם הטרי מהמאפייה מרים את הלב', desc: 'לחם ועוגות טריים' },
+    { id: 'cafe',       cat: 'shop',   name: 'בית קפה',     icon: '☕', price: cheap(R.level + R.create), eco: -0.3, love: 'בבית הקפה נעים לשבת עם חברים', desc: 'שולחנות בחוץ ומשקאות חמים' },
+    { id: 'toy',        cat: 'shop',   name: 'חנות צעצועים', icon: '🎲', price: cheap(R.perfect),      eco: -0.3, love: 'בחנות הצעצועים הילדים לא רוצים ללכת הביתה', desc: 'בלונים, משחקים ובובות' },
+    { id: 'bookstore',  cat: 'shop',   name: 'חנות ספרים',  icon: '📖', price: cheap(R.perfect),       eco: -0.2, love: 'בחנות הספרים יש סיפורים לכל הגילאים', desc: 'מדפים מלאי ספרים' },
+    { id: 'supermarket', cat: 'shop',  name: 'סופרמרקט',    icon: '🛒', price: cheap(R.round * 4 + R.create), eco: -1, love: 'בסופרמרקט יש כל מה שצריך בשבוע', desc: 'חנות גדולה עם עגלות' },
+
+    { id: 'dentist',    cat: 'clinic', name: 'מרפאת שיניים', icon: '🦷', price: cheap(R.perfect + R.smallSuccess * 2), eco: 0, love: 'רופא השיניים שומר על חיוך בריא', desc: 'שיניים נקיות וחזקות' },
+    { id: 'pharmacy',   cat: 'clinic', name: 'בית מרקחת',   icon: '💊', price: cheap(R.perfect),       eco: 0,    love: 'בבית המרקחת תמיד מוצאים תרופה', desc: 'תרופות וויטמינים' },
+    { id: 'vet',        cat: 'clinic', name: 'וטרינר',      icon: '🐾', price: cheap(R.perfect + R.smallSuccess * 2), eco: 0.3, love: 'הווטרינר מטפל בכלבים ובחתולים שלנו', desc: 'רופא לחיות המחמד' },
+    { id: 'tipat',      cat: 'clinic', name: 'טיפת חלב',    icon: '🍼', price: cheap(R.perfect),       eco: 0,    love: 'בטיפת חלב שוקלים את התינוקות', desc: 'בדיקות לתינוקות' },
+    { id: 'eye',        cat: 'clinic', name: 'מכון עיניים', icon: '👁️', price: cheap(R.perfect + R.level), eco: 0, love: 'במכון העיניים מקבלים משקפיים חדשים', desc: 'בדיקת ראייה ומשקפיים' },
+    { id: 'lab',        cat: 'clinic', name: 'מעבדה רפואית', icon: '🧪', price: cheap(R.perfect + R.level + R.create), eco: -0.3, love: 'המעבדה עוזרת לרופאים להבין מה קרה', desc: 'בדיקות דם ובדיקות אחרות' },
+
+    { id: 'townhall',   cat: 'civic',  name: 'עירייה',      icon: '🏛️', price: cheap(R.round * 5),     eco: 0,    love: 'בעירייה מנהלים את העיר שלנו', desc: 'כאן מחליטים על העיר' },
+    { id: 'bank',       cat: 'civic',  name: 'בנק',         icon: '🏦', price: cheap(R.round * 4),     eco: 0,    love: 'בבנק שומרים בבטחה את הכסף', desc: 'מקום בטוח לכסף' },
+    { id: 'station',    cat: 'civic',  name: 'תחנת רכבת',   icon: '🚉', price: cheap(R.round * 5),     eco: 0.3,  love: 'הרכבת לוקחת אותנו לכל מקום', desc: 'שעון, רציף ורכבת' },
+    { id: 'recycle',    cat: 'civic',  name: 'מרכז מחזור',  icon: '♻️', price: cheap(R.perfect + R.level), eco: 2, love: 'המחזור שומר על כדור הארץ נקי', desc: 'פחים צבעוניים למחזור' },
+
+    { id: 'lake',       cat: 'park',   name: 'אגם',         icon: '🦆', price: cheap(R.perfect),       eco: 2,    love: 'באגם שוחים ברווזים יפים', desc: 'מים כחולים וברווז' },
+    { id: 'picnic',     cat: 'park',   name: 'פינת פיקניק', icon: '🍉', price: cheap(R.level),         eco: 1.5,  love: 'הפיקניק על הדשא הוא הכי כיף', desc: 'מפה משובצת וסל אוכל' },
+    { id: 'soccer',     cat: 'park',   name: 'מגרש כדורגל', icon: '🥅', price: cheap(R.perfect),       eco: 0.8,  love: 'במגרש הכדורגל תמיד יש משחק', desc: 'דשא, קווים ושערים' },
+    { id: 'basket',     cat: 'park',   name: 'מגרש כדורסל', icon: '🏀', price: cheap(R.level + R.create), eco: 0.5, love: 'במגרש הכדורסל קולעים סלים', desc: 'סל ורצפה אפורה' },
+    { id: 'skate',      cat: 'park',   name: 'סקייטפארק',   icon: '🛹', price: cheap(R.perfect),       eco: 0.5,  love: 'בסקייטפארק קופצים על הרמפות', desc: 'רמפות ומעקה' },
+
+    // אטרקציות בלי כניסה למשחק: הן מביאות תיירים לבד (tourist = מטבעות בדקה כשהן פעילות)
+    { id: 'museum',     cat: 'attr',   name: 'מוזיאון',     icon: '🖼️', price: cheap(R.round * 6),     eco: 0.3,  tourist: 0.4, love: 'במוזיאון רואים ציורים ופסלים מכל העולם', desc: 'אין כניסה למשחק. מביא תיירים' },
+    { id: 'aquarium',   cat: 'attr',   name: 'אקווריום',    icon: '🐠', price: cheap(R.round * 8),     eco: 0.3,  tourist: 0.5, love: 'באקווריום שוחים דגים צבעוניים', desc: 'אין כניסה למשחק. מביא תיירים' },
+    { id: 'cinema',     cat: 'attr',   name: 'קולנוע',      icon: '🎬', price: cheap(R.round * 5),     eco: -0.3, tourist: 0.3, love: 'בקולנוע צופים בסרטים עם פופקורן', desc: 'אין כניסה למשחק. מביא תיירים' },
+    { id: 'stadium',    cat: 'attr',   name: 'אצטדיון',     icon: '🏟️', price: cheap(R.round * 10),    eco: -0.5, tourist: 0.6, love: 'באצטדיון כולם מעודדים ביחד', desc: 'אין כניסה למשחק. מביא תיירים' },
+    { id: 'lookout',    cat: 'attr',   name: 'מגדל תצפית',  icon: '🗼', price: cheap(R.round * 7),     eco: 0,    tourist: 0.4, love: 'ממגדל התצפית רואים את כל העיר', desc: 'אין כניסה למשחק. מביא תיירים' },
+    { id: 'circus',     cat: 'attr',   name: 'קרקס',        icon: '🎪', price: cheap(R.round * 6),     eco: -0.3, tourist: 0.4, love: 'בקרקס יש ליצנים ואמנים מדהימים', desc: 'אין כניסה למשחק. מביא תיירים' },
+
+    { id: 'mailbox',    cat: 'props',  name: 'תיבת דואר',   icon: '📪', price: cheap(R.answer),        eco: 0,    size: 0.8,  love: 'בתיבת הדואר שולחים מכתבים', desc: 'תיבה אדומה למכתבים' },
+    { id: 'sign',       cat: 'props',  name: 'תמרור עצור',  icon: '🛑', price: cheap(R.answer),        eco: 0,    size: 0.8,  love: 'התמרורים עוזרים לנו לחצות בבטחה', desc: 'שלט אדום בצורת מתומן' },
+    { id: 'umbrella',   cat: 'props',  name: 'שמשייה',      icon: '⛱️', price: cheap(R.answer),        eco: 0.2,  size: 0.7,  love: 'תחת השמשייה נעים בצל', desc: 'צל ליום חם' },
+    { id: 'statue',     cat: 'props',  name: 'פסל',         icon: '🗿', price: cheap(R.create),        eco: 0.3,  size: 0.7,  love: 'הפסל הגדול הוא סמל של העיר', desc: 'פסל אבן על בסיס' },
 ];
 const VARIANT_BY_ID = Object.fromEntries(VARIANTS.map(v => [v.id, v]));
 const START_COUNT = START_COLS * START_ROWS;
@@ -543,7 +612,12 @@ function cityBaseRate(m) {
 }
 
 // מס קבוע לכל מבנה פעיל (מטבעות בדקה): מגורים וחנויות משלמים, שירותי עיר לא
-const BUILDING_TAX = { cabin: 0.05, house: 0.1, villa: 0.2, apt: 0.3, tower: 0.6, mini: 0.1, shop: 0.2, mall: 0.6 };
+const BUILDING_TAX = {
+    cabin: 0.05, house: 0.1, villa: 0.2, apt: 0.3, tower: 0.6, mini: 0.1, shop: 0.2, mall: 0.6,
+    cottage: 0.15, duplex: 0.25, modern: 0.3, farm: 0.15, mansion: 0.4,
+    studio: 0.2, senior: 0.3, terrace: 0.45, dorm: 0.5, twin: 1.0, skyscraper: 1.4,
+    bakery: 0.15, cafe: 0.2, toy: 0.2, bookstore: 0.2, supermarket: 0.45,
+};
 const COMBO_BONUS = 0.15;   // לכל חנות, בית ספר, פארק או מרפאה פעילים שיש לידם מגורים פעילים
 const HOME_CATS = ['house', 'apt'];
 const COMBO_CATS = ['shop', 'school', 'park', 'clinic'];
@@ -594,6 +668,7 @@ function cityIncome(m) {
         if (!VARIANT_BY_ID[id] || !buildingActive(c, r)) continue;
         if (BUILDING_TAX[id]) out.tax += BUILDING_TAX[id];
         if (ATTRACTIONS[id]) out.attr += attractionRate(k, id);
+        else if (VARIANT_BY_ID[id].tourist) out.attr += VARIANT_BY_ID[id].tourist;   // אטרקציה בלי כניסה: תיירים בלבד
     }
     out.combo = comboCount() * COMBO_BONUS;
     const all = [m.env, m.happy, ...Object.values(m.extra)];
@@ -779,11 +854,16 @@ function buildSale(c, r) {
 // ולכן דרך מחוברת בדיוק לדרך שלידה (גם אם הסוגים שונים)
 function buildRoad(group, c, r, v) {
     const style = {
-        road:   { base: '#41444f', dashes: true },
-        dirt:   { base: '#b08968', dashes: false },
-        stone:  { base: '#bdbdbd', dashes: false },
+        road:    { base: '#41444f', dashes: true },
+        dirt:    { base: '#b08968', dashes: false },
+        stone:   { base: '#bdbdbd', dashes: false },
+        bike:    { base: '#43a047', dashes: true, line: '#ffffff' },
+        brick:   { base: '#b5543c', dashes: false },
+        sand:    { base: '#e6c98f', dashes: false },
+        plank:   { base: '#a1763f', dashes: false },
+        highway: { base: '#2b2d36', dashes: true, line: '#ffd54f' },
     }[v.id];
-    const LINE = '#f5f5f5';
+    const LINE = style.line || '#f5f5f5';
     const y = 0.012;
     part(group, boxG(0.42, 0.024, 0.42), style.base, 0, y, 0);
 
@@ -808,6 +888,24 @@ function buildRoad(group, c, r, v) {
     } else if (v.id === 'dirt') {
         [[-0.1, 0.05, '#8d6e63'], [0.12, -0.08, '#8d6e63'], [0.03, 0.13, '#795548']]
             .forEach(([x, z, col]) => part(group, icoG(0.022), col, x, 0.02, z));
+    } else if (v.id === 'brick') {
+        // שורות לבנים כהות יותר
+        [-0.12, 0, 0.12].forEach(z => part(group, boxG(0.4, 0.004, 0.012), '#8e3b2a', 0, y + 0.014, z));
+        [-0.1, 0.1].forEach(x => part(group, boxG(0.012, 0.004, 0.4), '#8e3b2a', x, y + 0.014, 0));
+    } else if (v.id === 'plank') {
+        // קרשים לרוחב
+        [-0.15, -0.05, 0.05, 0.15].forEach(z => part(group, boxG(0.4, 0.012, 0.012), '#6d4c41', 0, y + 0.016, z));
+    } else if (v.id === 'sand') {
+        [[-0.1, 0.08], [0.1, -0.06], [0.02, 0.14]].forEach(([x, z]) => part(group, icoG(0.02), '#d4b46c', x, 0.02, z));
+    } else if (v.id === 'bike') {
+        // אופניים לבנים קטנים באמצע
+        part(group, torusG(0.04, 0.008), '#ffffff', -0.05, y + 0.03, 0).rotation.x = Math.PI / 2;
+        part(group, torusG(0.04, 0.008), '#ffffff', 0.05, y + 0.03, 0).rotation.x = Math.PI / 2;
+        part(group, boxG(0.1, 0.008, 0.01), '#ffffff', 0, y + 0.04, 0);
+    } else if (v.id === 'highway') {
+        // קו צהוב כפול באמצע הכביש
+        part(group, boxG(0.42, 0.006, 0.014), '#ffd54f', 0, y + 0.015, -0.03);
+        part(group, boxG(0.42, 0.006, 0.014), '#ffd54f', 0, y + 0.015, 0.03);
     }
 }
 
@@ -825,6 +923,41 @@ function buildTree(group, seed, v) {
             frond.rotation.y = k * Math.PI / 2 + rnd(seed, 12) * 0.5;
         }
         part(group, icoG(0.04), '#795548', ox + 0.02, 0.54, oz + 0.02);
+        return;
+    }
+    if (v.id === 'pine') {
+        // אורן: גזע וכמה קונוסים זה על זה
+        part(group, cylG(0.04, 0.06, 0.25, 7), '#5d4037', ox, 0.12, oz);
+        [[0.26, 0.2, 0.3], [0.44, 0.16, 0.26], [0.6, 0.11, 0.22]].forEach(([y, rad, h]) => part(group, coneG(rad * 1.3, h, 8), '#2e7d32', ox, y, oz).scale.setScalar(s));
+        return;
+    }
+    if (v.id === 'cactus') {
+        part(group, cylG(0.06, 0.07, 0.45, 8), '#558b2f', ox, 0.23, oz);
+        part(group, cylG(0.035, 0.035, 0.16, 7), '#558b2f', ox + 0.1, 0.3, oz).rotation.z = 0;
+        part(group, boxG(0.1, 0.035, 0.035), '#558b2f', ox + 0.05, 0.25, oz);
+        part(group, cylG(0.035, 0.035, 0.14, 7), '#558b2f', ox - 0.1, 0.34, oz);
+        part(group, boxG(0.1, 0.035, 0.035), '#558b2f', ox - 0.05, 0.28, oz);
+        part(group, icoG(0.025), '#f06292', ox, 0.47, oz);
+        return;
+    }
+    if (v.id === 'willow') {
+        // ערבה בוכייה: גזע וכתר עם ענפים ארוכים שיורדים
+        part(group, cylG(0.05, 0.07, 0.4, 8), '#6d4c41', ox, 0.2, oz);
+        part(group, icoG(0.22), '#7cb342', ox, 0.5, oz).scale.set(1.1, 0.7, 1.1);
+        for (let k = 0; k < 8; k++) {
+            const a = k * Math.PI / 4;
+            part(group, boxG(0.025, 0.3, 0.025), '#9ccc65', ox + Math.cos(a) * 0.2, 0.34, oz + Math.sin(a) * 0.2);
+        }
+        return;
+    }
+    if (v.id === 'apple' || v.id === 'olive') {
+        const leaf = v.id === 'apple' ? '#43a047' : '#8fa86a';
+        part(group, cylG(0.05, v.id === 'olive' ? 0.09 : 0.07, 0.3, 8), v.id === 'olive' ? '#8d6e63' : '#6d4c41', ox, 0.15, oz);
+        part(group, icoG(0.24), leaf, ox, 0.46, oz).scale.setScalar(s);
+        part(group, icoG(0.15), tint(leaf, 1.15), ox + 0.12 * s, 0.38, oz - 0.07 * s).scale.setScalar(s);
+        // פירות: תפוחים אדומים או זיתים כהים
+        const fruit = v.id === 'apple' ? '#e53935' : '#37474f';
+        [[0.14, 0.5, 0.12], [-0.12, 0.44, 0.15], [0.02, 0.6, -0.1], [-0.16, 0.52, -0.08]].forEach(([x, y, z]) => part(group, icoG(0.028), fruit, ox + x, y, oz + z));
         return;
     }
     // עץ רגיל: גזע מחודד, וכתר של שלושה כדורים שמתלכדים, כל אחד בגוון קצת אחר
@@ -873,6 +1006,11 @@ function buildHouse(group, seed, c, r, v) {
         house:  { w: 0.56, h: 0.42, rh: 0.30, wall: HOUSE_WALLS[Math.floor(rnd(seed, 6) * HOUSE_WALLS.length)], roof: HOUSE_ROOFS[Math.floor(rnd(seed, 7) * HOUSE_ROOFS.length)] },
         cabin:  { w: 0.44, h: 0.32, rh: 0.26, wall: '#a1887f', roof: '#5d4037' },
         villa:  { w: 0.70, h: 0.50, rh: 0.34, wall: '#fff8e1', roof: '#8d6e63' },
+        cottage: { w: 0.5, h: 0.34, rh: 0.3, wall: '#f8bbd0', roof: '#7cb342' },
+        duplex: { w: 0.74, h: 0.4, rh: 0.26, wall: '#fff59d', roof: '#6d4c41' },
+        modern: { w: 0.64, h: 0.46, rh: 0.05, wall: '#eceff1', roof: '#455a64', flat: true },
+        farm:   { w: 0.6, h: 0.34, rh: 0.3, wall: '#c62828', roof: '#5d4037' },
+        mansion: { w: 0.8, h: 0.52, rh: 0.34, wall: '#fff3e0', roof: '#455a64' },
     }[v.id];
     const b = new THREE.Group();
     b.rotation.y = facingRot(c, r);
@@ -880,9 +1018,14 @@ function buildHouse(group, seed, c, r, v) {
     const front = half + 0.005;
 
     part(b, boxG(dims.w, dims.h, dims.w), dims.wall, 0, dims.h / 2, 0);
-    const roof = part(b, coneG(dims.w * 0.72, dims.rh, 4), dims.roof, 0, dims.h + dims.rh / 2, 0);
-    roof.rotation.y = Math.PI / 4;   // פינות הגג באלכסון, כדי שהצלעות יתיישרו עם הקירות
-    part(b, boxG(0.08, 0.2, 0.08), '#8d6e63', dims.w * 0.27, dims.h + 0.18, -dims.w * 0.18);   // ארובה
+    if (dims.flat) {
+        // גג שטוח עם בליטה מעל הקירות
+        part(b, boxG(dims.w + 0.08, 0.05, dims.w + 0.08), dims.roof, 0, dims.h + 0.025, 0);
+    } else {
+        const roof = part(b, coneG(dims.w * 0.72, dims.rh, 4), dims.roof, 0, dims.h + dims.rh / 2, 0);
+        roof.rotation.y = Math.PI / 4;   // פינות הגג באלכסון, כדי שהצלעות יתיישרו עם הקירות
+        part(b, boxG(0.08, 0.2, 0.08), '#8d6e63', dims.w * 0.27, dims.h + 0.18, -dims.w * 0.18);   // ארובה
+    }
 
     // חלונות עם מסגרת לבנה (צלב), ודלת במסגרת
     const win = (x, y) => {
@@ -890,43 +1033,119 @@ function buildHouse(group, seed, c, r, v) {
         part(b, boxG(0.13, 0.014, 0.024), '#ffffff', x, y, front + 0.002);
         part(b, boxG(0.014, 0.13, 0.024), '#ffffff', x, y, front + 0.002);
     };
-    win(-dims.w * 0.28, 0.27);
-    win(dims.w * 0.28, 0.27);
-    part(b, boxG(0.17, 0.25, 0.012), '#fff3e0', 0, 0.125, front);       // מסגרת הדלת
-    part(b, boxG(0.12, 0.2, 0.02), '#6d4c41', 0, 0.1, front + 0.006);   // דלת
-    part(b, icoG(0.012), '#ffca28', 0.04, 0.1, front + 0.02);            // ידית
+    const door = (x) => {
+        part(b, boxG(0.17, 0.25, 0.012), '#fff3e0', x, 0.125, front);       // מסגרת הדלת
+        part(b, boxG(0.12, 0.2, 0.02), '#6d4c41', x, 0.1, front + 0.006);   // דלת
+        part(b, icoG(0.012), '#ffca28', x + 0.04, 0.1, front + 0.02);        // ידית
+    };
+    if (v.id === 'duplex') {
+        // שתי דלתות וחלון מעל כל אחת, וקיר מפריד באמצע
+        door(-0.2); door(0.2);
+        win(-0.2, 0.3); win(0.2, 0.3);
+        part(b, boxG(0.03, dims.h, 0.02), '#8d6e63', 0, dims.h / 2, front + 0.005);
+    } else if (v.id === 'modern') {
+        // חלון ענק ודלת בצד, ועוד קומה קטנה על הגג
+        part(b, boxG(0.34, 0.26, 0.02), '#80cbc4', -0.1, 0.24, front, { roughness: 0.2 });
+        door(0.2);
+        part(b, boxG(0.3, 0.16, 0.3), '#cfd8dc', 0.12, dims.h + 0.13, -0.1);
+        part(b, boxG(0.34, 0.03, 0.34), dims.roof, 0.12, dims.h + 0.225, -0.1);
+    } else if (v.id === 'farm') {
+        // אסם: דלת גדולה עם X לבן, וממגורה אפורה בצד
+        part(b, boxG(0.26, 0.24, 0.02), '#8d2b2b', 0, 0.12, front);
+        part(b, boxG(0.3, 0.025, 0.024), '#ffffff', 0, 0.12, front + 0.004).rotation.z = 0.8;
+        part(b, boxG(0.3, 0.025, 0.024), '#ffffff', 0, 0.12, front + 0.004).rotation.z = -0.8;
+        part(b, cylG(0.09, 0.09, 0.55, 10), '#cfd8dc', 0.42, 0.275, -0.1);
+        part(b, coneG(0.1, 0.12, 10), '#78909c', 0.42, 0.61, -0.1);
+        part(b, boxG(0.32, 0.01, 0.2), '#7cb342', -0.42, 0.01, 0.2);
+    } else {
+        win(-dims.w * 0.28, 0.27);
+        win(dims.w * 0.28, 0.27);
+        door(0);
+    }
 
-    if (v.id === 'villa') {
+    if (v.id === 'villa' || v.id === 'mansion') {
         // עמודים לפני הכניסה
         part(b, boxG(0.04, 0.4, 0.04), '#ffffff', -0.14, 0.2, front + 0.05);
         part(b, boxG(0.04, 0.4, 0.04), '#ffffff', 0.14, 0.2, front + 0.05);
+    }
+    if (v.id === 'mansion') {
+        // מגדלון עגול בפינה, ושני כנפיים נמוכות בצדדים
+        part(b, cylG(0.1, 0.1, 0.78, 12), '#fff3e0', -0.3, 0.39, -0.28);
+        part(b, coneG(0.13, 0.2, 12), '#b71c1c', -0.3, 0.88, -0.28);
+        [-1, 1].forEach(sg => part(b, boxG(0.12, 0.3, 0.5), '#ffe0b2', sg * 0.44, 0.15, 0));
     }
     addDoorPath(b, roadNextTo(c, r), front);
     group.add(b);
     return dims.h + dims.rh;
 }
 
-// בניין דירות (קטן) או מגדל דירות: שורות חלונות ומרפסות לפי מספר הקומות
+// בניינים: דירות, מגדל, סטודיו, בית אבות, מעונות, מדורג, תאומים וגורד שחקים. הכול נבנה מקוביות עם שורות חלונות
+const APT_STYLE = {
+    apt:        { w: 0.5,  h: 0.85, floors: 4 },
+    tower:      { w: 0.44, h: 1.25, floors: 7 },
+    studio:     { w: 0.46, h: 0.5,  floors: 2, wall: '#ffe0b2' },
+    senior:     { w: 0.64, h: 0.42, floors: 2, wall: '#c8e6c9' },
+    dorm:       { w: 0.58, h: 0.72, floors: 3, wall: '#b39ddb' },
+    skyscraper: { w: 0.4,  h: 1.7,  floors: 10, wall: '#90a4ae' },
+};
+function aptBlock(b, ox, oz, w, d, y0, h, floors, wall, front, glass) {
+    part(b, boxG(w, h, d), wall, ox, y0 + h / 2, oz);
+    part(b, boxG(w + 0.04, 0.05, d + 0.04), '#6d4c41', ox, y0 + h + 0.025, oz);   // גג
+    const gap = h / floors;
+    for (let row = 0; row < floors; row++) {
+        const y = y0 + gap * (row + 0.5);
+        if (!glass) part(b, boxG(w + 0.03, 0.02, 0.06), '#b0bec5', ox, y - gap * 0.45, oz + d / 2 + 0.02);   // מרפסת
+        for (const x of [-w * 0.24, w * 0.24]) part(b, boxG(0.1, Math.min(0.1, gap * 0.6), 0.02), glass ? '#b3e5fc' : '#90caf9', ox + x, y, oz + d / 2 + 0.005, { roughness: 0.3 });
+    }
+}
 function buildApartments(group, seed, c, r, v) {
-    const tower = v.id === 'tower';
-    const w = tower ? 0.44 : 0.5;
-    const h = tower ? 1.25 : 0.85;
-    const floors = tower ? 7 : 4;
-    const wall = HOUSE_WALLS[Math.floor(rnd(seed, 6) * HOUSE_WALLS.length)];
     const b = new THREE.Group();
     b.rotation.y = facingRot(c, r);
-    const front = w / 2 + 0.005;
-    part(b, boxG(w, h, w), wall, 0, h / 2, 0);
-    part(b, boxG(w + 0.04, 0.05, w + 0.04), '#6d4c41', 0, h + 0.025, 0);   // גג
-    for (let row = 0; row < floors; row++) {
-        const y = 0.12 + row * 0.16;
-        part(b, boxG(w + 0.03, 0.02, 0.06), '#b0bec5', 0, y - 0.075, front + 0.02);   // מרפסת
-        for (const x of [-w * 0.24, w * 0.24]) part(b, boxG(0.1, 0.1, 0.02), '#90caf9', x, y, front, { roughness: 0.3 });
+    const wallRand = HOUSE_WALLS[Math.floor(rnd(seed, 6) * HOUSE_WALLS.length)];
+    let top, front;
+    if (v.id === 'twin') {
+        // שני מגדלים גבוהים עם גשר ביניהם
+        front = 0.5;
+        aptBlock(b, -0.2, 0, 0.3, 0.4, 0, 1.2, 7, '#b0bec5', 0.2, true);
+        aptBlock(b, 0.2, 0, 0.3, 0.4, 0, 1.2, 7, '#90a4ae', 0.2, true);
+        part(b, boxG(0.12, 0.06, 0.1), '#eceff1', 0, 0.8, 0);
+        top = 1.25;
+        front = 0.205;
+    } else if (v.id === 'terrace') {
+        // שלוש קומות שמצטמצמות לאחור, עם גינה על כל גג
+        const hh = 0.26;
+        [[0.6, 0.6, 0], [0.5, 0.45, 1], [0.4, 0.3, 2]].forEach(([w, d, i]) => {
+            const oz = 0.08 - i * 0.12;
+            aptBlock(b, 0, oz, w, d, hh * i, hh, 1, '#ffccbc', 0, false);
+            part(b, icoG(0.045), '#66bb6a', -w * 0.3, hh * (i + 1) + 0.08, oz + d / 2 - 0.05);
+            part(b, icoG(0.045), '#f06292', w * 0.3, hh * (i + 1) + 0.07, oz + d / 2 - 0.05);
+        });
+        top = hh * 3 + 0.08;
+        front = 0.38;
+    } else {
+        const st = APT_STYLE[v.id];
+        const wall = st.wall || wallRand;
+        front = st.w / 2 + 0.005;
+        aptBlock(b, 0, 0, st.w, st.w, 0, st.h, st.floors, wall, front, v.id === 'skyscraper');
+        top = st.h + 0.05;
+        if (v.id === 'skyscraper') {
+            part(b, cylG(0.01, 0.01, 0.3, 5), '#cfd8dc', 0, st.h + 0.2, 0);
+            part(b, icoG(0.02), '#e53935', 0, st.h + 0.36, 0, { emissive: '#e53935', emissiveIntensity: 0.6 });
+            top = st.h + 0.38;
+        } else if (v.id === 'senior') {
+            // צלב ירוק וספסל בכניסה
+            part(b, boxG(0.18, 0.05, 0.02), '#43a047', 0, st.h * 0.75, front);
+            part(b, boxG(0.05, 0.18, 0.02), '#43a047', 0, st.h * 0.75, front);
+            part(b, boxG(0.16, 0.04, 0.06), '#8d6e63', 0.22, 0.05, front + 0.07);
+        } else if (v.id === 'dorm') {
+            part(b, boxG(0.3, 0.07, 0.02), '#5e35b1', 0, st.h * 0.8, front);
+        }
+        part(b, boxG(0.14, 0.2, 0.02), '#6d4c41', 0, 0.1, front);   // דלת
     }
-    part(b, boxG(0.14, 0.2, 0.02), '#6d4c41', 0, 0.1, front);   // דלת
+    if (v.id === 'twin' || v.id === 'terrace') part(b, boxG(0.14, 0.2, 0.02), '#6d4c41', 0, 0.1, front);   // דלת
     addDoorPath(b, roadNextTo(c, r), front);
     group.add(b);
-    return h + 0.05;
+    return top;
 }
 
 // חנות: גג בצבעי פסים לפי הסוג, שלט מעל הכניסה, וחלונות ראווה משני צדי הדלת
@@ -934,6 +1153,11 @@ const SHOP_STYLE = {
     shop:  { w: 0.70, h: 0.42, body: '#ffe082', awn: ['#ef5350', '#ffffff', '#ef5350'] },
     mini:  { w: 0.56, h: 0.34, body: '#c5e1a5', awn: ['#43a047', '#ffffff'] },
     mall:  { w: 0.80, h: 0.50, body: '#e1bee7', awn: ['#ab47bc', '#ffffff', '#ab47bc', '#ffffff'] },
+    bakery: { w: 0.6, h: 0.36, body: '#ffcc80', awn: ['#8d6e63', '#ffffff'] },
+    cafe:  { w: 0.6, h: 0.36, body: '#d7ccc8', awn: ['#3e2723', '#ffffff', '#3e2723'] },
+    toy:   { w: 0.66, h: 0.4, body: '#b3e5fc', awn: ['#e53935', '#fdd835', '#43a047', '#1e88e5'] },
+    bookstore: { w: 0.62, h: 0.38, body: '#bcaaa4', awn: ['#1565c0', '#ffffff'] },
+    supermarket: { w: 0.84, h: 0.42, body: '#ffffff', awn: ['#e53935', '#ffffff', '#e53935', '#ffffff', '#e53935'] },
 };
 function buildShop(group, c, r, v) {
     const st = SHOP_STYLE[v.id];
@@ -950,28 +1174,96 @@ function buildShop(group, c, r, v) {
     [-1, 1].forEach(sg => part(b, boxG(st.w * 0.22, 0.14, 0.02), '#b3e5fc', sg * st.w * 0.27, 0.2, front, { roughness: 0.3 }));
     part(b, boxG(st.w * 0.55, 0.1, 0.02), '#8d6e63', 0, st.h + 0.08, front);   // שלט
     part(b, boxG(0.16, 0.2, 0.02), '#6d4c41', 0, 0.1, front);                  // דלת
+    let top = st.h + 0.12;
+    if (v.id === 'bakery') {
+        // כיכרות לחם על הגג וגם ליד הדלת
+        [-0.14, 0, 0.14].forEach(x => part(b, icoG(0.05), '#d4a05a', x, st.h + 0.14, 0).scale.set(1.5, 0.8, 0.9));
+        part(b, boxG(0.12, 0.2, 0.02), '#8d6e63', 0.18, 0.1, front + 0.01);
+        top = st.h + 0.2;
+    } else if (v.id === 'cafe') {
+        // שולחן עגול וכיסאות בחוץ, וכוס קפה על השלט
+        part(b, cylG(0.07, 0.07, 0.02, 10), '#ffffff', 0.18, 0.12, front + 0.14);
+        part(b, cylG(0.01, 0.01, 0.12, 5), '#5d4037', 0.18, 0.06, front + 0.14);
+        part(b, boxG(0.05, 0.05, 0.05), '#6d4c41', 0.06, 0.04, front + 0.14);
+        part(b, boxG(0.05, 0.05, 0.05), '#6d4c41', 0.3, 0.04, front + 0.14);
+        part(b, cylG(0.035, 0.03, 0.06, 8), '#ffffff', 0, st.h + 0.19, front);
+    } else if (v.id === 'toy') {
+        // בלונים צבעוניים על חוטים
+        [['#e53935', -0.2], ['#fdd835', 0], ['#1e88e5', 0.2]].forEach(([col, x]) => {
+            part(b, cylG(0.004, 0.004, 0.22, 4), '#eeeeee', x, st.h + 0.12, 0);
+            part(b, icoG(0.06), col, x, st.h + 0.28, 0);
+        });
+        top = st.h + 0.36;
+    } else if (v.id === 'bookstore') {
+        // ערימת ספרים צבעונית ליד הדלת
+        [['#e53935', 0.04], ['#43a047', 0.08], ['#1e88e5', 0.12], ['#fdd835', 0.16]].forEach(([col, y]) => part(b, boxG(0.12, 0.035, 0.08), col, 0.24, y, front + 0.06));
+    } else if (v.id === 'supermarket') {
+        // עגלות קניות בחזית
+        [-0.28, -0.18].forEach(x => {
+            part(b, boxG(0.08, 0.05, 0.1), '#b0bec5', x, 0.08, front + 0.08);
+            part(b, boxG(0.08, 0.01, 0.01), '#546e7a', x, 0.13, front + 0.03);
+        });
+        part(b, boxG(0.4, 0.06, 0.02), '#e53935', 0, st.h * 0.62, front);
+    }
     addDoorPath(b, roadNextTo(c, r), front);
     group.add(b);
-    return st.h + 0.12;
+    return top;
 }
 
-// מרפאה: בניין לבן עם צלב אדום. בית חולים גבוה יותר עם שני צלבים
+// מרפאות: בניין עם סמל לפי ההתמחות (צלב, שן, כפה, לב, עין, תרופה ובדיקה). בית חולים גבוה יותר עם שני צלבים
+const CLINIC_STYLE = {
+    clinic:   { w: 0.7,  h: 0.5,  body: '#ffffff', roof: '#90a4ae', emb: 'cross', col: '#e53935' },
+    hospital: { w: 0.7,  h: 0.85, body: '#eceff1', roof: '#90a4ae', emb: 'cross2', col: '#e53935' },
+    dentist:  { w: 0.6,  h: 0.42, body: '#e1f5fe', roof: '#4fc3f7', emb: 'tooth', col: '#29b6f6' },
+    pharmacy: { w: 0.62, h: 0.42, body: '#e8f5e9', roof: '#66bb6a', emb: 'cross', col: '#2e7d32' },
+    vet:      { w: 0.62, h: 0.4,  body: '#fff3e0', roof: '#ffb74d', emb: 'paw', col: '#6d4c41' },
+    tipat:    { w: 0.64, h: 0.38, body: '#fce4ec', roof: '#f48fb1', emb: 'heart', col: '#ec407a' },
+    eye:      { w: 0.6,  h: 0.42, body: '#ede7f6', roof: '#9575cd', emb: 'eye', col: '#5e35b1' },
+    lab:      { w: 0.64, h: 0.46, body: '#e0f7fa', roof: '#26c6da', emb: 'flask', col: '#00838f' },
+};
 function buildClinic(group, c, r, v) {
-    const hosp = v.id === 'hospital';
-    const w = 0.7;
-    const h = hosp ? 0.85 : 0.5;
+    const st = CLINIC_STYLE[v.id];
+    const w = st.w, h = st.h;
     const b = new THREE.Group();
     b.rotation.y = facingRot(c, r);
     const front = w / 2 + 0.005;
-    part(b, boxG(w, h, w), hosp ? '#eceff1' : '#ffffff', 0, h / 2, 0);
-    part(b, boxG(w + 0.02, 0.04, w + 0.02), '#90a4ae', 0, h + 0.02, 0);
-    const crossAt = hosp ? [-0.17, 0.17] : [0];
-    const cs = hosp ? 0.2 : 0.34;
-    crossAt.forEach(x => {
-        part(b, boxG(cs, cs * 0.24, 0.02), '#e53935', x, h * 0.72, front);
-        part(b, boxG(cs * 0.24, cs, 0.02), '#e53935', x, h * 0.72, front);
-    });
-    part(b, boxG(0.16, 0.22, 0.02), '#6d4c41', 0, 0.11, front);   // דלת
+    part(b, boxG(w, h, w), st.body, 0, h / 2, 0);
+    part(b, boxG(w + 0.02, 0.04, w + 0.02), st.roof, 0, h + 0.02, 0);
+    const y = h * 0.72;
+    const at = (g, col, x, yy, z, extra) => part(b, g, col, x, yy, z, extra);
+    if (st.emb === 'cross' || st.emb === 'cross2') {
+        const xs = st.emb === 'cross2' ? [-0.17, 0.17] : [0];
+        const cs = st.emb === 'cross2' ? 0.2 : (v.id === 'pharmacy' ? 0.26 : 0.34);
+        xs.forEach(x => {
+            at(boxG(cs, cs * 0.24, 0.02), st.col, x, y, front);
+            at(boxG(cs * 0.24, cs, 0.02), st.col, x, y, front);
+        });
+    } else {
+        // עיגול רקע לסמל
+        at(cylG(0.11, 0.11, 0.02, 14), st.col, 0, y, front).rotation.x = Math.PI / 2;
+        if (st.emb === 'tooth') {
+            at(boxG(0.1, 0.07, 0.02), '#ffffff', 0, y + 0.015, front + 0.015);
+            at(boxG(0.035, 0.07, 0.02), '#ffffff', -0.025, y - 0.045, front + 0.015);
+            at(boxG(0.035, 0.07, 0.02), '#ffffff', 0.025, y - 0.045, front + 0.015);
+        } else if (st.emb === 'paw') {
+            at(icoG(0.035), '#ffffff', 0, y - 0.015, front + 0.02);
+            [-0.045, -0.015, 0.015, 0.045].forEach((x, i) => at(icoG(0.017), '#ffffff', x, y + 0.035 + (i % 3 === 0 ? -0.01 : 0.01), front + 0.02));
+        } else if (st.emb === 'heart') {
+            at(icoG(0.032), '#ffffff', -0.026, y + 0.016, front + 0.02);
+            at(icoG(0.032), '#ffffff', 0.026, y + 0.016, front + 0.02);
+            at(boxG(0.05, 0.05, 0.02), '#ffffff', 0, y - 0.006, front + 0.02).rotation.z = Math.PI / 4;
+        } else if (st.emb === 'eye') {
+            at(icoG(0.05), '#ffffff', 0, y, front + 0.02).scale.set(1.5, 0.8, 0.4);
+            at(icoG(0.026), '#212121', 0, y, front + 0.035);
+        } else if (st.emb === 'flask') {
+            at(cylG(0.014, 0.014, 0.06, 6), '#ffffff', 0, y + 0.04, front + 0.02);
+            at(coneG(0.05, 0.07, 8), '#ffffff', 0, y - 0.025, front + 0.02);
+            at(icoG(0.015), '#76ff03', 0, y - 0.03, front + 0.035);
+        }
+    }
+    if (v.id === 'vet') at(icoG(0.045), '#8d6e63', 0.24, 0.05, front + 0.07);   // כלבלב ליד הדלת
+    if (v.id === 'tipat') [-0.2, 0.2].forEach(x => at(icoG(0.04), '#f8bbd0', x, 0.05, front + 0.06));
+    at(boxG(0.16, 0.22, 0.02), '#6d4c41', 0, 0.11, front);   // דלת
     addDoorPath(b, roadNextTo(c, r), front);
     group.add(b);
     return h + 0.04;
@@ -987,6 +1279,10 @@ const CIVIC_STYLE = {
     university: { w: 0.8, h: 0.55, body: '#8d6e63', roof: '#4e342e' },
     court:     { w: 0.76, h: 0.5, body: '#f5f5f5', roof: '#6d4c41' },
     prison:    { w: 0.74, h: 0.42, body: '#78909c', roof: '#37474f' },
+    townhall:  { w: 0.82, h: 0.52, body: '#fff8e1', roof: '#8d6e63' },
+    bank:      { w: 0.7,  h: 0.46, body: '#cfd8dc', roof: '#37474f' },
+    recycle:   { w: 0.7,  h: 0.36, body: '#a5d6a7', roof: '#2e7d32' },
+    station:   { w: 0.86, h: 0.4,  body: '#ffe0b2', roof: '#bf360c' },
 };
 function buildCivic(group, c, r, v) {
     const st = CIVIC_STYLE[v.id];
@@ -996,7 +1292,7 @@ function buildCivic(group, c, r, v) {
     const front = st.w / 2 + 0.005;
     let top = h + 0.04;
     part(b, boxG(st.w, h, st.w), st.body, 0, h / 2, 0);
-    if (v.id === 'library' || v.id === 'court') {
+    if (v.id === 'library' || v.id === 'court' || v.id === 'townhall' || v.id === 'bank') {
         // גג משולש (פירמידה) ושני עמודים בחזית
         part(b, coneG(st.w * 0.72, 0.2, 4), st.roof, 0, h + 0.1, 0).rotation.y = Math.PI / 4;
         [-0.26, 0.26].forEach(x => part(b, cylG(0.03, 0.03, h * 0.9, 8), '#ffffff', x, h * 0.45, front));
@@ -1036,6 +1332,29 @@ function buildCivic(group, c, r, v) {
         part(b, cylG(0.01, 0.01, 0.3, 5), '#eeeeee', 0, h + 0.17, 0);
         part(b, boxG(0.12, 0.07, 0.01), '#1e88e5', 0.06, h + 0.25, 0);
         top = h + 0.32;
+    } else if (v.id === 'townhall') {
+        // שעון עגול בגג ודגל
+        part(b, cylG(0.07, 0.07, 0.02, 14), '#ffffff', 0, h + 0.1, front * 0.3).rotation.x = Math.PI / 2;
+        part(b, boxG(0.01, 0.06, 0.01), '#212121', 0, h + 0.11, front * 0.3 + 0.015);
+        part(b, cylG(0.01, 0.01, 0.3, 5), '#eeeeee', 0.3, h + 0.17, 0);
+        part(b, boxG(0.14, 0.08, 0.01), '#1e88e5', 0.37, h + 0.28, 0);
+        top = h + 0.32;
+    } else if (v.id === 'bank') {
+        // שלט זהב מעל הדלת וערימת מטבעות
+        part(b, boxG(0.3, 0.07, 0.02), '#ffca28', 0, h * 0.72, front);
+        [0, 1, 2].forEach(k => part(b, cylG(0.04, 0.04, 0.015, 10), '#ffd54f', 0.3, 0.015 + k * 0.016, front + 0.08));
+    } else if (v.id === 'recycle') {
+        // שלושה פחי מחזור צבעוניים בחזית
+        [['#1e88e5', -0.2], ['#43a047', 0], ['#fdd835', 0.2]].forEach(([col, x]) => part(b, boxG(0.14, 0.18, 0.12), col, x, 0.09, front + 0.1));
+        part(b, boxG(0.3, 0.07, 0.02), '#2e7d32', 0, h * 0.7, front);
+    } else if (v.id === 'station') {
+        // מגדל שעון ורציף עם פס מסילה
+        part(b, boxG(0.16, 0.4, 0.16), '#ffe0b2', 0.28, h + 0.2, -0.12);
+        part(b, coneG(0.13, 0.12, 4), '#bf360c', 0.28, h + 0.46, -0.12).rotation.y = Math.PI / 4;
+        part(b, cylG(0.05, 0.05, 0.02, 12), '#ffffff', 0.28, h + 0.28, -0.12 + 0.085).rotation.x = Math.PI / 2;
+        part(b, boxG(0.9, 0.03, 0.12), '#9e9e9e', 0, 0.015, front + 0.1);
+        [-0.04, 0.04].forEach(z => part(b, boxG(0.9, 0.012, 0.012), '#424242', 0, 0.04, front + 0.2 + z));
+        top = h + 0.52;
     } else {
         // ספרייה ובית משפט: שלט קטן מעל הדלת
         part(b, boxG(0.3, 0.06, 0.02), '#8d6e63', 0, h * 0.72, front);
@@ -1051,6 +1370,7 @@ function buildCivic(group, c, r, v) {
 // אטרקציה: גן חיות (גדר, שער וחיות) או לונה פארק (גלגל ענק ואוהל). השער פונה לדרך
 function torusG(r, tube) { return cached(geoCache, `t${r}|${tube}`, () => new THREE.TorusGeometry(r, tube, 6, 20)); }
 function buildAttraction(group, c, r, v) {
+    if (!ATTRACTIONS[v.id]) return buildLandmark(group, c, r, v);   // אטרקציה בלי כניסה למשחק
     const b = new THREE.Group();
     b.rotation.y = facingRot(c, r);
     const front = 0.44;
@@ -1116,6 +1436,80 @@ function buildAttraction(group, c, r, v) {
     return top;
 }
 
+// אטרקציות בלי כניסה למשחק: מוזיאון, אקווריום, קולנוע, אצטדיון, מגדל תצפית וקרקס. מביאות תיירים לבד
+function buildLandmark(group, c, r, v) {
+    const b = new THREE.Group();
+    b.rotation.y = facingRot(c, r);
+    const front = 0.44;
+    let top = 0.6;
+    const plot = { museum: '#d7ccc8', aquarium: '#b2ebf2', cinema: '#cfd8dc', stadium: '#c5e1a5', lookout: '#c8e6c9', circus: '#f8bbd0' }[v.id];
+    part(b, boxG(0.92, 0.02, 0.92), plot, 0, 0.01, 0);
+    if (v.id === 'museum') {
+        part(b, boxG(0.8, 0.34, 0.6), '#efebe9', 0, 0.19, -0.05);
+        part(b, boxG(0.88, 0.04, 0.68), '#8d6e63', 0, 0.02, -0.05);
+        part(b, coneG(0.56, 0.2, 4), '#a1887f', 0, 0.46, -0.05).rotation.y = Math.PI / 4;
+        [-0.27, -0.09, 0.09, 0.27].forEach(x => part(b, cylG(0.03, 0.03, 0.34, 8), '#ffffff', x, 0.19, 0.3));
+        part(b, boxG(0.7, 0.04, 0.1), '#d7ccc8', 0, 0.38, 0.3);
+        part(b, boxG(0.18, 0.2, 0.02), '#6d4c41', 0, 0.12, 0.26);
+        part(b, boxG(0.5, 0.05, 0.02), '#ffca28', 0, 0.3, 0.255);
+        top = 0.6;
+    } else if (v.id === 'aquarium') {
+        part(b, boxG(0.78, 0.3, 0.6), '#4dd0e1', 0, 0.16, -0.05, { roughness: 0.2 });
+        part(b, icoG(0.34), '#80deea', 0, 0.3, -0.05, { roughness: 0.15, transparent: true, opacity: 0.8 }).scale.set(1, 0.65, 0.85);
+        [['#ff7043', -0.2, 0.2, 0.05], ['#fdd835', 0.15, 0.28, -0.1], ['#ec407a', 0.0, 0.14, 0.1]].forEach(([col, x, y, z]) => {
+            part(b, icoG(0.04), col, x, y, z).scale.set(1.6, 1, 0.6);
+        });
+        part(b, boxG(0.18, 0.2, 0.02), '#006064', 0, 0.1, 0.26);
+        part(b, boxG(0.5, 0.06, 0.02), '#0097a7', 0, 0.3, 0.255);
+        top = 0.5;
+    } else if (v.id === 'cinema') {
+        part(b, boxG(0.8, 0.46, 0.6), '#37474f', 0, 0.23, -0.05);
+        part(b, boxG(0.84, 0.04, 0.64), '#212121', 0, 0.48, -0.05);
+        part(b, boxG(0.6, 0.12, 0.04), '#ffca28', 0, 0.38, 0.27, { emissive: '#ffca28', emissiveIntensity: 0.4 });
+        part(b, boxG(0.2, 0.28, 0.02), '#b71c1c', 0, 0.14, 0.27);                 // דלת
+        part(b, boxG(0.16, 0.012, 0.3), '#d32f2f', 0, 0.015, 0.4);                // שטיח אדום
+        part(b, cylG(0.1, 0.1, 0.03, 12), '#eceff1', -0.18, 0.55, -0.05).rotation.x = Math.PI / 2;   // גלגל סרט
+        part(b, cylG(0.1, 0.1, 0.03, 12), '#eceff1', 0.04, 0.55, -0.05).rotation.x = Math.PI / 2;
+        top = 0.68;
+    } else if (v.id === 'stadium') {
+        part(b, cylG(0.42, 0.38, 0.22, 20), '#eceff1', 0, 0.12, 0);
+        part(b, cylG(0.34, 0.34, 0.2, 20), '#43a047', 0, 0.14, 0);
+        part(b, cylG(0.02, 0.02, 0.02, 20), '#ffffff', 0, 0.255, 0);
+        part(b, boxG(0.3, 0.005, 0.015), '#ffffff', 0, 0.245, 0);
+        [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]].forEach(([x, z]) => {
+            part(b, cylG(0.015, 0.015, 0.5, 5), '#78909c', x, 0.25, z);
+            part(b, boxG(0.09, 0.05, 0.03), '#fff59d', x, 0.52, z, { emissive: '#fff59d', emissiveIntensity: 0.7 });
+        });
+        top = 0.6;
+    } else if (v.id === 'lookout') {
+        part(b, cylG(0.1, 0.16, 0.2, 10), '#90a4ae', 0, 0.1, 0);
+        part(b, cylG(0.05, 0.08, 0.8, 10), '#b0bec5', 0, 0.55, 0);
+        part(b, cylG(0.17, 0.12, 0.1, 12), '#ef5350', 0, 0.98, 0);
+        part(b, cylG(0.16, 0.16, 0.06, 12), '#80deea', 0, 1.06, 0, { roughness: 0.2 });
+        part(b, coneG(0.12, 0.14, 12), '#ef5350', 0, 1.16, 0);
+        part(b, cylG(0.01, 0.01, 0.2, 5), '#eeeeee', 0, 1.3, 0);
+        top = 1.4;
+    } else {
+        // קרקס: אוהל פסים אדום-לבן עם דגל
+        for (let k = 0; k < 6; k++) {
+            const a = k * Math.PI / 3;
+            part(b, boxG(0.18, 0.28, 0.03), k % 2 ? '#ffffff' : '#e53935', Math.cos(a) * 0.26, 0.16, Math.sin(a) * 0.26).rotation.y = -a + Math.PI / 2;
+        }
+        part(b, coneG(0.4, 0.3, 6), '#e53935', 0, 0.45, 0);
+        part(b, coneG(0.41, 0.3, 6), '#ffffff', 0, 0.45, 0).scale.set(0.5, 1.02, 1.02);
+        part(b, cylG(0.01, 0.01, 0.2, 5), '#eeeeee', 0, 0.7, 0);
+        part(b, boxG(0.12, 0.07, 0.01), '#ffca28', 0.06, 0.78, 0);
+        part(b, boxG(0.2, 0.22, 0.02), '#4a148c', 0, 0.11, 0.3);
+        top = 0.85;
+    }
+    part(b, boxG(0.04, 0.34, 0.04), '#5d4037', -0.14, 0.17, front);
+    part(b, boxG(0.04, 0.34, 0.04), '#5d4037', 0.14, 0.17, front);
+    part(b, boxG(0.36, 0.08, 0.04), '#ffca28', 0, 0.36, front);
+    addDoorPath(b, roadNextTo(c, r), front);
+    group.add(b);
+    return Math.max(top, 0.5);
+}
+
 // פארק, גינה קטנה או גן שעשועים
 // חלקות פארק שכנות מתחברות לפארק אחד: בודקים לאילו כיוונים יש חלקת פארק שכנה
 function parkSides(c, r) {
@@ -1139,6 +1533,50 @@ function buildPark(group, seed, v, sides) {
         [[-0.25, -0.2, '#f06292'], [0.05, -0.28, '#ffd54f'], [0.28, -0.05, '#f06292'], [-0.1, 0.22, '#ffd54f'], [0.25, 0.25, '#ff8a65']]
             .forEach(([x, z, col]) => part(group, icoG(0.06), col, x, 0.06, z));
         part(group, boxG(0.2, 0.05, 0.06), '#8d6e63', 0.0, 0.05, 0.36);
+    } else if (v.id === 'lake') {
+        part(group, cylG(0.34, 0.36, 0.03, 18), '#c8e6c9', 0, 0.015, 0);
+        part(group, cylG(0.3, 0.3, 0.02, 18), '#29b6f6', 0, 0.035, 0, { roughness: 0.2 });
+        part(group, icoG(0.05), '#ffffff', 0.08, 0.075, 0.05).scale.set(1.3, 0.9, 1);   // ברווז
+        part(group, icoG(0.03), '#ffffff', 0.14, 0.11, 0.05);
+        part(group, boxG(0.03, 0.015, 0.02), '#ff9800', 0.18, 0.105, 0.05);
+        [[-0.3, -0.25], [-0.34, -0.15], [0.3, 0.28]].forEach(([x, z]) => part(group, cylG(0.008, 0.008, 0.14, 4), '#7cb342', x, 0.08, z));
+        part(group, boxG(0.2, 0.04, 0.06), '#8d6e63', 0.0, 0.05, 0.4);
+    } else if (v.id === 'picnic') {
+        part(group, boxG(0.34, 0.01, 0.34), '#ef5350', 0, 0.02, 0.05);
+        [[-0.085, -0.085], [0.085, 0.085]].forEach(([x, z]) => part(group, boxG(0.17, 0.012, 0.17), '#ffffff', x, 0.022, 0.05 + z));
+        part(group, cylG(0.06, 0.05, 0.05, 8), '#a1887f', -0.05, 0.05, 0.02);   // סל
+        part(group, icoG(0.07), '#e53935', 0.08, 0.07, 0.1).scale.set(1, 0.8, 1);   // אבטיח
+        part(group, icoG(0.14), '#43a047', -0.3, 0.2, -0.28);
+        part(group, cylG(0.025, 0.03, 0.12, 6), '#6d4c41', -0.3, 0.06, -0.28);
+    } else if (v.id === 'soccer') {
+        part(group, boxG(0.8, 0.012, 0.8), '#43a047', 0, 0.02, 0);
+        part(group, boxG(0.8, 0.006, 0.015), '#ffffff', 0, 0.03, 0);
+        part(group, boxG(0.015, 0.006, 0.8), '#ffffff', 0, 0.03, 0);
+        part(group, torusG(0.1, 0.008), '#ffffff', 0, 0.032, 0).rotation.x = Math.PI / 2;
+        [-1, 1].forEach(sg => {
+            part(group, boxG(0.02, 0.14, 0.02), '#fafafa', sg * 0.4, 0.09, -0.1);
+            part(group, boxG(0.02, 0.14, 0.02), '#fafafa', sg * 0.4, 0.09, 0.1);
+            part(group, boxG(0.02, 0.02, 0.22), '#fafafa', sg * 0.4, 0.16, 0);
+        });
+        part(group, icoG(0.035), '#ffffff', 0.1, 0.06, 0.1);
+    } else if (v.id === 'basket') {
+        part(group, boxG(0.8, 0.012, 0.8), '#90a4ae', 0, 0.02, 0);
+        part(group, boxG(0.74, 0.006, 0.015), '#ffffff', 0, 0.03, 0);
+        part(group, torusG(0.12, 0.008), '#ffffff', 0, 0.032, 0).rotation.x = Math.PI / 2;
+        [-1, 1].forEach(sg => {
+            part(group, cylG(0.015, 0.015, 0.4, 6), '#455a64', sg * 0.36, 0.2, 0);
+            part(group, boxG(0.015, 0.14, 0.18), '#ffffff', sg * 0.33, 0.4, 0);
+            part(group, torusG(0.035, 0.006), '#ff7043', sg * 0.29, 0.34, 0).rotation.y = Math.PI / 2;
+        });
+        part(group, icoG(0.035), '#ff8f00', 0, 0.06, 0.1);
+    } else if (v.id === 'skate') {
+        part(group, boxG(0.8, 0.012, 0.8), '#b0bec5', 0, 0.02, 0);
+        part(group, boxG(0.3, 0.02, 0.22), '#607d8b', -0.22, 0.08, -0.2).rotation.x = -0.4;
+        part(group, boxG(0.3, 0.02, 0.22), '#607d8b', 0.22, 0.08, -0.2).rotation.x = -0.4;
+        part(group, boxG(0.3, 0.1, 0.12), '#78909c', 0, 0.07, 0.25);
+        part(group, boxG(0.4, 0.015, 0.015), '#ffca28', 0, 0.16, 0.05);
+        [-0.18, 0.18].forEach(x => part(group, boxG(0.015, 0.12, 0.015), '#ffca28', x, 0.08, 0.05));
+        part(group, boxG(0.12, 0.012, 0.04), '#e53935', 0.05, 0.05, 0.0);   // סקייטבורד
     } else {
         // גן שעשועים: מגלשה, עמודי נדנדה וספסל תלוי
         const slide = part(group, boxG(0.12, 0.02, 0.4), '#ff7043', 0.22, 0.2, 0.05);
@@ -1174,6 +1612,25 @@ function buildProp(group, seed, v) {
     } else if (v.id === 'bin') {
         part(group, cylG(0.07, 0.06, 0.2, 8), '#607d8b', ox, 0.1, oz);
         part(group, cylG(0.075, 0.075, 0.02, 8), '#455a64', ox, 0.21, oz);
+    } else if (v.id === 'mailbox') {
+        part(group, cylG(0.02, 0.02, 0.2, 6), '#455a64', ox, 0.1, oz);
+        part(group, boxG(0.14, 0.12, 0.1), '#e53935', ox, 0.26, oz);
+        part(group, cylG(0.05, 0.05, 0.1, 8), '#e53935', ox, 0.32, oz).rotation.z = Math.PI / 2;
+        part(group, boxG(0.08, 0.02, 0.005), '#ffffff', ox, 0.26, oz + 0.052);
+    } else if (v.id === 'sign') {
+        part(group, cylG(0.015, 0.015, 0.5, 6), '#78909c', ox, 0.25, oz);
+        part(group, cylG(0.12, 0.12, 0.025, 8), '#e53935', ox, 0.55, oz).rotation.x = Math.PI / 2;
+        part(group, boxG(0.14, 0.04, 0.005), '#ffffff', ox, 0.55, oz + 0.016);
+    } else if (v.id === 'umbrella') {
+        part(group, cylG(0.012, 0.012, 0.5, 6), '#8d6e63', ox, 0.25, oz);
+        part(group, coneG(0.26, 0.14, 8), '#fdd835', ox, 0.55, oz);
+        part(group, coneG(0.26, 0.14, 8), '#ef5350', ox, 0.55, oz).scale.set(0.99, 1.01, 0.99);
+        part(group, cylG(0.1, 0.1, 0.012, 10), '#e0e0e0', ox, 0.006, oz + 0.2);
+    } else if (v.id === 'statue') {
+        part(group, boxG(0.26, 0.12, 0.26), '#9e9e9e', ox, 0.06, oz);
+        part(group, cylG(0.07, 0.09, 0.3, 8), '#bdbdbd', ox, 0.27, oz);
+        part(group, icoG(0.07), '#bdbdbd', ox, 0.5, oz);
+        part(group, boxG(0.22, 0.04, 0.05), '#bdbdbd', ox, 0.36, oz);
     } else {
         // ערוגת פרחים: מסגרת עץ וכמה פרחים צבעוניים
         part(group, boxG(0.36, 0.04, 0.2), '#8d6e63', 0, 0.02, 0);
@@ -1191,9 +1648,14 @@ const SCHOOL_STYLE = {
     school:     { wall: '#ffd166', roof: '#9e9e9e' },
     kinder:     { wall: '#ffab91', roof: '#ff7043' },
     highschool: { wall: '#b0bec5', roof: '#546e7a' },
+    nursery:    { wall: '#ffe082', roof: '#ffb300', noFlag: true },
+    music:      { wall: '#ce93d8', roof: '#6a1b9a', flag: '#ffd54f' },
+    art:        { wall: '#80deea', roof: '#00838f', flag: '#ec407a' },
+    science:    { wall: '#a5d6a7', roof: '#2e7d32', flag: '#1e88e5' },
+    sports:     { wall: '#ffccbc', roof: '#d84315', flag: '#43a047' },
 };
 function buildSchool(group, c, r, v) {
-    const { wall: WALL, roof: ROOF } = SCHOOL_STYLE[v.id];
+    const { wall: WALL, roof: ROOF, noFlag, flag } = SCHOOL_STYLE[v.id];
     const gid = schoolGid.get(key(c, r));
     const linked = {};
     DIRS.forEach(d => {
@@ -1233,9 +1695,26 @@ function buildSchool(group, c, r, v) {
     });
 
     // דגל רק על החלקה העליונה של הקבוצה (לגן ילדים אין דגל)
-    if (schoolAnchors.has(key(c, r)) && v.id !== 'kinder') {
+    if (schoolAnchors.has(key(c, r)) && v.id !== 'kinder' && !noFlag) {
         part(group, cylG(0.015, 0.015, 0.5, 5), '#eeeeee', -0.3, 0.88, -0.3);
-        part(group, boxG(0.2, 0.12, 0.01), '#e53935', -0.2, 1.08, -0.3);
+        part(group, boxG(0.2, 0.12, 0.01), flag || '#e53935', -0.2, 1.08, -0.3);
+    }
+    // סמל על הגג: מה לומדים בבית הספר
+    const em = (g, col, x, y, z) => part(group, g, col, x, y, z);
+    if (v.id === 'music') {
+        em(icoG(0.06), '#ffd54f', 0.2, 0.73, 0.1); em(boxG(0.02, 0.18, 0.02), '#ffd54f', 0.25, 0.8, 0.1);
+        em(icoG(0.05), '#ffd54f', 0.32, 0.7, 0.1);
+    } else if (v.id === 'art') {
+        [['#e53935', -0.1], ['#fdd835', 0], ['#1e88e5', 0.1]].forEach(([col, x]) => em(icoG(0.045), col, 0.2 + x, 0.7, 0.15));
+    } else if (v.id === 'science') {
+        em(cylG(0.015, 0.015, 0.3, 6), '#eceff1', 0.2, 0.8, 0.1).rotation.z = 0.6;   // טלסקופ
+        em(cylG(0.05, 0.035, 0.16, 8), '#78909c', 0.27, 0.9, 0.1).rotation.z = 0.6;
+        em(cylG(0.01, 0.025, 0.18, 6), '#78909c', 0.2, 0.74, 0.1);
+    } else if (v.id === 'sports') {
+        em(icoG(0.07), '#ffffff', 0.2, 0.72, 0.1); em(icoG(0.05), '#ffffff', 0.34, 0.7, 0.14);
+        em(boxG(0.3, 0.02, 0.02), '#ffca28', 0.27, 0.66, -0.05);
+    } else if (v.id === 'nursery') {
+        em(icoG(0.06), '#f48fb1', 0.2, 0.72, 0.1); em(icoG(0.05), '#81d4fa', 0.32, 0.7, 0.1); em(icoG(0.05), '#fff59d', 0.26, 0.68, 0.2);
     }
 }
 
@@ -1750,6 +2229,7 @@ function place(c, r) {
 
 function removeAt(c, r) {
     const v = variantAt(c, r);
+    if (!confirm(`למחוק את ${v.name}? יוחזר חצי מהמחיר.`)) return;
     const refund = Math.floor(v.price / 2);
     buildings.delete(key(c, r));
     commit();
@@ -1762,6 +2242,7 @@ function removeDecorAt(c, r) {
     const list = decorAt(c, r);
     const id = list[list.length - 1];
     const v = VARIANT_BY_ID[id];
+    if (!confirm(`למחוק את ${v.name}? יוחזר חצי מהמחיר.`)) return;
     const refund = Math.floor(v.price / 2);
     if (list.length > 1) decor.set(key(c, r), list.slice(0, -1));
     else decor.delete(key(c, r));
@@ -1783,6 +2264,7 @@ function deleteAt(c, r) {
 
 function removeAllDecorAt(c, r) {
     const list = decorAt(c, r);
+    if (!confirm(`למחוק ${list.length} פריטים מהחלקה? יוחזר חצי מהמחיר.`)) return;
     const refund = list.reduce((sum, id) => sum + Math.floor(VARIANT_BY_ID[id].price / 2), 0);
     decor.delete(key(c, r));
     commit();
