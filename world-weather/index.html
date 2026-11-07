@@ -241,6 +241,11 @@ const RAIN_PHRASES = [
   [60, "סביר שירד גשם, עדיף להיות מוכנים."],
   [50, "יכול להיות שירד גשם, בערך חצי חצי."],
   [40, "אולי ירד קצת גשם, אבל לא בטוח."],
+  // Below the "maybe rain" line: non-committal, no umbrella or icon change.
+  [30, "יש סיכוי קטן לטיפות, אבל אי אפשר להבטיח כלום."],
+  [20, "סיכוי נמוך לגשם, כנראה שיהיה יבש, אבל מי יודע."],
+  [10, "כמעט בטוח שלא ירד גשם, אבל השמיים לא תמיד מקשיבים לתחזית."],
+  [0, "בקושי יש סיכוי לגשם, אבל תמיד כדאי להציץ החוצה."],
 ];
 function rainPhrase(pct) {
   const hit = RAIN_PHRASES.find(([min]) => pct >= min);
@@ -253,9 +258,10 @@ function dayStats(offset) {
   const temps = h.temperature_2m.slice(start, start + count);
   const codes = h.weathercode.slice(start, start + count);
   const probs = h.precipitation_probability.slice(start, start + count);
-  let rainProb = 0, snowProb = 0;
+  let rainProb = 0, snowProb = 0, precipMax = 0;
   codes.forEach((c, i) => {
     const p = probs[i] || 0;
+    precipMax = Math.max(precipMax, p);
     if (RAIN_CODES.includes(c)) rainProb = Math.max(rainProb, p);
     if (SNOW_CODES.includes(c)) snowProb = Math.max(snowProb, p);
   });
@@ -273,6 +279,8 @@ function dayStats(offset) {
     maybeRain: rainProb >= RAIN_MAYBE_PCT && rainProb < RAIN_SURE_PCT,
     hasSnow: snowProb >= RAIN_MAYBE_PCT,
     rainProb,
+    // Shown in the sentence: real rain chance, or (below the maybe line) the general precipitation chance.
+    shownProb: rainProb >= RAIN_MAYBE_PCT ? rainProb : Math.min(precipMax, RAIN_MAYBE_PCT - 1),
     baseCode: top === undefined ? 1 : Number(top),
   };
 }
@@ -306,7 +314,7 @@ function renderForSelection() {
         <div class="weather-label">${label}</div>
       </div>
     </div>
-    ${rainPhrase(stats.rainProb) ? `<p class="rain-note">☔ ${rainPhrase(stats.rainProb)} (${Math.round(stats.rainProb)}%)</p>` : ""}
+    ${rainPhrase(stats.shownProb) ? `<p class="rain-note">☔ ${rainPhrase(stats.shownProb)} (${Math.round(stats.shownProb)}%)</p>` : ""}
     <div class="outfit-title">מה ללבוש היום? (לפי כל היום)</div>
     <div class="outfit-list">${outfitRows(stats, uvMax).map((r) =>
       `<div class="outfit-row"><span class="outfit-icon">${r.icon}</span><span class="outfit-text">${r.text}</span></div>`
