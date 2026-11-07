@@ -154,7 +154,7 @@ function outfitFor(dayStats, uvMax) {
     hot: maxTemp >= 25,
     // - WHO / Australian guidance: sun protection from UV index 3 and up
     //   (sunscreen, hat, sunglasses). Clouds only filter UV partly.
-    sun: uvMax >= 3 && !hasRain && !hasSnow,
+    sun: uvMax >= 6 && maxTemp >= 28 && !hasRain && !hasSnow,
     // Rain or snow: boots instead of shoes.
     boots: hasRain || hasSnow,
     // Cold enough for a wool hat (a bit above the "freezing" gloves cutoff).
@@ -193,7 +193,7 @@ function outfitTips(dayStats, uvMax) {
   if (minTemp < 10) tips.push("בקור: שכבות דקות. תחתונית של צמר או סינטטי (לא כותנה, היא נשארת רטובה), שכבת פליז באמצע, ומעיל עמיד לרוח ולגשם למעלה.");
   if (minTemp < 10) tips.push("בתוך הבית מתחממים מהר, לכן כדאי שכבות שקל להוריד.");
   if (maxTemp >= 25) tips.push("בחום: בגדים בהירים, רפויים ודקים. שתו כל כ-20 דקות והביאו יותר מבקבוק אחד.");
-  if (uvMax >= 3 && !hasRain && !hasSnow) tips.push("גם כשיש עננים השמש פוגעת. הצל בשעות 10–16, כובע וקרם הגנה עוזרים.");
+  if (uvMax >= 6 && maxTemp >= 28 && !hasRain && !hasSnow) tips.push("גם כשיש עננים השמש פוגעת. הצל בשעות 10–16, כובע וקרם הגנה עוזרים.");
   if (hasRain) tips.push("בגשם חשוב להישאר יבשים, כי ילד רטוב מתקרר מהר.");
   return tips;
 }
