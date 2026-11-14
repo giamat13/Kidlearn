@@ -1,16 +1,21 @@
-// לונה פארק: המסך. החוקים נמצאים ב-logic.js (AmusementLogic).
+// לונה פארק: המסך. החוקים נמצאים ב-logic.js (AmusementLogic), המודלים ב-rides.js (ParkModels).
 // אטרקציה בעיר: הנתונים נשמרים לפי החלקה (?cell=c,r) במכשיר ובחשבון. עובד גם בדפדפן רגיל בלי כניסה.
 // ההכנסה לדקה נשמרת בנתונים, והעיר מוסיפה אותה למסים שלה (משולם לבד, גם כשהילד לא בעיר, עד 3 שעות).
 (function () {
   const L = window.AmusementLogic;
   const W = window.KidLearnWallet;
+  const K = window.K3D;
+  const M = window.ParkModels;
   const store = KidLearnAttraction.create('kidlearn-amusement');
   const $ = (id) => document.getElementById(id);
 
   let state = L.normalize(store.load());
   L.decay(state, Date.now() - state.at);
   state.at = Date.now();
-  let selected = L.RIDES[0].id;
+
+  let tab = 'build';
+  let chosen = null;     // המתקן שנבחר בחנות ומחכה למשבצת
+  let sel = null;        // המשבצת שנבחרה (מתקן קיים)
 
   function refresh() {
     state.rate = L.rateOf(state);
@@ -28,324 +33,370 @@
     if (balance() < cost) { say(`חסרים לכם ${cost - balance()} 🪙`); return false; }
     return W.spend(cost);
   }
-  function meter(label, value, cls, pct, note) {
-    const w = Math.max(0, Math.min(100, Math.round(pct)));
-    return `<div class="meter"><div class="meter-head"><span>${label}</span><strong>${value}</strong></div>` +
-      (cls ? `<div class="meter-bar"><div class="meter-fill ${cls}" style="width:${w}%"></div></div>` : '') +
-      `<div class="meter-note">${note || ''}</div></div>`;
-  }
-
-  function renderStats() {
-    const q = L.queueRatio(state);
-    const queueNote = !L.rideCount(state) ? 'עוד אין מתקנים' : q > 1 ? 'תור ארוך, חלק עוזבים. קנו עוד מתקנים' : q > 0.7 ? 'קצת תור' : 'אין תור';
-    $('stats').innerHTML =
-      meter('💰 הכנסה', `${state.rate.toFixed(1)} 🪙 לדקה`, '', 0, `עד ${L.RATE_MAX} לדקה. נכנס לעיר לבד`) +
-      meter('🚶 מבקרים', `${L.servedPerMin(state).toFixed(1)} בדקה`, '', 0, queueNote) +
-      meter('🛡️ בטיחות', `${Math.round(state.safety)}%`, 'safe', state.safety, 'בטיחות נמוכה מרחיקה מבקרים') +
-      meter('⏳ עומס תורים', `${Math.round(Math.min(2, q) * 50)}%`, 'queue', Math.min(2, q) * 50, 'כמה המתקנים עמוסים') +
-      meter('🎢 מתקנים', L.rideCount(state), '', 0, `${L.kinds(state)} סוגים, ${L.funPairs(state)} במסלול כיף`) +
-      meter('🗺️ שטח', `${state.cols}×${state.rows}`, '', 0, `${L.freeCells(state)} משבצות פנויות`);
-  }
-
-  function renderControls() {
-    $('modes').innerHTML = '';
-    [['entry', '🎟️ כרטיס כניסה'], ['perRide', '🎠 תשלום על כל מתקן (1 🪙)']].forEach(([m, label]) => {
-      const b = document.createElement('button');
-      b.className = 'chip' + (state.mode === m ? ' on' : '');
-      b.setAttribute('aria-pressed', String(state.mode === m));
-      b.textContent = label;
-      b.onclick = () => { L.setMode(state, m); persist(); say(m === 'entry' ? 'כל מבקר משלם פעם אחת בכניסה' : 'כל מבקר משלם מטבע על כל מתקן שהוא עולה עליו'); renderAll(); };
-      $('modes').appendChild(b);
-    });
-    $('prices').innerHTML = '';
-    if (state.mode === 'entry') {
-      L.PRICES.forEach((p) => {
-        const b = document.createElement('button');
-        b.className = 'chip' + (state.price === p ? ' on' : '');
-        b.setAttribute('aria-pressed', String(state.price === p));
-        b.textContent = `כרטיס ${p} 🪙`;
-        b.onclick = () => { L.setPrice(state, p); persist(); say(p === 1 ? 'כרטיס זול: הרבה מבקרים' : p === 2 ? 'כרטיס בינוני' : 'כרטיס יקר: פחות מבקרים'); renderAll(); };
-        $('prices').appendChild(b);
-      });
-    }
-    const i = L.inspect(state), x = L.canExpand(state);
-    $('inspectBtn').textContent = i.ok ? `🛠️ בדיקת בטיחות (${i.cost} 🪙)` : '🛠️ בדיקת בטיחות';
-    $('expandBtn').textContent = x.ok ? `➕ הרחבת השטח (${x.cost} 🪙, שורה חדשה)` : '➕ השטח במקסימום';
-    $('inspectBtn').disabled = !i.ok;
-    $('expandBtn').disabled = !x.ok;
-  }
+  function earn(n, reason) { if (W) W.earn(n, { reason, silent: true }); }
 
   // ---------- תלת-ממד ----------
-  const S = KidLearn3D.create({
-    container: $('scene'),
-    sky: '#d6ecff',
-    bounds: () => ({ minC: 0, maxC: state.cols - 1, minR: 0, maxR: state.rows - 1 }),
-    hoverColor: (x, y) => {
-      if (x < 0 || y < 0 || x >= state.cols || y >= state.rows) return null;
-      return state.grid[L.cellKey(x, y)] ? '#ff9800' : '#ffeb3b';
-    },
-    onTap: (x, y) => onCell(x, y),
-  });
-  const anims = [];   // פונקציות (t) שמזיזות חלקים של מתקנים
+  const CELL = 6;
+  const still = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const stage = K && M ? K.createStage($('scene'), { sky: ['#4fb3ff', '#ffe9c9'], camPos: [0, 16, 22], target: [0, 0, -6], maxDist: 80, shadow: 30, fog: [60, 190] }) : null;
+  let world = null, sig = '', rides = new Map(), people = [], rowsDrawn = -1, nightPref = false, rideTimer = 0;
+  const cx = (c) => (c - (state.cols - 1) / 2) * CELL;
+  const cz = (r) => -r * CELL;
 
-  function buildRide(id, seed) {
-    const g = new S.THREE.Group();
-    const { part, box, cyl, cone, ico, tor } = S;
-    const T = S.THREE;
-    if (id === 'swing') {
-      const frame = '#e53935';
-      [-0.34, 0.34].forEach((x) => {
-        part(g, box(0.04, 0.62, 0.04), frame, x, 0.31, -0.12).rotation.z = x < 0 ? -0.18 : 0.18;
-        part(g, box(0.04, 0.62, 0.04), frame, x, 0.31, 0.12).rotation.z = x < 0 ? -0.18 : 0.18;
-      });
-      part(g, box(0.74, 0.04, 0.04), '#b71c1c', 0, 0.6, 0);
-      [-0.14, 0.14].forEach((x, i) => {
-        const sw = new T.Group();
-        sw.position.set(x, 0.6, 0);
-        part(sw, box(0.01, 0.34, 0.01), '#cfd8dc', -0.05, -0.17, 0);
-        part(sw, box(0.01, 0.34, 0.01), '#cfd8dc', 0.05, -0.17, 0);
-        part(sw, box(0.14, 0.03, 0.08), i ? '#42a5f5' : '#ffca28', 0, -0.35, 0);
-        g.add(sw);
-        anims.push((t) => { sw.rotation.x = Math.sin(t * 2.2 + i * 1.6) * 0.5; });
-      });
-    } else if (id === 'carousel') {
-      part(g, cyl(0.4, 0.42, 0.06, 20), '#ffd54f', 0, 0.03, 0);
-      const spin = new T.Group();
-      g.add(spin);
-      part(spin, cyl(0.04, 0.04, 0.5, 8), '#fafafa', 0, 0.3, 0);
-      for (let k = 0; k < 5; k++) {
-        const a = k * Math.PI * 2 / 5;
-        const h = new T.Group();
-        h.position.set(Math.cos(a) * 0.26, 0, Math.sin(a) * 0.26);
-        part(h, cyl(0.012, 0.012, 0.4, 5), '#ffd54f', 0, 0.26, 0);
-        part(h, box(0.14, 0.09, 0.07), ['#ec407a', '#42a5f5', '#66bb6a', '#ffa726', '#ab47bc'][k], 0, 0.22, 0);
-        part(h, ico(0.04), ['#ec407a', '#42a5f5', '#66bb6a', '#ffa726', '#ab47bc'][k], 0.07, 0.29, 0);
-        h.rotation.y = -a;
-        spin.add(h);
-        anims.push((t) => { h.position.y = Math.sin(t * 3 + k) * 0.03; });
-      }
-      part(g, cone(0.46, 0.22, 20), '#e53935', 0, 0.62, 0);
-      part(g, cone(0.12, 0.1, 8), '#fafafa', 0, 0.78, 0);
-      anims.push((t) => { spin.rotation.y = t * 0.8; });
-    } else if (id === 'bumper') {
-      part(g, box(0.86, 0.04, 0.86), '#546e7a', 0, 0.02, 0);
-      part(g, box(0.86, 0.07, 0.03), '#e53935', 0, 0.075, -0.43);
-      part(g, box(0.86, 0.07, 0.03), '#e53935', 0, 0.075, 0.43);
-      part(g, box(0.03, 0.07, 0.86), '#e53935', -0.43, 0.075, 0);
-      part(g, box(0.03, 0.07, 0.86), '#e53935', 0.43, 0.075, 0);
-      [['#ffca28', -0.2, -0.15], ['#42a5f5', 0.18, 0.1], ['#66bb6a', -0.12, 0.24]].forEach(([c, x, z], i) => {
-        const car = new T.Group();
-        car.position.set(x, 0.04, z);
-        part(car, box(0.22, 0.08, 0.14), c, 0, 0.06, 0);
-        part(car, box(0.1, 0.06, 0.1), tintOf(c), -0.02, 0.12, 0);
-        part(car, cyl(0.005, 0.005, 0.16, 4), '#37474f', 0.06, 0.2, 0);
-        g.add(car);
-        anims.push((t) => {
-          car.position.x = x + Math.sin(t * 1.3 + i * 2) * 0.12;
-          car.position.z = z + Math.cos(t * 1.1 + i * 3) * 0.1;
-          car.rotation.y = Math.sin(t * 1.3 + i * 2) * 0.5;
-        });
-      });
-    } else if (id === 'ferris') {
-      const wheel = new T.Group();
-      wheel.position.set(0, 0.55, 0);
-      const ring = new T.Mesh(tor(0.42, 0.025), S.mat('#e53935'));
-      ring.castShadow = true;
-      wheel.add(ring);
-      for (let k = 0; k < 4; k++) {
-        const spoke = new T.Mesh(box(0.84, 0.015, 0.015), S.mat('#fafafa'));
-        spoke.rotation.z = k * Math.PI / 4;
-        wheel.add(spoke);
-      }
-      const pods = [];
-      for (let k = 0; k < 8; k++) {
-        const a = k * Math.PI / 4;
-        const pod = new T.Mesh(box(0.09, 0.09, 0.09), S.mat(['#ffca28', '#42a5f5', '#66bb6a', '#ec407a'][k % 4]));
-        pod.castShadow = true;
-        pod.position.set(Math.cos(a) * 0.42, Math.sin(a) * 0.42, 0);
-        wheel.add(pod);
-        pods.push(pod);
-      }
-      g.add(wheel);
-      [-0.1, 0.1].forEach((z) => {
-        part(g, box(0.035, 0.6, 0.035), '#78909c', -0.12, 0.28, z).rotation.z = -0.22;
-        part(g, box(0.035, 0.6, 0.035), '#78909c', 0.12, 0.28, z).rotation.z = 0.22;
-      });
-      anims.push((t) => { wheel.rotation.z = t * 0.35; pods.forEach((p) => { p.rotation.z = -wheel.rotation.z; }); });
-    } else if (id === 'water') {
-      part(g, box(0.86, 0.03, 0.86), '#4fc3f7', 0, 0.02, 0.0);
-      part(g, box(0.2, 0.7, 0.2), '#fafafa', -0.26, 0.35, -0.2);
-      part(g, box(0.26, 0.04, 0.26), '#e53935', -0.26, 0.72, -0.2);
-      const slide = part(g, box(0.18, 0.03, 0.78), '#29b6f6', 0.0, 0.38, -0.02);
-      slide.rotation.set(0.0, 0, 0);
-      slide.position.set(-0.04, 0.38, 0.05);
-      slide.rotation.x = 0.62; slide.rotation.y = -0.42;
-      part(g, box(0.5, 0.05, 0.3), '#0288d1', 0.2, 0.05, 0.28);
-      const splash = part(g, ico(0.05), '#e1f5fe', 0.28, 0.1, 0.3);
-      anims.push((t) => { splash.position.y = 0.1 + Math.abs(Math.sin(t * 3)) * 0.12; });
-    } else {
-      // coaster: מסלול גלי וקרון שנוסע עליו
-      part(g, box(0.9, 0.02, 0.9), '#cfd8dc', 0, 0.01, 0);
-      const pts = [];
-      const N = 24;
-      for (let i = 0; i <= N; i++) {
-        const u = i / N;
-        pts.push(new T.Vector3(-0.4 + 0.8 * u, 0.22 + 0.34 * Math.pow(Math.sin(u * Math.PI * 2.5), 2), Math.sin(u * Math.PI * 2) * 0.22));
-      }
-      for (let i = 0; i < N; i++) {
-        const a = pts[i], b = pts[i + 1];
-        const m = new T.Mesh(box(1, 0.04, 0.07), S.mat('#e53935'));
-        m.castShadow = true;
-        m.position.copy(a).add(b).multiplyScalar(0.5);
-        const len = a.distanceTo(b);
-        m.scale.x = len * 1.05;
-        m.rotation.z = Math.atan2(b.y - a.y, b.x - a.x);
-        m.rotation.y = -Math.atan2(b.z - a.z, b.x - a.x);
-        g.add(m);
-        if (i % 3 === 0) part(g, box(0.025, a.y, 0.025), '#78909c', a.x, a.y / 2, a.z);
-      }
-      const cart = new T.Group();
-      part(cart, box(0.14, 0.07, 0.08), '#ffca28', 0, 0.06, 0);
-      part(cart, box(0.06, 0.05, 0.06), '#42a5f5', 0.03, 0.11, 0);
-      g.add(cart);
-      anims.push((t) => {
-        const u = (t * 0.12) % 1, f = u * N, i = Math.min(N - 1, Math.floor(f)), w = f - i;
-        cart.position.lerpVectors(pts[i], pts[i + 1], w);
-        cart.rotation.z = Math.atan2(pts[i + 1].y - pts[i].y, pts[i + 1].x - pts[i].x);
-      });
+  function buildCell(x, y) {
+    const k = L.cellKey(x, y), id = state.grid[k];
+    const g = K.group(world, cx(x), 0, cz(y));
+    if (!id) {
+      g.userData.pick = { type: 'cell', x, y };
+      K.part(g, K.cylG(2.5, 2.5, 0.06, 28), '#bfe3a0', 0, 0.09, 0).castShadow = false;
+      K.part(g, K.torusG(2.5, 0.06, 36), '#ffffff', 0, 0.12, 0).rotation.x = Math.PI / 2;
+      return;
     }
-    return g;
-  }
-  function tintOf(hex) {
-    const n = parseInt(hex.slice(1), 16);
-    const ch = (sh) => Math.min(255, Math.round(((n >> sh) & 255) * 0.8));
-    return '#' + [16, 8, 0].map((sh) => ch(sh).toString(16).padStart(2, '0')).join('');
-  }
-
-  function buildTile(x, y, hasRide, fun) {
-    const g = new S.THREE.Group();
-    g.position.set(x, 0, y);
-    S.part(g, S.box(0.98, 0.04, 0.98), (x + y) % 2 ? '#b39ddb' : '#a58ad2', 0, 0.0, 0);
-    if (fun) {
-      // מסלול כיף: פינות צהובות על המשבצת
-      [[-0.4, -0.4], [0.4, -0.4], [-0.4, 0.4], [0.4, 0.4]].forEach(([dx, dz]) => S.part(g, S.cyl(0.04, 0.04, 0.02, 8), '#ffd54f', dx, 0.03, dz));
-    }
-    if (hasRide) g.add(buildRide(hasRide));
-    return g;
+    g.userData.pick = { type: 'ride', k };
+    const item = L.ITEM_BY_ID[id], lv = L.levelOf(state, k), broken = L.isBroken(state, k);
+    K.part(g, K.cylG(2.75, 2.75, 0.06, 28), ['#f6e7c6', '#ffe0b2', '#ffd180'][lv - 1], 0, 0.09, 0).castShadow = false;
+    const m = M.build(id);
+    if (item.stall) { m.g.scale.setScalar(1.25); m.g.position.z = -0.6; }
+    g.add(m.g);
+    const tag = K.sprite(broken ? '🔧 מקולקל' : `${item.icon} ${item.name}${lv > 1 ? ' ' + '⭐'.repeat(lv - 1) : ''}`, 0.5, { bg: broken ? '#ffcdd2' : '#ffffff' });
+    tag.position.set(0, 0.75, 2.75);
+    g.add(tag);
+    if (lv > 1) [-2.3, 2.3].forEach((fx) => { K.part(g, K.cylG(0.03, 0.03, 1.6, 6), '#eceff1', fx, 0.8, 2.3); K.part(g, K.coneG(0.16, 0.4, 3), lv > 2 ? '#ffca28' : '#42a5f5', fx + 0.18, 1.45, 2.3).rotation.z = -Math.PI / 2; });
+    rides.set(k, { m, broken, g });
   }
 
-  function buildFence() {
-    const g = new S.THREE.Group();
-    const x0 = -0.5, x1 = state.cols - 0.5, z0 = -0.5, z1 = state.rows - 0.5;
-    const wood = '#8e24aa';
-    S.part(g, S.box(x1 - x0, 0.1, 0.03), wood, (x0 + x1) / 2, 0.08, z0);
-    S.part(g, S.box(0.03, 0.1, z1 - z0), wood, x0, 0.08, (z0 + z1) / 2);
-    S.part(g, S.box(0.03, 0.1, z1 - z0), wood, x1, 0.08, (z0 + z1) / 2);
-    const cx = (x0 + x1) / 2;
-    S.part(g, S.box((x1 - x0) / 2 - 0.35, 0.1, 0.03), wood, x0 + ((x1 - x0) / 2 - 0.35) / 2, 0.08, z1);
-    S.part(g, S.box((x1 - x0) / 2 - 0.35, 0.1, 0.03), wood, x1 - ((x1 - x0) / 2 - 0.35) / 2, 0.08, z1);
-    S.part(g, S.box(0.05, 0.42, 0.05), '#6a1b9a', cx - 0.35, 0.21, z1);
-    S.part(g, S.box(0.05, 0.42, 0.05), '#6a1b9a', cx + 0.35, 0.21, z1);
-    S.part(g, S.box(0.8, 0.1, 0.05), '#ffca28', cx, 0.45, z1);
-    // כביש כניסה
-    S.part(g, S.box(0.7, 0.03, 1.4), '#90a4ae', cx, 0.0, z1 + 0.7);
-    return g;
-  }
-
-  function drawPark() {
-    if (!S.ok) return;
-    anims.length = 0;
-    const cells = new Map();
-    const fun = new Set();
-    for (const [k, id] of Object.entries(state.grid)) {
-      const [x, y] = k.split(',').map(Number);
-      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const o = state.grid[L.cellKey(x + dx, y + dy)]; return o && o !== id; })) fun.add(k);
-    }
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        const k = L.cellKey(x, y);
-        cells.set(k, buildTile(x, y, state.grid[k], fun.has(k)));
-      }
-    }
-    cells.set('fence', buildFence());
-    S.setCells(cells);
-  }
-  if (S.ok) {
-    S.onFrame((dt, t) => { if (!S.reduceMotion) anims.forEach((fn) => fn(t)); });
-    $('centerBtn').onclick = () => S.fit();
-    S.fit();
-  } else {
-    $('centerBtn').hidden = true;
-  }
-
-  function onCell(x, y) {
-    if (state.grid[L.cellKey(x, y)]) {
-      const cur = L.RIDE_BY_ID[state.grid[L.cellKey(x, y)]];
-      if (!confirm(`למחוק את ${cur.name}? יוחזר חצי מהמחיר.`)) return;
-      const r = L.remove(state, x, y);
-      if (W) W.earn(r.refund, { reason: 'החזר מתקן', silent: true });
-      persist();
-      say(`הסרתם ${L.RIDE_BY_ID[r.id].name}. הוחזרו ${r.refund} 🪙`);
-      return renderAll();
-    }
-    const c = L.canPlace(state, selected, x, y);
-    if (!c.ok) return say(c.msg);
-    if (!pay(c.cost)) return;
-    L.place(state, selected, x, y);
-    persist();
-    say(`בניתם ${L.RIDE_BY_ID[selected].name}! −${c.cost} 🪙`);
-    renderAll();
-  }
-
-  function renderShop() {
-    const box = $('shop');
-    box.innerHTML = '';
-    L.RIDES.forEach((r) => {
-      const b = document.createElement('button');
-      b.className = 'card' + (r.id === selected ? ' selected' : '');
-      b.setAttribute('aria-pressed', String(r.id === selected));
-      b.innerHTML = `<span class="icon">${r.icon}</span><span>${r.name}</span><small>⭐ ריגוש ${r.thrill} · ${r.cap} מבקרים בדקה</small><span class="price">${r.price} 🪙</span>`;
-      b.onclick = () => { selected = r.id; renderAll(); $('hint').textContent = `נבחר: ${r.name}. לחצו על משבצת ריקה בשטח כדי לבנות.`; };
-      box.appendChild(b);
+  function buildPark() {
+    const w = state.cols * CELL, d = state.rows * CELL, zc = -(state.rows - 1) * CELL / 2, h = w / 2 + 0.6, z0 = CELL / 2 + 0.6, z1 = zc - d / 2 - 0.6;
+    K.part(world, K.boxG(400, 0.2, 400), '#7cc35a', 0, -0.1, 0).castShadow = false;
+    K.part(world, K.boxG(w + 1.2, 0.1, d + 1.2), '#e3d5bb', 0, 0.02, zc).castShadow = false;
+    K.part(world, K.boxG(4, 0.1, 4), '#e3d5bb', 0, 0.02, z0 + 2).castShadow = false;
+    K.fence(world, -h, z1, h, z1, { kind: 'white' });
+    K.fence(world, -h, z1, -h, z0, { kind: 'white' });
+    K.fence(world, h, z1, h, z0, { kind: 'white' });
+    K.fence(world, -h, z0, -2.2, z0, { kind: 'white' });
+    K.fence(world, 2.2, z0, h, z0, { kind: 'white' });
+    // שער
+    const g = K.group(world, 0, 0, z0);
+    [-2.2, 2.2].forEach((x, i) => {
+      K.part(g, K.cylG(0.35, 0.4, 3.4, 12), i ? '#ef5350' : '#42a5f5', x, 1.7, 0);
+      K.part(g, K.coneG(0.5, 0.8, 12), '#ffca28', x, 3.8, 0);
+      K.part(g, K.sphG(0.14, 8), K.glow('#fff3b0'), x, 4.3, 0);
     });
+    K.part(g, K.boxG(4.8, 0.9, 0.3), '#8e24aa', 0, 3.2, 0);
+    K.sign(g, '🎡 לונה פארק 🎢', 4.2, 0, 3.2, 0.16);
+    K.bunting(g, [-2.2, 2.7, 0.2], [2.2, 2.7, 0.2], 12);
+    // פנסים בצמתים, עצים מסביב
+    for (let j = 0; j <= state.rows; j++) for (let i = 0; i <= state.cols; i++) if ((i + j) % 2 === 0) K.lamp(world, (i - state.cols / 2) * CELL, CELL / 2 - j * CELL, 2);
+    for (let k = 0; k < 40; k++) {
+      const side = k % 3, t = K.rnd(k, 1);
+      const x = side === 0 ? -h - 2 - K.rnd(k, 2) * 5 : side === 1 ? h + 2 + K.rnd(k, 2) * 5 : (t - 0.5) * (w + 14);
+      const z = side === 2 ? z1 - 2 - K.rnd(k, 3) * 5 : z0 + 3 - t * (d + 8);
+      K.tree(world, x, z, 1.6 + K.rnd(k, 4) * 1.4, k, ['round', 'pine', 'blossom', 'round'][k % 4]);
+    }
   }
+
+  function signature() {
+    return JSON.stringify([state.rows, state.grid, state.lv, state.broken, Math.min(14, Math.ceil(L.servedPerMin(state) * 3))]);
+  }
+  function fit() {
+    stage.setRideCam(null);
+    $('exitBtn').hidden = true;
+    stage.look(0, -(state.rows - 1) * CELL / 2 + 1, 17 + state.rows * 3.6, 50 + state.rows * 8);
+  }
+  function draw() {
+    if (!stage) return;
+    const s = signature();
+    if (s === sig) return;
+    sig = s;
+    exitRide();
+    if (world) stage.scene.remove(world);
+    world = new K.THREE.Group();
+    rides = new Map();
+    people = [];
+    buildPark();
+    for (let y = 0; y < state.rows; y++) for (let x = 0; x < state.cols; x++) buildCell(x, y);
+    // מבקרים הולכים בשבילים שבין המתקנים
+    const n = Math.min(14, Math.ceil(L.servedPerMin(state) * 3));
+    for (let k = 0; k < n; k++) {
+      const p = K.person({ kid: k % 3 === 0, balloon: k % 4 === 1 ? K.pick(['#ef5350', '#42a5f5', '#ffca28', '#66bb6a']) : null });
+      p.g.scale.multiplyScalar(1.5);
+      const v = { p, i: Math.floor(Math.random() * (state.cols + 1)), j: Math.floor(Math.random() * (state.rows + 1)), sp: 0.9 + Math.random() * 0.6, wait: Math.random() * 2, ox: (Math.random() - 0.5) * 0.9, oz: (Math.random() - 0.5) * 0.9 };
+      v.x = v.tx = (v.i - state.cols / 2) * CELL; v.z = v.tz = CELL / 2 - v.j * CELL;
+      p.g.position.set(v.x + v.ox, 0.07, v.z + v.oz);
+      world.add(p.g);
+      people.push(v);
+    }
+    stage.scene.add(world);
+    if (state.rows !== rowsDrawn) { rowsDrawn = state.rows; fit(); }
+  }
+
+  function stepPerson(v, dt) {
+    if (v.wait > 0) { v.wait -= dt; K.stillPose(v.p); return; }
+    const dx = v.tx - v.x, dz = v.tz - v.z, d = Math.hypot(dx, dz), step = v.sp * dt;
+    if (d <= step) {
+      v.x = v.tx; v.z = v.tz;
+      if (Math.random() < 0.3) v.wait = 1 + Math.random() * 3;
+      // הצומת הבא: אחד מהשכנים
+      const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([a, b]) => [v.i + a, v.j + b]).filter(([a, b]) => a >= 0 && a <= state.cols && b >= 0 && b <= state.rows);
+      [v.i, v.j] = K.pick(opts);
+      v.tx = (v.i - state.cols / 2) * CELL; v.tz = CELL / 2 - v.j * CELL;
+    } else {
+      v.x += dx / d * step; v.z += dz / d * step;
+      v.p.g.rotation.y = Math.atan2(dx, dz);
+      K.walkPose(v.p, dt, v.sp * 0.7);
+    }
+    v.p.g.position.set(v.x + v.ox, 0.07, v.z + v.oz);
+  }
+
+  // "לעלות על המתקן": המצלמה יושבת במושב ומסתכלת קדימה
+  function exitRide() {
+    if (!stage) return;
+    clearTimeout(rideTimer);
+    stage.setRideCam(null);
+    $('exitBtn').hidden = true;
+  }
+  function rideOn(k) {
+    const r = rides.get(k);
+    if (!stage || !r || !r.m.seat) return say('אי אפשר לעלות על זה');
+    if (r.broken) return say('המתקן מקולקל. תקנו אותו קודם 🔧');
+    const V = K.THREE.Vector3, v = new V(), prev = new V(), dir = new V(0, 0, -1);
+    r.m.seat.getWorldPosition(prev);
+    stage.setRideCam((cam) => {
+      r.m.seat.getWorldPosition(v);
+      const d = v.clone().sub(prev);
+      if (d.lengthSq() > 1e-7) dir.lerp(d.normalize(), 0.12).normalize();
+      prev.copy(v);
+      cam.position.set(v.x, v.y + 0.5, v.z);
+      cam.lookAt(v.x + dir.x * 5, v.y + 0.3 + dir.y * 3, v.z + dir.z * 5);
+    });
+    $('exitBtn').hidden = false;
+    clearTimeout(rideTimer);
+    rideTimer = setTimeout(exitRide, 25000);
+    state.rode++;
+    persist(false);
+    say('🎥 יוהו! אתם על המתקן');
+  }
+
+  function fireworks() {
+    if (!stage) return;
+    stage.setNight(true);
+    let n = 0;
+    const iv = setInterval(() => {
+      const p = new K.THREE.Vector3((Math.random() - 0.5) * state.cols * CELL, 8 + Math.random() * 5, -Math.random() * state.rows * CELL);
+      stage.burst(p, ['✨', '🎆', '⭐', '💥', '🎇'], 14, { size: 1.1, spread: 7, up: 2, life: 1.6, gravity: 1.6 });
+      if (++n >= 12) { clearInterval(iv); setTimeout(() => stage.setNight(nightPref), 1600); }
+    }, 380);
+  }
+
+  if (stage) {
+    stage.addClouds(8, 80, 28);
+    stage.frame((dt, t) => {
+      if (still) return;
+      rides.forEach((r) => { if (!r.broken) r.m.anim(t); });
+      people.forEach((v) => stepPerson(v, dt));
+    });
+    stage.onTap = (e) => {
+      const h = world && stage.pick(e, [world]);
+      if (!h) return;
+      const p = h.pick;
+      if (p.type === 'ride') { sel = p.k; chosen = null; renderAll(); }
+      else if (p.type === 'cell') {
+        if (!chosen) { tab = 'build'; say('בחרו מתקן מהרשימה למטה, ואז לחצו על משבצת ריקה'); return renderAll(); }
+        if (placeAt(chosen, p.x, p.y)) { h.point.y = 1.5; stage.burst(h.point, ['✨', '🎉', '⭐'], 10, { size: 0.7, spread: 4 }); }
+        renderAll();
+      }
+    };
+    $('centerBtn').onclick = fit;
+    $('exitBtn').onclick = exitRide;
+    $('nightBtn').onclick = () => { nightPref = !nightPref; stage.setNight(nightPref); $('nightBtn').textContent = nightPref ? '☀️ יום' : '🌙 לילה'; };
+  } else {
+    $('scene').innerHTML = '<p class="no3d">התלת-ממד לא זמין במכשיר הזה. אפשר לשחק בעזרת הלוחות למטה.</p>';
+    $('centerBtn').hidden = $('nightBtn').hidden = true;
+  }
+
+  function placeAt(id, x, y) {
+    const item = L.ITEM_BY_ID[id], c = L.canPlace(state, id, x, y);
+    if (!c.ok) { say(c.msg); return false; }
+    if (!pay(c.cost)) return false;
+    L.place(state, id, x, y);
+    sel = L.cellKey(x, y);
+    persist();
+    say(`${item.icon} בניתם ${item.name}! −${c.cost} 🪙`);
+    return true;
+  }
+
+  // ---------- לוחות ----------
+  const TABS = [['build', '🎢 בנייה'], ['manage', '🛠️ ניהול'], ['goals', '🎯 משימות']];
+
+  function renderHud() {
+    const st = L.stars(state), bad = L.brokenCount(state), q = L.queueRatio(state);
+    $('hud').innerHTML =
+      `<span title="כוכבי הפארק">${'⭐'.repeat(st)}${'☆'.repeat(5 - st)}</span>` +
+      `<span>💰 ${state.rate.toFixed(1)} לדקה</span>` +
+      `<span>🚶 ${L.servedPerMin(state).toFixed(1)}</span>` +
+      `<span${state.safety < 50 ? ' class="warn"' : ''}>🛡️ ${Math.round(state.safety)}%</span>` +
+      (q > 1 ? '<span class="warn">⏳ תור ארוך</span>' : '') +
+      (bad ? `<span class="warn">🔧 ${bad} מקולקלים</span>` : '');
+  }
+  function renderTabs() {
+    const ready = L.goalsReady(state);
+    $('tabs').innerHTML = TABS.map(([id, label]) =>
+      `<button class="tab${id === tab ? ' on' : ''}" role="tab" aria-selected="${id === tab}" data-a="tab" data-id="${id}">${label}${id === 'goals' && ready ? `<b class="badge">${ready}</b>` : ''}</button>`).join('');
+  }
+  function renderSel() {
+    const box = $('sel');
+    const item = sel && L.ITEM_BY_ID[state.grid[sel]];
+    box.hidden = !item;
+    if (!item) return;
+    const lv = L.levelOf(state, sel), up = L.canUpgrade(state, sel), broken = L.isBroken(state, sel);
+    box.innerHTML = `<div><strong>${item.icon} ${item.name}${item.stall ? '' : ` · רמה ${lv}/${L.MAX_LEVEL}`}</strong>` +
+      `<small>${item.stall ? 'המבקרים קונים כאן, וההכנסה גדלה' : broken ? 'מקולקל: לא מושך מבקרים עד שמתקנים' : 'שדרוג מושך יותר מבקרים ומקצר את התור'}</small></div>` +
+      (broken ? `<button class="act pulse" data-a="fix">🔧 תיקון (${L.repairCost(state, sel)} 🪙)</button>` : '') +
+      (!item.stall && stage && !broken ? '<button class="act" data-a="ride">🎥 לעלות</button>' : '') +
+      (up.ok ? `<button class="act" data-a="up">⬆️ שדרוג (${up.cost} 🪙)</button>` : '') +
+      `<button class="act ghost" data-a="remove">הסרה (+${Math.floor(item.price / 2)} 🪙)</button>`;
+  }
+  function meter(label, value, cls, pct, note) {
+    return `<div class="meter"><div class="meter-head"><span>${label}</span><strong>${value}</strong></div>` +
+      `<div class="meter-bar"><div class="meter-fill ${cls}" style="width:${Math.max(0, Math.min(100, Math.round(pct)))}%"></div></div>` +
+      `<div class="meter-note">${note}</div></div>`;
+  }
+  function cards(list) {
+    return '<div class="cards">' + list.map((r) =>
+      `<button class="card${r.id === chosen ? ' selected' : ''}${balance() < r.price ? ' cant' : ''}" aria-pressed="${r.id === chosen}" data-a="choose" data-id="${r.id}">` +
+      `<span class="icon">${r.icon}</span><span>${r.name}</span><small>${r.stall ? 'מגדיל הכנסה' : `ריגוש ${r.thrill} · ${r.cap} בדקה`}</small><span class="price">${r.price} 🪙</span></button>`).join('') + '</div>';
+  }
+
+  const PANELS = {
+    build() {
+      const free = L.freeCells(state);
+      return `<p class="note">${free ? (stage ? 'בחרו מתקן ואז לחצו על עיגול ירוק בפארק.' : 'לחיצה על מתקן בונה אותו במקום הפנוי הבא.') + ' מתקנים שונים זה ליד זה נותנים בונוס.' : 'אין מקום פנוי. הרחיבו את השטח בלשונית הניהול.'}</p>` +
+        cards(L.RIDES) + '<h2>🍿 דוכנים</h2>' + cards(L.STALLS);
+    },
+    manage() {
+      const i = L.inspect(state), x = L.canExpand(state), q = L.queueRatio(state), wait = L.showWait(state, Date.now());
+      return '<div class="meters">' +
+        meter('🛡️ בטיחות', `${Math.round(state.safety)}%`, 'safe', state.safety, 'בטיחות נמוכה מרחיקה מבקרים וגורמת לתקלות') +
+        meter('⏳ תור', q > 1 ? 'ארוך מדי' : 'בסדר', 'queue', q * 100, 'תור ארוך? בנו או שדרגו מתקנים') +
+        '</div><div class="row">' +
+        `<button class="act" data-a="inspect" ${i.ok ? '' : 'disabled'}>🛠️ בדיקת בטיחות${i.ok ? ` (${i.cost} 🪙)` : ''}</button>` +
+        `<button class="act" data-a="expand" ${x.ok ? '' : 'disabled'}>${x.ok ? `➕ הרחבת השטח (${x.cost} 🪙)` : '➕ השטח במקסימום'}</button>` +
+        `<button class="act${wait ? '' : ' pulse'}" data-a="show" ${wait ? 'disabled' : ''}>🎆 מופע זיקוקים${wait ? ` (בעוד ${Math.ceil(wait / 60000)} דק')` : ''}</button>` +
+        '</div><h2>🎟️ איך משלמים?</h2><div class="row">' +
+        `<button class="chip${state.mode === 'entry' ? ' on' : ''}" data-a="mode" data-id="entry">כרטיס כניסה</button>` +
+        `<button class="chip${state.mode === 'perRide' ? ' on' : ''}" data-a="mode" data-id="perRide">מטבע לכל מתקן</button>` +
+        (state.mode === 'entry' ? L.PRICES.map((p) => `<button class="chip${state.price === p ? ' on' : ''}" aria-pressed="${state.price === p}" data-a="price" data-id="${p}">${p} 🪙</button>`).join('') : '') +
+        `</div><p class="note">ההכנסה (עד ${L.rateMax(state).toFixed(1)} 🪙 לדקה) נכנסת לעיר לבד. כל סוג דוכן מעלה אותה.</p>`;
+    },
+    goals() {
+      return '<div class="list">' + L.GOALS.map((g) => {
+        const st = L.goalState(state, g);
+        return `<div class="item ${st}"><span class="icon">${g.icon}</span><div><strong>${g.text}</strong><small>פרס: ${g.reward} 🪙</small></div>` +
+          (st === 'ready' ? `<button class="act pulse" data-a="claim" data-id="${g.id}">🎁 קבלו פרס</button>` : st === 'done' ? '<span class="done">✅</span>' : '<span class="done">⏳</span>') + '</div>';
+      }).join('') + '</div>';
+    },
+  };
 
   function renderAll() {
     refresh();
-    renderStats();
-    renderControls();
-    drawPark();
-    renderShop();
+    renderHud();
+    renderTabs();
+    renderSel();
+    $('panel').innerHTML = PANELS[tab]();
+    draw();
   }
 
-  $('inspectBtn').onclick = () => {
-    const i = L.inspect(state);
-    if (!i.ok) return say(i.msg);
-    if (!pay(i.cost)) return;
-    state.safety = 100;
-    persist();
-    say(`בדקתם את המתקנים, הכול בטוח! −${i.cost} 🪙`);
-    renderAll();
+  const ACTS = {
+    tab: (id) => { tab = id; },
+    choose(id) {
+      if (!stage) {
+        const f = L.firstFree(state);
+        if (!f) return say('אין מקום פנוי. הרחיבו את השטח');
+        return placeAt(id, f.x, f.y);
+      }
+      chosen = chosen === id ? null : id;
+      sel = null;
+      if (chosen) say(`נבחר: ${L.ITEM_BY_ID[id].name}. לחצו על עיגול ירוק בפארק`);
+    },
+    ride() { rideOn(sel); },
+    up() {
+      const c = L.canUpgrade(state, sel);
+      if (!c.ok) return say(c.msg);
+      if (!pay(c.cost)) return;
+      L.upgrade(state, sel);
+      persist();
+      say(`⬆️ המתקן שודרג לרמה ${c.level}! −${c.cost} 🪙`);
+    },
+    fix() {
+      const c = L.repair(state, sel);
+      if (!c.ok) return say(c.msg);
+      if (!pay(c.cost)) return;
+      L.fixed(state, sel);
+      persist();
+      say(`🔧 המתקן תוקן וחזר לעבוד! −${c.cost} 🪙`);
+    },
+    remove() {
+      const item = L.ITEM_BY_ID[state.grid[sel]];
+      if (!item || !confirm(`להסיר את ${item.name}? יוחזר חצי מהמחיר.`)) return;
+      const [x, y] = sel.split(',').map(Number);
+      const r = L.remove(state, x, y);
+      if (!r.ok) return say(r.msg);
+      earn(r.refund, `הסרתם ${item.name}`);
+      sel = null;
+      persist();
+      say(`הסרתם ${item.name}. הוחזרו ${r.refund} 🪙`);
+    },
+    inspect() {
+      const i = L.inspect(state);
+      if (!i.ok) return say(i.msg);
+      if (!pay(i.cost)) return;
+      state.safety = 100;
+      persist();
+      say(`🛠️ כל המתקנים נבדקו ובטוחים! −${i.cost} 🪙`);
+    },
+    expand() {
+      const x = L.canExpand(state);
+      if (!x.ok) return say(x.msg);
+      if (!pay(x.cost)) return;
+      L.expand(state);
+      persist();
+      say(`הפארק גדל! −${x.cost} 🪙`);
+    },
+    show() {
+      const r = L.runShow(state, Date.now());
+      if (!r.ok) return say(r.msg);
+      earn(r.tips, 'מופע זיקוקים');
+      persist();
+      fireworks();
+      say(`🎆 איזה מופע! המבקרים השאירו ${r.tips} 🪙`);
+    },
+    mode(id) { L.setMode(state, id); persist(); },
+    price(id) { L.setPrice(state, +id); persist(); },
+    claim(id) {
+      const r = L.claimGoal(state, id);
+      if (!r.ok) return say(r.msg);
+      earn(r.reward, 'משימה בלונה פארק');
+      persist();
+      say(`🎉 כל הכבוד! קיבלתם ${r.reward} 🪙`);
+    },
   };
-  $('expandBtn').onclick = () => {
-    const x = L.canExpand(state);
-    if (!x.ok) return say(x.msg);
-    if (!pay(x.cost)) return;
-    L.expand(state);
-    persist();
-    say(`נוספה שורה לשטח! −${x.cost} 🪙`);
+  document.querySelector('.container').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]');
+    if (!b || b.disabled) return;
+    ACTS[b.dataset.a](b.dataset.id);
     renderAll();
-    if (S.ok) S.fit();
-  };
+  });
 
-  if (W) W.onChange(() => { $('balance').textContent = balance(); });
-  else $('balance').textContent = 0;
+  if (W) W.onChange(() => { $('balance').textContent = balance(); if (tab === 'build') renderAll(); });
+  $('balance').textContent = balance();
 
+  // עם הזמן הבטיחות יורדת, ולפעמים מתקן מתקלקל. שומרים במכשיר בלבד כדי לא להעמיס על הענן
   setInterval(() => {
     L.decay(state, 5000);
-    persist(false);
-    renderStats();
-    renderControls();
+    const k = L.tickBreak(state, Date.now());
+    if (k) { say(`🔧 אוי! ${L.ITEM_BY_ID[state.grid[k]].name} התקלקל. לחצו עליו כדי לתקן`); persist(); }
+    else persist(false);
+    renderAll();
   }, 5000);
 
   window.addEventListener('pagehide', () => { persist(false); store.flush(); });

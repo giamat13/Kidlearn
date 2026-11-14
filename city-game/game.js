@@ -766,9 +766,13 @@ function icoG(r) { return cached(geoCache, `i${r}`, () => new THREE.IcosahedronG
 
 function mat(color, extra) {
     const k = color + '|' + JSON.stringify(extra || {});
-    return cached(matCache, k, () => new THREE.MeshStandardMaterial(
-        Object.assign({ color, roughness: 0.8, metalness: 0 }, extra || {})
-    ));
+    // הקוד כותב צבעי מסך (sRGB), והתאורה מחושבת בליניארי: כך הצבעים עשירים ולא דהויים
+    return cached(matCache, k, () => {
+        const o = Object.assign({ roughness: 0.8, metalness: 0 }, extra || {});
+        o.color = new THREE.Color(color).convertSRGBToLinear();
+        if (o.emissive) o.emissive = new THREE.Color(o.emissive).convertSRGBToLinear();
+        return new THREE.MeshStandardMaterial(o);
+    });
 }
 
 function part(parent, geometry, color, x, y, z, extra) {
@@ -1756,6 +1760,10 @@ let raycaster = null;
 let groundPlane = null;
 const groups = new Map();   // "c,r" -> Group שמוצג בסצנה
 
+let citySun = null;
+const cityClouds = [];
+const SUN_OFFSET = { x: 5, y: 11, z: 6 };
+
 function init3D() {
     const container = $('scene');
     if (!window.THREE) {
@@ -1773,13 +1781,24 @@ function init3D() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, touchScreen ? 1.5 : 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('#bfe9ff');
+    // שמיים בגווני כחול: כהה למעלה ובהיר באופק
+    const skyCv = document.createElement('canvas');
+    skyCv.width = 4; skyCv.height = 256;
+    const skyCtx = skyCv.getContext('2d');
+    const skyGrad = skyCtx.createLinearGradient(0, 0, 0, 256);
+    skyGrad.addColorStop(0, '#58b7ff'); skyGrad.addColorStop(1, '#e3f5ff');
+    skyCtx.fillStyle = skyGrad; skyCtx.fillRect(0, 0, 4, 256);
+    scene.background = new THREE.CanvasTexture(skyCv);
+    scene.background.encoding = THREE.sRGBEncoding;
     // ערפל עדין בקצה העיר: נותן עומק, והדשא מסתיים בלי קו חד
-    scene.fog = new THREE.Fog('#bfe9ff', 22, 70);
+    scene.fog = new THREE.Fog(new THREE.Color('#e3f5ff').convertSRGBToLinear(), 22, 70);
 
     camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 
@@ -1788,12 +1807,33 @@ function init3D() {
     controls.minDistance = 4;
     controls.maxPolarAngle = Math.PI * 0.42;
 
-    scene.add(new THREE.HemisphereLight('#ffffff', '#7a9a55', 0.85));
-    const sun = new THREE.DirectionalLight('#ffffff', 0.9);
+    const lin = (c) => new THREE.Color(c).convertSRGBToLinear();
+    scene.add(new THREE.HemisphereLight(lin('#eaf6ff'), lin('#86a868'), 0.95));
+    const sun = citySun = new THREE.DirectionalLight(lin('#fff1d0'), 1.5);   // שמש חמימה, עוקבת אחרי מרכז המבט
     sun.position.set(4, 9, 5);
     sun.castShadow = true;
+    sun.shadow.bias = -0.0005;
+    sun.shadow.normalBias = 0.02;
+    scene.add(sun.target);
+    // עננים שטים לאט מעל העיר
+    const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, transparent: true, opacity: 0.9 });
+    for (let i = 0; i < 7; i++) {
+        const cloud = new THREE.Group();
+        const puffs = 3 + (i % 3);
+        for (let k = 0; k < puffs; k++) {
+            const puff = new THREE.Mesh(icoG(0.6), cloudMat);
+            puff.position.set((k - puffs / 2) * 0.7, rnd(i, k) * 0.25, (rnd(i, k + 9) - 0.5) * 0.5);
+            puff.scale.set(1 + rnd(i, k + 3) * 0.5, 0.6, 0.9);
+            cloud.add(puff);
+        }
+        cloud.position.set((rnd(i, 20) - 0.5) * 50, 9 + rnd(i, 21) * 3, (rnd(i, 22) - 0.5) * 40 - 6);
+        cloud.scale.setScalar(1 + rnd(i, 23));
+        cloud.userData.v = 0.15 + rnd(i, 24) * 0.25;
+        scene.add(cloud);
+        cityClouds.push(cloud);
+    }
     sun.shadow.mapSize.set(touchScreen ? 1024 : 2048, touchScreen ? 1024 : 2048);
-    Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
+    Object.assign(sun.shadow.camera, { left: -11, right: 11, top: 11, bottom: -11, near: 1, far: 50 });
     sun.shadow.camera.updateProjectionMatrix();
     scene.add(sun);
 
@@ -1883,6 +1923,9 @@ function animate() {
     const dt = lastFrameMs ? Math.min(0.1, (now - lastFrameMs) / 1000) : 0;
     lastFrameMs = now;
     controls.update();
+    citySun.target.position.copy(controls.target);
+    citySun.position.copy(controls.target).add(SUN_OFFSET);
+    cityClouds.forEach((c) => { c.position.x += c.userData.v * dt; if (c.position.x > 28) c.position.x = -28; });
     if (scene) updateMovers(dt);
     payCityTaxes(dt);
     renderer.render(scene, camera);

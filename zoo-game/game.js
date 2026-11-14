@@ -1,16 +1,22 @@
-// גן החיות: המסך. החוקים נמצאים ב-logic.js (ZooLogic).
+// גן החיות: המסך. החוקים נמצאים ב-logic.js (ZooLogic), המודלים ב-animals.js (ZooModels).
 // אטרקציה בעיר: הנתונים נשמרים לפי החלקה (?cell=c,r) במכשיר ובחשבון. עובד גם בדפדפן רגיל בלי כניסה.
 // ההכנסה לדקה נשמרת בנתונים, והעיר מוסיפה אותה למסים שלה (משולם לבד, גם כשהילד לא בעיר, עד 3 שעות).
 (function () {
   const L = window.ZooLogic;
   const W = window.KidLearnWallet;
+  const K = window.K3D;
+  const M = window.ZooModels;
   const store = KidLearnAttraction.create('kidlearn-zoo');
   const $ = (id) => document.getElementById(id);
 
   let state = L.normalize(store.load());
-  // זמן שעבר מאז הפעם האחרונה: האוכל והניקיון ירדו
-  L.decay(state, Date.now() - state.at);
+  L.decay(state, Date.now() - state.at);   // זמן שעבר מאז הפעם האחרונה: האוכל והניקיון ירדו
   state.at = Date.now();
+
+  let tab = 'animals';
+  let sel = null;        // סוג החיה שנבחר (בלחיצה על מתחם)
+  let quiz = null;       // השאלה הפתוחה בחידון
+  let quizMsg = '';
 
   function refresh() {
     state.rate = L.rateOf(state);
@@ -23,384 +29,478 @@
   }
   function say(msg) { $('feedback').textContent = msg; }
   function balance() { return W ? W.balance() : 0; }
-
-  // תשלום: הארנק המשותף. בלי ארנק אי אפשר לקנות
   function pay(cost) {
     if (!W) { say('אי אפשר לשלם עכשיו 🪙'); return false; }
     if (balance() < cost) { say(`חסרים לכם ${cost - balance()} 🪙`); return false; }
     return W.spend(cost);
   }
-
-  function meter(label, value, cls, pct, note) {
-    const w = Math.max(0, Math.min(100, Math.round(pct)));
-    return `<div class="meter"><div class="meter-head"><span>${label}</span><strong>${value}</strong></div>` +
-      (cls ? `<div class="meter-bar"><div class="meter-fill ${cls}" style="width:${w}%"></div></div>` : '') +
-      `<div class="meter-note">${note || ''}</div></div>`;
-  }
-
-  function renderStats() {
-    const vis = L.visitorsPerMin(state);
-    $('stats').innerHTML =
-      meter('💰 הכנסה', `${state.rate.toFixed(1)} 🪙 לדקה`, '', 0, `עד ${L.RATE_MAX} לדקה. נכנס לעיר לבד`) +
-      meter('🚶 מבקרים', `${vis.toFixed(1)} בדקה`, '', 0, `כרטיס: ${state.price} 🪙`) +
-      meter('🥕 אוכל', `${Math.round(state.fed)}%`, 'fed', state.fed, 'חיות רעבות מרחיקות מבקרים') +
-      meter('🧹 ניקיון', `${Math.round(state.clean)}%`, 'clean', state.clean, 'גן מלוכלך מרחיק מבקרים') +
-      meter('😊 שמחת המבקרים', `${L.happiness(state)}%`, 'happy', L.happiness(state), 'ממוצע של אוכל וניקיון') +
-      meter('🐾 חיות', `${L.animalCount(state)} מתוך ${L.capacity(state)}`, '', 0, `${L.speciesCount(state)} סוגים. מגוון מביא יותר מבקרים`);
-  }
-
-  function renderControls() {
-    $('prices').innerHTML = '';
-    L.PRICES.forEach((p) => {
-      const b = document.createElement('button');
-      b.className = 'chip' + (state.price === p ? ' on' : '');
-      b.setAttribute('aria-pressed', String(state.price === p));
-      b.textContent = `🎟️ כרטיס ${p} 🪙`;
-      b.onclick = () => {
-        L.setPrice(state, p);
-        persist();
-        say(p === 1 ? 'כרטיס זול: הרבה מבקרים' : p === 2 ? 'כרטיס בינוני' : 'כרטיס יקר: פחות מבקרים, אבל כל אחד משלם יותר');
-        renderAll();
-      };
-      $('prices').appendChild(b);
-    });
-    const f = L.feed(state), c = L.clean(state), x = L.canExpand(state);
-    $('feedBtn').textContent = f.ok ? `🥕 האכלה (${f.cost} 🪙)` : '🥕 האכלה';
-    $('cleanBtn').textContent = c.ok ? `🧹 ניקיון (${c.cost} 🪙)` : '🧹 ניקיון';
-    $('expandBtn').textContent = x.ok ? `➕ הרחבת הגן (${x.cost} 🪙, עוד ${L.SLOT_STEP} מקומות)` : '➕ הגן במקסימום';
-    $('feedBtn').disabled = !f.ok;
-    $('cleanBtn').disabled = !c.ok;
-    $('expandBtn').disabled = !x.ok;
-  }
+  function earn(n, reason) { if (W) W.earn(n, { reason, silent: true }); }
 
   // ---------- תלת-ממד ----------
-  const COLS = 2;        // גדרות בשורה
-  const PEN = 2;         // גודל גדר בעולם (בעיר חלקה היא 1)
-  const PER_PEN = 4;     // כמה חיות בגדר אחת
-  let selected = L.ANIMALS[0].id;
-  const S = KidLearn3D.create({
-    container: $('scene'),
-    sky: '#d9f0ff',
-    ground: '#6aa84f',
-    cellSize: PEN,
-    bounds: () => ({ minC: 0, maxC: COLS - 1, minR: 0, maxR: Math.max(0, rowsNow() - 1) }),
-    hoverColor: (c, r) => {
-      if (c < 0 || r < 0 || c >= COLS || c + r * COLS >= penCount()) return null;
-      return '#ffeb3b';
-    },
-    onTap: (c, r, wx, wz) => onPen(c + r * COLS, wx - c * PEN, wz - r * PEN),
-  });
-  const anims = [];
-  const walks = new Map();   // מספר גדר -> מצב ההליכה של החיה שבה
-  const SPEED = { rabbit: 0.38, sheep: 0.16, penguin: 0.16, monkey: 0.32, giraffe: 0.13, elephant: 0.1, lion: 0.2, panda: 0.1 };
-  const WALK_LIM = 0.62;   // עד כמה החיה מתרחקת מהמרכז, כדי לא לעבור דרך הגדר
+  const PEN = 5, GAP = 5.6, SIDE = 4.1;
+  const HOME = {
+    meadow: { ground: '#8fd16a', fence: 'wood' }, ice: { ground: '#eef7ff', fence: 'white' },
+    jungle: { ground: '#5fae4e', fence: 'wood' }, savanna: { ground: '#d9c27a', fence: 'wood' },
+    bamboo: { ground: '#7fc56a', fence: 'wood' }, water: { ground: '#9ad17a', fence: 'white' },
+  };
+  const STRONG = { lion: 1, tiger: 1, crocodile: 1 };   // גדר מתכת גבוהה
+  const still = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const stage = K && M ? K.createStage($('scene'), { camPos: [0, 11, 16], target: [0, 0, -1], maxDist: 60, shadow: 26 }) : null;
+  let world = null, sig = '', animals = [], people = [], rowsDrawn = -1, petAt = 0;
 
-  function stepWalk(w, node, dt, t) {
-    if (w.wait > 0) {
-      w.wait -= dt;
-      w.moving = false;
-      if (w.wait <= 0) {
-        w.tx = (Math.random() * 2 - 1) * WALK_LIM;
-        w.tz = (Math.random() * 2 - 1) * WALK_LIM;
-        w.moving = true;
+  function penPos(i) { return { x: (i % 2 ? 1 : -1) * SIDE, z: -Math.floor(i / 2) * GAP }; }
+  function penList() {
+    const list = state.order.filter((id) => state.animals[id] > 0);
+    if (L.freeSlots(state) > 0) list.push(null);   // מגרש ריק למתחם הבא
+    return list;
+  }
+
+  function buildPen(id, i) {
+    const a = L.ANIMAL_BY_ID[id];
+    const p = penPos(i), h = PEN / 2 - 0.15, home = HOME[a.home];
+    const g = K.group(world, p.x, 0, p.z);
+    g.userData.pick = { type: 'pen', id };
+    K.part(g, K.boxG(PEN - 0.2, 0.08, PEN - 0.2), home.ground, 0, 0.04, 0).castShadow = false;
+    const fo = STRONG[id] ? { kind: 'metal', h: 0.85, step: 0.6 } : { kind: home.fence, h: 0.5 };
+    [[-h, -h, h, -h], [-h, h, h, h], [-h, -h, -h, h], [h, -h, h, h]].forEach((f) => K.fence(g, f[0], f[1], f[2], f[3], fo));
+    const s = i * 7 + 3, R = (k) => K.rnd(s, k);
+    if (a.home === 'meadow') {
+      for (let k = 0; k < 4; k++) K.flowers(g, (R(k) - 0.5) * 3.4, (R(k + 5) - 0.5) * 3.4, s + k, 5);
+      K.bush(g, -1.8, -1.8, 1.2, s); K.bush(g, 1.7, -1.6, 1, s + 1);
+    } else if (a.home === 'ice') {
+      const w = K.part(g, K.cylG(1.2, 1.2, 0.03, 24), '#7fd3f5', 0.5, 0.09, 0.4, { roughness: 0.15 }); w.castShadow = false;
+      [[-1.5, -1.4, 0.9], [-0.7, -1.7, 0.6], [1.6, -1.5, 0.7]].forEach(([x, z, sz]) => K.part(g, K.boxG(sz, sz * 0.7, sz), '#d6f0ff', x, sz * 0.35 + 0.08, z, { roughness: 0.2 }).rotation.y = x);
+    } else if (a.home === 'jungle') {
+      K.tree(g, -1.7, -1.7, 1.2, s, 'palm'); K.tree(g, 1.7, -1.5, 1, s + 1, 'palm');
+      K.bush(g, 1.8, 1.6, 1.3, s + 2); K.bush(g, -1.8, 0.4, 1.1, s + 3); K.rock(g, 0.6, -1.7, 1.2, s);
+    } else if (a.home === 'savanna') {
+      K.tree(g, -1.6, -1.6, 1.5, s, 'round'); K.rock(g, 1.6, -1.6, 1.6, s); K.rock(g, 1.9, -1, 1, s + 1); K.bush(g, -1.9, 1.5, 0.9, s);
+    } else if (a.home === 'bamboo') {
+      for (let k = 0; k < 12; k++) {
+        const bx = -2 + R(k) * 4, bz = -2 + R(k + 20) * 0.9, bh = 1.3 + R(k + 40) * 1.1;
+        K.part(g, K.cylG(0.035, 0.04, bh, 6), k % 2 ? '#7cb342' : '#558b2f', bx, bh / 2, bz);
+        K.part(g, K.sphG(0.14, 6), '#9ccc65', bx, bh, bz).scale.set(1, 0.5, 1);
       }
+      K.rock(g, 1.6, 1.5, 1.2, s);
     } else {
-      const dx = w.tx - w.x, dz = w.tz - w.z, d = Math.hypot(dx, dz);
-      const step = (SPEED[w.id] || 0.15) * dt;
-      if (d <= step) { w.x = w.tx; w.z = w.tz; w.wait = 1 + Math.random() * 3; w.moving = false; }
-      else { w.x += dx / d * step; w.z += dz / d * step; w.rot = -Math.atan2(dz, dx); }
+      const w = K.part(g, K.cylG(1.5, 1.5, 0.03, 24), '#4fc3f7', 0, 0.09, 0, { roughness: 0.15 }); w.castShadow = false;
+      K.bush(g, -1.9, -1.8, 1, s); K.tree(g, 1.8, -1.8, 0.9, s, 'palm'); K.rock(g, -1.7, 1.7, 1, s);
     }
-    node.position.x = w.x;
-    node.position.z = w.z;
-    // פונים בהדרגה לכיוון ההליכה
-    let diff = w.rot - node.rotation.y;
-    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-    node.rotation.y += diff * Math.min(1, dt * 6);
-    // צעדים: קפיצה קטנה ונדנוד בזמן הליכה
-    node.position.y = 0.03 + (w.moving ? Math.abs(Math.sin(t * 9)) * 0.02 : 0);
-    node.rotation.z = w.moving ? Math.sin(t * 9) * 0.06 : 0;
-  }
-
-  function penCount() { return Math.ceil(L.capacity(state) / PER_PEN); }
-  function rowsNow() { return Math.ceil(penCount() / COLS); }
-  // איזו חיה נמצאת בכל גדר: לפי סדר הרשימה, בלי חורים באמצע
-  function slotList() {
-    const out = [];
-    L.ANIMALS.forEach((a) => { for (let i = 0; i < (state.animals[a.id] || 0); i++) out.push(a.id); });
-    return out;
-  }
-  const slotAnimal = (i) => slotList()[i] || null;
-
-  function buildAnimal(id, seed) {
-    const T = S.THREE;
-    const g = new T.Group();
-    const { part, box, cyl, cone, ico } = S;
-    const bob = (fn) => anims.push(fn);
-    if (id === 'rabbit') {
-      part(g, ico(0.1), '#f5f5f5', 0, 0.12, 0);
-      part(g, ico(0.07), '#f5f5f5', 0.1, 0.18, 0);
-      part(g, box(0.025, 0.12, 0.03), '#f5f5f5', 0.1, 0.3, -0.03);
-      part(g, box(0.025, 0.12, 0.03), '#f5f5f5', 0.1, 0.3, 0.03);
-      part(g, ico(0.035), '#ffffff', -0.1, 0.12, 0);
-      part(g, ico(0.012), '#d81b60', 0.17, 0.2, -0.03);
-      bob((t) => { g.position.y = Math.abs(Math.sin(t * 3 + seed)) * 0.08; });
-    } else if (id === 'sheep') {
-      part(g, ico(0.15), '#f1efe6', 0, 0.2, 0);
-      part(g, ico(0.09), '#f1efe6', 0, 0.3, 0);
-      part(g, box(0.1, 0.1, 0.09), '#3e2f2a', 0.17, 0.24, 0);
-      [[-0.07, -0.08], [-0.07, 0.08], [0.07, -0.08], [0.07, 0.08]].forEach(([x, z]) => part(g, cyl(0.015, 0.015, 0.1, 5), '#3e2f2a', x, 0.05, z));
-      bob((t) => { g.position.y = Math.sin(t * 1.5 + seed) * 0.01; g.rotation.y = Math.sin(t * 0.6 + seed) * 0.3; });
-    } else if (id === 'penguin') {
-      part(g, cyl(0.09, 0.11, 0.3, 10), '#263238', 0, 0.18, 0);
-      part(g, ico(0.08), '#263238', 0, 0.37, 0);
-      part(g, cyl(0.07, 0.09, 0.22, 10), '#fafafa', 0.025, 0.17, 0);
-      part(g, cone(0.025, 0.07, 6), '#ff9800', 0.1, 0.37, 0).rotation.z = -Math.PI / 2;
-      part(g, box(0.03, 0.14, 0.07), '#263238', 0, 0.2, 0.12).rotation.x = 0.3;
-      part(g, box(0.03, 0.14, 0.07), '#263238', 0, 0.2, -0.12).rotation.x = -0.3;
-      part(g, box(0.1, 0.02, 0.05), '#ff9800', 0.02, 0.01, 0.04);
-      part(g, box(0.1, 0.02, 0.05), '#ff9800', 0.02, 0.01, -0.04);
-      bob((t) => { g.rotation.z = Math.sin(t * 4 + seed) * 0.12; });
-    } else if (id === 'monkey') {
-      part(g, ico(0.1), '#8d5a2b', 0, 0.2, 0);
-      part(g, ico(0.075), '#8d5a2b', 0.02, 0.35, 0);
-      part(g, ico(0.045), '#e0b98a', 0.07, 0.34, 0);
-      part(g, ico(0.03), '#8d5a2b', 0.02, 0.35, 0.08);
-      part(g, ico(0.03), '#8d5a2b', 0.02, 0.35, -0.08);
-      part(g, box(0.03, 0.18, 0.03), '#8d5a2b', 0.06, 0.18, 0.1).rotation.x = -0.4;
-      part(g, box(0.03, 0.18, 0.03), '#8d5a2b', 0.06, 0.18, -0.1).rotation.x = 0.4;
-      const tail = part(g, cyl(0.012, 0.012, 0.3, 5), '#6d4421', -0.14, 0.26, 0);
-      tail.rotation.z = 0.7;
-      bob((t) => { g.position.y = Math.abs(Math.sin(t * 2.4 + seed)) * 0.05; tail.rotation.z = 0.7 + Math.sin(t * 4) * 0.25; });
-    } else if (id === 'giraffe') {
-      part(g, box(0.28, 0.14, 0.14), '#f9a825', 0, 0.3, 0);
-      [[-0.1, -0.05], [-0.1, 0.05], [0.1, -0.05], [0.1, 0.05]].forEach(([x, z]) => part(g, cyl(0.016, 0.016, 0.24, 5), '#f9a825', x, 0.12, z));
-      const neck = new T.Group();
-      neck.position.set(0.1, 0.34, 0);
-      part(neck, cyl(0.025, 0.035, 0.42, 6), '#f9a825', 0.04, 0.21, 0).rotation.z = -0.15;
-      part(neck, box(0.1, 0.06, 0.06), '#f9a825', 0.1, 0.45, 0);
-      part(neck, cyl(0.008, 0.008, 0.05, 4), '#6d4c41', 0.09, 0.51, 0.02);
-      part(neck, cyl(0.008, 0.008, 0.05, 4), '#6d4c41', 0.09, 0.51, -0.02);
-      g.add(neck);
-      [[-0.05, 0.08], [0.06, -0.08], [0.0, 0.07]].forEach(([x, z]) => part(g, ico(0.022), '#8d5a2b', x, 0.32, z));
-      bob((t) => { neck.rotation.z = Math.sin(t * 0.9 + seed) * 0.12; });
-    } else if (id === 'elephant') {
-      part(g, ico(0.2), '#9e9e9e', 0, 0.26, 0);
-      part(g, ico(0.12), '#9e9e9e', 0.2, 0.3, 0);
-      part(g, cyl(0.03, 0.04, 0.2, 6), '#9e9e9e', 0.3, 0.22, 0);
-      [[-0.1, -0.1], [-0.1, 0.1], [0.1, -0.1], [0.1, 0.1]].forEach(([x, z]) => part(g, cyl(0.04, 0.045, 0.14, 6), '#8d8d8d', x, 0.07, z));
-      part(g, cyl(0.09, 0.09, 0.015, 10), '#bdbdbd', 0.18, 0.32, 0.12).rotation.x = Math.PI / 2;
-      part(g, cyl(0.09, 0.09, 0.015, 10), '#bdbdbd', 0.18, 0.32, -0.12).rotation.x = Math.PI / 2;
-      part(g, cone(0.012, 0.07, 5), '#fafafa', 0.3, 0.2, 0.05).rotation.z = -1.2;
-      part(g, cone(0.012, 0.07, 5), '#fafafa', 0.3, 0.2, -0.05).rotation.z = -1.2;
-      bob((t) => { g.rotation.y = Math.sin(t * 0.5 + seed) * 0.2; });
-    } else if (id === 'lion') {
-      part(g, box(0.3, 0.14, 0.14), '#e0a030', 0, 0.2, 0);
-      [[-0.1, -0.05], [-0.1, 0.05], [0.1, -0.05], [0.1, 0.05]].forEach(([x, z]) => part(g, cyl(0.02, 0.02, 0.14, 5), '#e0a030', x, 0.07, z));
-      part(g, ico(0.12), '#8d5a2b', 0.18, 0.26, 0);
-      part(g, ico(0.07), '#f0b848', 0.24, 0.25, 0);
-      part(g, ico(0.012), '#212121', 0.3, 0.27, 0.03);
-      part(g, ico(0.012), '#212121', 0.3, 0.27, -0.03);
-      const tail = part(g, cyl(0.012, 0.012, 0.22, 5), '#e0a030', -0.2, 0.22, 0);
-      tail.rotation.z = 1.0;
-      bob((t) => { tail.rotation.x = Math.sin(t * 2 + seed) * 0.5; g.position.y = Math.sin(t * 1.2 + seed) * 0.01; });
-    } else {
-      // פנדה
-      part(g, ico(0.16), '#fafafa', 0, 0.22, 0);
-      part(g, ico(0.1), '#fafafa', 0.14, 0.34, 0);
-      part(g, ico(0.04), '#212121', 0.14, 0.43, 0.07);
-      part(g, ico(0.04), '#212121', 0.14, 0.43, -0.07);
-      part(g, ico(0.03), '#212121', 0.22, 0.36, 0.04);
-      part(g, ico(0.03), '#212121', 0.22, 0.36, -0.04);
-      part(g, ico(0.02), '#212121', 0.24, 0.33, 0);
-      part(g, box(0.1, 0.12, 0.34), '#212121', 0.04, 0.23, 0).scale.set(1, 1, 0.8);
-      [[-0.08, -0.1], [-0.08, 0.1], [0.1, -0.1], [0.1, 0.1]].forEach(([x, z]) => part(g, cyl(0.04, 0.04, 0.1, 6), '#212121', x, 0.05, z));
-      bob((t) => { g.rotation.z = Math.sin(t * 1.2 + seed) * 0.05; });
+    // קערת אוכל ושלט, בצד שפונה לשביל
+    const fx = p.x < 0 ? 1 : -1;
+    K.part(g, K.cylG(0.24, 0.18, 0.14, 12), '#d7ccc8', fx * 1.7, 0.15, 1.7);
+    K.part(g, K.cylG(0.19, 0.19, 0.03, 12), state.fed >= 50 ? '#7cb342' : '#6d4c41', fx * 1.7, 0.22, 1.7);
+    K.part(g, K.cylG(0.04, 0.04, 1.3, 6), '#6d4c41', fx * (h + 0.1), 0.65, 1.2);
+    const sp = K.sprite(`${a.icon} ${a.name} ×${state.animals[id]}`, 0.5, { bg: '#ffffff' });
+    sp.position.set(fx * (h + 0.1), 1.6, 1.2);
+    g.add(sp);
+    // החיות עצמן (עד 6 מוצגות; כל שלישית היא גור קטן)
+    const n = Math.min(6, state.animals[id]);
+    for (let k = 0; k < n; k++) {
+      const m = M.build(id), sc = k % 3 === 2 ? 0.6 : 1;
+      m.g.scale.setScalar(sc);
+      const lim = Math.max(0.3, PEN / 2 - 0.7 - m.size * sc);
+      const an = { m, lim, x: (R(k + 60) - 0.5) * 2 * lim, z: (R(k + 70) - 0.5) * 2 * lim, tx: 0, tz: 0, wait: R(k + 80) * 3, rot: R(k + 90) * 6.28, moving: false, jump: 0, ph: R(k) * 6 };
+      m.g.position.set(an.x, 0.08, an.z);
+      m.g.rotation.y = an.rot;
+      g.add(m.g);
+      animals.push(an);
     }
-    return g;
   }
 
-  function buildPen(c, r, pi) {
-    const T = S.THREE;
-    const list = slotList();
-    const g = new T.Group();
-    g.position.set(c * PEN, 0, r * PEN);
-    const used = list.slice(pi * PER_PEN, pi * PER_PEN + PER_PEN).filter(Boolean).length;
-    S.part(g, S.box(1.96, 0.04, 1.96), used ? '#5fa84a' : '#78b86a', 0, 0, 0);
-    // גדר עץ עם פתח בחזית
-    const wood = '#8d6e63', H = 0.96;
-    S.part(g, S.box(1.92, 0.14, 0.04), wood, 0, 0.1, -H);
-    S.part(g, S.box(0.04, 0.14, 1.92), wood, -H, 0.1, 0);
-    S.part(g, S.box(0.04, 0.14, 1.92), wood, H, 0.1, 0);
-    S.part(g, S.box(0.7, 0.14, 0.04), wood, -0.6, 0.1, H);
-    S.part(g, S.box(0.7, 0.14, 0.04), wood, 0.6, 0.1, H);
-    [[-H, -H], [H, -H], [-H, H], [H, H], [0, -H], [-H, 0], [H, 0]].forEach(([px, pz]) => S.part(g, S.box(0.06, 0.24, 0.06), '#5d4037', px, 0.12, pz));
-    // עצים בפינות האחוריות
-    [[-0.75, -0.75], [0.75, -0.75]].forEach(([tx, tz]) => {
-      S.part(g, S.cyl(0.03, 0.04, 0.24, 6), '#6d4c41', tx, 0.14, tz);
-      S.part(g, S.ico(0.17), '#43a047', tx, 0.38, tz);
+  function buildLot(i) {
+    const p = penPos(i);
+    const g = K.group(world, p.x, 0, p.z);
+    g.userData.pick = { type: 'lot' };
+    K.part(g, K.boxG(PEN - 0.2, 0.08, PEN - 0.2), '#a9d98c', 0, 0.04, 0).castShadow = false;
+    [[-2.2, -2.2], [2.2, -2.2], [-2.2, 2.2], [2.2, 2.2]].forEach(([x, z]) => K.part(g, K.boxG(0.1, 0.4, 0.1), '#ffca28', x, 0.2, z));
+    const sp = K.sprite('➕ מתחם חדש', 0.55, { bg: '#fff8dc' });
+    sp.position.set(0, 1.2, 0);
+    g.add(sp);
+  }
+
+  function buildGate(zEnd) {
+    const g = K.group(world, 0, 0, 3.6);
+    [-1.7, 1.7].forEach((x) => {
+      K.part(g, K.boxG(0.5, 2.6, 0.5), '#8d6e63', x, 1.3, 0);
+      K.part(g, K.coneG(0.45, 0.5, 4), '#2e7d32', x, 2.85, 0).rotation.y = Math.PI / 4;
     });
-    // קערת אוכל: ירוקה כשיש אוכל
-    S.part(g, S.cyl(0.11, 0.08, 0.07, 8), '#d7ccc8', 0.65, 0.06, 0.6);
-    S.part(g, S.cyl(0.085, 0.085, 0.02, 8), state.fed >= 50 ? '#7cb342' : '#6d4c41', 0.65, 0.1, 0.6);
-    // לכלוך כשהגן מלוכלך
-    const dirt = state.clean >= 70 ? 0 : state.clean >= 40 ? 3 : 6;
-    for (let k = 0; k < dirt; k++) {
-      S.part(g, S.ico(0.045), '#6d4c41', (S.rnd(pi + 1, k) - 0.5) * 1.4, 0.04, (S.rnd(pi + 1, k + 9) - 0.5) * 1.4);
+    K.part(g, K.boxG(3.9, 0.7, 0.3), '#ffca28', 0, 2.5, 0);
+    K.sign(g, '🦁 גן החיות 🐼', 3.2, 0, 2.5, 0.16);
+    K.bunting(g, [-1.7, 2.05, 0.3], [1.7, 2.05, 0.3], 10);
+    // רחבה ושביל
+    const len = 5.5 - zEnd;
+    K.part(world, K.boxG(3, 0.06, len), '#ecdcb4', 0, 0.03, 5.5 - len / 2).castShadow = false;
+    K.part(world, K.boxG(13, 0.06, 3.4), '#ecdcb4', 0, 0.028, 5.2).castShadow = false;
+    for (let z = 2; z > zEnd; z -= GAP) {
+      K.lamp(world, -1.25, z - GAP / 2 + 0.2); K.lamp(world, 1.25, z - GAP / 2 + 0.2);
+      K.bench(world, -1.2, z - 2.6, Math.PI / 2); K.bench(world, 1.2, z - 2.6, -Math.PI / 2);
     }
-    for (let j = 0; j < PER_PEN; j++) {
-      const i = pi * PER_PEN + j, id = list[i], seed = i + 1;
-      if (!id) {
-        // מקום פנוי: שלט קטן
-        const fx = j % 2 ? 0.4 : -0.4, fz = j < 2 ? -0.1 : 0.4;
-        S.part(g, S.cyl(0.012, 0.012, 0.14, 5), '#5d4037', fx, 0.07, fz);
-        S.part(g, S.box(0.16, 0.08, 0.02), '#ffca28', fx, 0.17, fz);
-        continue;
-      }
-      const an = buildAnimal(id, seed);
-      an.scale.setScalar(1.3);
-      // הליכה: המצב נשמר בין ציורים כדי שהחיה לא תקפוץ למקום אחר
-      const walker = new T.Group();
-      walker.add(an);
-      let w = walks.get(seed);
-      if (!w || w.id !== id) {
-        w = { id, x: (j % 2 ? 0.4 : -0.4), z: (j < 2 ? -0.3 : 0.2), tx: 0, tz: 0, wait: S.rnd(seed, 3) * 2, rot: S.rnd(seed, 4) * 6.28, moving: false };
-        walks.set(seed, w);
-      }
-      walker.position.set(w.x, 0.03, w.z);
-      walker.rotation.y = w.rot;
-      g.add(walker);
-      anims.push((t, dt) => stepWalk(w, walker, dt, t));
+    for (let k = 0; k < 14; k++) {
+      const z = 7 - k * 3, kind = ['round', 'pine', 'blossom'][k % 3];
+      if (z < zEnd - 4) break;
+      K.tree(world, -8 - K.rnd(k, 1) * 2, z, 1.3 + K.rnd(k, 2), k, kind);
+      K.tree(world, 8 + K.rnd(k, 3) * 2, z, 1.3 + K.rnd(k, 4), k + 50, kind);
     }
-    return g;
   }
 
-  function drawZoo() {
-    if (!S.ok) return;
-    anims.length = 0;
-    const cells = new Map();
-    const list = slotList();
-    const pens = penCount();
-    for (let pi = 0; pi < pens; pi++) {
-      const c = pi % COLS, r = Math.floor(pi / COLS);
-      cells.set(`${c},${r}`, buildPen(c, r, pi));
-    }
-    // שער כניסה לגן
-    const gate = new S.THREE.Group();
-    const z = (rowsNow() - 1) * PEN + 1.25, cx = (COLS - 1) * PEN / 2;
-    S.part(gate, S.box(0.09, 0.7, 0.09), '#5d4037', cx - 0.6, 0.35, z);
-    S.part(gate, S.box(0.09, 0.7, 0.09), '#5d4037', cx + 0.6, 0.35, z);
-    S.part(gate, S.box(1.4, 0.16, 0.09), '#ffca28', cx, 0.72, z);
-    S.part(gate, S.box(1.2, 0.03, 1.0), '#bcaaa4', cx, 0, z + 0.5);
-    cells.set('gate', gate);
-    S.setCells(cells);
+  // שדרוגים שנקנו מופיעים כמבנים ברחבת הכניסה
+  function buildUpgrades() {
+    const add = (id, x, fn) => {
+      if (!L.upLevel(state, id)) return;
+      const g = K.group(world, x, 0, 5.3);
+      g.userData.pick = { type: 'up' };
+      fn(g);
+    };
+    add('kiosk', -3.4, (g) => {
+      K.part(g, K.boxG(1.3, 0.9, 1), '#fff3e0', 0, 0.45, 0);
+      K.part(g, K.boxG(1.5, 0.12, 1.3), '#ef5350', 0, 1.25, 0.1);
+      [-0.5, 0, 0.5].forEach((x) => K.part(g, K.boxG(0.25, 0.13, 1.31), '#ffffff', x, 1.25, 0.1));
+      [-0.6, 0.6].forEach((x) => K.part(g, K.cylG(0.03, 0.03, 0.4, 6), '#90a4ae', x, 1, 0.6));
+      K.part(g, K.coneG(0.16, 0.4, 10), '#d7a86e', 0, 1.6, 0).rotation.x = Math.PI;
+      K.part(g, K.sphG(0.2, 12), '#f48fb1', 0, 1.9, 0);
+    });
+    add('gift', 3.4, (g) => {
+      K.part(g, K.boxG(1.4, 1, 1.1), '#bbdefb', 0, 0.5, 0);
+      K.part(g, K.coneG(1.15, 0.6, 4), '#8e24aa', 0, 1.3, 0).rotation.y = Math.PI / 4;
+      K.part(g, K.boxG(0.35, 0.6, 0.04), '#6d4c41', 0, 0.3, 0.56);
+      K.sign(g, '🎁', 0.5, 0, 1.3, 0.6);
+    });
+    add('vet', -5.4, (g) => {
+      K.part(g, K.boxG(1.3, 1, 1.1), '#fafafa', 0, 0.5, 0);
+      K.part(g, K.boxG(1.4, 0.1, 1.2), '#4dd0e1', 0, 1.05, 0);
+      K.part(g, K.boxG(0.4, 0.12, 0.05), '#e53935', 0, 0.7, 0.56);
+      K.part(g, K.boxG(0.12, 0.4, 0.05), '#e53935', 0, 0.7, 0.56);
+    });
+    add('feeder', 5.4, (g) => {
+      K.part(g, K.cylG(0.5, 0.5, 1.4, 16), '#b0bec5', 0, 0.9, 0, { metalness: 0.4, roughness: 0.4 });
+      K.part(g, K.coneG(0.56, 0.45, 16), '#e53935', 0, 1.82, 0);
+      K.part(g, K.coneG(0.5, 0.3, 16), '#90a4ae', 0, 0.15, 0).rotation.x = Math.PI;
+    });
+    add('keeper', 2, (g) => {
+      const p = K.person({ shirt: '#2e7d32', hat: '#f4d03f' });
+      p.g.scale.setScalar(1.2);
+      g.add(p.g);
+      g.position.z = 4.4;
+      K.part(g, K.cylG(0.02, 0.02, 1, 6), '#8d6e63', 0.25, 0.5, 0.05);
+      K.part(g, K.boxG(0.26, 0.12, 0.05), '#fdd835', 0.25, 0.06, 0.05);
+    });
   }
 
-  if (S.ok) {
-    S.onFrame((dt, t) => { if (!S.reduceMotion) anims.forEach((fn) => fn(t, dt)); });
-    $('centerBtn').onclick = () => S.fit();
-    S.fit();
+  function buildMess(zEnd) {
+    const hit = K.mat('#ffffff', { transparent: true, opacity: 0, depthWrite: false });
+    for (let k = 0; k < L.messCount(state); k++) {
+      const g = K.group(world, (K.rnd(k, 7) - 0.5) * 2, 0.06, 2.5 - K.rnd(k, 8) * (2.5 - zEnd));
+      g.userData.pick = { type: 'mess' };
+      K.part(g, K.sphG(0.13, 8), '#8d6e63', 0, 0.06, 0);
+      K.part(g, K.sphG(0.1, 8), '#6d4c41', 0.14, 0.04, 0.05);
+      K.part(g, K.boxG(0.16, 0.02, 0.12), '#eeeeee', -0.12, 0.02, 0.1).rotation.y = k;
+      K.part(g, K.sphG(0.08, 8), '#9ccc65', -0.02, 0.04, -0.14);
+      K.part(g, K.sphG(0.45, 8), hit, 0, 0.2, 0).castShadow = false;
+    }
+  }
+
+  function signature() {
+    return JSON.stringify([state.order, state.animals, state.up, L.messCount(state), L.freeSlots(state) > 0, state.fed >= 50, Math.min(10, Math.ceil(L.visitorsPerMin(state) * 3))]);
+  }
+  function fit() {
+    const rows = Math.max(1, Math.ceil(penList().length / 2));
+    stage.look(0, -(rows - 1) * GAP / 2 + 0.5, 12 + rows * 3.2, 30 + rows * 8);
+  }
+  function draw() {
+    if (!stage) return;
+    const s = signature();
+    if (s === sig) return;
+    sig = s;
+    if (world) stage.scene.remove(world);
+    world = new K.THREE.Group();
+    animals = [];
+    people = [];
+    const pens = penList();
+    const rows = Math.max(1, Math.ceil(pens.length / 2));
+    const zEnd = -(rows - 1) * GAP - PEN / 2 - 0.5;
+    K.part(world, K.boxG(300, 0.2, 300), '#7cc35a', 0, -0.1, 0).castShadow = false;
+    pens.forEach((id, i) => (id ? buildPen(id, i) : buildLot(i)));
+    buildGate(zEnd);
+    buildUpgrades();
+    buildMess(zEnd);
+    // מבקרים מטיילים בשביל
+    const n = Math.min(10, Math.ceil(L.visitorsPerMin(state) * 3));
+    for (let k = 0; k < n; k++) {
+      const p = K.person({ kid: k % 3 === 0, balloon: k % 4 === 1 ? K.pick(['#ef5350', '#42a5f5', '#ffca28']) : null });
+      const v = { p, x: (k % 2 ? 0.7 : -0.7) + (Math.random() - 0.5) * 0.5, z: 3 - Math.random() * (3 - zEnd), dir: k % 2 ? 1 : -1, sp: 0.5 + Math.random() * 0.4, wait: 0, zEnd };
+      p.g.position.set(v.x, 0.06, v.z);
+      world.add(p.g);
+      people.push(v);
+    }
+    stage.scene.add(world);
+    if (rows !== rowsDrawn) { rowsDrawn = rows; fit(); }
+  }
+
+  function stepAnimal(a, dt, t) {
+    const g = a.m.g;
+    if (a.wait > 0) {
+      a.wait -= dt;
+      a.moving = false;
+      if (a.wait <= 0) { a.tx = (Math.random() * 2 - 1) * a.lim; a.tz = (Math.random() * 2 - 1) * a.lim; }
+    } else {
+      const dx = a.tx - a.x, dz = a.tz - a.z, d = Math.hypot(dx, dz), step = a.m.speed * dt;
+      if (d <= step) { a.wait = 1 + Math.random() * 4; a.moving = false; }
+      else { a.x += dx / d * step; a.z += dz / d * step; a.rot = Math.atan2(dx, dz); a.moving = true; }
+    }
+    if (a.moving) a.ph += dt * (4 + a.m.speed * 8);
+    const s = Math.sin(a.ph);
+    a.m.legs.forEach((leg, i) => { leg.rotation.x = a.moving ? (i === 0 || i === 3 ? s : -s) * 0.5 : 0; });
+    a.jump = Math.max(0, a.jump - dt * 2.2);
+    g.position.set(a.x, 0.08 + (a.moving && a.m.hop ? Math.abs(s) * a.m.hop : 0) + Math.sin(a.jump * Math.PI) * 0.45, a.z);
+    g.rotation.z = a.moving && a.m.waddle ? s * a.m.waddle : 0;
+    let diff = a.rot - g.rotation.y;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    g.rotation.y += diff * Math.min(1, dt * 5);
+    a.m.anim(t + a.ph, a.moving);
+  }
+  function stepPerson(v, dt) {
+    if (v.wait > 0) { v.wait -= dt; K.stillPose(v.p); return; }
+    v.z += v.dir * v.sp * dt;
+    if (v.z > 3.2) v.dir = -1; else if (v.z < v.zEnd) v.dir = 1;
+    else if (Math.random() < dt * 0.08) { v.wait = 2 + Math.random() * 3; v.p.g.rotation.y = v.x < 0 ? -Math.PI / 2 : Math.PI / 2; return; }
+    v.p.g.position.z = v.z;
+    v.p.g.rotation.y = v.dir > 0 ? 0 : Math.PI;
+    K.walkPose(v.p, dt, v.sp);
+  }
+
+  if (stage) {
+    stage.addClouds(7, 60, 22);
+    stage.frame((dt, t) => {
+      if (still) return;
+      animals.forEach((a) => stepAnimal(a, dt, t));
+      people.forEach((v) => stepPerson(v, dt));
+    });
+    stage.onTap = (e) => {
+      const h = world && stage.pick(e, [world]);
+      if (!h) return;
+      const p = h.pick;
+      if (p.type === 'lot') { setTab('animals'); say('בחרו חיה חדשה מהרשימה למטה'); }
+      else if (p.type === 'up') setTab('ups');
+      else if (p.type === 'mess') {
+        L.handClean(state);
+        stage.burst(h.point, ['✨', '🧹'], 6);
+        say('אספתם לכלוך. הגן נקי יותר!');
+        persist(false);
+        renderAll();
+      } else if (p.type === 'pen') {
+        sel = p.id;
+        const a = L.ANIMAL_BY_ID[p.id];
+        h.point.y += 0.6;
+        stage.burst(h.point, ['❤️', '💕', '🥕'], 5);
+        animals.forEach((an) => { if (an.m.g.parent === h.object || an.m.g.parent === h.object.parent) an.jump = 1; });
+        if (Date.now() - petAt > 1500 && state.fed < 100) { petAt = Date.now(); L.handFeed(state); persist(false); }
+        say(`${a.icon} ליטפתם והאכלתם את ה${a.name}`);
+        renderAll();
+      }
+    };
+    $('centerBtn').onclick = fit;
   } else {
+    $('scene').innerHTML = '<p class="no3d">התלת-ממד לא זמין במכשיר הזה. אפשר לשחק בעזרת הלוחות למטה.</p>';
     $('centerBtn').hidden = true;
   }
 
-  // לחיצה על חיה = למכור אותה. לחיצה על שטח ריק בגדר = לקנות את החיה שנבחרה
-  function onPen(pi, lx, lz) {
-    const list = slotList();
-    let hit = null, best = 0.45;
-    for (let j = 0; j < PER_PEN; j++) {
-      const i = pi * PER_PEN + j, w = walks.get(i + 1);
-      if (!list[i] || !w || w.id !== list[i]) continue;
-      const d = Math.hypot(w.x - lx, w.z - lz);
-      if (d < best) { best = d; hit = list[i]; }
-    }
-    if (hit) {
-      const a = L.ANIMAL_BY_ID[hit];
-      if (!confirm(`למכור את ${a.name}? יוחזר חצי מהמחיר.`)) return;
-      const r = L.sell(state, hit);
-      if (!r.ok) return say(r.msg);
-      if (W) W.earn(r.refund, { reason: `מכרתם ${a.name}`, silent: true });
-      persist();
-      say(`מכרתם ${a.name}. הוחזרו ${r.refund} 🪙`);
-      return renderAll();
-    }
-    buyAnimal(selected);
+  // ---------- לוחות ----------
+  const TABS = [['animals', '🐾 חיות'], ['care', '🥕 טיפול'], ['ups', '🏗️ שדרוגים'], ['goals', '🎯 משימות'], ['album', '📖 אלבום'], ['quiz', '❓ חידון']];
+  function setTab(t) { tab = t; renderAll(); }
+
+  function renderHud() {
+    const st = L.stars(state);
+    $('hud').innerHTML =
+      `<span title="כוכבי הגן">${'⭐'.repeat(st)}${'☆'.repeat(5 - st)}</span>` +
+      `<span>💰 ${state.rate.toFixed(1)} לדקה</span>` +
+      `<span>🚶 ${L.visitorsPerMin(state).toFixed(1)}</span>` +
+      `<span>😊 ${L.happiness(state)}%</span>` +
+      `<span>🐾 ${L.animalCount(state)}/${L.capacity(state)}</span>`;
   }
-  function buyAnimal(id) {
-    const a = L.ANIMAL_BY_ID[id];
-    const c = L.canBuy(state, id);
-    if (!c.ok) return say(c.msg);
-    if (!pay(c.cost)) return;
-    L.buy(state, id);
-    persist();
-    say(`קניתם ${a.name}! −${c.cost} 🪙`);
-    renderAll();
+  function renderTabs() {
+    const ready = L.goalsReady(state);
+    $('tabs').innerHTML = TABS.map(([id, label]) =>
+      `<button class="tab${id === tab ? ' on' : ''}" role="tab" aria-selected="${id === tab}" data-a="tab" data-id="${id}">${label}${id === 'goals' && ready ? `<b class="badge">${ready}</b>` : ''}</button>`).join('');
+  }
+  function renderSel() {
+    const box = $('sel');
+    const a = sel && L.ANIMAL_BY_ID[sel];
+    const n = a ? state.animals[sel] || 0 : 0;
+    box.hidden = !n;
+    if (!n) return;
+    box.innerHTML = `<div><strong>${a.icon} ${a.name} ×${n}</strong><small>${a.fact}</small></div>` +
+      `<button class="act" data-a="buy" data-id="${sel}">➕ עוד אחד (${a.price} 🪙)</button>` +
+      `<button class="act ghost" data-a="sell" data-id="${sel}">מכירה (+${Math.floor(a.price / 2)} 🪙)</button>`;
+  }
+  function meter(label, value, cls, pct, note) {
+    return `<div class="meter"><div class="meter-head"><span>${label}</span><strong>${value}</strong></div>` +
+      `<div class="meter-bar"><div class="meter-fill ${cls}" style="width:${Math.max(0, Math.min(100, Math.round(pct)))}%"></div></div>` +
+      `<div class="meter-note">${note}</div></div>`;
   }
 
-  function renderShop() {
-    const box = $('shop');
-    box.innerHTML = '';
-    const free = L.freeSlots(state);
-    L.ANIMALS.forEach((a) => {
-      const b = document.createElement('button');
-      b.className = 'card' + (a.id === selected ? ' selected' : '') + (balance() < a.price ? ' cant' : '');
-      b.setAttribute('aria-pressed', String(a.id === selected));
-      b.innerHTML = `<span class="icon">${a.icon}</span><span>${a.name}</span><span class="price">${a.price} 🪙</span>`;
-      b.onclick = () => {
-        selected = a.id;
-        if (!S.ok) return buyAnimal(a.id);   // בלי תלת-ממד קונים ישר מהחנות
-        $('hint').textContent = `נבחר: ${a.name}. לחצו על מקום ריק בגדר כדי לקנות. לחיצה על חיה מוכרת אותה.`;
-        renderShop();
-      };
-      box.appendChild(b);
-    });
-    $('note').textContent = free <= 0 ? 'אין מקום בגדרות. הרחיבו את הגן כדי לקנות עוד חיות.' : `נשארו ${free} מקומות פנויים.`;
-  }
+  const PANELS = {
+    animals() {
+      const free = L.freeSlots(state);
+      return `<p class="note">${free > 0 ? `נשארו ${free} מקומות פנויים. לחיצה על חיה קונה אותה. לכל סוג יש מתחם משלו.` : 'אין מקום בגן. הרחיבו אותו בלשונית הטיפול.'}</p><div class="cards">` +
+        L.ANIMALS.map((a) => {
+          const n = state.animals[a.id] || 0;
+          return `<button class="card${balance() < a.price || free <= 0 ? ' cant' : ''}" data-a="buy" data-id="${a.id}">` +
+            `<span class="icon">${a.icon}</span><span>${a.name}</span>${n ? `<span class="own">יש לכם ${n}</span>` : ''}<span class="price">${a.price} 🪙</span></button>`;
+        }).join('') + '</div>';
+    },
+    care() {
+      const f = L.feed(state), c = L.clean(state), x = L.canExpand(state);
+      return '<div class="meters">' +
+        meter('🥕 אוכל', `${Math.round(state.fed)}%`, 'fed', state.fed, 'ליטוף חיה מאכיל אותה קצת, בחינם') +
+        meter('🧹 ניקיון', `${Math.round(state.clean)}%`, 'clean', state.clean, 'לחצו על ערימות לכלוך בשביל כדי לאסוף אותן') +
+        '</div><div class="row">' +
+        `<button class="act" data-a="feed" ${f.ok ? '' : 'disabled'}>🥕 האכלה מלאה${f.ok ? ` (${f.cost} 🪙)` : ''}</button>` +
+        `<button class="act" data-a="clean" ${c.ok ? '' : 'disabled'}>🧹 ניקיון מלא${c.ok ? ` (${c.cost} 🪙)` : ''}</button>` +
+        `<button class="act" data-a="expand" ${x.ok ? '' : 'disabled'}>${x.ok ? `➕ הרחבת הגן (${x.cost} 🪙, עוד ${L.SLOT_STEP} מקומות)` : '➕ הגן במקסימום'}</button>` +
+        '</div><h2>🎟️ מחיר כרטיס</h2><div class="row">' +
+        L.PRICES.map((p) => `<button class="chip${state.price === p ? ' on' : ''}" aria-pressed="${state.price === p}" data-a="price" data-id="${p}">${p} 🪙</button>`).join('') +
+        `</div><p class="note">כרטיס יקר: פחות מבקרים, אבל כל אחד משלם יותר. ההכנסה (עד ${L.rateMax(state)} 🪙 לדקה) נכנסת לעיר לבד.</p>`;
+    },
+    ups() {
+      return '<div class="list">' + L.UPGRADES.map((u) => {
+        const lv = L.upLevel(state, u.id), c = L.canUpgrade(state, u.id);
+        return `<div class="item"><span class="icon">${u.icon}</span><div><strong>${u.name}${u.price.length > 1 ? ` (רמה ${lv}/${u.price.length})` : ''}</strong><small>${u.desc}</small></div>` +
+          (c.ok ? `<button class="act" data-a="up" data-id="${u.id}">${c.cost} 🪙</button>` : '<span class="done">✅ נקנה</span>') + '</div>';
+      }).join('') + '</div>';
+    },
+    goals() {
+      return '<div class="list">' + L.GOALS.map((g) => {
+        const st = L.goalState(state, g);
+        return `<div class="item ${st}"><span class="icon">${g.icon}</span><div><strong>${g.text}</strong><small>פרס: ${g.reward} 🪙</small></div>` +
+          (st === 'ready' ? `<button class="act pulse" data-a="claim" data-id="${g.id}">🎁 קבלו פרס</button>` : st === 'done' ? '<span class="done">✅</span>' : '<span class="done">⏳</span>') + '</div>';
+      }).join('') + '</div>';
+    },
+    album() {
+      return '<div class="list">' + L.ANIMALS.map((a) => {
+        const has = state.animals[a.id] > 0;
+        return `<div class="item${has ? '' : ' locked'}"><span class="icon">${has ? a.icon : '❔'}</span><div><strong>${has ? a.name : '???'}</strong><small>${has ? a.fact : 'קנו את החיה כדי לגלות עובדה עליה'}</small></div></div>`;
+      }).join('') + '</div>';
+    },
+    quiz() {
+      if (!L.animalCount(state)) return '<p class="note">קנו חיה ראשונה כדי לשחק בחידון "מי אני?"</p>';
+      if (quiz) {
+        return `<p class="q">🤔 מי אני? ${quiz.fact}</p><div class="row center">` +
+          quiz.options.map((id) => { const a = L.ANIMAL_BY_ID[id]; return `<button class="act big" data-a="ans" data-id="${id}">${a.icon} ${a.name}</button>`; }).join('') + '</div>';
+      }
+      const wait = L.quizWait(state, Date.now());
+      return `<p class="q">${quizMsg || 'עובדה על אחת החיות שלכם, ואתם מנחשים מי זו.'}</p>` +
+        (wait > 0 ? `<p class="note">השאלה הבאה בעוד ${Math.ceil(wait / 1000)} שניות</p>` : `<div class="row center"><button class="act big" data-a="quiz">❓ שאלה חדשה (פרס ${L.QUIZ_REWARD} 🪙)</button></div>`);
+    },
+  };
 
   function renderAll() {
     refresh();
-    renderStats();
-    renderControls();
-    drawZoo();
-    renderShop();
+    renderHud();
+    renderTabs();
+    renderSel();
+    $('panel').innerHTML = PANELS[tab]();
+    draw();
   }
 
-  $('feedBtn').onclick = () => {
-    const f = L.feed(state);
-    if (!f.ok) return say(f.msg);
-    if (!pay(f.cost)) return;
-    state.fed = 100;
-    persist();
-    say(`האכלתם את החיות! −${f.cost} 🪙`);
-    renderAll();
+  const ACTS = {
+    tab: (id) => { tab = id; },
+    buy(id) {
+      const a = L.ANIMAL_BY_ID[id], c = L.canBuy(state, id);
+      if (!c.ok) return say(c.msg);
+      if (!pay(c.cost)) return;
+      L.buy(state, id);
+      sel = id;
+      persist();
+      say(`${a.icon} קניתם ${a.name}! −${c.cost} 🪙`);
+    },
+    sell(id) {
+      const a = L.ANIMAL_BY_ID[id];
+      if (!confirm(`למכור את ה${a.name}? יוחזר חצי מהמחיר.`)) return;
+      const r = L.sell(state, id);
+      if (!r.ok) return say(r.msg);
+      earn(r.refund, `מכרתם ${a.name}`);
+      persist();
+      say(`מכרתם ${a.name}. הוחזרו ${r.refund} 🪙`);
+    },
+    feed() {
+      const f = L.feed(state);
+      if (!f.ok) return say(f.msg);
+      if (!pay(f.cost)) return;
+      state.fed = 100;
+      persist();
+      say(`האכלתם את כל החיות! −${f.cost} 🪙`);
+    },
+    clean() {
+      const c = L.clean(state);
+      if (!c.ok) return say(c.msg);
+      if (!pay(c.cost)) return;
+      state.clean = 100;
+      persist();
+      say(`הגן מבריק! −${c.cost} 🪙`);
+    },
+    expand() {
+      const x = L.canExpand(state);
+      if (!x.ok) return say(x.msg);
+      if (!pay(x.cost)) return;
+      L.expand(state);
+      persist();
+      say(`הגן גדל! יש מקום ל־${L.capacity(state)} חיות. −${x.cost} 🪙`);
+    },
+    price(id) {
+      L.setPrice(state, +id);
+      persist();
+    },
+    up(id) {
+      const c = L.canUpgrade(state, id);
+      if (!c.ok) return say(c.msg);
+      if (!pay(c.cost)) return;
+      L.upgrade(state, id);
+      persist();
+      say(`${L.UPGRADE_BY_ID[id].icon} ${L.UPGRADE_BY_ID[id].name} נבנה! −${c.cost} 🪙`);
+    },
+    claim(id) {
+      const r = L.claimGoal(state, id);
+      if (!r.ok) return say(r.msg);
+      earn(r.reward, 'משימה בגן החיות');
+      persist();
+      say(`🎉 כל הכבוד! קיבלתם ${r.reward} 🪙`);
+    },
+    quiz() {
+      if (L.quizWait(state, Date.now()) > 0) return;
+      quiz = L.makeQuiz(state);
+      quizMsg = '';
+    },
+    ans(id) {
+      if (!quiz) return;
+      const right = L.ANIMAL_BY_ID[quiz.answer];
+      if (id === quiz.answer) { earn(L.QUIZ_REWARD, 'חידון גן החיות'); quizMsg = `✅ נכון! זה ${right.icon} ${right.name}. קיבלתם ${L.QUIZ_REWARD} 🪙`; }
+      else quizMsg = `לא הפעם. התשובה: ${right.icon} ${right.name}`;
+      quiz = null;
+      L.quizAnswered(state, Date.now());
+      persist(false);
+    },
   };
-  $('cleanBtn').onclick = () => {
-    const c = L.clean(state);
-    if (!c.ok) return say(c.msg);
-    if (!pay(c.cost)) return;
-    state.clean = 100;
-    persist();
-    say(`ניקיתם את הגן! −${c.cost} 🪙`);
+  document.querySelector('.container').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]');
+    if (!b || b.disabled) return;
+    ACTS[b.dataset.a](b.dataset.id);
     renderAll();
-  };
-  $('expandBtn').onclick = () => {
-    const x = L.canExpand(state);
-    if (!x.ok) return say(x.msg);
-    if (!pay(x.cost)) return;
-    L.expand(state);
-    persist();
-    say(`הגן גדל! עכשיו יש מקום ל־${L.capacity(state)} חיות. −${x.cost} 🪙`);
-    renderAll();
-    if (S.ok) S.fit();
-  };
+  });
 
-  if (W) W.onChange(() => { $('balance').textContent = balance(); renderShop(); });
-  else $('balance').textContent = 0;
+  if (W) W.onChange(() => { $('balance').textContent = balance(); if (tab === 'animals') renderAll(); });
+  $('balance').textContent = balance();
 
-  // עם הזמן החיות מתלכלכות ורעבות. שומרים במכשיר בלבד כדי לא להעמיס על הענן
+  // עם הזמן החיות מתלכלכות ורעבות, ולפעמים נולד גור. שומרים במכשיר בלבד כדי לא להעמיס על הענן
   setInterval(() => {
     L.decay(state, 5000);
-    persist(false);
-    renderAll();
+    const baby = L.tryBreed(state, Date.now());
+    if (baby) {
+      const a = L.ANIMAL_BY_ID[baby];
+      say(`🍼 נולד גור ${a.name} בגן!`);
+      persist();
+    } else persist(false);
+    if (quiz || tab === 'album') { renderHud(); renderTabs(); draw(); } else renderAll();
   }, 5000);
 
   window.addEventListener('pagehide', () => { persist(false); store.flush(); });

@@ -80,3 +80,42 @@ h1 { font-size: 2rem; margin-top: 44px; }
 .card .price { font-size: 0.95rem; color: #7a5200; margin-top: auto; }
 .card.selected { border-color: #FF6B9D; background: #fff5f8; }
 .card:disabled, .card.cant { opacity: 0.5; cursor: default; }
+
+/* ---- ממשק האטרקציות החדש: מדדים על הסצנה, לשוניות, רשימות ---- */
+.hud { position: absolute; top: 10px; inset-inline: 10px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; pointer-events: none; }
+.hud span { background: rgba(255,255,255,.92); border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: .95rem; box-shadow: 0 2px 6px rgba(0,0,0,.15); white-space: nowrap; }
+.hud span.warn { background: #ffebee; color: #b71c1c; }
+.scene-wrap .tool.end { inset-inline-start: auto; inset-inline-end: 12px; }
+.scene-wrap .tool.mid { inset-inline-start: 50%; transform: translateX(50%); }
+.no3d { padding: 60px 20px; color: #2d2d4a; }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 6px 2px 8px; margin-top: 6px; scrollbar-width: thin; }
+.tab { position: relative; flex: 0 0 auto; font: inherit; font-weight: 700; color: #2d2d4a; background: #fff; border: 3px solid var(--tab, #8e24aa); border-radius: 14px; padding: 6px 14px; min-height: 44px; cursor: pointer; box-shadow: 0 3px 0 var(--tab, #8e24aa); }
+.tab.on { background: var(--tab, #8e24aa); color: #fff; }
+.tab:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
+.badge { position: absolute; top: -8px; inset-inline-end: -6px; background: #e53935; color: #fff; border-radius: 999px; min-width: 22px; height: 22px; font-size: .8rem; line-height: 22px; }
+.panel { margin-top: 4px; }
+.panel h2 { margin-top: 10px; }
+.panel .meters { margin: 0 0 10px; }
+.panel .meter { background: #f7f7fb; box-shadow: none; }
+.note { color: #6b6b8a; font-size: .95rem; margin-bottom: 8px; }
+.row.center { justify-content: center; }
+.act.big { font-size: 1.1rem; padding: 10px 20px; }
+.act.ghost { border-color: #9e9e9e; box-shadow: 0 3px 0 #9e9e9e; }
+.act.pulse { animation: kl-pulse 1.2s infinite; }
+@keyframes kl-pulse { 50% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .act.pulse { animation: none; } }
+.card { min-height: 104px; }
+.card .own { font-size: .8rem; background: #e8f5e9; color: #1b5e20; border-radius: 999px; padding: 1px 8px; }
+.card:not(.cant):hover { border-color: var(--tab, #8e24aa); transform: translateY(-2px); }
+.sel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #fff; border-radius: 16px; padding: 10px 14px; margin-top: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.08); text-align: right; }
+.sel[hidden], .tool[hidden] { display: none; }
+.sel > div { flex: 1 1 200px; }
+.sel small, .item small { display: block; color: #6b6b8a; font-size: .88rem; line-height: 1.35; }
+.list { display: grid; gap: 8px; }
+.item { display: flex; align-items: center; gap: 10px; background: #f7f7fb; border-radius: 14px; padding: 8px 12px; }
+.item > div { flex: 1; }
+.item .icon { font-size: 1.8rem; }
+.item.ready { background: #fff8dc; }
+.item.done, .item.locked { opacity: .6; }
+.item .done { font-weight: 700; white-space: nowrap; }
+.q { font-size: 1.15rem; font-weight: 700; margin: 6px 0 12px; text-align: center; }

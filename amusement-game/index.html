@@ -17,27 +17,16 @@
 
     <div class="scene-wrap">
         <div class="scene" id="scene" aria-label="הלונה פארק שלכם בתלת-ממד"></div>
+        <div class="hud" id="hud" aria-live="polite"></div>
         <button class="tool" id="centerBtn" title="מרכז את המצלמה">🎯 מרכז</button>
+        <button class="tool mid" id="exitBtn" hidden>⬇️ לרדת מהמתקן</button>
+        <button class="tool end" id="nightBtn" title="יום או לילה">🌙 לילה</button>
     </div>
     <div class="feedback" id="feedback" aria-live="polite"></div>
-
-    <div class="meters" id="stats" aria-live="polite"></div>
-
-    <section class="panel">
-        <h2>🎟️ תשלום ובטיחות</h2>
-        <div class="row" id="modes" role="group" aria-label="סוג תשלום"></div>
-        <div class="row" id="prices" role="group" aria-label="מחיר כרטיס כניסה"></div>
-        <div class="row">
-            <button class="act" id="inspectBtn">🛠️ בדיקת בטיחות</button>
-            <button class="act" id="expandBtn">➕ הרחבת השטח</button>
-        </div>
-    </section>
-
-    <p class="hint" id="hint">בחרו מתקן מהחנות ולחצו על משבצת ריקה בשטח. לחיצה על מתקן מחזירה חצי ממחירו. מתקנים מסוגים שונים זה ליד זה נותנים בונוס. אפשר לסובב ולהתקרב עם האצבע או העכבר.</p>
-    <div class="shop" id="shopWrap" aria-label="חנות מתקנים">
-        <div class="cards" id="shop"></div>
-    </div>
-    <p class="counts" id="note"></p>
+    <div class="sel" id="sel" hidden></div>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <section class="panel" id="panel"></section>
+    <p class="hint">לחצו על מתקן כדי לשדרג אותו, לתקן אותו או לעלות עליו. אפשר לסובב ולהתקרב עם האצבע או העכבר.</p>
 </div>
 
 <script src="../city-game/vendor/three.min.js"></script>
@@ -51,8 +40,9 @@
 <script>KidLearn.init();</script>
 <script src="../shared/kidlearn-wallet.js"></script>
 <script src="../shared/kidlearn-attraction.js"></script>
-<script src="../shared/kidlearn-3d.js"></script>
+<script src="../shared/kidlearn-3d-kit.js"></script>
 <script src="logic.js"></script>
+<script src="rides.js"></script>
 <script src="game.js"></script>
 <script src="../effects/gamepad-ui.js"></script>
 </body>
