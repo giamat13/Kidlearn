@@ -197,11 +197,6 @@
     <div id="conversation-thread"></div>
   </div>
 
-  <div id="inbox-section" class="sheet" hidden>
-    <h3>💌 מכתבים מחברי KidLearn</h3>
-    <div id="inbox-list" style="display:flex;flex-direction:column;gap:12px"></div>
-  </div>
-
   <div id="compose-section" class="sheet tilt-r" hidden>
     <h3>✍️ כתיבת מכתב</h3>
     <select id="to-contact"></select>
@@ -235,8 +230,9 @@
   </div>
 
   <div id="sent-section" class="sheet tilt-l" hidden>
-    <h3>📬 מכתבים ששלחתי</h3>
+    <h3>📬 המכתבים שלי</h3>
     <input id="search-sent" placeholder="🔍 חיפוש במכתבים...">
+    <div id="inbox-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:12px"></div>
     <div id="sent-list"></div>
     <button class="secondary" id="refresh" style="margin-top:12px">רענון</button>
   </div>
@@ -337,7 +333,12 @@ async function loadContacts() {
   document.getElementById("contacts-onboarding").hidden = hasContacts;
   document.getElementById("contacts-settings").hidden = !hasContacts;
   document.getElementById("compose-section").hidden = !hasContacts;
-  document.getElementById("sent-section").hidden = !hasContacts;
+  updateSentVisibility();
+}
+
+// The letters section shows when there are contacts or letters received from KidLearn users
+function updateSentVisibility() {
+  document.getElementById("sent-section").hidden = !(contacts.length > 0 || friendInbox.length > 0);
 }
 
 document.getElementById("export-contacts").onclick = () => {
@@ -793,7 +794,7 @@ async function loadInbox() {
   try { friendInbox = await KidLearn.listFriendLetters("inbox"); } catch (e) { friendInbox = []; }
   const list = document.getElementById("inbox-list");
   list.innerHTML = "";
-  document.getElementById("inbox-section").hidden = !friendInbox.length;
+  updateSentVisibility();
   friendInbox.forEach((l) => list.appendChild(renderInboxLetter(l)));
 }
 
