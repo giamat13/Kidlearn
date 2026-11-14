@@ -366,18 +366,19 @@
     }
   }
 
-  async function logDebugCode(code) {
+  // `amount` (optional integer): how much the code changed, e.g. +100 or -50 coins
+  async function logDebugCode(code, amount) {
     code = String(code || "").trim().toUpperCase().slice(0, 60);
     if (!code) return;
+    const hasAmount = Number.isInteger(amount);
     const local = readLocalDebugLog();
-    local.push({ code, at: Date.now() });
+    local.push(hasAmount ? { code, amount, at: Date.now() } : { code, at: Date.now() });
     try { localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(local.slice(-100))); } catch (e) {}
     if (!auth || !auth.currentUser) return;
     try {
-      await db.collection("users").doc(auth.currentUser.uid).collection("debugLog").add({
-        code,
-        at: firebase.firestore.FieldValue.serverTimestamp(),
-      });
+      const entry = { code, at: firebase.firestore.FieldValue.serverTimestamp() };
+      if (hasAmount) entry.amount = amount;
+      await db.collection("users").doc(auth.currentUser.uid).collection("debugLog").add(entry);
     } catch (e) { /* offline or rules not updated: the device copy stays */ }
   }
 
@@ -387,7 +388,7 @@
     const snap = await db.collection("users").doc(auth.currentUser.uid).collection("debugLog").get();
     const list = snap.docs.map((d) => {
       const x = d.data();
-      return { code: x.code, at: x.at ? x.at.toMillis() : Date.now() };
+      return { code: x.code, amount: x.amount, at: x.at ? x.at.toMillis() : Date.now() };
     });
     list.sort((a, b) => b.at - a.at);
     return list;

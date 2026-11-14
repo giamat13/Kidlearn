@@ -31,7 +31,8 @@ service cloud.firestore {
       match /debugLog/{logId} {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow create: if request.auth != null && request.auth.uid == uid
-                        && request.resource.data.keys().hasOnly(['code', 'at'])
+                        && request.resource.data.keys().hasOnly(['code', 'at', 'amount'])
+                        && (!('amount' in request.resource.data) || request.resource.data.amount is int)
                         && request.resource.data.code is string && request.resource.data.code.size() <= 60
                         && request.resource.data.at == request.time;
       }
