@@ -277,7 +277,6 @@
   // A contact whose "email" has no "@" is a KidLearn username (see isKidLearnContact).
   // friendLetters/{id} are letters to such a contact; `amount` is KidLearn money that
   // the sender's wallet paid and the recipient's wallet receives when the letter is opened.
-  const MAX_LETTER_MONEY = 500;
   const MAX_LETTER_BODY = 10000;
 
   async function ensureUsernameIndex(uid, username) {
@@ -301,7 +300,7 @@
     if (!target.exists) throw new Error("לא מצאנו משתמש KidLearn בשם הזה");
     const friendUid = target.data().uid;
     amount = Math.floor(+amount || 0);
-    if (amount < 0 || amount > MAX_LETTER_MONEY) throw new Error("אפשר לצרף עד " + MAX_LETTER_MONEY + " כסף Kidlearn");
+    if (amount < 0) throw new Error("הסכום לא תקין");
     if (!body || body.length > MAX_LETTER_BODY) throw new Error("המכתב ריק או ארוך מדי");
     if (amount > 0 && !(window.KidLearnWallet && KidLearnWallet.spend(amount))) {
       throw new Error("אין לכם מספיק כסף Kidlearn");

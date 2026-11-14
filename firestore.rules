@@ -71,7 +71,7 @@ service cloud.firestore {
                       && request.resource.data.body is string && request.resource.data.body.size() <= 10000
                       && request.resource.data.subject is string && request.resource.data.subject.size() <= 200
                       && request.resource.data.amount is int
-                      && request.resource.data.amount >= 0 && request.resource.data.amount <= 500
+                      && request.resource.data.amount >= 0
                       && request.resource.data.read == false
                       && (request.resource.data.image == null
                           || (request.resource.data.image is string && request.resource.data.image.size() < 700000

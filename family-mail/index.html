@@ -202,7 +202,7 @@
     <select id="to-contact"></select>
     <div class="row" id="money-row" hidden>
       <span>💰 לצרף כסף Kidlearn:</span>
-      <input type="number" id="send-money" min="0" max="500" step="1" value="0" style="width:90px">
+      <input type="number" id="send-money" min="0" step="1" value="0" style="width:90px">
       <span class="muted" id="money-balance"></span>
     </div>
     <div class="row">
@@ -387,7 +387,7 @@ document.getElementById("send").onclick = async () => {
     if (contact && KidLearn.isKidLearnContact(contact)) {
       // To a KidLearn user: no email, no writing bonus (so letters can't be used to farm coins)
       const amount = Math.floor(+document.getElementById("send-money").value || 0);
-      if (amount < 0 || amount > 500) throw new Error("אפשר לצרף בין 0 ל-500 כסף Kidlearn");
+      if (amount < 0) throw new Error("הסכום לא תקין");
       await KidLearn.sendFriendLetter(contact.email, { subject, body, bgTheme: selectedBg, image: selectedImage, amount });
       document.getElementById("send-money").value = 0;
       updateMoneyRow();
@@ -844,7 +844,7 @@ function updateMoneyRow() {
   document.getElementById("money-row").hidden = !isKl;
   const bal = window.KidLearnWallet ? KidLearnWallet.balance() : 0;
   document.getElementById("money-balance").textContent = "(יש לכם " + bal + ")";
-  document.getElementById("send-money").max = Math.min(500, bal);
+  document.getElementById("send-money").max = bal;
 }
 document.getElementById("to-contact").addEventListener("change", updateMoneyRow);
 window.KidLearnWallet && KidLearnWallet.onChange(updateMoneyRow);
