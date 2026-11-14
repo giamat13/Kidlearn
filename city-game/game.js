@@ -551,10 +551,10 @@ function envScore() {
     return clamp(50 + 150 * sum / Math.max(1, owned.size));
 }
 
-// במדדים לא מראים מספר מדויק: 67 מופיע כ-6*, 100 נשאר 100
+// במדדים מספר שלא מסתיים ב-0 מוצג בלי ספרת האחדות: 67 מופיע כ-6*. מספרים עגולים (60, 100) נשארים כמו שהם
 function maskValue(value) {
     const v = Math.max(0, Math.min(100, Math.round(value)));
-    return v >= 100 ? '100' : Math.floor(v / 10) + '*';
+    return v % 10 === 0 ? String(v) : Math.floor(v / 10) + '*';
 }
 
 // כמה הסוג שומר על הסביבה (או פוגע בה): 1 קלה, 2 בינונית, 3 חזקה. 0 = לא משפיע
