@@ -66,7 +66,7 @@ const CATS = [
 const VARIANTS = [
     { id: 'road',       cat: 'road',   name: 'כביש אספלט',  icon: '🛣️', price: cheap(R.create),        eco: -1,   love: 'הדרכים מחברות בין כל הבתים', desc: 'כביש רחב עם קווים לבנים' },
     { id: 'dirt',       cat: 'road',   name: 'דרך עפר',     icon: '🟫', price: cheap(R.answer),        eco: 0,    love: 'אנחנו אוהבים את דרך העפר הפשוטה שלנו', desc: 'דרך פשוטה וזולה' },
-    { id: 'stone',      cat: 'road',   name: 'שביל אבן',    icon: '🪨', price: cheap(R.answer * 2),    eco: 0,    love: 'השביל המרוצף בחלוקי נחל נראה מדהים', desc: 'שביל מרוצף בחלוקי נחל' },
+    { id: 'stone',      cat: 'road',   name: 'שביל אבן',    icon: '🪨', price: cheap(R.answer * 2),    eco: -0.2,   love: 'השביל המרוצף בחלוקי נחל נראה מדהים', desc: 'שביל מרוצף בחלוקי נחל' },
 
     { id: 'tree',       cat: 'tree',   name: 'עץ',          icon: '🌳', price: cheap(R.create),        eco: 0.5,  size: 0.5,  love: 'אנחנו אוהבים את העצים שנותנים צל', desc: 'עץ יפה שנותן צל' },
     { id: 'palm',       cat: 'tree',   name: 'דקל',         icon: '🌴', price: cheap(R.create),        eco: 0.5,  size: 0.55, love: 'הדקלים מזכירים לנו חופשה', desc: 'דקל גבוה לאזור חם' },
@@ -97,13 +97,13 @@ const VARIANTS = [
     { id: 'library',   cat: 'civic',  name: 'ספרייה',       icon: '📚', price: cheap(R.round * 2),     eco: 0,    love: 'בספרייה יש המון ספרים לקרוא', desc: 'ספרים לכל הגילאים' },
     { id: 'university', cat: 'civic', name: 'אוניברסיטה', icon: '🎓', price: cheap(R.round * 5), eco: 0.5, love: 'באוניברסיטה לומדים דברים חדשים כל יום', desc: 'לימודים לבוגרים' },
     { id: 'court', cat: 'civic', name: 'בית משפט', icon: '⚖️', price: cheap(R.round * 5), eco: 0, love: 'בבית המשפט שומרים על הצדק בעיר', desc: 'שופטים שמחליטים בעניינים של העיר' },
-    { id: 'prison', cat: 'civic', name: 'כלא', icon: '🔒', price: cheap(R.round * 3), eco: 0, love: 'בכלא שומרים על כולם בטוחים', desc: 'מקום שבו מי שעבר עבירה מרצה עונש' },
+    { id: 'prison', cat: 'civic', name: 'כלא', icon: '🔒', price: cheap(R.round * 3), eco: -0.3, love: 'בכלא שומרים על כולם בטוחים', desc: 'מקום שבו מי שעבר עבירה מרצה עונש' },
     { id: 'park',       cat: 'park',   name: 'פארק',        icon: '🏞️', price: cheap(R.level),         eco: 2,    love: 'הפארק הוא המקום שאנחנו הכי אוהבים', desc: 'מקום לטיולים ולשחק' },
     { id: 'garden',     cat: 'park',   name: 'גינה קטנה',   icon: '🌷', price: cheap(R.create),        eco: 1.5,  love: 'הגינה הקטנה מלאה פרחים וריח טוב', desc: 'פרחים וספסל' },
     { id: 'playground', cat: 'park',   name: 'גן שעשועים',  icon: '🛝', price: cheap(R.level),         eco: 1,    love: 'בגן השעשועים הילדים משחקים כל היום', desc: 'מגלשה ונדנדה' },
 
     { id: 'zoo',        cat: 'attr',   name: 'גן חיות',     icon: '🦁', price: cheap(R.round * 10),    eco: 0.5,  love: 'בגן החיות אפשר לראות חיות מכל העולם', desc: 'יש כניסה למשחק: קונים חיות ומרוויחים מכרטיסים' },
-    { id: 'amusement', cat: 'attr',   name: 'לונה פארק',   icon: '🎡', price: cheap(R.round * 12),    eco: -0.5, love: 'בלונה פארק כיף לעלות על המתקנים', desc: 'יש כניסה למשחק: קונים מתקנים ומרוויחים מכרטיסים' },
+    { id: 'amusement', cat: 'attr',   name: 'לונה פארק',   icon: '🎡', price: cheap(R.round * 12),    eco: -1, love: 'בלונה פארק כיף לעלות על המתקנים', desc: 'יש כניסה למשחק: קונים מתקנים ומרוויחים מכרטיסים' },
 
     { id: 'bench',      cat: 'props', name: 'ספסל',        icon: '🪑', price: cheap(R.answer),        eco: 0,    size: 0.6,  love: 'כיף לשבת על הספסל ולנוח', desc: 'מקום לשבת ולנוח' },
     { id: 'fountain',   cat: 'props',  name: 'מזרקה',       icon: '⛲', price: cheap(R.create),        eco: 1,    size: 0.5,  love: 'המזרקה נעימה לשמוע', desc: 'מים שזורמים במרכז' },
@@ -113,8 +113,8 @@ const VARIANTS = [
     { id: 'flowers',    cat: 'props',  name: 'ערוגת פרחים', icon: '💐', price: cheap(R.answer),        eco: 1,    size: 0.6,  love: 'ערוגת הפרחים מצבעת את העיר', desc: 'צבעים לעיר' },
 
     // --- מבנים נוספים (כל קטגוריה לפחות שתי שורות) ---
-    { id: 'bike',       cat: 'road',   name: 'שביל אופניים', icon: '🚲', price: cheap(R.answer * 2),   eco: 0.3,  love: 'שביל האופניים הירוק בטוח ונעים', desc: 'שביל ירוק לרוכבי אופניים' },
-    { id: 'brick',      cat: 'road',   name: 'מדרכת לבנים', icon: '🧱', price: cheap(R.answer * 2),    eco: 0,    love: 'מדרכת הלבנים האדומה יפה מאוד', desc: 'מרוצפת בלבנים אדומות' },
+    { id: 'bike',       cat: 'road',   name: 'שביל אופניים', icon: '🚲', price: cheap(R.answer * 2),   eco: 0.8,  love: 'שביל האופניים הירוק בטוח ונעים', desc: 'שביל ירוק לרוכבי אופניים' },
+    { id: 'brick',      cat: 'road',   name: 'מדרכת לבנים', icon: '🧱', price: cheap(R.answer * 2),    eco: -0.2,   love: 'מדרכת הלבנים האדומה יפה מאוד', desc: 'מרוצפת בלבנים אדומות' },
     { id: 'sand',       cat: 'road',   name: 'דרך חול',     icon: '🏜️', price: cheap(R.answer),        eco: 0,    love: 'דרך החול רכה ונעימה להליכה', desc: 'דרך זולה בצבע חול' },
     { id: 'plank',      cat: 'road',   name: 'שביל עץ',     icon: '🪵', price: cheap(R.answer * 2),    eco: 0.2,  love: 'שביל העץ מרגיש כמו בטבע', desc: 'קרשי עץ לצעידה' },
     { id: 'highway',    cat: 'road',   name: 'כביש מהיר',   icon: '🏎️', price: cheap(R.create * 2),    eco: -1.5, love: 'הכביש המהיר מגיע מהר לכל מקום', desc: 'כביש כהה עם פסים צהובים' },
@@ -159,8 +159,8 @@ const VARIANTS = [
 
     { id: 'townhall',   cat: 'civic',  name: 'עירייה',      icon: '🏛️', price: cheap(R.round * 5),     eco: 0,    love: 'בעירייה מנהלים את העיר שלנו', desc: 'כאן מחליטים על העיר' },
     { id: 'bank',       cat: 'civic',  name: 'בנק',         icon: '🏦', price: cheap(R.round * 4),     eco: 0,    love: 'בבנק שומרים בבטחה את הכסף', desc: 'מקום בטוח לכסף' },
-    { id: 'station',    cat: 'civic',  name: 'תחנת רכבת',   icon: '🚉', price: cheap(R.round * 5),     eco: 0.3,  love: 'הרכבת לוקחת אותנו לכל מקום', desc: 'שעון, רציף ורכבת' },
-    { id: 'recycle',    cat: 'civic',  name: 'מרכז מחזור',  icon: '♻️', price: cheap(R.perfect + R.level), eco: 2, love: 'המחזור שומר על כדור הארץ נקי', desc: 'פחים צבעוניים למחזור' },
+    { id: 'station',    cat: 'civic',  name: 'תחנת רכבת',   icon: '🚉', price: cheap(R.round * 5),     eco: 1,    love: 'הרכבת לוקחת אותנו לכל מקום', desc: 'שעון, רציף ורכבת' },
+    { id: 'recycle',    cat: 'civic',  name: 'מרכז מחזור',  icon: '♻️', price: cheap(R.perfect + R.level), eco: 3, love: 'המחזור שומר על כדור הארץ נקי', desc: 'פחים צבעוניים למחזור' },
 
     { id: 'lake',       cat: 'park',   name: 'אגם',         icon: '🦆', price: cheap(R.perfect),       eco: 2,    love: 'באגם שוחים ברווזים יפים', desc: 'מים כחולים וברווז' },
     { id: 'picnic',     cat: 'park',   name: 'פינת פיקניק', icon: '🍉', price: cheap(R.level),         eco: 1.5,  love: 'הפיקניק על הדשא הוא הכי כיף', desc: 'מפה משובצת וסל אוכל' },
@@ -172,7 +172,7 @@ const VARIANTS = [
     { id: 'museum',     cat: 'attr',   name: 'מוזיאון',     icon: '🖼️', price: cheap(R.round * 6),     eco: 0.3,  tourist: 0.4, love: 'במוזיאון רואים ציורים ופסלים מכל העולם', desc: 'אין כניסה למשחק. מביא תיירים' },
     { id: 'aquarium',   cat: 'attr',   name: 'אקווריום',    icon: '🐠', price: cheap(R.round * 8),     eco: 0.3,  tourist: 0.5, love: 'באקווריום שוחים דגים צבעוניים', desc: 'אין כניסה למשחק. מביא תיירים' },
     { id: 'cinema',     cat: 'attr',   name: 'קולנוע',      icon: '🎬', price: cheap(R.round * 5),     eco: -0.3, tourist: 0.3, love: 'בקולנוע צופים בסרטים עם פופקורן', desc: 'אין כניסה למשחק. מביא תיירים' },
-    { id: 'stadium',    cat: 'attr',   name: 'אצטדיון',     icon: '🏟️', price: cheap(R.round * 10),    eco: -0.5, tourist: 0.6, love: 'באצטדיון כולם מעודדים ביחד', desc: 'אין כניסה למשחק. מביא תיירים' },
+    { id: 'stadium',    cat: 'attr',   name: 'אצטדיון',     icon: '🏟️', price: cheap(R.round * 10),    eco: -1, tourist: 0.6, love: 'באצטדיון כולם מעודדים ביחד', desc: 'אין כניסה למשחק. מביא תיירים' },
     { id: 'lookout',    cat: 'attr',   name: 'מגדל תצפית',  icon: '🗼', price: cheap(R.round * 7),     eco: 0,    tourist: 0.4, love: 'ממגדל התצפית רואים את כל העיר', desc: 'אין כניסה למשחק. מביא תיירים' },
     { id: 'circus',     cat: 'attr',   name: 'קרקס',        icon: '🎪', price: cheap(R.round * 6),     eco: -0.3, tourist: 0.4, love: 'בקרקס יש ליצנים ואמנים מדהימים', desc: 'אין כניסה למשחק. מביא תיירים' },
 
@@ -549,6 +549,28 @@ function envScore() {
     }
     // חלקי גודל העיר: עיר גדולה צריכה יותר ירק כדי להיות ירוקה באותה מידה
     return clamp(50 + 150 * sum / Math.max(1, owned.size));
+}
+
+// במדדים לא מראים מספר מדויק: 67 מופיע כ-6*, 100 נשאר 100
+function maskValue(value) {
+    const v = Math.max(0, Math.min(100, Math.round(value)));
+    return v >= 100 ? '100' : Math.floor(v / 10) + '*';
+}
+
+// כמה הסוג שומר על הסביבה (או פוגע בה): 1 קלה, 2 בינונית, 3 חזקה. 0 = לא משפיע
+function ecoLevel(v) {
+    const a = Math.abs(v.eco || 0);
+    return a >= 1.5 ? 3 : a >= 0.7 ? 2 : a > 0 ? 1 : 0;
+}
+function ecoBadge(v) {
+    const lvl = ecoLevel(v);
+    if (!lvl) return '';
+    if (v.eco > 0) {
+        const t = ['עוזר קצת לסביבה', 'עוזר לסביבה', 'עוזר מאוד לסביבה'][lvl - 1];
+        return `<span class="eco good">${'🌿'.repeat(lvl)} ${t}</span>`;
+    }
+    const t = ['פוגע קצת בסביבה', 'פוגע בסביבה', 'פוגע מאוד בסביבה'][lvl - 1];
+    return `<span class="eco bad">${'🏭'.repeat(lvl)} ${t}</span>`;
 }
 
 // מה התושבים אוהבים: כל סוג שיש בעיר ויש לו משפט אהבה
@@ -2052,8 +2074,7 @@ function renderCatalog() {
             btn.setAttribute('aria-pressed', String(v.id === selected));
             const pop = v.pop ? `<span class="pop">👥 +${v.pop} תושבים</span>` : '';
             const cap = isDecorVariant(v) ? `<span class="note">🔢 עד ${DECOR_MAX} בחלקה</span>` : '';
-            const eco = v.eco > 0 ? '<span class="eco good">🌿 עוזר לסביבה</span>'
-                : v.eco < 0 ? '<span class="eco bad">🏭 פוגע בסביבה</span>' : '';
+            const eco = ecoBadge(v);
             btn.innerHTML = `<span class="icon">${v.icon}</span><span class="name">${v.name}</span><span class="desc">${v.desc}</span>${pop}${cap}${eco}<span class="price">${v.price} 🪙</span>`;
             btn.onclick = () => {
                 selected = v.id;
@@ -2100,7 +2121,7 @@ function renderMeters(m) {
         : '😟 עוד לא מרוצים';
     const meter = (title, value, cls, note) => `
         <div class="meter">
-            <div class="meter-head"><span>${title}</span><strong>${value}%</strong></div>
+            <div class="meter-head"><span>${title}</span><strong>${maskValue(value)}%</strong></div>
             <div class="meter-bar"><div class="meter-fill ${cls}" style="width:${value}%"></div></div>
             <div class="meter-note">${note}</div>
         </div>`;
