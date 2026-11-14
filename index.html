@@ -869,11 +869,16 @@
         // DEVDEBUGADDCOINS-50 מוריד 50 (לא מתחת ל-0)
         function checkDebugCode() {
             const input = document.getElementById('searchInput');
-            if (/^(RESET|RESAT)\s+CITY$/i.test(input.value.trim())) return resetCityFromSearch();
+            if (/^DEBUGHIST$/i.test(input.value.trim())) { input.value = ''; renderSearch(); return showDebugHistory(); }
+            if (/^(RESET|RESAT)\s+CITY$/i.test(input.value.trim())) {
+                KidLearn.logDebugCode('RESET CITY');
+                return resetCityFromSearch();
+            }
             const m = input.value.trim().match(/^DEVDEBUGADDCOINS(-?\d+)$/i);
             if (!m) return;
             const n = Math.min(Math.abs(parseInt(m[1], 10)), 100000);
             const adding = parseInt(m[1], 10) > 0;
+            KidLearn.logDebugCode('DEVDEBUGADDCOINS' + (adding ? '' : '-') + n);
             input.value = '';
             if (window.KidLearnWallet && n > 0) {
                 if (adding) {
@@ -887,6 +892,27 @@
                 }
             }
             renderSearch();
+        }
+
+        // DEBUGHIST: חלון עם כל קודי הפיתוח שהשתמשו בהם, עם תאריך ושעה (החדש למעלה)
+        async function showDebugHistory() {
+            const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const box = document.createElement('div');
+            box.style.cssText = 'position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;direction:rtl';
+            box.innerHTML = '<div style="background:#fff;color:#222;border-radius:14px;max-width:460px;width:100%;max-height:80vh;overflow:auto;padding:18px;font-family:inherit">' +
+                '<h3 style="margin:0 0 10px">🧾 היסטוריית קודי פיתוח</h3><div id="debugHistBody">טוען...</div>' +
+                '<button id="debugHistClose" style="margin-top:12px;padding:8px 18px;border:0;border-radius:10px;background:#667eea;color:#fff;font:inherit;cursor:pointer">סגירה</button></div>';
+            document.body.appendChild(box);
+            box.onclick = (e) => { if (e.target === box || e.target.id === 'debugHistClose') box.remove(); };
+            const body = box.querySelector('#debugHistBody');
+            try {
+                const list = await KidLearn.listDebugLog();
+                body.innerHTML = list.length
+                    ? list.map((x) => `<div style="padding:6px 0;border-bottom:1px solid #eee"><b dir="ltr" style="unicode-bidi:embed">${esc(x.code)}</b><br><small>${new Date(x.at).toLocaleString('he-IL')}</small></div>`).join('')
+                    : 'עוד לא השתמשו בקודי פיתוח.';
+            } catch (e) {
+                body.textContent = 'לא הצלחנו לטעון את ההיסטוריה.';
+            }
         }
 
         function renderSearch() {

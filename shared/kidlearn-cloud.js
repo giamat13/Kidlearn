@@ -353,6 +353,46 @@
     });
   }
 
+  // ---- Debug code log: every use of a debug code is recorded in users/{uid}/debugLog ----
+  // A copy is kept on this device too, so uses without an account (or offline) are not lost.
+  const DEBUG_LOG_KEY = "kidlearn-debug-log";
+
+  function readLocalDebugLog() {
+    try {
+      const list = JSON.parse(localStorage.getItem(DEBUG_LOG_KEY) || "[]");
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function logDebugCode(code) {
+    code = String(code || "").trim().toUpperCase().slice(0, 60);
+    if (!code) return;
+    const local = readLocalDebugLog();
+    local.push({ code, at: Date.now() });
+    try { localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(local.slice(-100))); } catch (e) {}
+    if (!auth || !auth.currentUser) return;
+    try {
+      await db.collection("users").doc(auth.currentUser.uid).collection("debugLog").add({
+        code,
+        at: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    } catch (e) { /* offline or rules not updated: the device copy stays */ }
+  }
+
+  // Newest first: [{ code, at (ms) }]. Signed in = the account's log, otherwise this device's log.
+  async function listDebugLog() {
+    if (!auth || !auth.currentUser) return readLocalDebugLog().reverse();
+    const snap = await db.collection("users").doc(auth.currentUser.uid).collection("debugLog").get();
+    const list = snap.docs.map((d) => {
+      const x = d.data();
+      return { code: x.code, at: x.at ? x.at.toMillis() : Date.now() };
+    });
+    list.sort((a, b) => b.at - a.at);
+    return list;
+  }
+
   // Generic localStorage<->cloud bridge so existing games can gain cloud saves
   // with two calls instead of a rewrite: pull once at startup, push after a local write.
   async function pullLocalStorageKey(key) {
@@ -425,7 +465,7 @@
   window.KidLearn = {
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
     saveData, loadData, deleteData, contacts, sendFamilyMessage, listSentMessages,
-    isKidLearnContact, sendFriendLetter, listFriendLetters, openFriendLetter,
+    logDebugCode, listDebugLog, isKidLearnContact, sendFriendLetter, listFriendLetters, openFriendLetter,
     getUnseenReplies, markReplySeen, setAvatar, getGamesOff, setGameOff,
     pullLocalStorageKey, pushLocalStorageKey, syncKeys, watchKeys, backupKey,
     _internal: { usernameToAuthEmail, isValidUsername, isValidDisplayName, isValidGrade },
