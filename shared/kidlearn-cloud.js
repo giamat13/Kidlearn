@@ -60,6 +60,7 @@
         grade: stored.grade || null,
       };
       authListeners.forEach((cb) => cb(currentProfile));
+      ensureUsernameIndex(user.uid, stored.username); // lets friends find this account (older accounts get it on login)
     });
   }
 
@@ -90,6 +91,7 @@
       grade,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
+    await ensureUsernameIndex(cred.user.uid, username.trim().toLowerCase());
     return cred.user.uid;
   }
 
@@ -189,8 +191,17 @@
       const snap = await db.collection("users").doc(auth.currentUser.uid).collection("contacts").orderBy("createdAt").get();
       return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     },
+    // `email` is a real email, or a KidLearn username (no "@") for a KidLearn friend.
     async add(name, email) {
       requireAuth();
+      email = String(email || "").trim();
+      if (!email.includes("@")) {
+        email = email.toLowerCase();
+        if (!isValidUsername(email)) throw new Error("שם משתמש KidLearn לא תקין (אותיות באנגלית ומספרים)");
+        if (email === (currentProfile || {}).username) throw new Error("זה השם שלכם 🙂");
+        const found = await db.collection("usernames").doc(email).get();
+        if (!found.exists) throw new Error("לא מצאנו משתמש KidLearn בשם הזה");
+      }
       const ref = await db.collection("users").doc(auth.currentUser.uid).collection("contacts").add({
         name, email, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -259,6 +270,87 @@
     });
 
     return { messageId: messageRef.id };
+  }
+
+  // ---- Friends inside KidLearn --------------------------------------------------
+  // usernames/{username} = { uid } is the only public lookup (get by exact name, no listing).
+  // A contact whose "email" has no "@" is a KidLearn username (see isKidLearnContact).
+  // friendLetters/{id} are letters to such a contact; `amount` is KidLearn money that
+  // the sender's wallet paid and the recipient's wallet receives when the letter is opened.
+  const MAX_LETTER_MONEY = 500;
+  const MAX_LETTER_BODY = 10000;
+
+  async function ensureUsernameIndex(uid, username) {
+    if (!db || !username) return;
+    try {
+      const ref = db.collection("usernames").doc(username);
+      const snap = await ref.get();
+      if (!snap.exists) await ref.set({ uid });
+    } catch (e) { /* offline or rules not updated yet: friends just can't find this account */ }
+  }
+
+  function isKidLearnContact(contact) {
+    return !!contact && !String(contact.email || "").includes("@");
+  }
+
+  // Letter to a KidLearn username. `amount` of KidLearn money is taken from this wallet now.
+  async function sendFriendLetter(username, { subject, body, bgTheme, image, amount }) {
+    requireAuth();
+    const profile = currentProfile || {};
+    const target = await db.collection("usernames").doc(String(username || "").trim().toLowerCase()).get();
+    if (!target.exists) throw new Error("לא מצאנו משתמש KidLearn בשם הזה");
+    const friendUid = target.data().uid;
+    amount = Math.floor(+amount || 0);
+    if (amount < 0 || amount > MAX_LETTER_MONEY) throw new Error("אפשר לצרף עד " + MAX_LETTER_MONEY + " כסף Kidlearn");
+    if (!body || body.length > MAX_LETTER_BODY) throw new Error("המכתב ריק או ארוך מדי");
+    if (amount > 0 && !(window.KidLearnWallet && KidLearnWallet.spend(amount))) {
+      throw new Error("אין לכם מספיק כסף Kidlearn");
+    }
+    try {
+      const ref = await db.collection("friendLetters").add({
+        fromUid: auth.currentUser.uid,
+        toUid: friendUid,
+        toUsername: String(username).trim().toLowerCase(),
+        fromName: profile.displayName || profile.username || "",
+        fromUsername: profile.username || "",
+        fromAvatar: profile.avatarEmoji || "🙂",
+        subject: subject || "הודעה חדשה",
+        body,
+        bgTheme: bgTheme || null,
+        image: image || null,
+        amount,
+        read: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      return { letterId: ref.id };
+    } catch (e) {
+      if (amount > 0) KidLearnWallet.earn(amount, { silent: true }); // the letter did not go out: give the money back
+      throw e;
+    }
+  }
+
+  async function listFriendLetters(direction) {
+    requireAuth();
+    const field = direction === "sent" ? "fromUid" : "toUid";
+    const snap = await db.collection("friendLetters").where(field, "==", auth.currentUser.uid).get();
+    const letters = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    letters.sort((a, b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0));
+    return letters;
+  }
+
+  // Marks a received letter as read. The transaction makes sure the attached money is paid only once:
+  // returns the amount to add to the wallet (0 if the letter was already opened).
+  async function openFriendLetter(letterId) {
+    requireAuth();
+    const uid = auth.currentUser.uid;
+    const ref = db.collection("friendLetters").doc(letterId);
+    return db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const d = snap.data();
+      if (!d || d.toUid !== uid || d.read) return 0;
+      tx.update(ref, { read: true });
+      return Math.max(0, Math.floor(+d.amount || 0));
+    });
   }
 
   // Generic localStorage<->cloud bridge so existing games can gain cloud saves
@@ -333,6 +425,7 @@
   window.KidLearn = {
     init, onAuthChange, currentUser, signUp, logIn, logOut, linkEmail,
     saveData, loadData, deleteData, contacts, sendFamilyMessage, listSentMessages,
+    isKidLearnContact, sendFriendLetter, listFriendLetters, openFriendLetter,
     getUnseenReplies, markReplySeen, setAvatar, getGamesOff, setGameOff,
     pullLocalStorageKey, pushLocalStorageKey, syncKeys, watchKeys, backupKey,
     _internal: { usernameToAuthEmail, isValidUsername, isValidDisplayName, isValidGrade },

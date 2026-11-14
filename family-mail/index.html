@@ -64,6 +64,7 @@
 
   #send{width:100%;margin-top:10px;font-size:15px;padding:13px}
   .row{display:flex;gap:8px;align-items:center}
+  .row[hidden]{display:none}
   .contact-list{padding:0;margin:0 0 10px}
   .contact-list li{display:flex;justify-content:space-between;align-items:center;
     list-style:none;padding:9px 2px;border-bottom:1px dashed #E6D6AE}
@@ -164,7 +165,7 @@
     <p class="muted">להורים: הוסיפו כאן את מי שהילד/ה יוכלו לכתוב לו מכתבים. אפשר להוסיף עוד בכל שלב.</p>
     <div class="row">
       <input id="new-name-onboarding" placeholder="שם (למשל: סבתא רותי)">
-      <input id="new-email-onboarding" placeholder="אימייל" type="email">
+      <input id="new-email-onboarding" placeholder="אימייל או שם משתמש KidLearn" type="text" dir="ltr">
       <button id="add-contact-onboarding">הוספת איש קשר ➕</button>
     </div>
   </div>
@@ -183,7 +184,7 @@
       <ul class="contact-list" id="contact-list"></ul>
       <div class="row">
         <input id="new-name" placeholder="שם">
-        <input id="new-email" placeholder="אימייל" type="email">
+        <input id="new-email" placeholder="אימייל או שם משתמש KidLearn" type="text" dir="ltr">
         <button id="add-contact">הוספה</button>
       </div>
       <button class="secondary" id="export-contacts" style="margin-top:8px">📇 ייצוא אנשי קשר (לגוגל)</button>
@@ -196,9 +197,19 @@
     <div id="conversation-thread"></div>
   </div>
 
+  <div id="inbox-section" class="sheet" hidden>
+    <h3>💌 מכתבים מחברי KidLearn</h3>
+    <div id="inbox-list" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+
   <div id="compose-section" class="sheet tilt-r" hidden>
     <h3>✍️ כתיבת מכתב</h3>
     <select id="to-contact"></select>
+    <div class="row" id="money-row" hidden>
+      <span>💰 לצרף כסף Kidlearn:</span>
+      <input type="number" id="send-money" min="0" max="500" step="1" value="0" style="width:90px">
+      <span class="muted" id="money-balance"></span>
+    </div>
     <div class="row">
       <input id="subject" placeholder="נושא" style="width:auto;flex:1">
       <button id="mic-subject">🎤</button>
@@ -266,6 +277,7 @@ KidLearn.onAuthChange(async (profile) => {
     renderAvatarPicker(profile.avatarEmoji);
     await loadContacts();
     await loadSent();
+    await loadInbox();
   }
 });
 
@@ -294,13 +306,17 @@ async function loadContacts() {
   select.innerHTML = "";
   contacts.forEach((c) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span>👤 ${escapeHtml(c.name)} — ${escapeHtml(c.email)}</span>`;
+    const isKl = KidLearn.isKidLearnContact(c);
+    li.innerHTML = isKl
+      ? `<span>🧒 ${escapeHtml(c.name)} — <bdi>@${escapeHtml(c.email)}</bdi> (KidLearn)</span>`
+      : `<span>👤 ${escapeHtml(c.name)} — ${escapeHtml(c.email)}</span>`;
     const actions = document.createElement("span");
     actions.className = "contact-actions";
     const chat = document.createElement("button");
     chat.textContent = "💬 שיחה";
     chat.className = "secondary chat-btn";
     chat.onclick = () => showConversation(c);
+    if (isKl) chat.hidden = true; // letters between KidLearn users have no email thread
     const del = document.createElement("button");
     del.textContent = "מחיקה";
     del.className = "secondary";
@@ -312,9 +328,10 @@ async function loadContacts() {
 
     const opt = document.createElement("option");
     opt.value = c.id;
-    opt.textContent = c.name;
+    opt.textContent = c.name + (isKl ? " (KidLearn 💰)" : "");
     select.appendChild(opt);
   });
+  updateMoneyRow();
 
   const hasContacts = contacts.length > 0;
   document.getElementById("contacts-onboarding").hidden = hasContacts;
@@ -340,7 +357,12 @@ async function addContact(nameInputId, emailInputId) {
   const name = document.getElementById(nameInputId).value.trim();
   const email = document.getElementById(emailInputId).value.trim();
   if (!name || !email) return;
-  await KidLearn.contacts.add(name, email);
+  try {
+    await KidLearn.contacts.add(name, email);
+  } catch (e) {
+    alert(e.message || "לא הצלחנו להוסיף את איש הקשר");
+    return;
+  }
   document.getElementById(nameInputId).value = "";
   document.getElementById(emailInputId).value = "";
   await loadContacts();
@@ -359,9 +381,19 @@ document.getElementById("send").onclick = async () => {
   sendBtn.disabled = true;
   status.textContent = "שולח...";
   const stats = letterStats();
+  const contact = contacts.find((c) => c.id === contactId);
   try {
-    await KidLearn.sendFamilyMessage(contactId, subject, body, selectedBg, selectedImage);
-    rewardLetter(stats);
+    if (contact && KidLearn.isKidLearnContact(contact)) {
+      // To a KidLearn user: no email, no writing bonus (so letters can't be used to farm coins)
+      const amount = Math.floor(+document.getElementById("send-money").value || 0);
+      if (amount < 0 || amount > 500) throw new Error("אפשר לצרף בין 0 ל-500 כסף Kidlearn");
+      await KidLearn.sendFriendLetter(contact.email, { subject, body, bgTheme: selectedBg, image: selectedImage, amount });
+      document.getElementById("send-money").value = 0;
+      updateMoneyRow();
+    } else {
+      await KidLearn.sendFamilyMessage(contactId, subject, body, selectedBg, selectedImage);
+      rewardLetter(stats);
+    }
     status.textContent = "נשלח! 🎉";
     resetWriting();
     document.getElementById("body").value = "";
@@ -372,6 +404,7 @@ document.getElementById("send").onclick = async () => {
     clearImage();
     await loadSent();
   } catch (e) {
+    updateMoneyRow();
     status.textContent = "שגיאה: " + (e.text || e.message || e) + " - בקשו ממבוגר שיעזור לכם.";
     speak("המכתב לא נשלח. בקשו ממבוגר שיעזור לכם.");
   }
@@ -705,31 +738,115 @@ function renderOpenMessage(m) {
   return div;
 }
 
+let friendSent = [];     // letters this kid sent to KidLearn users
+let friendInbox = [];    // letters KidLearn users sent to this kid
+
 async function loadSent() {
   allMessages = await KidLearn.listSentMessages();
+  try { friendSent = await KidLearn.listFriendLetters("sent"); } catch (e) { friendSent = []; }
   document.getElementById("search-sent").value = "";
-  renderSentList(allMessages);
+  renderSentList(allMessages, friendSent);
 }
-document.getElementById("refresh").onclick = loadSent;
+document.getElementById("refresh").onclick = async () => { await loadSent(); await loadInbox(); };
 
-function renderSentList(messages) {
+function renderFriendSent(l) {
+  const div = document.createElement("div");
+  div.className = "msg" + (isSafeBg(l.bgTheme) ? " bg-" + l.bgTheme : "");
+  div.innerHTML = `<div class="to">ל<bdi>@${escapeHtml(l.toUsername || "")}</bdi> (KidLearn)</div><div class="subject">${escapeHtml(l.subject)}</div>` +
+    `<span class="msg-text">${escapeHtml(l.body)}</span>` +
+    safeImg(l.image) +
+    (l.amount ? `<div class="muted">💰 צורפו ${Number(l.amount) || 0} כסף Kidlearn</div>` : "") +
+    `<div class="waiting">${l.read ? "נפתח ✔" : "עוד לא נפתח"}</div>`;
+  return div;
+}
+
+function isSafeBg(key) { return /^[a-z0-9-]{1,40}$/.test(String(key || "")); }
+function safeImg(src) {
+  return typeof src === "string" && src.startsWith("data:image/")
+    ? `<img class="msg-img" src="${escapeHtml(src)}" alt="תמונה מצורפת">` : "";
+}
+
+function renderSentList(messages, friendMessages) {
   const box = document.getElementById("sent-list");
   box.innerHTML = "";
-  if (!messages.length) {
+  friendMessages = friendMessages || [];
+  if (!messages.length && !friendMessages.length) {
     box.innerHTML = "<p class='muted'>לא נמצאו מכתבים.</p>";
     return;
   }
+  friendMessages.forEach((l) => box.appendChild(renderFriendSent(l)));
   messages.forEach((m) => box.appendChild(renderMessage(m)));
 }
 
 document.getElementById("search-sent").addEventListener("input", (e) => {
   const q = e.target.value.trim().toLowerCase();
-  if (!q) { renderSentList(allMessages); return; }
-  renderSentList(allMessages.filter((m) =>
+  if (!q) { renderSentList(allMessages, friendSent); return; }
+  const hit = (m) =>
     (m.subject || "").toLowerCase().includes(q) ||
     (m.body || "").toLowerCase().includes(q) ||
-    (m.toName || "").toLowerCase().includes(q)));
+    (m.toName || m.toUsername || "").toLowerCase().includes(q);
+  renderSentList(allMessages.filter(hit), friendSent.filter(hit));
 });
+
+// ---- Letters from KidLearn users (with optional money) ----
+async function loadInbox() {
+  try { friendInbox = await KidLearn.listFriendLetters("inbox"); } catch (e) { friendInbox = []; }
+  const list = document.getElementById("inbox-list");
+  list.innerHTML = "";
+  document.getElementById("inbox-section").hidden = !friendInbox.length;
+  friendInbox.forEach((l) => list.appendChild(renderInboxLetter(l)));
+}
+
+function renderInboxLetter(l) {
+  if (l.read) return renderOpenInbox(l, 0);
+  const envelope = document.createElement("div");
+  envelope.className = "envelope";
+  envelope.innerHTML = `
+    <span class="icon">💌</span>
+    <div><b>מ${escapeHtml(l.fromName || l.fromUsername)}:</b> ${escapeHtml(l.subject)}</div>
+    <div class="muted">${l.amount ? "מצורף כסף! 💰" : "קיבלת מכתב!"}</div>
+    <button class="open-btn">פתיחת המכתב 🎉</button>`;
+  envelope.querySelector(".open-btn").onclick = async (e) => {
+    e.stopPropagation();
+    e.target.disabled = true;
+    let paid = 0;
+    try {
+      paid = await KidLearn.openFriendLetter(l.id);
+    } catch (err) {
+      e.target.disabled = false;
+      alert("לא הצלחנו לפתוח את המכתב, נסו שוב.");
+      return;
+    }
+    if (paid > 0 && window.KidLearnWallet) KidLearnWallet.earn(paid, { reason: "כסף במכתב" });
+    envelope.classList.add("opening");
+    setTimeout(() => envelope.replaceWith(renderOpenInbox(l, paid)), 450);
+  };
+  return envelope;
+}
+
+function renderOpenInbox(l, paid) {
+  const div = document.createElement("div");
+  div.className = "msg" + (isSafeBg(l.bgTheme) ? " bg-" + l.bgTheme : "");
+  div.innerHTML = `<div class="to">${escapeHtml(l.fromAvatar || "🙂")} מ${escapeHtml(l.fromName || l.fromUsername)}</div>` +
+    `<div class="subject">${escapeHtml(l.subject)}</div>` +
+    `<span class="msg-text">${escapeHtml(l.body)}</span> <button class="secondary speak-btn" type="button">🔊 הקראה</button>` +
+    safeImg(l.image) +
+    (l.amount ? `<div class="muted">💰 ${paid > 0 ? "קיבלת " + paid + " כסף Kidlearn!" : "צורפו " + (Number(l.amount) || 0) + " כסף Kidlearn"}</div>` : "");
+  div.querySelector(".speak-btn").addEventListener("click", () => speak(l.body));
+  return div;
+}
+
+// Money row: only when the chosen recipient is a KidLearn user (not a real email)
+function updateMoneyRow() {
+  const contact = contacts.find((c) => c.id === document.getElementById("to-contact").value);
+  const isKl = !!contact && KidLearn.isKidLearnContact(contact);
+  document.getElementById("money-row").hidden = !isKl;
+  const bal = window.KidLearnWallet ? KidLearnWallet.balance() : 0;
+  document.getElementById("money-balance").textContent = "(יש לכם " + bal + ")";
+  document.getElementById("send-money").max = Math.min(500, bal);
+}
+document.getElementById("to-contact").addEventListener("change", updateMoneyRow);
+window.KidLearnWallet && KidLearnWallet.onChange(updateMoneyRow);
 
 // A message doc's history flattened to a chronological list: the original
 // letter, its legacy single-reply field (if it predates the `thread` array),

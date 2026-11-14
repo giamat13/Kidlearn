@@ -39,6 +39,42 @@ service cloud.firestore {
       }
     }
 
+    // username -> uid, so a KidLearn username can be used as a contact. Lookup by exact name only (no list).
+    // Created once by the account that owns the username; never changed or deleted.
+    match /usernames/{username} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null
+                      && request.resource.data.keys().hasOnly(['uid'])
+                      && request.resource.data.uid == request.auth.uid
+                      && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == username;
+    }
+
+    // Letters between KidLearn users (a contact whose "email" is a username), with optional KidLearn money.
+    // The recipient can only mark the letter as read (which pays out `amount` once, in a transaction).
+    match /friendLetters/{letterId} {
+      allow get, list: if request.auth != null
+                         && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+      allow create: if request.auth != null
+                      && request.resource.data.fromUid == request.auth.uid
+                      && request.resource.data.keys().hasOnly(['fromUid', 'toUid', 'toUsername', 'fromName', 'fromUsername', 'fromAvatar',
+                                                               'subject', 'body', 'bgTheme', 'image', 'amount', 'read', 'createdAt'])
+                      && request.resource.data.toUid is string
+                      && request.resource.data.body is string && request.resource.data.body.size() <= 10000
+                      && request.resource.data.subject is string && request.resource.data.subject.size() <= 200
+                      && request.resource.data.amount is int
+                      && request.resource.data.amount >= 0 && request.resource.data.amount <= 500
+                      && request.resource.data.read == false
+                      && (request.resource.data.image == null
+                          || (request.resource.data.image is string && request.resource.data.image.size() < 700000
+                              && request.resource.data.image.matches('^data:image/.*')));
+      allow update: if request.auth != null
+                      && resource.data.toUid == request.auth.uid
+                      && resource.data.read == false
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+                      && request.resource.data.read == true;
+      allow delete: if false;
+    }
+
     match /messages/{messageId} {
       allow get: if true;
       allow list: if request.auth != null && resource.data.fromUid == request.auth.uid;
