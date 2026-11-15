@@ -155,7 +155,19 @@
     stage.setRideCam(null);
     $('exitBtn').hidden = true;
   }
-  function rideOn(k) {
+  // סיור בכל המתקנים: עולים על כל מתקן פועל בתורו, כמה שניות על כל אחד
+  function tourAll() {
+    const keys = [...rides.keys()].filter((k) => rides.get(k).m.seat && !rides.get(k).broken);
+    if (!stage || !keys.length) return say('צריך לפחות מתקן אחד פועל בשביל סיור');
+    let i = 0;
+    const next = () => {
+      if (i >= keys.length || !rides.has(keys[i])) { exitRide(); return say('🎥 הסיור נגמר. איזה פארק!'); }
+      rideOn(keys[i++], 8000, next);
+    };
+    next();
+    $('scene').scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+  }
+  function rideOn(k, ms, then) {
     const r = rides.get(k);
     if (!stage || !r || !r.m.seat) return say('אי אפשר לעלות על זה');
     if (r.broken) return say('המתקן מקולקל. תקנו אותו קודם 🔧');
@@ -171,7 +183,7 @@
     });
     $('exitBtn').hidden = false;
     clearTimeout(rideTimer);
-    rideTimer = setTimeout(exitRide, 25000);
+    rideTimer = setTimeout(then || exitRide, ms || 25000);
     state.rode++;
     persist(false);
     say('🎥 יוהו! אתם על המתקן');
@@ -282,6 +294,7 @@
         `<button class="act" data-a="inspect" ${i.ok ? '' : 'disabled'}>🛠️ בדיקת בטיחות${i.ok ? ` (${i.cost} 🪙)` : ''}</button>` +
         `<button class="act" data-a="expand" ${x.ok ? '' : 'disabled'}>${x.ok ? `➕ הרחבת השטח (${x.cost} 🪙)` : '➕ השטח במקסימום'}</button>` +
         `<button class="act${wait ? '' : ' pulse'}" data-a="show" ${wait ? 'disabled' : ''}>🎆 מופע זיקוקים${wait ? ` (בעוד ${Math.ceil(wait / 60000)} דק')` : ''}</button>` +
+        (stage ? '<button class="act" data-a="tour">🎥 סיור בכל המתקנים</button>' : '') +
         '</div><h2>🎟️ איך משלמים?</h2><div class="row">' +
         `<button class="chip${state.mode === 'entry' ? ' on' : ''}" data-a="mode" data-id="entry">כרטיס כניסה</button>` +
         `<button class="chip${state.mode === 'perRide' ? ' on' : ''}" data-a="mode" data-id="perRide">מטבע לכל מתקן</button>` +
@@ -319,6 +332,7 @@
       if (chosen) say(`נבחר: ${L.ITEM_BY_ID[id].name}. לחצו על עיגול ירוק בפארק`);
     },
     ride() { rideOn(sel); },
+    tour() { tourAll(); },
     up() {
       const c = L.canUpgrade(state, sel);
       if (!c.ok) return say(c.msg);

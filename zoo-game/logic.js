@@ -33,6 +33,8 @@
   const QUIZ_REWARD = 2;
   const HAND_CLEAN = 6;             // כמה ניקיון מוסיף איסוף לכלוך אחד ביד
   const HAND_FEED = 4;              // כמה אוכל מוסיף ליטוף והאכלה ביד
+  const SHOW_MS = 4 * 60 * 1000;    // הפסקה בין מופעי חיות
+  const CATCH_REWARD = 2;           // פרס על תפיסת חיה שברחה
 
   // שדרוגים: נקנים פעם אחת (או בכמה רמות). price לפי רמה
   const UPGRADES = [
@@ -50,6 +52,8 @@
     return {
       animals: {}, order: [], expansions: 0, fed: 100, clean: 100, price: 1, up: {}, done: [], born: 0,
       breedAt: 0, quizAt: 0, at: now || Date.now(), rate: 0, summary: '',
+      // חוויות: מופעי חיות, רכיבות, סיורי ספארי וחיות שברחו ונתפסו. בשמירות ישנות הכול מתחיל מ-0
+      showAt: 0, shows: 0, rode: 0, tours: 0, caught: 0,
     };
   }
 
@@ -80,6 +84,8 @@
     s.born = clampN(Math.floor(+d.born || 0), 0, 9999);
     s.breedAt = +d.breedAt || 0;
     s.quizAt = +d.quizAt || 0;
+    s.showAt = +d.showAt || 0;
+    ['shows', 'rode', 'tours', 'caught'].forEach((f) => { s[f] = clampN(Math.floor(+d[f] || 0), 0, 99999); });
     // אם נשמרו יותר חיות ממקומות (נתונים פגומים), מורידים את העודף
     let over = animalCount(s) - capacity(s);
     for (const a of ANIMALS.slice().reverse()) {
@@ -225,7 +231,20 @@
     return id;
   }
 
-  // משימות: כל אחת מזכה בפרס פעם אחת
+  // מופע חיות: החיות מופיעות מול המבקרים, והם משאירים טיפים. אפשר שוב אחרי כמה דקות
+  function showWait(s, now) { return Math.max(0, (s.showAt || 0) + SHOW_MS - now); }
+  function runShow(s, now) {
+    if (animalCount(s) === 0) return { ok: false, msg: 'צריך לפחות חיה אחת בשביל מופע' };
+    if (happiness(s) < 50) return { ok: false, msg: 'החיות רעבות או שהגן מלוכלך. טפלו בהן לפני המופע' };
+    if (showWait(s, now) > 0) return { ok: false, msg: 'החיות עוד נחות מהמופע הקודם' };
+    s.showAt = now;
+    s.shows++;
+    return { ok: true, tips: 2 + stars(s) + Math.min(3, Math.floor(speciesCount(s) / 3)) };
+  }
+  // חיה שברחה מהמתחם ונתפסה: פרס קטן
+  function caughtOne(s) { s.caught++; return CATCH_REWARD; }
+
+  // משימות: כל אחת מזכה בפרס פעם אחת. משימות חדשות מוסיפים בסוף
   const GOALS = [
     { id: 'first',   icon: '🐾', text: 'קנו חיה ראשונה',          reward: 5,  ok: (s) => animalCount(s) >= 1 },
     { id: 'kinds3',  icon: '🦒', text: 'שלושה סוגי חיות בגן',      reward: 8,  ok: (s) => speciesCount(s) >= 3 },
@@ -236,6 +255,10 @@
     { id: 'stars3',  icon: '⭐', text: 'גן של שלושה כוכבים',       reward: 10, ok: (s) => stars(s) >= 3 },
     { id: 'stars5',  icon: '🌟', text: 'גן של חמישה כוכבים',       reward: 25, ok: (s) => stars(s) >= 5 },
     { id: 'kinds12', icon: '🏆', text: 'כל 12 סוגי החיות בגן',     reward: 40, ok: (s) => speciesCount(s) >= ANIMALS.length },
+    { id: 'ride',    icon: '🤠', text: 'רכבו על חיה',              reward: 5,  ok: (s) => s.rode >= 1 },
+    { id: 'tour',    icon: '🚂', text: 'צאו לסיור ברכבת הספארי',   reward: 5,  ok: (s) => s.tours >= 1 },
+    { id: 'show',    icon: '🎪', text: 'ערכו מופע חיות',           reward: 5,  ok: (s) => s.shows >= 1 },
+    { id: 'catch3',  icon: '🏃', text: 'תפסו 3 חיות שברחו',        reward: 10, ok: (s) => s.caught >= 3 },
   ];
   const GOAL_BY_ID = Object.fromEntries(GOALS.map((g) => [g.id, g]));
   const goalState = (s, g) => (s.done.includes(g.id) ? 'done' : g.ok(s) ? 'ready' : 'open');
@@ -274,7 +297,7 @@
     newState, normalize, capacity, animalCount, speciesCount, freeSlots, expandCost, happiness, careCost,
     interest, visitorsPerMin, rateOf, rateMax, spendMult, stars, summaryOf, decay, canBuy, buy, sell, canExpand, expand,
     feed, clean, setPrice, handClean, handFeed, messCount, upLevel, canUpgrade, upgrade, breedCandidate, tryBreed,
-    goalState, goalsReady, claimGoal, quizWait, makeQuiz, quizAnswered,
+    goalState, goalsReady, claimGoal, quizWait, makeQuiz, quizAnswered, SHOW_MS, CATCH_REWARD, showWait, runShow, caughtOne,
   };
   root.ZooLogic = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

@@ -116,6 +116,46 @@ h1 { font-size: 2rem; margin-top: 44px; }
 #deleteBtn.on { background: #e53935; color: #fff; }
 @media (prefers-reduced-motion: reduce) { #deleteBtn, #deleteBtn:hover, #deleteBtn:active { transition: none; transform: none; } }
 
+/* כפתור יום ולילה צף בפינה העליונה */
+#nightBtn {
+  position: absolute; top: 12px; inset-inline-start: 12px;
+  font: inherit; font-weight: 700; color: #2d2d4a; background: #fff;
+  border: 3px solid #5c6bc0; border-radius: 999px;
+  padding: 6px 14px; min-height: 44px; cursor: pointer;
+  box-shadow: 0 3px 0 #5c6bc0;
+}
+#nightBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #5c6bc0; }
+#nightBtn:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
+#nightBtn.on { background: #283593; color: #fff; }
+
+/* מספר שצף מעל החלקה: כמה שילמתם או קיבלתם */
+.float-text {
+  position: absolute; pointer-events: none; transform: translate(-50%, -50%);
+  font-weight: 800; font-size: 1.15rem; white-space: nowrap; direction: ltr;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 1px 2px rgba(0,0,0,.35);
+  animation: float-up 1.2s ease-out forwards;
+}
+.float-text.gain { color: #2e7d32; }
+.float-text.pay { color: #c62828; }
+@keyframes float-up {
+  0% { opacity: 0; margin-top: 8px; }
+  15% { opacity: 1; }
+  100% { opacity: 0; margin-top: -46px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-text { animation-name: float-fade; }
+  @keyframes float-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+  #nightBtn:active { transform: none; }
+}
+
+/* דרגת העיר */
+.rank { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 2px 0 6px; }
+.rank-name { font-weight: 800; color: #283593; }
+.rank-bar { flex: 1; min-width: 90px; height: 12px; background: #e8eaf6; border-radius: 999px; overflow: hidden; }
+.rank-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7986cb, #283593); transition: width 0.4s ease; }
+.rank-next { font-size: 0.85rem; color: #6b6b8a; }
+@media (prefers-reduced-motion: reduce) { .rank-fill { transition: none; } }
+
 /* --- תושבים --- */
 .demands {
   text-align: right; background: #fff; border-radius: 16px; padding: 12px 16px;
@@ -170,3 +210,36 @@ h1 { font-size: 2rem; margin-top: 44px; }
 .bubble { background: #f1f8e9; border: 2px solid #aed581; border-radius: 14px; padding: 6px 10px; font-size: 0.9rem; line-height: 1.4; }
 .loves-empty { color: #6b6b8a; }
 .complaint { color: #6b6b8a; font-size: 0.9rem; margin-top: 8px; }
+
+/* כפתורי חגיגה וסיור צפים בפינה העליונה השנייה */
+#festBtn, #tourBtn {
+  position: absolute; top: 12px; inset-inline-end: 12px;
+  font: inherit; font-weight: 700; color: #2d2d4a; background: #fff;
+  border: 3px solid #ff7043; border-radius: 999px; padding: 6px 12px; cursor: pointer;
+  box-shadow: 0 3px 0 #ff7043;
+}
+#tourBtn { top: 56px; border-color: #26a69a; box-shadow: 0 3px 0 #26a69a; }
+#festBtn:active, #tourBtn:active { transform: translateY(2px); box-shadow: none; }
+#festBtn:focus-visible, #tourBtn:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
+#festBtn.wait { opacity: 0.7; }
+#tourBtn.on { background: #26a69a; color: #fff; }
+
+/* לוח החלקה: שדרוג, כניסה, התקרבות והסרה */
+.city-sel {
+  margin: 8px 0; padding: 10px 12px; background: #fff; border: 3px solid #ffb300; border-radius: 16px;
+  display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between;
+}
+.city-sel[hidden] { display: none; }
+.city-sel .sel-info { display: flex; flex-direction: column; gap: 2px; min-width: 160px; flex: 1 1 200px; }
+.city-sel .sel-info strong { font-size: 1.1em; color: #2d2d4a; }
+.city-sel .sel-info small { color: #555; }
+.city-sel .sel-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.city-sel .act {
+  font: inherit; font-weight: 700; color: #fff; background: #43a047; border: 0; border-radius: 999px;
+  padding: 7px 13px; cursor: pointer; text-decoration: none; box-shadow: 0 3px 0 rgba(0,0,0,0.18);
+}
+.city-sel .act.ghost { background: #eceff1; color: #2d2d4a; }
+.city-sel .act.cant { background: #bdbdbd; }
+.city-sel .act:active { transform: translateY(2px); box-shadow: none; }
+.city-sel .act:focus-visible { outline: 3px solid #2d2d4a; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .city-sel .act:active, #festBtn:active, #tourBtn:active { transform: none; } }

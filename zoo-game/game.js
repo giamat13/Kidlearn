@@ -100,7 +100,7 @@
       const m = M.build(id), sc = k % 3 === 2 ? 0.6 : 1;
       m.g.scale.setScalar(sc);
       const lim = Math.max(0.3, PEN / 2 - 0.7 - m.size * sc);
-      const an = { m, lim, x: (R(k + 60) - 0.5) * 2 * lim, z: (R(k + 70) - 0.5) * 2 * lim, tx: 0, tz: 0, wait: R(k + 80) * 3, rot: R(k + 90) * 6.28, moving: false, jump: 0, ph: R(k) * 6 };
+      const an = { id, pen: g, baby: sc < 1, m, lim, x: (R(k + 60) - 0.5) * 2 * lim, z: (R(k + 70) - 0.5) * 2 * lim, tx: 0, tz: 0, wait: R(k + 80) * 3, rot: R(k + 90) * 6.28, moving: false, jump: 0, ph: R(k) * 6 };
       m.g.position.set(an.x, 0.08, an.z);
       m.g.rotation.y = an.rot;
       g.add(m.g);
@@ -208,7 +208,7 @@
     stage.look(0, -(rows - 1) * GAP / 2 + 0.5, 12 + rows * 3.2, 30 + rows * 8);
   }
   function draw() {
-    if (!stage) return;
+    if (!stage || riding) return;   // באמצע רכיבה או סיור לא בונים את הגן מחדש
     const s = signature();
     if (s === sig) return;
     sig = s;
@@ -269,18 +269,143 @@
     K.walkPose(v.p, dt, v.sp);
   }
 
+  // ---------- חוויות: רכיבה על חיה, רכבת ספארי, מופע חיות, וחיה שבורחת מהמתחם ----------
+  let riding = false, rideTimer = 0, nightPref = false;
+  let showLeft = 0, showClock = 0;
+  let runner = null, runnerClock = 45;   // שניות עד שחיה תברח
+  const hidden = () => K.mat('#ffffff', { transparent: true, opacity: 0, depthWrite: false });
+
+  function exitRide() {
+    if (!stage || !riding) return;
+    clearTimeout(rideTimer);
+    riding = false;
+    stage.setRideCam(null);
+    $('exitBtn').hidden = true;
+    draw();
+  }
+  function startRide(fn, ms, label) {
+    exitRide();
+    riding = true;
+    stage.setRideCam(fn);
+    $('exitBtn').textContent = label;
+    $('exitBtn').hidden = false;
+    rideTimer = setTimeout(exitRide, ms);
+    $('scene').scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+  }
+  // רכיבה: המצלמה יושבת על הגב של החיה ורואה את המתחם מהעיניים שלה
+  function rideAnimal(id) {
+    const a = L.ANIMAL_BY_ID[id];
+    const an = animals.find((x) => x.id === id && !x.baby) || animals.find((x) => x.id === id);
+    if (!stage || !a || !an) return say('כדי לרכוב צריך חיה בגן ותצוגת תלת-ממד');
+    const top = new K.THREE.Box3().setFromObject(an.m.g).max.y + 0.3;
+    an.wait = 0.01;
+    startRide((cam) => {
+      const g = an.m.g, r = g.rotation.y, px = an.pen.position.x + g.position.x, pz = an.pen.position.z + g.position.z;
+      cam.position.set(px - Math.sin(r) * 0.15, top + g.position.y - 0.08, pz - Math.cos(r) * 0.15);
+      cam.lookAt(px + Math.sin(r) * 4, top - 0.6, pz + Math.cos(r) * 4);
+    }, 20000, '⬇️ לרדת מהחיה');
+    state.rode++;
+    persist(false);
+    say(`🤠 יוהו! אתם רוכבים על ה${a.name}`);
+  }
+  // רכבת ספארי: נסיעה לאורך השביל עד סוף הגן ובחזרה, עם מבט לחיות משני הצדדים
+  function safari() {
+    if (!stage) return say('הסיור זמין רק בתצוגת תלת-ממד');
+    if (!L.animalCount(state)) return say('קנו חיה ראשונה, ואז צאו לסיור');
+    const rows = Math.max(1, Math.ceil(penList().length / 2));
+    const zEnd = -(rows - 1) * GAP - PEN / 2, len = 4.5 - zEnd, dur = len / 1.5;
+    const t0 = performance.now();
+    let over = false;
+    startRide((cam) => {
+      const sec = (performance.now() - t0) / 1000, u = sec / dur;   // 0 עד 2: הלוך וחזור
+      if (u >= 2) { if (!over) { over = true; setTimeout(exitRide, 0); } return; }
+      const back = u > 1, z = 4.5 - (back ? 2 - u : u) * len;
+      cam.position.set(0, 1.25 + (still ? 0 : Math.sin(sec * 9) * 0.015), z);
+      cam.lookAt(Math.sin(sec * 0.7) * 5, 0.7, z + (back ? 3 : -3));
+    }, (dur * 2 + 2) * 1000, '⬇️ לרדת מהרכבת');
+    state.tours++;
+    persist(false);
+    say('🚂 רכבת הספארי יוצאת לדרך! הביטו בחיות משני הצדדים');
+  }
+  // חיה שברחה: רצה בשביל עם סימן קריאה מעליה. לחיצה עליה מחזירה אותה למתחם ומזכה בפרס
+  function spawnRunner() {
+    const ids = Object.keys(state.animals).filter((id) => state.animals[id] > 0);
+    runnerClock = 70 + Math.random() * 50;
+    if (!stage || runner || riding || !ids.length || document.hidden) return;
+    const id = K.pick(ids), a = L.ANIMAL_BY_ID[id], m = M.build(id);
+    const rows = Math.max(1, Math.ceil(penList().length / 2));
+    const zEnd = -(rows - 1) * GAP - PEN / 2;
+    const g = new K.THREE.Group();
+    g.userData.pick = { type: 'escape' };
+    m.g.scale.setScalar(0.8);
+    g.add(m.g);
+    const sp = K.sprite('❗', 0.55, { bg: '#ffeb3b' });
+    sp.position.y = new K.THREE.Box3().setFromObject(m.g).max.y + 0.5;
+    g.add(sp);
+    K.part(g, K.sphG(0.9, 8), hidden(), 0, 0.5, 0).castShadow = false;   // אזור לחיצה גדול
+    runner = { id, m, g, z: zEnd + 1, dir: 1, left: 40, ph: 0, zEnd };
+    g.position.set(0, 0.06, runner.z);
+    stage.scene.add(g);
+    say(`❗ ${a.icon} ה${a.name} ברח מהמתחם! לחצו עליו כדי להחזיר אותו`);
+  }
+  function dropRunner() {
+    if (runner) stage.scene.remove(runner.g);
+    runner = null;
+  }
+  function stepFun(dt, t) {
+    runnerClock -= dt;
+    if (runnerClock <= 0) spawnRunner();
+    const r = runner;
+    if (r) {
+      r.left -= dt;
+      if (r.left <= 0) { dropRunner(); say('החיה חזרה לבד למתחם שלה'); }
+      else if (!still) {
+        r.z += r.dir * Math.max(1.3, r.m.speed * 2.2) * dt;
+        if (r.z > 3) r.dir = -1; else if (r.z < r.zEnd) r.dir = 1;
+        r.g.position.set(Math.sin(t * 1.3) * 0.7, 0.06, r.z);
+        r.g.rotation.y = r.dir > 0 ? 0 : Math.PI;
+        r.ph += dt * 12;
+        const s = Math.sin(r.ph);
+        r.m.legs.forEach((leg, i) => { leg.rotation.x = (i === 0 || i === 3 ? s : -s) * 0.6; });
+        r.m.anim(t, true);
+      }
+    }
+    // מופע: החיות קופצות ומסתובבות בתורות, וקונפטי עף מעל המתחמים
+    if (showLeft > 0) {
+      showLeft -= dt;
+      showClock -= dt;
+      if (showClock <= 0 && animals.length && !still) {
+        showClock = 0.3;
+        const a = K.pick(animals);
+        a.jump = 1;
+        a.rot += Math.PI;
+        stage.burst(new K.THREE.Vector3(a.pen.position.x + a.x, 1.3, a.pen.position.z + a.z), ['🎉', '⭐', '👏', '🎵', '🎈'], 5, { size: 0.6, spread: 2.5 });
+      }
+    }
+  }
+
   if (stage) {
     stage.addClouds(7, 60, 22);
     stage.frame((dt, t) => {
+      stepFun(dt, t);
       if (still) return;
       animals.forEach((a) => stepAnimal(a, dt, t));
       people.forEach((v) => stepPerson(v, dt));
     });
     stage.onTap = (e) => {
-      const h = world && stage.pick(e, [world]);
+      const h = world && stage.pick(e, runner ? [runner.g, world] : [world]);
       if (!h) return;
       const p = h.pick;
-      if (p.type === 'lot') { setTab('animals'); say('בחרו חיה חדשה מהרשימה למטה'); }
+      if (p.type === 'escape' && runner) {
+        const a = L.ANIMAL_BY_ID[runner.id], coins = L.caughtOne(state);
+        earn(coins, 'תפסתם חיה שברחה');
+        h.point.y += 0.5;
+        stage.burst(h.point, ['🎉', '❤️', '⭐'], 8, { size: 0.6, spread: 2.5 });
+        dropRunner();
+        persist(false);
+        say(`🏃 תפסתם את ה${a.name} והחזרתם אותו למתחם! +${coins} 🪙`);
+        renderAll();
+      } else if (p.type === 'lot') { setTab('animals'); say('בחרו חיה חדשה מהרשימה למטה'); }
       else if (p.type === 'up') setTab('ups');
       else if (p.type === 'mess') {
         L.handClean(state);
@@ -299,14 +424,16 @@
         renderAll();
       }
     };
-    $('centerBtn').onclick = fit;
+    $('centerBtn').onclick = () => { exitRide(); fit(); };
+    $('exitBtn').onclick = exitRide;
+    $('nightBtn').onclick = () => { nightPref = !nightPref; stage.setNight(nightPref); $('nightBtn').textContent = nightPref ? '☀️ יום' : '🌙 לילה'; };
   } else {
     $('scene').innerHTML = '<p class="no3d">התלת-ממד לא זמין במכשיר הזה. אפשר לשחק בעזרת הלוחות למטה.</p>';
-    $('centerBtn').hidden = true;
+    $('centerBtn').hidden = $('nightBtn').hidden = true;
   }
 
   // ---------- לוחות ----------
-  const TABS = [['animals', '🐾 חיות'], ['care', '🥕 טיפול'], ['ups', '🏗️ שדרוגים'], ['goals', '🎯 משימות'], ['album', '📖 אלבום'], ['quiz', '❓ חידון']];
+  const TABS = [['animals', '🐾 חיות'], ['care', '🥕 טיפול'], ['fun', '🎪 חוויות'], ['ups', '🏗️ שדרוגים'], ['goals', '🎯 משימות'], ['album', '📖 אלבום'], ['quiz', '❓ חידון']];
   function setTab(t) { tab = t; renderAll(); }
 
   function renderHud() {
@@ -331,6 +458,7 @@
     if (!n) return;
     box.innerHTML = `<div><strong>${a.icon} ${a.name} ×${n}</strong><small>${a.fact}</small></div>` +
       `<button class="act" data-a="buy" data-id="${sel}">➕ עוד אחד (${a.price} 🪙)</button>` +
+      (stage ? `<button class="act" data-a="ride" data-id="${sel}">🤠 רכיבה</button>` : '') +
       `<button class="act ghost" data-a="sell" data-id="${sel}">מכירה (+${Math.floor(a.price / 2)} 🪙)</button>`;
   }
   function meter(label, value, cls, pct, note) {
@@ -361,6 +489,16 @@
         '</div><h2>🎟️ מחיר כרטיס</h2><div class="row">' +
         L.PRICES.map((p) => `<button class="chip${state.price === p ? ' on' : ''}" aria-pressed="${state.price === p}" data-a="price" data-id="${p}">${p} 🪙</button>`).join('') +
         `</div><p class="note">כרטיס יקר: פחות מבקרים, אבל כל אחד משלם יותר. ההכנסה (עד ${L.rateMax(state)} 🪙 לדקה) נכנסת לעיר לבד.</p>`;
+    },
+    fun() {
+      const wait = L.showWait(state, Date.now());
+      const mine = state.order.filter((id) => state.animals[id] > 0);
+      return '<p class="note">סיור ברכבת, מופע של החיות ורכיבה על חיה. לפעמים חיה בורחת מהמתחם: מי שתופס אותה בשביל מקבל פרס.</p><div class="row">' +
+        '<button class="act" data-a="safari">🚂 רכבת ספארי</button>' +
+        `<button class="act${wait ? '' : ' pulse'}" data-a="show" ${wait ? 'disabled' : ''}>🎪 מופע חיות${wait ? ` (בעוד ${Math.ceil(wait / 60000)} דק')` : ''}</button>` +
+        '</div><h2>🤠 רכיבה על חיה</h2><div class="row">' +
+        (mine.length ? mine.map((id) => { const a = L.ANIMAL_BY_ID[id]; return `<button class="chip" data-a="ride" data-id="${id}">${a.icon} ${a.name}</button>`; }).join('') : '<span class="note">קנו חיה כדי לרכוב עליה</span>') +
+        `</div><p class="note">מופעים: ${state.shows} · רכיבות: ${state.rode} · סיורים: ${state.tours} · חיות שנתפסו: ${state.caught}</p>`;
     },
     ups() {
       return '<div class="list">' + L.UPGRADES.map((u) => {
@@ -465,6 +603,17 @@
       earn(r.reward, 'משימה בגן החיות');
       persist();
       say(`🎉 כל הכבוד! קיבלתם ${r.reward} 🪙`);
+    },
+    ride(id) { rideAnimal(id); },
+    safari() { safari(); },
+    show() {
+      const r = L.runShow(state, Date.now());
+      if (!r.ok) return say(r.msg);
+      earn(r.tips, 'מופע חיות');
+      persist();
+      showLeft = 8;
+      if (stage) $('scene').scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+      say(`🎪 איזה מופע! המבקרים השאירו ${r.tips} 🪙`);
     },
     quiz() {
       if (L.quizWait(state, Date.now()) > 0) return;

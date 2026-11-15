@@ -14,6 +14,8 @@
 //     הכסף מצטבר גם כשהילד לא בעיר, עד 3 שעות, ומשולם לבד כשחוזרים (בלי כפתור).
 //   • אטרקציות (גן חיות ולונה פארק): בלי הגבלת כמות. בכל אחת יש כניסה למשחק נפרד (zoo-game, amusement-game),
 //     והמשחק שומר את ההכנסה שלה לפי החלקה. ההכנסה נכנסת למסים של העיר.
+//   • דרגות עיר: לפי מספר התושבים (כפר, עיירה, עיר, עיר גדולה, מטרופולין). כל דרגה חדשה מזכה בפרס, פעם אחת.
+//   • המודלים התלת-ממדיים ב-models.js וב-models-b.js. יש מצב לילה (תצוגה בלבד), עשן, ומבנה חדש קופץ מהקרקע.
 // המחירים והפרסים נגזרים מ-REWARDS כדי להישאר בפרופורציה לשאר המשחקים.
 
 const START_COLS = 5;      // השטח ההתחלתי: 5 על 4 חלקות
@@ -21,7 +23,23 @@ const START_ROWS = 4;
 const STORE_KEY = 'kidlearn-city-v2';
 const OLD_STORE_KEY = 'kidlearn-city';   // הגרסה הקודמת (רשת קבועה 5×4), לצורך מעבר חלק
 const MERGE_MAX = 5;                     // מקסימום בתי ספר שמתאחדים לאחד
-const DECOR_MAX = 7;                     // מקסימום עצים וקישוטים בחלקה אחת
+// מקום בחלקה: לכל חלקה יש PLOT_SPACE מקומות. כל דבר תופס מקום לפי הגודל שלו:
+// קישוט קטן 1, קישוט רגיל 2, עץ 3, עץ גדול או מזרקה 4. מבנה קטן 10, בינוני 13, וכל השאר את כל החלקה.
+// כך ליד בית קטן נשאר מקום לשני עצים, וליד חנות לעץ אחד או לכמה קישוטים
+const PLOT_SPACE = 16;
+const DECOR_KEEP = 24;                   // כמה עצים וקישוטים נשמרים לחלקה לכל היותר (גם משמירות ישנות)
+const SPACE = {
+    bin: 1, tap: 1, sign: 1, mailbox: 1, lamp: 1, cactus: 1,
+    flowers: 2, bench: 2, umbrella: 2, statue: 2,
+    tree: 3, palm: 3, blossom: 3, pine: 3, apple: 3, olive: 3,
+    willow: 4, fountain: 4,
+    cabin: 10, mini: 10, house: 10, cottage: 10,
+    villa: 13, duplex: 13, studio: 13, shop: 13, bakery: 13, cafe: 13, toy: 13, bookstore: 13, post: 13,
+    clinic: 13, dentist: 13, pharmacy: 13, vet: 13, tipat: 13, eye: 13,
+};
+// שדרוג מבנים: רמה 1 עד 3. כל רמה מגדילה תושבים, מסים ותיירים
+const LEVEL_MAX = 3;
+const LEVEL_MULT = [1, 1.5, 2];
 const GOOD_LEVEL = 70;                   // מעל הערך הזה במדד מקבלים פרס (פעם אחת)
 const TAX_CAP_MS = 3 * 60 * 60 * 1000;   // הכסף שנצבר כשהילד לא בעיר נעצר אחרי 3 שעות
 const TAX_MIN_AWAY_MS = 30 * 1000;       // פחות מזה לא נחשב "לא הייתם בעיר"
@@ -221,8 +239,6 @@ const DIRS = [
 // סיבוב (סביב ציר Y) שמפנה את החזית של המבנה (+z) לעבר כיוון הדרך
 const FACE_ROT = { S: 0, E: Math.PI / 2, N: Math.PI, W: -Math.PI / 2 };
 
-// מקומות לעצים וקישוטים בתוך חלקה אחת (לפי סדר ההוספה). קודם המרכז, אחר כך הפינות
-const DECOR_SLOTS = [[0, 0], [-0.26, -0.26], [0.26, 0.26], [0.26, -0.26], [-0.26, 0.26], [0, -0.26], [0, 0.26]];
 
 const GRASS = ['#7cc35a', '#86cc62', '#72b651'];
 const HOUSE_WALLS = ['#ffe0b2', '#c8e6c9', '#bbdefb', '#f8bbd0', '#fff59d'];
@@ -240,12 +256,17 @@ const HINT_BASE = $('hint').textContent;
 // --- מצב העיר ---
 // owned:     Set של מפתחות "c,r" של החלקות שבבעלות הילד
 // buildings: Map של "c,r" -> מזהה מבנה גדול (בית, דרך, בית ספר, פארק...). חלקה אחת לכל מבנה
-// decor:     Map של "c,r" -> רשימת מזהים של עצים וקישוטים (עד DECOR_MAX, לפי סדר ההוספה)
+// decor:     Map של "c,r" -> רשימת מזהים של עצים וקישוטים (לפי סדר ההוספה). כמה נכנסים: לפי המקום שכל אחד תופס
+// levels:    Map של "c,r" -> רמת המבנה (2 או 3). מבנה בלי רשומה הוא ברמה 1
+// helped:    כמה פעמים הילד עזר לתושבים באירועים. festAt: מתי הייתה החגיגה האחרונה
 // met:       דרישות התושבים והמדדים שכבר נענו (כל אחד מזכה בכסף פעם אחת)
 let owned = new Set();
 let buildings = new Map();
 let decor = new Map();
 let met = [];
+let levels = new Map();
+let helped = 0;
+let festAt = 0;
 let notes = [];   // פרסים שנענו עכשיו, מוצגים יחד עם ההודעה הבאה
 
 // --- חישוב בתי ספר מאוחדים (מתעדכן בכל ציור) ---
@@ -265,6 +286,45 @@ function roadAt(c, r) { return catAt(c, r) === 'road'; }
 function decorAt(c, r) { return decor.get(key(c, r)) || []; }
 function isDecorVariant(v) { return !!v && (v.cat === 'tree' || v.cat === 'props'); }
 function balance() { return W ? W.balance() : 0; }
+
+// --- מקום בחלקה ורמות ---
+function spaceOf(id) {
+    if (SPACE[id]) return SPACE[id];
+    const v = VARIANT_BY_ID[id];
+    if (!v) return 0;
+    return v.cat === 'tree' ? 3 : v.cat === 'props' ? 2 : PLOT_SPACE;
+}
+function decorSpace(c, r) { return decorAt(c, r).reduce((n, id) => n + spaceOf(id), 0); }
+function spaceUsed(c, r) { return (buildingAt(c, r) ? spaceOf(buildingAt(c, r)) : 0) + decorSpace(c, r); }
+function spaceFree(c, r) { return Math.max(0, PLOT_SPACE - spaceUsed(c, r)); }
+function canAddDecor(c, r, v) {
+    return isOwned(c, r) && isDecorVariant(v) && !isEntrance(c, r) && spaceOf(v.id) <= spaceFree(c, r);
+}
+function canBuildAt(c, r, v) {
+    return isOwned(c, r) && !!v && !isDecorVariant(v) && !buildingAt(c, r) && spaceOf(v.id) + decorSpace(c, r) <= PLOT_SPACE;
+}
+// כמה מהאמצע של החלקה המבנה תופס (חצי רוחב). העצים והקישוטים מסתדרים מסביבו
+function plotBlock(v) {
+    if (!v) return 0;
+    const sp = spaceOf(v.id);
+    return sp <= 10 ? 0.27 : sp <= 13 ? 0.33 : 0.45;
+}
+function levelAt(c, r) { return buildingAt(c, r) ? (levels.get(key(c, r)) || 1) : 1; }
+function levelMult(c, r) { return LEVEL_MULT[levelAt(c, r) - 1] || 1; }
+function canUpgradeAt(c, r) {
+    const v = variantAt(c, r);
+    if (!v || ['road', 'school', 'park'].includes(v.cat) || ATTRACTIONS[v.id]) return null;
+    const lv = levelAt(c, r);
+    if (lv >= LEVEL_MAX) return null;
+    return { level: lv + 1, cost: v.price * lv };
+}
+// כמה הושקע במבנה (מחיר ושדרוגים). בהסרה מחזירים חצי
+function investedAt(c, r) {
+    const v = variantAt(c, r);
+    if (!v) return 0;
+    const lv = levelAt(c, r);
+    return v.price * (1 + (lv >= 2 ? 1 : 0) + (lv >= 3 ? 2 : 0));
+}
 function feedback(msg) {
     const extra = notes.splice(0).map(n => ` 🎉 ${n}`).join('');
     $('feedback').textContent = msg + extra;
@@ -302,7 +362,7 @@ function assignBuildings(entries) {
     for (const [k, id] of entries) {
         const v = VARIANT_BY_ID[id];
         if (!v) continue;   // מבנה שסוגו כבר לא קיים מוסרים בשקט
-        if (isDecorVariant(v)) decor.set(k, [...(decor.get(k) || []), id].slice(0, DECOR_MAX));
+        if (isDecorVariant(v)) decor.set(k, [...(decor.get(k) || []), id].slice(0, DECOR_KEEP));
         else buildings.set(k, id);
     }
 }
@@ -310,6 +370,9 @@ function assignBuildings(entries) {
 function loadStateRaw() {
     entranceC = 0;
     entranceR = 1;
+    levels = new Map();
+    helped = 0;
+    festAt = 0;
     try {
         const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
         if (saved && Array.isArray(saved.owned)) {
@@ -322,11 +385,19 @@ function loadStateRaw() {
                 for (const [k, ids] of Object.entries(saved.decor)) {
                     const list = (Array.isArray(ids) ? ids : [])
                         .filter(id => isDecorVariant(VARIANT_BY_ID[id]))
-                        .slice(0, DECOR_MAX);
+                        .slice(0, DECOR_KEEP);
                     if (list.length) decor.set(k, list);
                 }
             }
             met = Array.isArray(saved.met) ? saved.met : [];
+            // שדות חדשים: בשמירה ישנה הם חסרים, ואז כל המבנים ברמה 1
+            if (saved.lv && typeof saved.lv === 'object') {
+                for (const [k, n] of Object.entries(saved.lv)) {
+                    if (buildings.has(k) && (n === 2 || n === 3)) levels.set(k, n);
+                }
+            }
+            helped = Math.max(0, Math.floor(+saved.helped || 0));
+            festAt = Math.max(0, +saved.festAt || 0);
             taxAt = Math.max(taxAt, +saved.lastTaxAt || 0, readTaxTouch());
             return;
         }
@@ -363,6 +434,9 @@ function saveState() {
             buildings: Object.fromEntries(buildings),
             decor: Object.fromEntries(decor),
             met,
+            lv: Object.fromEntries(levels),
+            helped,
+            festAt,
             entranceC,
             entranceR,
             lastTaxAt: taxAt,
@@ -520,9 +594,11 @@ function stats() {
         if (v.cat === 'school') continue;
         const { c, r } = parseKey(k);
         if (!buildingActive(c, r)) { inactive++; continue; }
-        pop += v.pop || 0;
-        active[v.cat] = (active[v.cat] || 0) + 1;
-        byId[v.id] = (byId[v.id] || 0) + 1;
+        // מבנה משודרג: יותר תושבים, והוא נספר כמספר הרמות שלו (משרת יותר תושבים)
+        const lv = levelAt(c, r);
+        pop += Math.round((v.pop || 0) * LEVEL_MULT[lv - 1]);
+        active[v.cat] = (active[v.cat] || 0) + lv;
+        byId[v.id] = (byId[v.id] || 0) + lv;
     }
     for (const list of decor.values()) list.forEach(id => { byId[id] = (byId[id] || 0) + 1; });
     // בתי ספר נספרים לפי קבוצה מאוחדת
@@ -688,9 +764,10 @@ function cityIncome(m) {
     for (const [k, id] of buildings) {
         const { c, r } = parseKey(k);
         if (!VARIANT_BY_ID[id] || !buildingActive(c, r)) continue;
-        if (BUILDING_TAX[id]) out.tax += BUILDING_TAX[id];
+        const mult = levelMult(c, r);
+        if (BUILDING_TAX[id]) out.tax += BUILDING_TAX[id] * mult;
         if (ATTRACTIONS[id]) out.attr += attractionRate(k, id);
-        else if (VARIANT_BY_ID[id].tourist) out.attr += VARIANT_BY_ID[id].tourist;   // אטרקציה בלי כניסה: תיירים בלבד
+        else if (VARIANT_BY_ID[id].tourist) out.attr += VARIANT_BY_ID[id].tourist * mult;   // אטרקציה בלי כניסה: תיירים בלבד
     }
     out.combo = comboCount() * COMBO_BONUS;
     const all = [m.env, m.happy, ...Object.values(m.extra)];
@@ -744,7 +821,17 @@ function payCityTaxes(dt) {
     if (whole < 1) return;
     cityTaxAcc -= whole;
     W.earn(whole, { reason: 'העיר משלמת מסים', silent: true });
+    floatText(entranceC, entranceR, `+${whole} 🪙`, 'gain');
 }
+
+// דרגות העיר: כשמספר התושבים עובר סף, העיר עולה דרגה ומקבלים פרס (פעם אחת)
+const RANKS = [
+    { pop: 10, name: 'כפר', icon: '🏡', prize: R.create },
+    { pop: 25, name: 'עיירה', icon: '🏘️', prize: R.round },
+    { pop: 50, name: 'עיר', icon: '🏙️', prize: R.level },
+    { pop: 100, name: 'עיר גדולה', icon: '🌆', prize: R.level + R.create },
+    { pop: 200, name: 'מטרופולין', icon: '🌃', prize: R.perfect },
+];
 
 // דרישות התושבים והמדדים שנענו בפעם הראשונה מזכים בכסף, פעם אחת בלבד
 function checkRewards() {
@@ -768,6 +855,9 @@ function checkRewards() {
     });
     if (st.pop > 0 && m.env >= GOOD_LEVEL) reward('env-good', R.round, 'הסביבה ירוקה ונקייה!');
     if (st.pop > 0 && m.happy >= GOOD_LEVEL) reward('happy-good', R.round, 'התושבים מאושרים בעיר!');
+    RANKS.forEach(k => { if (st.pop >= k.pop) reward('rank-' + k.pop, k.prize, `${k.icon} העיר גדלה ועלתה לדרגת ${k.name}!`); });
+    if (helped >= 10) reward('helper-10', R.round, '🦸 עזרתם לתושבים 10 פעמים!');
+    if (helped >= 50) reward('helper-50', R.perfect, '🦸 עזרתם לתושבים 50 פעמים!');
     if (changed) saveState();
 }
 
@@ -830,947 +920,7 @@ function facingRot(c, r) {
     return 0;
 }
 
-// --- בניית חלקה שבבעלות הילד ---
-function buildCell(c, r) {
-    const group = new THREE.Group();
-    group.position.set(c, 0, r);
-    const seed = seedOf(c, r);
-
-    // קרקע: קובייה כהה כמסגרת, ומעליה לוח דשא קצת קטן יותר. כך רואים את גבולות החלקות
-    part(group, boxG(1, 0.1, 1), '#4f8a3a', 0, -0.05, 0);
-    part(group, boxG(0.96, 0.02, 0.96), GRASS[Math.floor(rnd(seed, 1) * GRASS.length)], 0, 0, 0);
-
-    const v = variantAt(c, r);
-    const cat = v ? v.cat : null;
-    const list = decorAt(c, r);
-    let top = 0.9;
-    if (cat === 'road') buildRoad(group, c, r, v);
-    if (cat === 'road' && isEntrance(c, r)) buildGate(group);
-    else if (cat === 'house') top = buildHouse(group, seed, c, r, v);
-    else if (cat === 'apt') top = buildApartments(group, seed, c, r, v);
-    else if (cat === 'school') buildSchool(group, c, r, v);
-    else if (cat === 'shop') top = buildShop(group, c, r, v);
-    else if (cat === 'clinic') top = buildClinic(group, c, r, v);
-    else if (cat === 'civic') top = buildCivic(group, c, r, v);
-    else if (cat === 'park') buildPark(group, seed, v, parkSides(c, r));
-    else if (cat === 'attr') top = buildAttraction(group, c, r, v);
-
-    // עצים וקישוטים קטנים: כמה שיש בחלקה, כל אחד במקומו
-    if (list.length) buildDecor(group, seed, list);
-    else if (!cat && rnd(seed, 8) < 0.3) buildBush(group, seed);   // שיחים קטנים על שטח ריק בלבד
-
-    // מבנה בלי דרך לא עובד: מסמנים אותו בעמוד אדום מעל הגג
-    if (cat && !buildingActive(c, r)) {
-        part(group, coneG(0.07, 0.16, 6), '#e53935', 0, top + 0.2, 0);
-    }
-    return group;
-}
-
-// חלקה למכירה: לוח דשא בהיר עם דגל צהוב
-function buildSale(c, r) {
-    const group = new THREE.Group();
-    group.position.set(c, 0, r);
-    part(group, boxG(0.94, 0.03, 0.94), '#eef8e0', 0, 0.015, 0);
-    part(group, cylG(0.02, 0.02, 0.45, 5), '#8d6e63', -0.3, 0.22, -0.3);
-    part(group, boxG(0.22, 0.14, 0.02), '#ffca28', -0.2, 0.4, -0.3);
-    return group;
-}
-
-// דרך: ריבוע מרכזי + זרוע לכל שכנה שהיא דרך. הזרועות מגיעות עד שפת החלקה,
-// ולכן דרך מחוברת בדיוק לדרך שלידה (גם אם הסוגים שונים)
-function buildRoad(group, c, r, v) {
-    const style = {
-        road:    { base: '#41444f', dashes: true },
-        dirt:    { base: '#b08968', dashes: false },
-        stone:   { base: '#bdbdbd', dashes: false },
-        bike:    { base: '#43a047', dashes: true, line: '#ffffff' },
-        brick:   { base: '#b5543c', dashes: false },
-        sand:    { base: '#e6c98f', dashes: false },
-        plank:   { base: '#a1763f', dashes: false },
-        highway: { base: '#2b2d36', dashes: true, line: '#ffd54f' },
-    }[v.id];
-    const LINE = style.line || '#f5f5f5';
-    const y = 0.012;
-    part(group, boxG(0.42, 0.024, 0.42), style.base, 0, y, 0);
-
-    for (const d of DIRS) {
-        const outside = isEntrance(c, r) && d.name === 'W';   // הכביש ממשיך החוצה
-        if (!roadAt(c + d.dc, r + d.dr) && !outside) continue;
-        const sx = d.dc !== 0 ? 0.5 : 0.42;
-        const sz = d.dr !== 0 ? 0.5 : 0.42;
-        part(group, boxG(sx, 0.024, sz), style.base, d.dc * 0.25, y, d.dr * 0.25);
-        if (style.dashes) {
-            // קו הפרדה מקווקו באמצע הזרוע
-            const lx = d.dc !== 0 ? 0.12 : 0.03;
-            const lz = d.dr !== 0 ? 0.12 : 0.03;
-            part(group, boxG(lx, 0.006, lz), LINE, d.dc * 0.36, y + 0.015, d.dr * 0.36);
-        }
-    }
-
-    // פרטים לפי סוג: חלוקי נחל בשביל האבן, אבנים קטנות בדרך העפר
-    if (v.id === 'stone') {
-        [[-0.12, -0.1, '#9e9e9e'], [0.1, -0.12, '#8d8d8d'], [0.02, 0.04, '#a1887f'], [-0.09, 0.11, '#8d8d8d'], [0.12, 0.09, '#9e9e9e']]
-            .forEach(([x, z, col]) => part(group, icoG(0.035), col, x, 0.026, z));
-    } else if (v.id === 'dirt') {
-        [[-0.1, 0.05, '#8d6e63'], [0.12, -0.08, '#8d6e63'], [0.03, 0.13, '#795548']]
-            .forEach(([x, z, col]) => part(group, icoG(0.022), col, x, 0.02, z));
-    } else if (v.id === 'brick') {
-        // שורות לבנים כהות יותר
-        [-0.12, 0, 0.12].forEach(z => part(group, boxG(0.4, 0.004, 0.012), '#8e3b2a', 0, y + 0.014, z));
-        [-0.1, 0.1].forEach(x => part(group, boxG(0.012, 0.004, 0.4), '#8e3b2a', x, y + 0.014, 0));
-    } else if (v.id === 'plank') {
-        // קרשים לרוחב
-        [-0.15, -0.05, 0.05, 0.15].forEach(z => part(group, boxG(0.4, 0.012, 0.012), '#6d4c41', 0, y + 0.016, z));
-    } else if (v.id === 'sand') {
-        [[-0.1, 0.08], [0.1, -0.06], [0.02, 0.14]].forEach(([x, z]) => part(group, icoG(0.02), '#d4b46c', x, 0.02, z));
-    } else if (v.id === 'bike') {
-        // אופניים לבנים קטנים באמצע
-        part(group, torusG(0.04, 0.008), '#ffffff', -0.05, y + 0.03, 0).rotation.x = Math.PI / 2;
-        part(group, torusG(0.04, 0.008), '#ffffff', 0.05, y + 0.03, 0).rotation.x = Math.PI / 2;
-        part(group, boxG(0.1, 0.008, 0.01), '#ffffff', 0, y + 0.04, 0);
-    } else if (v.id === 'highway') {
-        // קו צהוב כפול באמצע הכביש
-        part(group, boxG(0.42, 0.006, 0.014), '#ffd54f', 0, y + 0.015, -0.03);
-        part(group, boxG(0.42, 0.006, 0.014), '#ffd54f', 0, y + 0.015, 0.03);
-    }
-}
-
-// עץ או דקל. בחלקה יכולים להיות כמה, לכן גודלם נקבע לפי VARIANTS.size
-function buildTree(group, seed, v) {
-    const s = 0.9 + rnd(seed, 2) * 0.3;
-    const ox = (rnd(seed, 3) - 0.5) * 0.25;
-    const oz = (rnd(seed, 4) - 0.5) * 0.25;
-    if (v.id === 'palm') {
-        // דקל: גזע דק, כמה עלים ארוכים שנפרשים לכל הכיוונים, וקוקוס
-        part(group, cylG(0.03, 0.05, 0.55, 7), '#a1887f', ox, 0.275, oz);
-        for (let k = 0; k < 4; k++) {
-            const frond = part(group, icoG(0.16), '#388e3c', ox, 0.58, oz);
-            frond.scale.set(1.6, 0.22, 0.45);
-            frond.rotation.y = k * Math.PI / 2 + rnd(seed, 12) * 0.5;
-        }
-        part(group, icoG(0.04), '#795548', ox + 0.02, 0.54, oz + 0.02);
-        return;
-    }
-    if (v.id === 'pine') {
-        // אורן: גזע וכמה קונוסים זה על זה
-        part(group, cylG(0.04, 0.06, 0.25, 7), '#5d4037', ox, 0.12, oz);
-        [[0.26, 0.2, 0.3], [0.44, 0.16, 0.26], [0.6, 0.11, 0.22]].forEach(([y, rad, h]) => part(group, coneG(rad * 1.3, h, 8), '#2e7d32', ox, y, oz).scale.setScalar(s));
-        return;
-    }
-    if (v.id === 'cactus') {
-        part(group, cylG(0.06, 0.07, 0.45, 8), '#558b2f', ox, 0.23, oz);
-        part(group, cylG(0.035, 0.035, 0.16, 7), '#558b2f', ox + 0.1, 0.3, oz).rotation.z = 0;
-        part(group, boxG(0.1, 0.035, 0.035), '#558b2f', ox + 0.05, 0.25, oz);
-        part(group, cylG(0.035, 0.035, 0.14, 7), '#558b2f', ox - 0.1, 0.34, oz);
-        part(group, boxG(0.1, 0.035, 0.035), '#558b2f', ox - 0.05, 0.28, oz);
-        part(group, icoG(0.025), '#f06292', ox, 0.47, oz);
-        return;
-    }
-    if (v.id === 'willow') {
-        // ערבה בוכייה: גזע וכתר עם ענפים ארוכים שיורדים
-        part(group, cylG(0.05, 0.07, 0.4, 8), '#6d4c41', ox, 0.2, oz);
-        part(group, icoG(0.22), '#7cb342', ox, 0.5, oz).scale.set(1.1, 0.7, 1.1);
-        for (let k = 0; k < 8; k++) {
-            const a = k * Math.PI / 4;
-            part(group, boxG(0.025, 0.3, 0.025), '#9ccc65', ox + Math.cos(a) * 0.2, 0.34, oz + Math.sin(a) * 0.2);
-        }
-        return;
-    }
-    if (v.id === 'apple' || v.id === 'olive') {
-        const leaf = v.id === 'apple' ? '#43a047' : '#8fa86a';
-        part(group, cylG(0.05, v.id === 'olive' ? 0.09 : 0.07, 0.3, 8), v.id === 'olive' ? '#8d6e63' : '#6d4c41', ox, 0.15, oz);
-        part(group, icoG(0.24), leaf, ox, 0.46, oz).scale.setScalar(s);
-        part(group, icoG(0.15), tint(leaf, 1.15), ox + 0.12 * s, 0.38, oz - 0.07 * s).scale.setScalar(s);
-        // פירות: תפוחים אדומים או זיתים כהים
-        const fruit = v.id === 'apple' ? '#e53935' : '#37474f';
-        [[0.14, 0.5, 0.12], [-0.12, 0.44, 0.15], [0.02, 0.6, -0.1], [-0.16, 0.52, -0.08]].forEach(([x, y, z]) => part(group, icoG(0.028), fruit, ox + x, y, oz + z));
-        return;
-    }
-    // עץ רגיל: גזע מחודד, וכתר של שלושה כדורים שמתלכדים, כל אחד בגוון קצת אחר
-    const base = v.id === 'blossom' ? '#f48fb1' : FOLIAGE[Math.floor(rnd(seed, 5) * FOLIAGE.length)];
-    part(group, cylG(0.045, 0.07, 0.32, 8), '#6d4c41', ox, 0.16, oz);
-    part(group, icoG(0.23), base, ox, 0.46, oz).scale.setScalar(s);
-    part(group, icoG(0.15), tint(base, 1.14), ox + 0.12 * s, 0.38, oz - 0.07 * s).scale.setScalar(s);
-    part(group, icoG(0.14), tint(base, 0.88), ox - 0.11 * s, 0.36, oz + 0.09 * s).scale.setScalar(s);
-}
-
-function buildBush(group, seed) {
-    const ox = (rnd(seed, 9) - 0.5) * 0.6;
-    const oz = (rnd(seed, 10) - 0.5) * 0.6;
-    const b = part(group, icoG(0.12), BUSH[Math.floor(rnd(seed, 11) * BUSH.length)], ox, 0.09, oz);
-    b.scale.set(1, 0.8, 1);
-}
-
-// עצים וקישוטים בחלקה: כל פריט בקטן ובמקום שלו (לפי DECOR_SLOTS), עם מעט אקראיות קבועה
-function buildDecor(group, seed, ids) {
-    ids.forEach((id, i) => {
-        const v = VARIANT_BY_ID[id];
-        if (!v) return;
-        const [sx, sz] = DECOR_SLOTS[i];
-        const g = new THREE.Group();
-        g.position.set(sx + (rnd(seed, 40 + i) - 0.5) * 0.06, 0, sz + (rnd(seed, 50 + i) - 0.5) * 0.06);
-        g.rotation.y = rnd(seed, 60 + i) * Math.PI * 2;
-        g.scale.setScalar(v.size || 0.6);
-        group.add(g);
-        const itemSeed = seed + (i + 1) * 17;   // זרע משלו לכל פריט, כדי שכל עץ ייראה קצת אחרת
-        if (v.cat === 'tree') buildTree(g, itemSeed, v);
-        else buildProp(g, itemSeed, v);
-    });
-}
-
-// שביל קצר מהכניסה אל הדרך (רק אם יש דרך סמוכה)
-function addDoorPath(parent, hasRoad, frontZ) {
-    if (!hasRoad) return;
-    const start = frontZ - 0.02;
-    const len = 0.5 - start;
-    part(parent, boxG(0.14, 0.01, len), '#d7ccc8', 0, 0.005, start + len / 2);
-}
-
-// בתים: בית רגיל, בקתה קטנה או וילה. ההבדל הוא במידות ובצבעים
-function buildHouse(group, seed, c, r, v) {
-    const dims = {
-        house:  { w: 0.56, h: 0.42, rh: 0.30, wall: HOUSE_WALLS[Math.floor(rnd(seed, 6) * HOUSE_WALLS.length)], roof: HOUSE_ROOFS[Math.floor(rnd(seed, 7) * HOUSE_ROOFS.length)] },
-        cabin:  { w: 0.44, h: 0.32, rh: 0.26, wall: '#a1887f', roof: '#5d4037' },
-        villa:  { w: 0.70, h: 0.50, rh: 0.34, wall: '#fff8e1', roof: '#8d6e63' },
-        cottage: { w: 0.5, h: 0.34, rh: 0.3, wall: '#f8bbd0', roof: '#7cb342' },
-        duplex: { w: 0.74, h: 0.4, rh: 0.26, wall: '#fff59d', roof: '#6d4c41' },
-        modern: { w: 0.64, h: 0.46, rh: 0.05, wall: '#eceff1', roof: '#455a64', flat: true },
-        farm:   { w: 0.6, h: 0.34, rh: 0.3, wall: '#c62828', roof: '#5d4037' },
-        mansion: { w: 0.8, h: 0.52, rh: 0.34, wall: '#fff3e0', roof: '#455a64' },
-    }[v.id];
-    const b = new THREE.Group();
-    b.rotation.y = facingRot(c, r);
-    const half = dims.w / 2;
-    const front = half + 0.005;
-
-    part(b, boxG(dims.w, dims.h, dims.w), dims.wall, 0, dims.h / 2, 0);
-    if (dims.flat) {
-        // גג שטוח עם בליטה מעל הקירות
-        part(b, boxG(dims.w + 0.08, 0.05, dims.w + 0.08), dims.roof, 0, dims.h + 0.025, 0);
-    } else {
-        const roof = part(b, coneG(dims.w * 0.72, dims.rh, 4), dims.roof, 0, dims.h + dims.rh / 2, 0);
-        roof.rotation.y = Math.PI / 4;   // פינות הגג באלכסון, כדי שהצלעות יתיישרו עם הקירות
-        part(b, boxG(0.08, 0.2, 0.08), '#8d6e63', dims.w * 0.27, dims.h + 0.18, -dims.w * 0.18);   // ארובה
-    }
-
-    // חלונות עם מסגרת לבנה (צלב), ודלת במסגרת
-    const win = (x, y) => {
-        part(b, boxG(0.13, 0.13, 0.02), '#90caf9', x, y, front, { roughness: 0.3 });
-        part(b, boxG(0.13, 0.014, 0.024), '#ffffff', x, y, front + 0.002);
-        part(b, boxG(0.014, 0.13, 0.024), '#ffffff', x, y, front + 0.002);
-    };
-    const door = (x) => {
-        part(b, boxG(0.17, 0.25, 0.012), '#fff3e0', x, 0.125, front);       // מסגרת הדלת
-        part(b, boxG(0.12, 0.2, 0.02), '#6d4c41', x, 0.1, front + 0.006);   // דלת
-        part(b, icoG(0.012), '#ffca28', x + 0.04, 0.1, front + 0.02);        // ידית
-    };
-    if (v.id === 'duplex') {
-        // שתי דלתות וחלון מעל כל אחת, וקיר מפריד באמצע
-        door(-0.2); door(0.2);
-        win(-0.2, 0.3); win(0.2, 0.3);
-        part(b, boxG(0.03, dims.h, 0.02), '#8d6e63', 0, dims.h / 2, front + 0.005);
-    } else if (v.id === 'modern') {
-        // חלון ענק ודלת בצד, ועוד קומה קטנה על הגג
-        part(b, boxG(0.34, 0.26, 0.02), '#80cbc4', -0.1, 0.24, front, { roughness: 0.2 });
-        door(0.2);
-        part(b, boxG(0.3, 0.16, 0.3), '#cfd8dc', 0.12, dims.h + 0.13, -0.1);
-        part(b, boxG(0.34, 0.03, 0.34), dims.roof, 0.12, dims.h + 0.225, -0.1);
-    } else if (v.id === 'farm') {
-        // אסם: דלת גדולה עם X לבן, וממגורה אפורה בצד
-        part(b, boxG(0.26, 0.24, 0.02), '#8d2b2b', 0, 0.12, front);
-        part(b, boxG(0.3, 0.025, 0.024), '#ffffff', 0, 0.12, front + 0.004).rotation.z = 0.8;
-        part(b, boxG(0.3, 0.025, 0.024), '#ffffff', 0, 0.12, front + 0.004).rotation.z = -0.8;
-        part(b, cylG(0.09, 0.09, 0.55, 10), '#cfd8dc', 0.42, 0.275, -0.1);
-        part(b, coneG(0.1, 0.12, 10), '#78909c', 0.42, 0.61, -0.1);
-        part(b, boxG(0.32, 0.01, 0.2), '#7cb342', -0.42, 0.01, 0.2);
-    } else {
-        win(-dims.w * 0.28, 0.27);
-        win(dims.w * 0.28, 0.27);
-        door(0);
-    }
-
-    if (v.id === 'villa' || v.id === 'mansion') {
-        // עמודים לפני הכניסה
-        part(b, boxG(0.04, 0.4, 0.04), '#ffffff', -0.14, 0.2, front + 0.05);
-        part(b, boxG(0.04, 0.4, 0.04), '#ffffff', 0.14, 0.2, front + 0.05);
-    }
-    if (v.id === 'mansion') {
-        // מגדלון עגול בפינה, ושני כנפיים נמוכות בצדדים
-        part(b, cylG(0.1, 0.1, 0.78, 12), '#fff3e0', -0.3, 0.39, -0.28);
-        part(b, coneG(0.13, 0.2, 12), '#b71c1c', -0.3, 0.88, -0.28);
-        [-1, 1].forEach(sg => part(b, boxG(0.12, 0.3, 0.5), '#ffe0b2', sg * 0.44, 0.15, 0));
-    }
-    addDoorPath(b, roadNextTo(c, r), front);
-    group.add(b);
-    return dims.h + dims.rh;
-}
-
-// בניינים: דירות, מגדל, סטודיו, בית אבות, מעונות, מדורג, תאומים וגורד שחקים. הכול נבנה מקוביות עם שורות חלונות
-const APT_STYLE = {
-    apt:        { w: 0.5,  h: 0.85, floors: 4 },
-    tower:      { w: 0.44, h: 1.25, floors: 7 },
-    studio:     { w: 0.46, h: 0.5,  floors: 2, wall: '#ffe0b2' },
-    senior:     { w: 0.64, h: 0.42, floors: 2, wall: '#c8e6c9' },
-    dorm:       { w: 0.58, h: 0.72, floors: 3, wall: '#b39ddb' },
-    skyscraper: { w: 0.4,  h: 1.7,  floors: 10, wall: '#90a4ae' },
-};
-function aptBlock(b, ox, oz, w, d, y0, h, floors, wall, front, glass) {
-    part(b, boxG(w, h, d), wall, ox, y0 + h / 2, oz);
-    part(b, boxG(w + 0.04, 0.05, d + 0.04), '#6d4c41', ox, y0 + h + 0.025, oz);   // גג
-    const gap = h / floors;
-    for (let row = 0; row < floors; row++) {
-        const y = y0 + gap * (row + 0.5);
-        if (!glass) part(b, boxG(w + 0.03, 0.02, 0.06), '#b0bec5', ox, y - gap * 0.45, oz + d / 2 + 0.02);   // מרפסת
-        for (const x of [-w * 0.24, w * 0.24]) part(b, boxG(0.1, Math.min(0.1, gap * 0.6), 0.02), glass ? '#b3e5fc' : '#90caf9', ox + x, y, oz + d / 2 + 0.005, { roughness: 0.3 });
-    }
-}
-function buildApartments(group, seed, c, r, v) {
-    const b = new THREE.Group();
-    b.rotation.y = facingRot(c, r);
-    const wallRand = HOUSE_WALLS[Math.floor(rnd(seed, 6) * HOUSE_WALLS.length)];
-    let top, front;
-    if (v.id === 'twin') {
-        // שני מגדלים גבוהים עם גשר ביניהם
-        front = 0.5;
-        aptBlock(b, -0.2, 0, 0.3, 0.4, 0, 1.2, 7, '#b0bec5', 0.2, true);
-        aptBlock(b, 0.2, 0, 0.3, 0.4, 0, 1.2, 7, '#90a4ae', 0.2, true);
-        part(b, boxG(0.12, 0.06, 0.1), '#eceff1', 0, 0.8, 0);
-        top = 1.25;
-        front = 0.205;
-    } else if (v.id === 'terrace') {
-        // שלוש קומות שמצטמצמות לאחור, עם גינה על כל גג
-        const hh = 0.26;
-        [[0.6, 0.6, 0], [0.5, 0.45, 1], [0.4, 0.3, 2]].forEach(([w, d, i]) => {
-            const oz = 0.08 - i * 0.12;
-            aptBlock(b, 0, oz, w, d, hh * i, hh, 1, '#ffccbc', 0, false);
-            part(b, icoG(0.045), '#66bb6a', -w * 0.3, hh * (i + 1) + 0.08, oz + d / 2 - 0.05);
-            part(b, icoG(0.045), '#f06292', w * 0.3, hh * (i + 1) + 0.07, oz + d / 2 - 0.05);
-        });
-        top = hh * 3 + 0.08;
-        front = 0.38;
-    } else {
-        const st = APT_STYLE[v.id];
-        const wall = st.wall || wallRand;
-        front = st.w / 2 + 0.005;
-        aptBlock(b, 0, 0, st.w, st.w, 0, st.h, st.floors, wall, front, v.id === 'skyscraper');
-        top = st.h + 0.05;
-        if (v.id === 'skyscraper') {
-            part(b, cylG(0.01, 0.01, 0.3, 5), '#cfd8dc', 0, st.h + 0.2, 0);
-            part(b, icoG(0.02), '#e53935', 0, st.h + 0.36, 0, { emissive: '#e53935', emissiveIntensity: 0.6 });
-            top = st.h + 0.38;
-        } else if (v.id === 'senior') {
-            // צלב ירוק וספסל בכניסה
-            part(b, boxG(0.18, 0.05, 0.02), '#43a047', 0, st.h * 0.75, front);
-            part(b, boxG(0.05, 0.18, 0.02), '#43a047', 0, st.h * 0.75, front);
-            part(b, boxG(0.16, 0.04, 0.06), '#8d6e63', 0.22, 0.05, front + 0.07);
-        } else if (v.id === 'dorm') {
-            part(b, boxG(0.3, 0.07, 0.02), '#5e35b1', 0, st.h * 0.8, front);
-        }
-        part(b, boxG(0.14, 0.2, 0.02), '#6d4c41', 0, 0.1, front);   // דלת
-    }
-    if (v.id === 'twin' || v.id === 'terrace') part(b, boxG(0.14, 0.2, 0.02), '#6d4c41', 0, 0.1, front);   // דלת
-    addDoorPath(b, roadNextTo(c, r), front);
-    group.add(b);
-    return top;
-}
-
-// חנות: גג בצבעי פסים לפי הסוג, שלט מעל הכניסה, וחלונות ראווה משני צדי הדלת
-const SHOP_STYLE = {
-    shop:  { w: 0.70, h: 0.42, body: '#ffe082', awn: ['#ef5350', '#ffffff', '#ef5350'] },
-    mini:  { w: 0.56, h: 0.34, body: '#c5e1a5', awn: ['#43a047', '#ffffff'] },
-    mall:  { w: 0.80, h: 0.50, body: '#e1bee7', awn: ['#ab47bc', '#ffffff', '#ab47bc', '#ffffff'] },
-    bakery: { w: 0.6, h: 0.36, body: '#ffcc80', awn: ['#8d6e63', '#ffffff'] },
-    cafe:  { w: 0.6, h: 0.36, body: '#d7ccc8', awn: ['#3e2723', '#ffffff', '#3e2723'] },
-    toy:   { w: 0.66, h: 0.4, body: '#b3e5fc', awn: ['#e53935', '#fdd835', '#43a047', '#1e88e5'] },
-    bookstore: { w: 0.62, h: 0.38, body: '#bcaaa4', awn: ['#1565c0', '#ffffff'] },
-    supermarket: { w: 0.84, h: 0.42, body: '#ffffff', awn: ['#e53935', '#ffffff', '#e53935', '#ffffff', '#e53935'] },
-};
-function buildShop(group, c, r, v) {
-    const st = SHOP_STYLE[v.id];
-    const b = new THREE.Group();
-    b.rotation.y = facingRot(c, r);
-    const depth = 0.6;
-    const front = depth / 2 + 0.005;
-    part(b, boxG(st.w, st.h, depth), st.body, 0, st.h / 2, 0);
-    const n = st.awn.length;
-    st.awn.forEach((color, i) => {
-        const x = -st.w / 2 + (i + 0.5) * (st.w / n);
-        part(b, boxG(st.w / n, 0.1, 0.08), color, x, st.h - 0.06, front + 0.03);
-    });
-    [-1, 1].forEach(sg => part(b, boxG(st.w * 0.22, 0.14, 0.02), '#b3e5fc', sg * st.w * 0.27, 0.2, front, { roughness: 0.3 }));
-    part(b, boxG(st.w * 0.55, 0.1, 0.02), '#8d6e63', 0, st.h + 0.08, front);   // שלט
-    part(b, boxG(0.16, 0.2, 0.02), '#6d4c41', 0, 0.1, front);                  // דלת
-    let top = st.h + 0.12;
-    if (v.id === 'bakery') {
-        // כיכרות לחם על הגג וגם ליד הדלת
-        [-0.14, 0, 0.14].forEach(x => part(b, icoG(0.05), '#d4a05a', x, st.h + 0.14, 0).scale.set(1.5, 0.8, 0.9));
-        part(b, boxG(0.12, 0.2, 0.02), '#8d6e63', 0.18, 0.1, front + 0.01);
-        top = st.h + 0.2;
-    } else if (v.id === 'cafe') {
-        // שולחן עגול וכיסאות בחוץ, וכוס קפה על השלט
-        part(b, cylG(0.07, 0.07, 0.02, 10), '#ffffff', 0.18, 0.12, front + 0.14);
-        part(b, cylG(0.01, 0.01, 0.12, 5), '#5d4037', 0.18, 0.06, front + 0.14);
-        part(b, boxG(0.05, 0.05, 0.05), '#6d4c41', 0.06, 0.04, front + 0.14);
-        part(b, boxG(0.05, 0.05, 0.05), '#6d4c41', 0.3, 0.04, front + 0.14);
-        part(b, cylG(0.035, 0.03, 0.06, 8), '#ffffff', 0, st.h + 0.19, front);
-    } else if (v.id === 'toy') {
-        // בלונים צבעוניים על חוטים
-        [['#e53935', -0.2], ['#fdd835', 0], ['#1e88e5', 0.2]].forEach(([col, x]) => {
-            part(b, cylG(0.004, 0.004, 0.22, 4), '#eeeeee', x, st.h + 0.12, 0);
-            part(b, icoG(0.06), col, x, st.h + 0.28, 0);
-        });
-        top = st.h + 0.36;
-    } else if (v.id === 'bookstore') {
-        // ערימת ספרים צבעונית ליד הדלת
-        [['#e53935', 0.04], ['#43a047', 0.08], ['#1e88e5', 0.12], ['#fdd835', 0.16]].forEach(([col, y]) => part(b, boxG(0.12, 0.035, 0.08), col, 0.24, y, front + 0.06));
-    } else if (v.id === 'supermarket') {
-        // עגלות קניות בחזית
-        [-0.28, -0.18].forEach(x => {
-            part(b, boxG(0.08, 0.05, 0.1), '#b0bec5', x, 0.08, front + 0.08);
-            part(b, boxG(0.08, 0.01, 0.01), '#546e7a', x, 0.13, front + 0.03);
-        });
-        part(b, boxG(0.4, 0.06, 0.02), '#e53935', 0, st.h * 0.62, front);
-    }
-    addDoorPath(b, roadNextTo(c, r), front);
-    group.add(b);
-    return top;
-}
-
-// מרפאות: בניין עם סמל לפי ההתמחות (צלב, שן, כפה, לב, עין, תרופה ובדיקה). בית חולים גבוה יותר עם שני צלבים
-const CLINIC_STYLE = {
-    clinic:   { w: 0.7,  h: 0.5,  body: '#ffffff', roof: '#90a4ae', emb: 'cross', col: '#e53935' },
-    hospital: { w: 0.7,  h: 0.85, body: '#eceff1', roof: '#90a4ae', emb: 'cross2', col: '#e53935' },
-    dentist:  { w: 0.6,  h: 0.42, body: '#e1f5fe', roof: '#4fc3f7', emb: 'tooth', col: '#29b6f6' },
-    pharmacy: { w: 0.62, h: 0.42, body: '#e8f5e9', roof: '#66bb6a', emb: 'cross', col: '#2e7d32' },
-    vet:      { w: 0.62, h: 0.4,  body: '#fff3e0', roof: '#ffb74d', emb: 'paw', col: '#6d4c41' },
-    tipat:    { w: 0.64, h: 0.38, body: '#fce4ec', roof: '#f48fb1', emb: 'heart', col: '#ec407a' },
-    eye:      { w: 0.6,  h: 0.42, body: '#ede7f6', roof: '#9575cd', emb: 'eye', col: '#5e35b1' },
-    lab:      { w: 0.64, h: 0.46, body: '#e0f7fa', roof: '#26c6da', emb: 'flask', col: '#00838f' },
-};
-function buildClinic(group, c, r, v) {
-    const st = CLINIC_STYLE[v.id];
-    const w = st.w, h = st.h;
-    const b = new THREE.Group();
-    b.rotation.y = facingRot(c, r);
-    const front = w / 2 + 0.005;
-    part(b, boxG(w, h, w), st.body, 0, h / 2, 0);
-    part(b, boxG(w + 0.02, 0.04, w + 0.02), st.roof, 0, h + 0.02, 0);
-    const y = h * 0.72;
-    const at = (g, col, x, yy, z, extra) => part(b, g, col, x, yy, z, extra);
-    if (st.emb === 'cross' || st.emb === 'cross2') {
-        const xs = st.emb === 'cross2' ? [-0.17, 0.17] : [0];
-        const cs = st.emb === 'cross2' ? 0.2 : (v.id === 'pharmacy' ? 0.26 : 0.34);
-        xs.forEach(x => {
-            at(boxG(cs, cs * 0.24, 0.02), st.col, x, y, front);
-            at(boxG(cs * 0.24, cs, 0.02), st.col, x, y, front);
-        });
-    } else {
-        // עיגול רקע לסמל
-        at(cylG(0.11, 0.11, 0.02, 14), st.col, 0, y, front).rotation.x = Math.PI / 2;
-        if (st.emb === 'tooth') {
-            at(boxG(0.1, 0.07, 0.02), '#ffffff', 0, y + 0.015, front + 0.015);
-            at(boxG(0.035, 0.07, 0.02), '#ffffff', -0.025, y - 0.045, front + 0.015);
-            at(boxG(0.035, 0.07, 0.02), '#ffffff', 0.025, y - 0.045, front + 0.015);
-        } else if (st.emb === 'paw') {
-            at(icoG(0.035), '#ffffff', 0, y - 0.015, front + 0.02);
-            [-0.045, -0.015, 0.015, 0.045].forEach((x, i) => at(icoG(0.017), '#ffffff', x, y + 0.035 + (i % 3 === 0 ? -0.01 : 0.01), front + 0.02));
-        } else if (st.emb === 'heart') {
-            at(icoG(0.032), '#ffffff', -0.026, y + 0.016, front + 0.02);
-            at(icoG(0.032), '#ffffff', 0.026, y + 0.016, front + 0.02);
-            at(boxG(0.05, 0.05, 0.02), '#ffffff', 0, y - 0.006, front + 0.02).rotation.z = Math.PI / 4;
-        } else if (st.emb === 'eye') {
-            at(icoG(0.05), '#ffffff', 0, y, front + 0.02).scale.set(1.5, 0.8, 0.4);
-            at(icoG(0.026), '#212121', 0, y, front + 0.035);
-        } else if (st.emb === 'flask') {
-            at(cylG(0.014, 0.014, 0.06, 6), '#ffffff', 0, y + 0.04, front + 0.02);
-            at(coneG(0.05, 0.07, 8), '#ffffff', 0, y - 0.025, front + 0.02);
-            at(icoG(0.015), '#76ff03', 0, y - 0.03, front + 0.035);
-        }
-    }
-    if (v.id === 'vet') at(icoG(0.045), '#8d6e63', 0.24, 0.05, front + 0.07);   // כלבלב ליד הדלת
-    if (v.id === 'tipat') [-0.2, 0.2].forEach(x => at(icoG(0.04), '#f8bbd0', x, 0.05, front + 0.06));
-    at(boxG(0.16, 0.22, 0.02), '#6d4c41', 0, 0.11, front);   // דלת
-    addDoorPath(b, roadNextTo(c, r), front);
-    group.add(b);
-    return h + 0.04;
-}
-
-// שירותי עיר: משטרה, כבאים, אמבולנס, דואר וספרייה. לכל אחד מבנה וצבעים משלו
-const CIVIC_STYLE = {
-    police:    { w: 0.72, h: 0.5,  body: '#eceff1', roof: '#1e4fa3' },
-    fire:      { w: 0.8,  h: 0.45, body: '#ef5350', roof: '#8e0000' },
-    ambulance: { w: 0.7,  h: 0.46, body: '#ffffff', roof: '#90a4ae' },
-    post:      { w: 0.7,  h: 0.42, body: '#ffd54f', roof: '#c62828' },
-    library:   { w: 0.72, h: 0.44, body: '#d7ccc8', roof: '#6d4c41' },
-    university: { w: 0.8, h: 0.55, body: '#8d6e63', roof: '#4e342e' },
-    court:     { w: 0.76, h: 0.5, body: '#f5f5f5', roof: '#6d4c41' },
-    prison:    { w: 0.74, h: 0.42, body: '#78909c', roof: '#37474f' },
-    townhall:  { w: 0.82, h: 0.52, body: '#fff8e1', roof: '#8d6e63' },
-    bank:      { w: 0.7,  h: 0.46, body: '#cfd8dc', roof: '#37474f' },
-    recycle:   { w: 0.7,  h: 0.36, body: '#a5d6a7', roof: '#2e7d32' },
-    station:   { w: 0.86, h: 0.4,  body: '#ffe0b2', roof: '#bf360c' },
-};
-function buildCivic(group, c, r, v) {
-    const st = CIVIC_STYLE[v.id];
-    const b = new THREE.Group();
-    b.rotation.y = facingRot(c, r);
-    const h = st.h;
-    const front = st.w / 2 + 0.005;
-    let top = h + 0.04;
-    part(b, boxG(st.w, h, st.w), st.body, 0, h / 2, 0);
-    if (v.id === 'library' || v.id === 'court' || v.id === 'townhall' || v.id === 'bank') {
-        // גג משולש (פירמידה) ושני עמודים בחזית
-        part(b, coneG(st.w * 0.72, 0.2, 4), st.roof, 0, h + 0.1, 0).rotation.y = Math.PI / 4;
-        [-0.26, 0.26].forEach(x => part(b, cylG(0.03, 0.03, h * 0.9, 8), '#ffffff', x, h * 0.45, front));
-        top = h + 0.2;
-    } else {
-        part(b, boxG(st.w + 0.02, 0.04, st.w + 0.02), st.roof, 0, h + 0.02, 0);
-    }
-
-    if (v.id === 'police') {
-        // פס לבן ופנס כחול על הגג
-        part(b, boxG(st.w * 0.92, 0.05, 0.02), '#ffffff', 0, h * 0.62, front);
-        part(b, boxG(0.16, 0.08, 0.12), '#42a5f5', 0, h + 0.08, 0, { emissive: '#42a5f5', emissiveIntensity: 0.5 });
-        top = h + 0.12;
-    } else if (v.id === 'fire') {
-        // מגדל ייבוש צינורות ופתח גדול לרכבי הכיבוי
-        part(b, cylG(0.08, 0.08, 0.62, 10), '#ffcdd2', 0.2, h + 0.31, -0.2);
-        part(b, boxG(st.w * 0.5, h * 0.55, 0.02), '#37474f', 0, h * 0.28, front);
-        top = h + 0.62;
-    } else if (v.id === 'ambulance') {
-        // צלב אדום ופתח גדול לאמבולנס
-        part(b, boxG(0.24, 0.06, 0.02), '#e53935', 0, h * 0.7, front);
-        part(b, boxG(0.06, 0.22, 0.02), '#e53935', 0, h * 0.7, front);
-        part(b, boxG(st.w * 0.5, h * 0.5, 0.02), '#90a4ae', 0, h * 0.25, front);
-    } else if (v.id === 'post') {
-        // שלט דואר וקופסת דואר אדומה בחזית
-        part(b, boxG(0.3, 0.07, 0.02), '#1565c0', 0, h * 0.72, front);
-        part(b, boxG(0.12, 0.16, 0.12), '#e53935', 0.27, 0.08, front + 0.05);
-    } else if (v.id === 'prison') {
-        // חלונות קטנים עם סורגים כהים בחזית
-        [-0.22, 0, 0.22].forEach(x => {
-            part(b, boxG(0.1, 0.08, 0.02), '#cfd8dc', x, h * 0.6, front);
-            part(b, boxG(0.02, 0.08, 0.03), '#263238', x, h * 0.6, front + 0.01);
-        });
-    } else if (v.id === 'university') {
-        // חלונות גדולים ודגל כחול על הגג
-        [-0.22, 0, 0.22].forEach(x => part(b, boxG(0.1, 0.12, 0.02), '#e3f2fd', x, h * 0.55, front));
-        part(b, cylG(0.01, 0.01, 0.3, 5), '#eeeeee', 0, h + 0.17, 0);
-        part(b, boxG(0.12, 0.07, 0.01), '#1e88e5', 0.06, h + 0.25, 0);
-        top = h + 0.32;
-    } else if (v.id === 'townhall') {
-        // שעון עגול בגג ודגל
-        part(b, cylG(0.07, 0.07, 0.02, 14), '#ffffff', 0, h + 0.1, front * 0.3).rotation.x = Math.PI / 2;
-        part(b, boxG(0.01, 0.06, 0.01), '#212121', 0, h + 0.11, front * 0.3 + 0.015);
-        part(b, cylG(0.01, 0.01, 0.3, 5), '#eeeeee', 0.3, h + 0.17, 0);
-        part(b, boxG(0.14, 0.08, 0.01), '#1e88e5', 0.37, h + 0.28, 0);
-        top = h + 0.32;
-    } else if (v.id === 'bank') {
-        // שלט זהב מעל הדלת וערימת מטבעות
-        part(b, boxG(0.3, 0.07, 0.02), '#ffca28', 0, h * 0.72, front);
-        [0, 1, 2].forEach(k => part(b, cylG(0.04, 0.04, 0.015, 10), '#ffd54f', 0.3, 0.015 + k * 0.016, front + 0.08));
-    } else if (v.id === 'recycle') {
-        // שלושה פחי מחזור צבעוניים בחזית
-        [['#1e88e5', -0.2], ['#43a047', 0], ['#fdd835', 0.2]].forEach(([col, x]) => part(b, boxG(0.14, 0.18, 0.12), col, x, 0.09, front + 0.1));
-        part(b, boxG(0.3, 0.07, 0.02), '#2e7d32', 0, h * 0.7, front);
-    } else if (v.id === 'station') {
-        // מגדל שעון ורציף עם פס מסילה
-        part(b, boxG(0.16, 0.4, 0.16), '#ffe0b2', 0.28, h + 0.2, -0.12);
-        part(b, coneG(0.13, 0.12, 4), '#bf360c', 0.28, h + 0.46, -0.12).rotation.y = Math.PI / 4;
-        part(b, cylG(0.05, 0.05, 0.02, 12), '#ffffff', 0.28, h + 0.28, -0.12 + 0.085).rotation.x = Math.PI / 2;
-        part(b, boxG(0.9, 0.03, 0.12), '#9e9e9e', 0, 0.015, front + 0.1);
-        [-0.04, 0.04].forEach(z => part(b, boxG(0.9, 0.012, 0.012), '#424242', 0, 0.04, front + 0.2 + z));
-        top = h + 0.52;
-    } else {
-        // ספרייה ובית משפט: שלט קטן מעל הדלת
-        part(b, boxG(0.3, 0.06, 0.02), '#8d6e63', 0, h * 0.72, front);
-    }
-
-    // לרכבים יש פתח משלו. לשאר יש דלת רגילה
-    if (v.id !== 'fire' && v.id !== 'ambulance') part(b, boxG(0.16, 0.22, 0.02), '#6d4c41', 0, 0.11, front);
-    addDoorPath(b, roadNextTo(c, r), front);
-    group.add(b);
-    return top;
-}
-
-// אטרקציה: גן חיות (גדר, שער וחיות) או לונה פארק (גלגל ענק ואוהל). השער פונה לדרך
-function torusG(r, tube) { return cached(geoCache, `t${r}|${tube}`, () => new THREE.TorusGeometry(r, tube, 6, 20)); }
-function buildAttraction(group, c, r, v) {
-    if (!ATTRACTIONS[v.id]) return buildLandmark(group, c, r, v);   // אטרקציה בלי כניסה למשחק
-    const b = new THREE.Group();
-    b.rotation.y = facingRot(c, r);
-    const front = 0.44;
-    let top = 0.5;
-    if (v.id === 'zoo') {
-        part(b, boxG(0.9, 0.02, 0.9), '#a5d6a7', 0, 0.01, 0);
-        // גדר סביב, עם פתח בחזית
-        const wood = '#8d6e63';
-        part(b, boxG(0.9, 0.12, 0.03), wood, 0, 0.07, -0.44);
-        part(b, boxG(0.03, 0.12, 0.9), wood, -0.44, 0.07, 0);
-        part(b, boxG(0.03, 0.12, 0.9), wood, 0.44, 0.07, 0);
-        part(b, boxG(0.28, 0.12, 0.03), wood, -0.31, 0.07, front);
-        part(b, boxG(0.28, 0.12, 0.03), wood, 0.31, 0.07, front);
-        // שער עם שלט
-        part(b, boxG(0.04, 0.34, 0.04), '#5d4037', -0.14, 0.17, front);
-        part(b, boxG(0.04, 0.34, 0.04), '#5d4037', 0.14, 0.17, front);
-        part(b, boxG(0.36, 0.08, 0.04), '#ffca28', 0, 0.36, front);
-        // פיל: גוף, ראש וחדק
-        part(b, icoG(0.15), '#9e9e9e', -0.2, 0.2, -0.15);
-        part(b, icoG(0.09), '#9e9e9e', -0.08, 0.26, -0.15);
-        part(b, cylG(0.02, 0.02, 0.12, 6), '#9e9e9e', -0.02, 0.2, -0.15).rotation.z = 1.2;
-        // ג'ירפה: גוף וצוואר גבוה
-        part(b, boxG(0.16, 0.1, 0.1), '#ffb300', 0.22, 0.14, -0.1);
-        part(b, cylG(0.025, 0.03, 0.3, 6), '#ffb300', 0.28, 0.3, -0.1);
-        part(b, icoG(0.04), '#ffb300', 0.3, 0.46, -0.1);
-        // עץ קטן
-        part(b, cylG(0.02, 0.025, 0.12, 6), '#6d4c41', 0.25, 0.06, 0.2);
-        part(b, icoG(0.1), '#43a047', 0.25, 0.2, 0.2);
-        top = 0.56;
-    } else {
-        part(b, boxG(0.9, 0.02, 0.9), '#e1bee7', 0, 0.01, 0);
-        // גלגל ענק: טבעת, קרניים וקרונות
-        const wheel = new THREE.Group();
-        wheel.position.set(0.12, 0.5, -0.1);
-        const ring = new THREE.Mesh(torusG(0.3, 0.02), mat('#e53935'));
-        ring.castShadow = true;
-        wheel.add(ring);
-        for (let k = 0; k < 4; k++) {
-            const spoke = new THREE.Mesh(boxG(0.6, 0.015, 0.015), mat('#fafafa'));
-            spoke.rotation.z = k * Math.PI / 4;
-            wheel.add(spoke);
-        }
-        for (let k = 0; k < 8; k++) {
-            const a = k * Math.PI / 4;
-            const pod = new THREE.Mesh(boxG(0.07, 0.07, 0.07), mat(['#ffca28', '#42a5f5', '#66bb6a', '#ec407a'][k % 4]));
-            pod.position.set(Math.cos(a) * 0.3, Math.sin(a) * 0.3, 0);
-            wheel.add(pod);
-        }
-        b.add(wheel);
-        part(b, boxG(0.03, 0.5, 0.03), '#78909c', 0.02, 0.25, -0.1);
-        part(b, boxG(0.03, 0.5, 0.03), '#78909c', 0.22, 0.25, -0.1);
-        // אוהל פסים
-        part(b, cylG(0.14, 0.14, 0.14, 8), '#ff7043', -0.24, 0.09, 0.14);
-        part(b, coneG(0.17, 0.16, 8), '#fafafa', -0.24, 0.24, 0.14);
-        // שער
-        part(b, boxG(0.04, 0.34, 0.04), '#8e24aa', -0.14, 0.17, front);
-        part(b, boxG(0.04, 0.34, 0.04), '#8e24aa', 0.14, 0.17, front);
-        part(b, boxG(0.36, 0.08, 0.04), '#ffca28', 0, 0.36, front);
-        top = 0.85;
-    }
-    addDoorPath(b, roadNextTo(c, r), front);
-    group.add(b);
-    return top;
-}
-
-// אטרקציות בלי כניסה למשחק: מוזיאון, אקווריום, קולנוע, אצטדיון, מגדל תצפית וקרקס. מביאות תיירים לבד
-function buildLandmark(group, c, r, v) {
-    const b = new THREE.Group();
-    b.rotation.y = facingRot(c, r);
-    const front = 0.44;
-    let top = 0.6;
-    const plot = { museum: '#d7ccc8', aquarium: '#b2ebf2', cinema: '#cfd8dc', stadium: '#c5e1a5', lookout: '#c8e6c9', circus: '#f8bbd0' }[v.id];
-    part(b, boxG(0.92, 0.02, 0.92), plot, 0, 0.01, 0);
-    if (v.id === 'museum') {
-        part(b, boxG(0.8, 0.34, 0.6), '#efebe9', 0, 0.19, -0.05);
-        part(b, boxG(0.88, 0.04, 0.68), '#8d6e63', 0, 0.02, -0.05);
-        part(b, coneG(0.56, 0.2, 4), '#a1887f', 0, 0.46, -0.05).rotation.y = Math.PI / 4;
-        [-0.27, -0.09, 0.09, 0.27].forEach(x => part(b, cylG(0.03, 0.03, 0.34, 8), '#ffffff', x, 0.19, 0.3));
-        part(b, boxG(0.7, 0.04, 0.1), '#d7ccc8', 0, 0.38, 0.3);
-        part(b, boxG(0.18, 0.2, 0.02), '#6d4c41', 0, 0.12, 0.26);
-        part(b, boxG(0.5, 0.05, 0.02), '#ffca28', 0, 0.3, 0.255);
-        top = 0.6;
-    } else if (v.id === 'aquarium') {
-        part(b, boxG(0.78, 0.3, 0.6), '#4dd0e1', 0, 0.16, -0.05, { roughness: 0.2 });
-        part(b, icoG(0.34), '#80deea', 0, 0.3, -0.05, { roughness: 0.15, transparent: true, opacity: 0.8 }).scale.set(1, 0.65, 0.85);
-        [['#ff7043', -0.2, 0.2, 0.05], ['#fdd835', 0.15, 0.28, -0.1], ['#ec407a', 0.0, 0.14, 0.1]].forEach(([col, x, y, z]) => {
-            part(b, icoG(0.04), col, x, y, z).scale.set(1.6, 1, 0.6);
-        });
-        part(b, boxG(0.18, 0.2, 0.02), '#006064', 0, 0.1, 0.26);
-        part(b, boxG(0.5, 0.06, 0.02), '#0097a7', 0, 0.3, 0.255);
-        top = 0.5;
-    } else if (v.id === 'cinema') {
-        part(b, boxG(0.8, 0.46, 0.6), '#37474f', 0, 0.23, -0.05);
-        part(b, boxG(0.84, 0.04, 0.64), '#212121', 0, 0.48, -0.05);
-        part(b, boxG(0.6, 0.12, 0.04), '#ffca28', 0, 0.38, 0.27, { emissive: '#ffca28', emissiveIntensity: 0.4 });
-        part(b, boxG(0.2, 0.28, 0.02), '#b71c1c', 0, 0.14, 0.27);                 // דלת
-        part(b, boxG(0.16, 0.012, 0.3), '#d32f2f', 0, 0.015, 0.4);                // שטיח אדום
-        part(b, cylG(0.1, 0.1, 0.03, 12), '#eceff1', -0.18, 0.55, -0.05).rotation.x = Math.PI / 2;   // גלגל סרט
-        part(b, cylG(0.1, 0.1, 0.03, 12), '#eceff1', 0.04, 0.55, -0.05).rotation.x = Math.PI / 2;
-        top = 0.68;
-    } else if (v.id === 'stadium') {
-        part(b, cylG(0.42, 0.38, 0.22, 20), '#eceff1', 0, 0.12, 0);
-        part(b, cylG(0.34, 0.34, 0.2, 20), '#43a047', 0, 0.14, 0);
-        part(b, cylG(0.02, 0.02, 0.02, 20), '#ffffff', 0, 0.255, 0);
-        part(b, boxG(0.3, 0.005, 0.015), '#ffffff', 0, 0.245, 0);
-        [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]].forEach(([x, z]) => {
-            part(b, cylG(0.015, 0.015, 0.5, 5), '#78909c', x, 0.25, z);
-            part(b, boxG(0.09, 0.05, 0.03), '#fff59d', x, 0.52, z, { emissive: '#fff59d', emissiveIntensity: 0.7 });
-        });
-        top = 0.6;
-    } else if (v.id === 'lookout') {
-        part(b, cylG(0.1, 0.16, 0.2, 10), '#90a4ae', 0, 0.1, 0);
-        part(b, cylG(0.05, 0.08, 0.8, 10), '#b0bec5', 0, 0.55, 0);
-        part(b, cylG(0.17, 0.12, 0.1, 12), '#ef5350', 0, 0.98, 0);
-        part(b, cylG(0.16, 0.16, 0.06, 12), '#80deea', 0, 1.06, 0, { roughness: 0.2 });
-        part(b, coneG(0.12, 0.14, 12), '#ef5350', 0, 1.16, 0);
-        part(b, cylG(0.01, 0.01, 0.2, 5), '#eeeeee', 0, 1.3, 0);
-        top = 1.4;
-    } else {
-        // קרקס: אוהל פסים אדום-לבן עם דגל
-        for (let k = 0; k < 6; k++) {
-            const a = k * Math.PI / 3;
-            part(b, boxG(0.18, 0.28, 0.03), k % 2 ? '#ffffff' : '#e53935', Math.cos(a) * 0.26, 0.16, Math.sin(a) * 0.26).rotation.y = -a + Math.PI / 2;
-        }
-        part(b, coneG(0.4, 0.3, 6), '#e53935', 0, 0.45, 0);
-        part(b, coneG(0.41, 0.3, 6), '#ffffff', 0, 0.45, 0).scale.set(0.5, 1.02, 1.02);
-        part(b, cylG(0.01, 0.01, 0.2, 5), '#eeeeee', 0, 0.7, 0);
-        part(b, boxG(0.12, 0.07, 0.01), '#ffca28', 0.06, 0.78, 0);
-        part(b, boxG(0.2, 0.22, 0.02), '#4a148c', 0, 0.11, 0.3);
-        top = 0.85;
-    }
-    part(b, boxG(0.04, 0.34, 0.04), '#5d4037', -0.14, 0.17, front);
-    part(b, boxG(0.04, 0.34, 0.04), '#5d4037', 0.14, 0.17, front);
-    part(b, boxG(0.36, 0.08, 0.04), '#ffca28', 0, 0.36, front);
-    addDoorPath(b, roadNextTo(c, r), front);
-    group.add(b);
-    return Math.max(top, 0.5);
-}
-
-// פארק, גינה קטנה או גן שעשועים
-// חלקות פארק שכנות מתחברות לפארק אחד: בודקים לאילו כיוונים יש חלקת פארק שכנה
-function parkSides(c, r) {
-    const sides = {};
-    DIRS.forEach(d => { sides[d.name] = catAt(c + d.dc, r + d.dr) === 'park'; });
-    return sides;
-}
-function buildPark(group, seed, v, sides) {
-    // הדשא מתרחב עד הקו המשותף עם השכנה, כך שאין קו בין החלקות
-    const x0 = sides.W ? -0.5 : -0.45, x1 = sides.E ? 0.5 : 0.45;
-    const z0 = sides.N ? -0.5 : -0.45, z1 = sides.S ? 0.5 : 0.45;
-    part(group, boxG(x1 - x0, 0.02, z1 - z0), '#a5d6a7', (x0 + x1) / 2, 0.01, (z0 + z1) / 2);
-    if (v.id === 'park') {
-        part(group, cylG(0.2, 0.2, 0.03, 14), '#eceff1', 0, 0.015, 0);       // שפת הבריכה
-        part(group, cylG(0.18, 0.18, 0.02, 14), '#4fc3f7', 0, 0.03, 0, { roughness: 0.2 });
-        part(group, boxG(0.2, 0.05, 0.06), '#8d6e63', -0.3, 0.05, 0.3);
-        part(group, boxG(0.2, 0.05, 0.06), '#8d6e63', 0.3, 0.05, -0.3);
-        part(group, icoG(0.12), '#2e7d32', 0.3, 0.16, 0.3);
-        part(group, icoG(0.1), '#43a047', -0.3, 0.14, -0.3);
-    } else if (v.id === 'garden') {
-        [[-0.25, -0.2, '#f06292'], [0.05, -0.28, '#ffd54f'], [0.28, -0.05, '#f06292'], [-0.1, 0.22, '#ffd54f'], [0.25, 0.25, '#ff8a65']]
-            .forEach(([x, z, col]) => part(group, icoG(0.06), col, x, 0.06, z));
-        part(group, boxG(0.2, 0.05, 0.06), '#8d6e63', 0.0, 0.05, 0.36);
-    } else if (v.id === 'lake') {
-        part(group, cylG(0.34, 0.36, 0.03, 18), '#c8e6c9', 0, 0.015, 0);
-        part(group, cylG(0.3, 0.3, 0.02, 18), '#29b6f6', 0, 0.035, 0, { roughness: 0.2 });
-        part(group, icoG(0.05), '#ffffff', 0.08, 0.075, 0.05).scale.set(1.3, 0.9, 1);   // ברווז
-        part(group, icoG(0.03), '#ffffff', 0.14, 0.11, 0.05);
-        part(group, boxG(0.03, 0.015, 0.02), '#ff9800', 0.18, 0.105, 0.05);
-        [[-0.3, -0.25], [-0.34, -0.15], [0.3, 0.28]].forEach(([x, z]) => part(group, cylG(0.008, 0.008, 0.14, 4), '#7cb342', x, 0.08, z));
-        part(group, boxG(0.2, 0.04, 0.06), '#8d6e63', 0.0, 0.05, 0.4);
-    } else if (v.id === 'picnic') {
-        part(group, boxG(0.34, 0.01, 0.34), '#ef5350', 0, 0.02, 0.05);
-        [[-0.085, -0.085], [0.085, 0.085]].forEach(([x, z]) => part(group, boxG(0.17, 0.012, 0.17), '#ffffff', x, 0.022, 0.05 + z));
-        part(group, cylG(0.06, 0.05, 0.05, 8), '#a1887f', -0.05, 0.05, 0.02);   // סל
-        part(group, icoG(0.07), '#e53935', 0.08, 0.07, 0.1).scale.set(1, 0.8, 1);   // אבטיח
-        part(group, icoG(0.14), '#43a047', -0.3, 0.2, -0.28);
-        part(group, cylG(0.025, 0.03, 0.12, 6), '#6d4c41', -0.3, 0.06, -0.28);
-    } else if (v.id === 'soccer') {
-        part(group, boxG(0.8, 0.012, 0.8), '#43a047', 0, 0.02, 0);
-        part(group, boxG(0.8, 0.006, 0.015), '#ffffff', 0, 0.03, 0);
-        part(group, boxG(0.015, 0.006, 0.8), '#ffffff', 0, 0.03, 0);
-        part(group, torusG(0.1, 0.008), '#ffffff', 0, 0.032, 0).rotation.x = Math.PI / 2;
-        [-1, 1].forEach(sg => {
-            part(group, boxG(0.02, 0.14, 0.02), '#fafafa', sg * 0.4, 0.09, -0.1);
-            part(group, boxG(0.02, 0.14, 0.02), '#fafafa', sg * 0.4, 0.09, 0.1);
-            part(group, boxG(0.02, 0.02, 0.22), '#fafafa', sg * 0.4, 0.16, 0);
-        });
-        part(group, icoG(0.035), '#ffffff', 0.1, 0.06, 0.1);
-    } else if (v.id === 'basket') {
-        part(group, boxG(0.8, 0.012, 0.8), '#90a4ae', 0, 0.02, 0);
-        part(group, boxG(0.74, 0.006, 0.015), '#ffffff', 0, 0.03, 0);
-        part(group, torusG(0.12, 0.008), '#ffffff', 0, 0.032, 0).rotation.x = Math.PI / 2;
-        [-1, 1].forEach(sg => {
-            part(group, cylG(0.015, 0.015, 0.4, 6), '#455a64', sg * 0.36, 0.2, 0);
-            part(group, boxG(0.015, 0.14, 0.18), '#ffffff', sg * 0.33, 0.4, 0);
-            part(group, torusG(0.035, 0.006), '#ff7043', sg * 0.29, 0.34, 0).rotation.y = Math.PI / 2;
-        });
-        part(group, icoG(0.035), '#ff8f00', 0, 0.06, 0.1);
-    } else if (v.id === 'skate') {
-        part(group, boxG(0.8, 0.012, 0.8), '#b0bec5', 0, 0.02, 0);
-        part(group, boxG(0.3, 0.02, 0.22), '#607d8b', -0.22, 0.08, -0.2).rotation.x = -0.4;
-        part(group, boxG(0.3, 0.02, 0.22), '#607d8b', 0.22, 0.08, -0.2).rotation.x = -0.4;
-        part(group, boxG(0.3, 0.1, 0.12), '#78909c', 0, 0.07, 0.25);
-        part(group, boxG(0.4, 0.015, 0.015), '#ffca28', 0, 0.16, 0.05);
-        [-0.18, 0.18].forEach(x => part(group, boxG(0.015, 0.12, 0.015), '#ffca28', x, 0.08, 0.05));
-        part(group, boxG(0.12, 0.012, 0.04), '#e53935', 0.05, 0.05, 0.0);   // סקייטבורד
-    } else {
-        // גן שעשועים: מגלשה, עמודי נדנדה וספסל תלוי
-        const slide = part(group, boxG(0.12, 0.02, 0.4), '#ff7043', 0.22, 0.2, 0.05);
-        slide.rotation.x = 0.45;
-        part(group, boxG(0.04, 0.4, 0.04), '#ffca28', 0.12, 0.2, -0.15);
-        part(group, boxG(0.03, 0.3, 0.03), '#ffca28', -0.3, 0.15, -0.2);
-        part(group, boxG(0.03, 0.3, 0.03), '#ffca28', -0.2, 0.15, -0.2);
-        part(group, boxG(0.14, 0.03, 0.03), '#ffca28', -0.25, 0.3, -0.2);
-        part(group, boxG(0.08, 0.02, 0.06), '#5c6bc0', -0.25, 0.18, -0.2);
-    }
-}
-
-// דברים קטנים: ספסל, מזרקה, ברזייה, פנס, פח ופרחים. לא צריכים דרך. נבנים בגודל קטן בתוך החלקה
-function buildProp(group, seed, v) {
-    const ox = (rnd(seed, 13) - 0.5) * 0.2;
-    const oz = (rnd(seed, 14) - 0.5) * 0.2;
-    if (v.id === 'bench') {
-        part(group, boxG(0.34, 0.05, 0.12), '#8d6e63', ox, 0.14, oz);          // מושב
-        part(group, boxG(0.34, 0.14, 0.03), '#6d4c41', ox, 0.24, oz - 0.07);   // משענת
-        part(group, boxG(0.04, 0.14, 0.12), '#424242', ox - 0.14, 0.07, oz);   // רגליים
-        part(group, boxG(0.04, 0.14, 0.12), '#424242', ox + 0.14, 0.07, oz);
-    } else if (v.id === 'fountain') {
-        part(group, cylG(0.3, 0.32, 0.14, 16), '#b0bec5', 0, 0.07, 0);                   // אגן
-        part(group, cylG(0.26, 0.26, 0.02, 16), '#4fc3f7', 0, 0.13, 0, { roughness: 0.2 }); // מים
-        part(group, cylG(0.03, 0.04, 0.22, 8), '#cfd8dc', 0, 0.25, 0);                   // עמוד
-        part(group, icoG(0.05), '#e1f5fe', 0, 0.38, 0);                                  // זרם
-    } else if (v.id === 'tap') {
-        part(group, cylG(0.04, 0.05, 0.22, 8), '#1976d2', ox, 0.11, oz);
-        part(group, boxG(0.1, 0.04, 0.04), '#1976d2', ox, 0.21, oz + 0.04);
-    } else if (v.id === 'lamp') {
-        part(group, cylG(0.025, 0.03, 0.6, 8), '#37474f', ox, 0.3, oz);
-        part(group, icoG(0.07), '#fff59d', ox, 0.63, oz, { emissive: '#fff176', emissiveIntensity: 0.6 });
-    } else if (v.id === 'bin') {
-        part(group, cylG(0.07, 0.06, 0.2, 8), '#607d8b', ox, 0.1, oz);
-        part(group, cylG(0.075, 0.075, 0.02, 8), '#455a64', ox, 0.21, oz);
-    } else if (v.id === 'mailbox') {
-        part(group, cylG(0.02, 0.02, 0.2, 6), '#455a64', ox, 0.1, oz);
-        part(group, boxG(0.14, 0.12, 0.1), '#e53935', ox, 0.26, oz);
-        part(group, cylG(0.05, 0.05, 0.1, 8), '#e53935', ox, 0.32, oz).rotation.z = Math.PI / 2;
-        part(group, boxG(0.08, 0.02, 0.005), '#ffffff', ox, 0.26, oz + 0.052);
-    } else if (v.id === 'sign') {
-        part(group, cylG(0.015, 0.015, 0.5, 6), '#78909c', ox, 0.25, oz);
-        part(group, cylG(0.12, 0.12, 0.025, 8), '#e53935', ox, 0.55, oz).rotation.x = Math.PI / 2;
-        part(group, boxG(0.14, 0.04, 0.005), '#ffffff', ox, 0.55, oz + 0.016);
-    } else if (v.id === 'umbrella') {
-        part(group, cylG(0.012, 0.012, 0.5, 6), '#8d6e63', ox, 0.25, oz);
-        part(group, coneG(0.26, 0.14, 8), '#fdd835', ox, 0.55, oz);
-        part(group, coneG(0.26, 0.14, 8), '#ef5350', ox, 0.55, oz).scale.set(0.99, 1.01, 0.99);
-        part(group, cylG(0.1, 0.1, 0.012, 10), '#e0e0e0', ox, 0.006, oz + 0.2);
-    } else if (v.id === 'statue') {
-        part(group, boxG(0.26, 0.12, 0.26), '#9e9e9e', ox, 0.06, oz);
-        part(group, cylG(0.07, 0.09, 0.3, 8), '#bdbdbd', ox, 0.27, oz);
-        part(group, icoG(0.07), '#bdbdbd', ox, 0.5, oz);
-        part(group, boxG(0.22, 0.04, 0.05), '#bdbdbd', ox, 0.36, oz);
-    } else {
-        // ערוגת פרחים: מסגרת עץ וכמה פרחים צבעוניים
-        part(group, boxG(0.36, 0.04, 0.2), '#8d6e63', 0, 0.02, 0);
-        const colors = ['#f06292', '#ffd54f', '#ff8a65', '#ba68c8', '#ffffff'];
-        for (let k = 0; k < 6; k++) {
-            const fx = (rnd(seed, 20 + k) - 0.5) * 0.3;
-            const fz = (rnd(seed, 30 + k) - 0.5) * 0.14;
-            part(group, icoG(0.045), colors[k % colors.length], fx, 0.07, fz);
-        }
-    }
-}
-
-// בית ספר: מתאחד עם בתי ספר סמוכים באותה קבוצה (עד 5). בין החלקות נבנית גם הכניסה והחלונות
-const SCHOOL_STYLE = {
-    school:     { wall: '#ffd166', roof: '#9e9e9e' },
-    kinder:     { wall: '#ffab91', roof: '#ff7043' },
-    highschool: { wall: '#b0bec5', roof: '#546e7a' },
-    nursery:    { wall: '#ffe082', roof: '#ffb300', noFlag: true },
-    music:      { wall: '#ce93d8', roof: '#6a1b9a', flag: '#ffd54f' },
-    art:        { wall: '#80deea', roof: '#00838f', flag: '#ec407a' },
-    science:    { wall: '#a5d6a7', roof: '#2e7d32', flag: '#1e88e5' },
-    sports:     { wall: '#ffccbc', roof: '#d84315', flag: '#43a047' },
-};
-function buildSchool(group, c, r, v) {
-    const { wall: WALL, roof: ROOF, noFlag, flag } = SCHOOL_STYLE[v.id];
-    const gid = schoolGid.get(key(c, r));
-    const linked = {};
-    DIRS.forEach(d => {
-        linked[d.name] = gid !== undefined && schoolGid.get(key(c + d.dc, r + d.dr)) === gid;
-    });
-
-    // גוף מרכזי + זרוע לכל חלקה מאוחדת שכנה
-    part(group, boxG(0.8, 0.6, 0.8), WALL, 0, 0.3, 0);
-    part(group, boxG(0.86, 0.06, 0.86), ROOF, 0, 0.63, 0);
-    DIRS.forEach(d => {
-        if (!linked[d.name]) return;
-        const px = d.dc * 0.25;
-        const pz = d.dr * 0.25;
-        part(group, boxG(d.dc !== 0 ? 0.5 : 0.8, 0.6, d.dr !== 0 ? 0.5 : 0.8), WALL, px, 0.3, pz);
-        part(group, boxG(d.dc !== 0 ? 0.5 : 0.86, 0.06, d.dr !== 0 ? 0.5 : 0.86), ROOF, px, 0.63, pz);
-    });
-
-    // חזיתות חופשיות: חלונות, ובחזית אחת דלת לכיוון הדרך
-    const exposed = DIRS.filter(d => !linked[d.name]);
-    const entrance = exposed.find(d => roadAt(c + d.dc, r + d.dr)) || exposed[0];
-    exposed.forEach(d => {
-        const isEntr = d === entrance;
-        const offs = isEntr ? [-0.24, 0.24] : [-0.24, 0, 0.24];
-        const winSize = d.dr !== 0 ? [0.14, 0.14, 0.02] : [0.02, 0.14, 0.14];
-        offs.forEach(t => {
-            const x = d.dr !== 0 ? t : 0.41 * d.dc;
-            const z = d.dr !== 0 ? 0.41 * d.dr : t;
-            part(group, boxG(...winSize), '#90caf9', x, 0.36, z, { roughness: 0.3 });
-        });
-        if (isEntr) {
-            const doorSize = d.dr !== 0 ? [0.16, 0.22, 0.02] : [0.02, 0.22, 0.16];
-            part(group, boxG(...doorSize), '#6d4c41', 0.41 * d.dc, 0.11, 0.41 * d.dr);
-            const len = 0.1;
-            const pathSize = d.dr !== 0 ? [0.14, 0.01, len] : [len, 0.01, 0.14];
-            part(group, boxG(...pathSize), '#d7ccc8', 0.45 * d.dc, 0.005, 0.45 * d.dr);
-        }
-    });
-
-    // דגל רק על החלקה העליונה של הקבוצה (לגן ילדים אין דגל)
-    if (schoolAnchors.has(key(c, r)) && v.id !== 'kinder' && !noFlag) {
-        part(group, cylG(0.015, 0.015, 0.5, 5), '#eeeeee', -0.3, 0.88, -0.3);
-        part(group, boxG(0.2, 0.12, 0.01), flag || '#e53935', -0.2, 1.08, -0.3);
-    }
-    // סמל על הגג: מה לומדים בבית הספר
-    const em = (g, col, x, y, z) => part(group, g, col, x, y, z);
-    if (v.id === 'music') {
-        em(icoG(0.06), '#ffd54f', 0.2, 0.73, 0.1); em(boxG(0.02, 0.18, 0.02), '#ffd54f', 0.25, 0.8, 0.1);
-        em(icoG(0.05), '#ffd54f', 0.32, 0.7, 0.1);
-    } else if (v.id === 'art') {
-        [['#e53935', -0.1], ['#fdd835', 0], ['#1e88e5', 0.1]].forEach(([col, x]) => em(icoG(0.045), col, 0.2 + x, 0.7, 0.15));
-    } else if (v.id === 'science') {
-        em(cylG(0.015, 0.015, 0.3, 6), '#eceff1', 0.2, 0.8, 0.1).rotation.z = 0.6;   // טלסקופ
-        em(cylG(0.05, 0.035, 0.16, 8), '#78909c', 0.27, 0.9, 0.1).rotation.z = 0.6;
-        em(cylG(0.01, 0.025, 0.18, 6), '#78909c', 0.2, 0.74, 0.1);
-    } else if (v.id === 'sports') {
-        em(icoG(0.07), '#ffffff', 0.2, 0.72, 0.1); em(icoG(0.05), '#ffffff', 0.34, 0.7, 0.14);
-        em(boxG(0.3, 0.02, 0.02), '#ffca28', 0.27, 0.66, -0.05);
-    } else if (v.id === 'nursery') {
-        em(icoG(0.06), '#f48fb1', 0.2, 0.72, 0.1); em(icoG(0.05), '#81d4fa', 0.32, 0.7, 0.1); em(icoG(0.05), '#fff59d', 0.26, 0.68, 0.2);
-    }
-}
-
-// שער בכניסה לעיר: שני עמודים וקורה מעל הכביש (בקואורדינטות של החלקה)
-function buildGate(group) {
-    part(group, boxG(0.05, 0.4, 0.05), '#8d6e63', -0.5, 0.2, -0.26);
-    part(group, boxG(0.05, 0.4, 0.05), '#8d6e63', -0.5, 0.2, 0.26);
-    part(group, boxG(0.06, 0.06, 0.6), '#ffca28', -0.5, 0.41, 0);
-}
-
-// הכביש שמגיע מבחוץ: מהשער עד הקצה של השטח שבבעלות הילד. לא עובר דרך חלקות שנקנו
-let outsideGroup = null;
-function drawOutsideRoad() {
-    if (!scene) return;
-    if (outsideGroup) scene.remove(outsideGroup);
-    outsideGroup = new THREE.Group();
-    scene.add(outsideGroup);
-
-    const row = entranceR;
-    let c = entranceC - 1;
-    while (c > -29 && !isOwned(c, row)) c--;
-    const startX = entranceC - 0.5;    // המערב של השער
-    const endX = c + 0.5;              // המזרח של החלקה הראשונה שבבעלות, או הקצה
-    const len = startX - endX;
-    if (len <= 0.01) return;
-    part(outsideGroup, boxG(len, 0.024, 0.42), '#41444f', (startX + endX) / 2, 0.034, row);
-    for (let x = startX - 0.4; x > endX + 0.1; x -= 0.8) {
-        part(outsideGroup, boxG(0.12, 0.006, 0.03), '#f5f5f5', x, 0.049, row);
-    }
-}
+// --- המודלים התלת-ממדיים (buildCell, buildSale, drawOutsideRoad, אנשים ומכוניות) נמצאים ב-models.js וב-models-b.js ---
 
 // --- סצנה ---
 let renderer = null;
@@ -1778,11 +928,15 @@ let scene = null;
 let camera = null;
 let controls = null;
 let hoverMesh = null;
+let selMesh = null;         // מסגרת סביב החלקה שהלוח שלה פתוח
 let raycaster = null;
 let groundPlane = null;
 const groups = new Map();   // "c,r" -> Group שמוצג בסצנה
 
 let citySun = null;
+let cityHemi = null;
+let cityStars = null;
+let skyCtx = null;
 const cityClouds = [];
 const SUN_OFFSET = { x: 5, y: 11, z: 6 };
 
@@ -1813,10 +967,7 @@ function init3D() {
     // שמיים בגווני כחול: כהה למעלה ובהיר באופק
     const skyCv = document.createElement('canvas');
     skyCv.width = 4; skyCv.height = 256;
-    const skyCtx = skyCv.getContext('2d');
-    const skyGrad = skyCtx.createLinearGradient(0, 0, 0, 256);
-    skyGrad.addColorStop(0, '#58b7ff'); skyGrad.addColorStop(1, '#e3f5ff');
-    skyCtx.fillStyle = skyGrad; skyCtx.fillRect(0, 0, 4, 256);
+    skyCtx = skyCv.getContext('2d');
     scene.background = new THREE.CanvasTexture(skyCv);
     scene.background.encoding = THREE.sRGBEncoding;
     // ערפל עדין בקצה העיר: נותן עומק, והדשא מסתיים בלי קו חד
@@ -1830,7 +981,10 @@ function init3D() {
     controls.maxPolarAngle = Math.PI * 0.42;
 
     const lin = (c) => new THREE.Color(c).convertSRGBToLinear();
-    scene.add(new THREE.HemisphereLight(lin('#eaf6ff'), lin('#86a868'), 0.95));
+    cityHemi = new THREE.HemisphereLight(lin('#eaf6ff'), lin('#86a868'), 0.95);
+    scene.add(cityHemi);
+    cityStars = makeStars();
+    scene.add(cityStars);
     const sun = citySun = new THREE.DirectionalLight(lin('#fff1d0'), 1.5);   // שמש חמימה, עוקבת אחרי מרכז המבט
     sun.position.set(4, 9, 5);
     sun.castShadow = true;
@@ -1874,6 +1028,13 @@ function init3D() {
     hoverMesh.position.y = 0.04;
     hoverMesh.visible = false;
     scene.add(hoverMesh);
+    selMesh = new THREE.Mesh(
+        new THREE.RingGeometry(0.6, 0.69, 4, 1, Math.PI / 4),
+        new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9, depthWrite: false })
+    );
+    selMesh.rotation.x = -Math.PI / 2;
+    selMesh.visible = false;
+    scene.add(selMesh);
 
     raycaster = new THREE.Raycaster();
     groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -1904,7 +1065,7 @@ function init3D() {
         const isTap = pointers.size === 1 && !dragged;
         pointers.delete(e.pointerId);
         if (!isTap) return;
-        const cell = cellAt(e);
+        const cell = eventCellAt(e) || cellAt(e);   // לחיצה על הבועה עצמה נחשבת לחיצה על החלקה שלה
         if (cell) onCell(cell.c, cell.r);
     });
     canvas.addEventListener('pointercancel', (e) => {
@@ -1944,13 +1105,28 @@ function animate() {
     const now = performance.now();
     const dt = lastFrameMs ? Math.min(0.1, (now - lastFrameMs) / 1000) : 0;
     lastFrameMs = now;
-    controls.update();
+    if (tourOn) stepTour(dt); else controls.update();
     citySun.target.position.copy(controls.target);
     citySun.position.copy(controls.target).add(SUN_OFFSET);
     cityClouds.forEach((c) => { c.position.x += c.userData.v * dt; if (c.position.x > 28) c.position.x = -28; });
     if (scene) updateMovers(dt);
+    stepFX(dt, now / 1000);
+    stepEvents(dt, now / 1000);
+    stepFestival(dt);
     payCityTaxes(dt);
     renderer.render(scene, camera);
+}
+
+// לחיצה ישירה על בועת אירוע: מחזיר את החלקה שלה
+function eventCellAt(e) {
+    if (!cityEvents.length) return null;
+    const rect = renderer.domElement.getBoundingClientRect();
+    raycaster.setFromCamera(new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
+    const hit = raycaster.intersectObjects(cityEvents.map(x => x.sprite))[0];
+    const ev = hit && cityEvents.find(x => x.sprite === hit.object);
+    return ev ? { c: ev.c, r: ev.r } : null;
 }
 
 // איזו חלקה נמצאת מתחת לסמן (שלנו או למכירה), או null אם מחוץ לעיר
@@ -1968,21 +1144,16 @@ function cellAt(e) {
     return (isOwned(c, r) || isSale(c, r)) ? { c, r } : null;
 }
 
-// צבע הסמן: כחול = קנייה של שטח, כתום = יוסר, צהוב = לבנייה או להוספת עץ/קישוט
+// צבע הסמן: כחול = קנייה של שטח, צהוב = אפשר לבנות או להוסיף כאן, כתום = ייפתח לוח החלקה
 function hoverColor(c, r) {
     if (!isOwned(c, r)) return '#4fc3f7';
-    if (buildingAt(c, r)) return '#ff9800';
-    const list = decorAt(c, r);
-    if (list.length) {
-        const v = VARIANT_BY_ID[selected];
-        const canAdd = isDecorVariant(v) && list.length < DECOR_MAX;
-        return canAdd ? '#ffeb3b' : '#ff9800';
-    }
-    return '#ffeb3b';
+    const v = VARIANT_BY_ID[selected];
+    if (isDecorVariant(v)) return canAddDecor(c, r, v) ? '#ffeb3b' : '#ff9800';
+    return buildingAt(c, r) || decorAt(c, r).length ? '#ff9800' : '#ffeb3b';
 }
 
 function updateHover(e) {
-    const cell = cellAt(e);
+    const cell = tourOn ? null : cellAt(e);
     if (!cell) {
         hoverMesh.visible = false;
         return;
@@ -2015,6 +1186,9 @@ function drawCell(c, r) {
 // ציור כל העיר מחדש. דרכים ובתי ספר מסתכלים על השכנים, ולכן מחשבים הכול מחדש
 function drawAll() {
     refreshSchoolGroups();
+    CityKit.resetFX();
+    pops.length = 0;
+    nightApplied = -1;   // חלונות ופנסים חדשים צריכים לקבל את מצב היום או הלילה
     const all = new Set(owned);
     for (const k of owned) {
         const { c, r } = parseKey(k);
@@ -2073,7 +1247,9 @@ function renderCatalog() {
             btn.className = 'card' + (v.id === selected ? ' selected' : '') + (bal < v.price ? ' cant' : '');
             btn.setAttribute('aria-pressed', String(v.id === selected));
             const pop = v.pop ? `<span class="pop">👥 +${v.pop} תושבים</span>` : '';
-            const cap = isDecorVariant(v) ? `<span class="note">🔢 עד ${DECOR_MAX} בחלקה</span>` : '';
+            const sp = spaceOf(v.id);
+            const cap = isDecorVariant(v) ? `<span class="note">📐 תופס ${sp} מתוך ${PLOT_SPACE} מקומות</span>`
+                : (sp < PLOT_SPACE ? `<span class="note">📐 נשארים לידו ${PLOT_SPACE - sp} מקומות לעצים וקישוטים</span>` : '');
             const eco = ecoBadge(v);
             btn.innerHTML = `<span class="icon">${v.icon}</span><span class="name">${v.name}</span><span class="desc">${v.desc}</span>${pop}${cap}${eco}<span class="price">${v.price} 🪙</span>`;
             btn.onclick = () => {
@@ -2081,8 +1257,8 @@ function renderCatalog() {
                 setDeleteMode(false);
                 renderCatalog();
                 $('hint').textContent = isDecorVariant(v)
-                    ? `נבחר: ${v.name}. לחצו על חלקה ריקה או על חלקה עם עצים כדי להוסיף (עד ${DECOR_MAX} בחלקה).`
-                    : `נבחר: ${v.name}. לחצו על חלקה ריקה כדי לבנות.`;
+                    ? `נבחר: ${v.name}, תופס ${sp} מתוך ${PLOT_SPACE} מקומות בחלקה. לחצו על חלקה שיש בה מקום, גם ליד מבנה קטן.`
+                    : `נבחר: ${v.name}. לחצו על חלקה ריקה כדי לבנות.` + (sp < PLOT_SPACE ? ` לידו יישארו ${PLOT_SPACE - sp} מקומות לעצים וקישוטים.` : '');
             };
             grid.appendChild(btn);
         });
@@ -2154,6 +1330,14 @@ function renderDemands(st) {
 
     const lines = [];
     lines.push(`<div class="pop">👥 ${st.pop} תושבים</div>`);
+    // דרגת העיר, וכמה תושבים חסרים לדרגה הבאה
+    const rankIdx = RANKS.filter(k => st.pop >= k.pop).length;
+    const cur = rankIdx ? RANKS[rankIdx - 1] : { pop: 0, name: 'יישוב קטן', icon: '⛺' };
+    const next = RANKS[rankIdx];
+    const pct = next ? Math.round((st.pop - cur.pop) / (next.pop - cur.pop) * 100) : 100;
+    lines.push(`<div class="rank"><span class="rank-name">${cur.icon} ${cur.name}</span>`
+        + `<div class="rank-bar"><div class="rank-fill" style="width:${pct}%"></div></div>`
+        + `<span class="rank-next">${next ? `עוד ${next.pop - st.pop} תושבים ל${next.name} (+${next.prize} 🪙)` : 'הדרגה הגבוהה ביותר!'}</span></div>`);
     if (st.pop === 0) lines.push('<div class="ask">בנו בית שיש לו דרך כדי שיגיעו תושבים.</div>');
     if (asking.length) lines.push(`<div class="ask">התושבים דורשים: ${asking.join(' · ')}</div>`);
     if (done.length) lines.push(`<div class="done">${done.join(' · ')}</div>`);
@@ -2217,6 +1401,8 @@ function renderAll() {
     renderMeters(m);
     renderDemands(m.st);
     renderLoves(m);
+    renderSel();
+    updateFestBtn();
 }
 
 // --- פעולות ---
@@ -2228,21 +1414,23 @@ function commit() {
     renderAll();
 }
 
-// לחיצה על חלקה: שטח חדש אם היא למכירה. אחרת: מבנה גדול נמחק, עץ או קישוט מתווסף או מוסר, ובנייה רגילה
+// לחיצה על חלקה. שטח למכירה: קונים. אירוע (בועה מעל מבנה): מטפלים בו.
+// נבחר עץ או קישוט ויש לו מקום בחלקה: מוסיפים. חלקה ריקה: בונים. אחרת נפתח לוח החלקה (שדרוג, הסרה, התקרבות)
 function onCell(c, r) {
+    if (tourOn) return;
     if (deleteMode) return deleteAt(c, r);
     if (!isOwned(c, r)) return buyLand(c, r);
-    if (buildingAt(c, r)) {
-        if (isEntrance(c, r) && roadAt(c, r)) return feedback('הכביש הזה מחבר את העיר לעולם החיצון, לכן אי אפשר להסיר אותו');
-        return removeAt(c, r);
+    if (resolveEvent(c, r)) return;
+    const v = VARIANT_BY_ID[selected];
+    const busy = !!buildingAt(c, r) || decorAt(c, r).length > 0;
+    if (isDecorVariant(v)) {
+        if (canAddDecor(c, r, v)) return place(c, r);
+        if (!busy) return;
+        selectCell(c, r);
+        if (!roadAt(c, r)) feedback(`אין מספיק מקום ל${v.name} בחלקה הזו (תופס ${spaceOf(v.id)}, נשארו ${spaceFree(c, r)})`);
+        return;
     }
-    const list = decorAt(c, r);
-    if (list.length) {
-        // יש עצים או קישוטים: אם בחרתם עץ או קישוט חדש ויש מקום, מוסיפים. אחרת מסירים את האחרון
-        const v = VARIANT_BY_ID[selected];
-        if (isDecorVariant(v) && list.length < DECOR_MAX) return place(c, r);
-        return removeDecorAt(c, r);
-    }
+    if (busy) return selectCell(c, r);
     place(c, r);
 }
 
@@ -2262,6 +1450,8 @@ function buyLand(c, r) {
     }
     commit();
     fitCamera();
+    popCell(c, r);
+    floatText(c, r, `−${price} 🪙`, 'pay');
     feedback(gateMoved ? `קניתם שטח חדש, והשער זז אליו! −${price} 🪙` : `קניתם שטח חדש! −${price} 🪙`);
 }
 
@@ -2270,20 +1460,24 @@ function place(c, r) {
     if (!v) return;
     const bal = balance();
     if (!W) return feedback('אי אפשר לבנות עכשיו 🪙');
+    if (isDecorVariant(v) ? !canAddDecor(c, r, v) : !canBuildAt(c, r, v)) return feedback(`אין מספיק מקום ל${v.name} בחלקה הזו`);
     if (bal < v.price) {
         return feedback(`חסרים לכם ${v.price - bal} 🪙 כדי לבנות ${v.name}`);
     }
     if (!W.spend(v.price)) return feedback('משהו השתבש, נסו שוב');
 
     if (isDecorVariant(v)) {
-        const list = [...decorAt(c, r), v.id];
-        decor.set(key(c, r), list);
+        decor.set(key(c, r), [...decorAt(c, r), v.id]);
         commit();
-        return feedback(`הוספתם ${v.name} לחלקה (${list.length} מתוך ${DECOR_MAX}). −${v.price} 🪙`);
+        popCell(c, r);
+        floatText(c, r, `−${v.price} 🪙`, 'pay');
+        return feedback(`הוספתם ${v.name}. מקום בחלקה: ${spaceUsed(c, r)} מתוך ${PLOT_SPACE}. −${v.price} 🪙`);
     }
 
     buildings.set(key(c, r), v.id);
     commit();
+    popCell(c, r);
+    floatText(c, r, `−${v.price} 🪙`, 'pay');
     if (v.cat === 'road' || buildingActive(c, r)) {
         feedback(`בניתם ${v.name}! −${v.price} 🪙`);
     } else {
@@ -2291,13 +1485,32 @@ function place(c, r) {
     }
 }
 
+// שדרוג מבנה: רמה 2 ורמה 3. מבנה משודרג מכניס יותר תושבים, מסים ותיירים, ומשרת יותר תושבים
+function upgradeAt(c, r) {
+    const up = canUpgradeAt(c, r);
+    const v = variantAt(c, r);
+    if (!up) return;
+    if (!W) return feedback('אי אפשר לשדרג עכשיו 🪙');
+    const bal = balance();
+    if (bal < up.cost) return feedback(`חסרים לכם ${up.cost - bal} 🪙 כדי לשדרג את ${v.name}`);
+    if (!W.spend(up.cost)) return feedback('משהו השתבש, נסו שוב');
+    levels.set(key(c, r), up.level);
+    commit();
+    popCell(c, r);
+    floatText(c, r, `−${up.cost} 🪙`, 'pay');
+    feedback(`⬆️ ${v.name} שודרג לרמה ${up.level}! −${up.cost} 🪙`);
+}
+
 function removeAt(c, r) {
     const v = variantAt(c, r);
     if (!confirm(`למחוק את ${v.name}? יוחזר חצי מהמחיר.`)) return;
-    const refund = Math.floor(v.price / 2);
+    const refund = Math.floor(investedAt(c, r) / 2);
     buildings.delete(key(c, r));
+    levels.delete(key(c, r));
+    dropEventAt(c, r);
     commit();
-    if (W && refund > 0) W.earn(refund, { reason: `החזר ${v.name}` });
+    if (W && refund > 0) { W.earn(refund, { reason: `החזר ${v.name}` }); floatText(c, r, `+${refund} 🪙`, 'gain'); }
+    dustAt(c, r);
     feedback(`הורדתם ${v.name}. הוחזרו ${refund} 🪙`);
 }
 
@@ -2311,8 +1524,8 @@ function removeDecorAt(c, r) {
     if (list.length > 1) decor.set(key(c, r), list.slice(0, -1));
     else decor.delete(key(c, r));
     commit();
-    if (W && refund > 0) W.earn(refund, { reason: `החזר ${v.name}` });
-    feedback(`הורדתם ${v.name} מהחלקה (נשארו ${list.length - 1} מתוך ${DECOR_MAX}). הוחזרו ${refund} 🪙`);
+    if (W && refund > 0) { W.earn(refund, { reason: `החזר ${v.name}` }); floatText(c, r, `+${refund} 🪙`, 'gain'); }
+    feedback(`הורדתם ${v.name} מהחלקה. הוחזרו ${refund} 🪙`);
 }
 
 // מחיקה: מוחקים את המבנה, או את כל העצים והקישוטים בחלקה. מחזירים חצי מחיר לכל דבר (כמו בהסרה רגילה)
@@ -2332,13 +1545,86 @@ function removeAllDecorAt(c, r) {
     const refund = list.reduce((sum, id) => sum + Math.floor(VARIANT_BY_ID[id].price / 2), 0);
     decor.delete(key(c, r));
     commit();
-    if (W && refund > 0) W.earn(refund, { reason: 'החזר עצים וקישוטים' });
+    if (W && refund > 0) { W.earn(refund, { reason: 'החזר עצים וקישוטים' }); floatText(c, r, `+${refund} 🪙`, 'gain'); }
+    dustAt(c, r);
     feedback(`מחקתם ${list.length} פריטים מהחלקה. הוחזרו ${refund} 🪙`);
+}
+
+// --- לוח החלקה: נפתח בלחיצה על מבנה או על חלקה עם עצים וקישוטים ---
+let selCell = null;
+function selectCell(c, r) {
+    selCell = key(c, r);
+    renderSel();
+}
+function renderSel() {
+    const box = $('citySel');
+    if (!box) return;
+    const cell = selCell ? parseKey(selCell) : null;
+    const v = cell ? variantAt(cell.c, cell.r) : null;
+    const list = cell ? decorAt(cell.c, cell.r) : [];
+    if (!cell || !isOwned(cell.c, cell.r) || (!v && !list.length)) {
+        selCell = null;
+        box.hidden = true;
+        if (selMesh) selMesh.visible = false;
+        return;
+    }
+    const { c, r } = cell;
+    if (selMesh) { selMesh.position.set(c, 0.045, r); selMesh.visible = true; }
+    const btn = (act, text, cls) => `<button class="act${cls ? ' ' + cls : ''}" data-act="${act}">${text}</button>`;
+    const info = [];
+    const acts = [];
+    let title = '🌳 עצים וקישוטים';
+    if (v) {
+        const lv = levelAt(c, r), mult = LEVEL_MULT[lv - 1];
+        title = `${v.icon} ${v.name}${lv > 1 ? ' ' + '⭐'.repeat(lv - 1) : ''}`;
+        if (v.cat === 'road') info.push(isEntrance(c, r) ? 'הכביש שמחבר את העיר לעולם החיצון' : v.desc);
+        else if (!buildingActive(c, r)) info.push('🚧 אין דרך ליד המבנה, ולכן הוא לא עובד');
+        else {
+            if (v.pop) info.push(`👥 ${Math.round(v.pop * mult)} תושבים`);
+            if (BUILDING_TAX[v.id]) info.push(`💰 ${(BUILDING_TAX[v.id] * mult).toFixed(2)} לדקה`);
+            if (v.tourist) info.push(`🧳 תיירים: ${(v.tourist * mult).toFixed(1)} לדקה`);
+            if (!v.pop && !BUILDING_TAX[v.id] && !v.tourist) info.push(v.desc);
+        }
+        const up = canUpgradeAt(c, r);
+        if (up) acts.push(btn('up', `⬆️ שדרוג לרמה ${up.level} (${up.cost} 🪙)`, balance() < up.cost ? 'cant' : ''));
+        else if (levelAt(c, r) >= LEVEL_MAX) info.push('הרמה הגבוהה ביותר');
+        if (ATTRACTIONS[v.id] && buildingActive(c, r)) acts.push(`<a class="act" href="${ATTRACTIONS[v.id].page}?cell=${encodeURIComponent(selCell)}">🚪 כניסה</a>`);
+    }
+    if (!v || v.cat !== 'road') info.push(`📐 מקום בחלקה: ${spaceUsed(c, r)} מתוך ${PLOT_SPACE}`);
+    acts.push(btn('zoom', '🔍 התקרבות'));
+    const pick = VARIANT_BY_ID[selected];
+    if (!v && pick && !isDecorVariant(pick) && canBuildAt(c, r, pick)) acts.push(btn('build', `🏗️ לבנות כאן ${pick.name} (${pick.price} 🪙)`));
+    if (list.length) {
+        const last = VARIANT_BY_ID[list[list.length - 1]];
+        acts.push(btn('undecor', `הסרת ${last.name} (+${Math.floor(last.price / 2)} 🪙)`, 'ghost'));
+        if (list.length > 1) acts.push(btn('cleardecor', `הסרת כל ${list.length} הדברים הקטנים`, 'ghost'));
+    }
+    if (v && !(isEntrance(c, r) && v.cat === 'road')) acts.push(btn('remove', `🗑️ הסרת ${v.name} (+${Math.floor(investedAt(c, r) / 2)} 🪙)`, 'ghost'));
+    acts.push(btn('close', '✖ סגירה', 'ghost'));
+    box.hidden = false;
+    box.innerHTML = `<div class="sel-info"><strong>${title}</strong><small>${info.join(' · ')}</small></div><div class="sel-acts">${acts.join('')}</div>`;
+}
+function onSelAct(act) {
+    if (!selCell) return;
+    const { c, r } = parseKey(selCell);
+    if (act === 'close') selCell = null;
+    else if (act === 'up') upgradeAt(c, r);
+    else if (act === 'remove') removeAt(c, r);
+    else if (act === 'undecor') removeDecorAt(c, r);
+    else if (act === 'cleardecor') removeAllDecorAt(c, r);
+    else if (act === 'build') place(c, r);
+    else if (act === 'zoom' && controls) {
+        controls.target.set(c, 0.25, r);
+        camera.position.set(c, 2.1, r + 2.6);
+        controls.update();
+    }
+    renderSel();
 }
 
 // כפתור המחיקה: דולק או כבוי. כשהוא דולק, ההינט מסביר מה לעשות
 function setDeleteMode(on) {
     deleteMode = on;
+    if (on && selCell) { selCell = null; renderSel(); }
     const btn = $('deleteBtn');
     btn.setAttribute('aria-pressed', String(on));
     btn.classList.toggle('on', on);
@@ -2377,43 +1663,15 @@ function roadCellsNow() {
 }
 
 function makePerson() {
-    const g = new THREE.Group();
-    g.scale.set(0.6, 0.6, 0.6);   // קטנים יותר
-    const shirt = pickRandom(PEOPLE_SHIRTS);
-    part(g, boxG(0.13, 0.16, 0.08), shirt, 0, 0.22, 0);                        // גוף
-    part(g, icoG(0.055), pickRandom(PEOPLE_SKINS), 0, 0.38, 0);               // ראש
-    part(g, boxG(0.12, 0.035, 0.1), '#3e2723', 0, 0.435, 0);                   // שיער
-    const pants = pickRandom(PEOPLE_PANTS);
-    // רגליים וזרועות על ציר בירך ובכתף, כך שהן מתנדנדות בהליכה
-    const legs = [-0.035, 0.035].map(x => {
-        const pivot = new THREE.Group();
-        pivot.position.set(x, 0.14, 0);
-        part(pivot, boxG(0.05, 0.14, 0.05), pants, 0, -0.07, 0);
-        g.add(pivot);
-        return pivot;
-    });
-    const arms = [-0.085, 0.085].map(x => {
-        const pivot = new THREE.Group();
-        pivot.position.set(x, 0.29, 0);
-        part(pivot, boxG(0.04, 0.16, 0.04), shirt, 0, -0.08, 0);
-        g.add(pivot);
-        return pivot;
-    });
+    const m = makePersonModel();
     return {
-        kind: 'person', g, legs, arms, speed: 0.6 + Math.random() * 0.4, time: Math.random() * 10, phase: Math.random() * 6,
+        kind: 'person', g: m.g, legs: m.legs, arms: m.arms, speed: 0.6 + Math.random() * 0.4, time: Math.random() * 10, phase: Math.random() * 6,
         side: Math.random() < 0.5 ? -1 : 1, latX: 0, latZ: 0,   // לאיזה צד של הכביש, והיסט נוכחי מהמרכז
     };
 }
 
 function makeCar() {
-    const g = new THREE.Group();
-    part(g, boxG(0.2, 0.1, 0.36), pickRandom(CAR_COLORS), 0, 0.1, 0);          // גוף
-    part(g, boxG(0.16, 0.08, 0.18), '#b3e5fc', 0, 0.19, -0.02, { roughness: 0.3 }); // חלון
-    [[-0.1, 0.12], [0.1, 0.12], [-0.1, -0.12], [0.1, -0.12]].forEach(([x, z]) => {
-        const wheel = part(g, cylG(0.05, 0.05, 0.04, 8), '#263238', x, 0.05, z);
-        wheel.rotation.z = Math.PI / 2;
-    });
-    return { kind: 'car', g, speed: 1.2 + Math.random() * 0.5, side: 0, latX: 0, latZ: 0 };
+    return { kind: 'car', g: makeCarModel(), speed: 1.2 + Math.random() * 0.5, side: 0, latX: 0, latZ: 0 };
 }
 
 // מעמידים את הדמות או המכונית על כביש אקראי
@@ -2547,6 +1805,346 @@ function updateMovers(dt) {
     movers.forEach(m => stepMover(m, dt));
 }
 
+// --- אירועים בעיר: מדי פעם קורה משהו ליד מבנה (בועה מעליו). לחיצה על החלקה מטפלת בזה ומזכה במטבעות ---
+// כשיש בעיר מבנה שעוזר (תחנת כיבוי, מרפאה, משטרה...) הטיפול מצליח יותר והפרס גדול יותר
+const EVENTS = [
+    { id: 'gift',  icon: '🎁', cats: ['house', 'apt'], ok: 'תושב שמח השאיר לכם מתנה' },
+    { id: 'fire',  icon: '🔥', cats: ['house', 'apt', 'shop', 'civic', 'clinic', 'attr'], help: { id: 'fire' },
+        ok: 'הכבאים הגיעו מהר וכיבו את האש', no: 'כיביתם את האש לבד. תחנת כיבוי הייתה עוזרת' },
+    { id: 'sick',  icon: '🤒', cats: ['house', 'apt'], help: { cat: 'clinic' },
+        ok: 'החולה קיבל טיפול במרפאה והבריא', no: 'הבאתם לחולה תה. מרפאה בעיר הייתה עוזרת' },
+    { id: 'thief', icon: '🦹', cats: ['shop'], help: { id: 'police' },
+        ok: 'השוטרים תפסו את הגנב', no: 'הגנב ברח. תחנת משטרה הייתה עוזרת' },
+    { id: 'pet',   icon: '🐶', cats: ['house'], help: { id: 'vet' },
+        ok: 'הווטרינר טיפל בכלב והוא שוב מכשכש בזנב', no: 'מצאתם את הכלב שאבד. וטרינר היה עוזר לו' },
+    { id: 'trash', icon: '🗑️', cats: ['park', 'road'], help: { id: 'bin' },
+        ok: 'האשפה נאספה לפחים', no: 'אספתם את האשפה ביד. פחי אשפה היו עוזרים' },
+];
+const cityEvents = [];   // { c, r, ev, sprite, left }
+let eventClock = 20;     // שניות עד האירוע הבא
+
+function bubbleSprite(icon) {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 128;
+    const x = cv.getContext('2d');
+    x.fillStyle = '#ffffff';
+    x.beginPath(); x.moveTo(46, 96); x.lineTo(64, 126); x.lineTo(82, 96); x.fill();
+    x.beginPath(); x.arc(64, 54, 48, 0, Math.PI * 2); x.fill();
+    x.lineWidth = 6; x.strokeStyle = '#ff7043'; x.stroke();
+    x.font = '60px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(icon, 64, 58);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.encoding = THREE.sRGBEncoding;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, fog: false }));
+    sp.scale.set(0.6, 0.6, 1);
+    sp.renderOrder = 10;
+    return sp;
+}
+
+function spawnEvent() {
+    if (!W || !scene || document.hidden || cityEvents.length >= 2) return;
+    const spots = [];
+    for (const [k, id] of buildings) {
+        const v = VARIANT_BY_ID[id];
+        const { c, r } = parseKey(k);
+        if (!v || isEntrance(c, r) || cityEvents.some(e => e.c === c && e.r === r)) continue;
+        if (v.cat !== 'road' && !buildingActive(c, r)) continue;
+        EVENTS.forEach(ev => { if (ev.cats.includes(v.cat)) spots.push({ c, r, ev }); });
+    }
+    if (!spots.length) return;
+    const s = pickRandom(spots);
+    const g = groups.get(key(s.c, s.r));
+    s.y = ((g && g.userData.top) || 0.5) + 0.5;
+    s.sprite = bubbleSprite(s.ev.icon);
+    s.sprite.position.set(s.c, s.y, s.r);
+    s.left = 50;
+    scene.add(s.sprite);
+    cityEvents.push(s);
+}
+function dropEvent(e) {
+    scene.remove(e.sprite);
+    e.sprite.material.map.dispose();
+    e.sprite.material.dispose();
+    cityEvents.splice(cityEvents.indexOf(e), 1);
+}
+function dropEventAt(c, r) {
+    const e = cityEvents.find(x => x.c === c && x.r === r);
+    if (e) dropEvent(e);
+}
+// לחיצה על חלקה שיש מעליה בועה: מטפלים באירוע. מחזיר true אם היה אירוע
+function resolveEvent(c, r) {
+    const e = cityEvents.find(x => x.c === c && x.r === r);
+    if (!e) return false;
+    const st = stats();
+    const h = e.ev.help;
+    const helped_ = !h || (h.cat ? (st.active[h.cat] || 0) > 0 : (st.byId[h.id] || 0) > 0);
+    const coins = helped_ ? R.answer : R.smallSuccess;
+    W.earn(coins, { reason: 'עזרה לתושבי העיר', silent: true });
+    floatText(c, r, `+${coins} 🪙`, 'gain');
+    for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        spawnPuff(c, e.y - 0.2, r, { col: i % 2 ? '#ffd54f' : '#ff8fab', glow: true, life: 0.8, vx: Math.cos(a) * 0.6, vy: 0.5, vz: Math.sin(a) * 0.6, grow: 0.5, a: 1, g: 1.2 });
+    }
+    dropEvent(e);
+    helped++;
+    saveState();
+    checkRewards();
+    renderAll();
+    feedback(`${e.ev.icon} ${helped_ ? e.ev.ok : e.ev.no}. +${coins} 🪙`);
+    return true;
+}
+function stepEvents(dt, t) {
+    eventClock -= dt;
+    if (eventClock <= 0) { eventClock = 40 + Math.random() * 40; spawnEvent(); }
+    for (let i = cityEvents.length - 1; i >= 0; i--) {
+        const e = cityEvents[i];
+        e.left -= dt;
+        if (e.left <= 0 || !buildingAt(e.c, e.r)) { dropEvent(e); continue; }
+        e.sprite.position.y = e.y + (MOVERS_OFF ? 0 : Math.sin(t * 4 + i) * 0.06);
+        e.sprite.material.opacity = Math.min(1, e.left / 3);
+    }
+}
+
+// --- חגיגה עירונית: מופע זיקוקים מעל העיר. התושבים משאירים מטבעות, ואפשר שוב אחרי כמה דקות ---
+const FEST_MS = 5 * 60 * 1000;
+const FIRE_COLORS = ['#ff5252', '#ffd740', '#69f0ae', '#40c4ff', '#e040fb', '#ffffff'];
+let festShow = 0;      // כמה שניות נשארו למופע
+let festClock = 0;
+function festWait() { return Math.max(0, festAt + FEST_MS - Date.now()); }
+function updateFestBtn() {
+    const btn = $('festBtn');
+    if (!btn) return;
+    const wait = festWait();
+    btn.textContent = wait > 0 ? `🎆 בעוד ${Math.ceil(wait / 60000)} דק׳` : '🎆 חגיגה';
+    btn.classList.toggle('wait', wait > 0);
+}
+function runFestival() {
+    const pop = stats().pop;
+    if (pop < RANKS[0].pop) return feedback(`חגיגה עירונית אפשר לערוך מדרגת ${RANKS[0].name} (${RANKS[0].pop} תושבים)`);
+    const wait = festWait();
+    if (wait > 0) return feedback(`הזיקוקים עוד לא מוכנים. נסו שוב בעוד ${Math.ceil(wait / 60000)} דקות`);
+    if (!W) return feedback('אי אפשר לערוך חגיגה עכשיו');
+    const tips = 3 + 2 * RANKS.filter(k => pop >= k.pop).length;
+    festAt = Date.now();
+    W.earn(tips, { reason: 'חגיגה עירונית', silent: true });
+    saveState();
+    festShow = 9;
+    movers.forEach(m => { if (m.kind === 'person') startAction(m, 'jump', 6 + Math.random() * 2); });
+    floatText(entranceC, entranceR, `+${tips} 🪙`, 'gain');
+    feedback(`🎆 איזו חגיגה! התושבים השאירו ${tips} 🪙`);
+    updateFestBtn();
+}
+function stepFestival(dt) {
+    if (festShow <= 0) return;
+    festShow -= dt;
+    festClock -= dt;
+    if (festClock > 0 || festShow < 1) return;
+    festClock = 0.4;
+    const c = controls.target;
+    fireworkAt(c.x + (Math.random() - 0.5) * 7, 2.6 + Math.random() * 2, c.z + (Math.random() - 0.5) * 5);
+}
+function fireworkAt(x, y, z) {
+    const col = pickRandom(FIRE_COLORS);
+    for (let i = 0; i < 16; i++) {
+        const a = Math.random() * Math.PI * 2, e = (Math.random() - 0.3) * Math.PI * 0.8, sp = 1.4 + Math.random() * 0.8;
+        spawnPuff(x, y, z, { col, glow: true, life: 1.1 + Math.random() * 0.4, vx: Math.cos(a) * Math.cos(e) * sp, vy: Math.sin(e) * sp + 0.6, vz: Math.sin(a) * Math.cos(e) * sp, grow: 0.3, a: 1, g: 1.6, big: 1.6 });
+    }
+}
+
+// --- סיור בעיר: המצלמה נוסעת עם מכונית (או הולכת עם תושב) ברחובות ---
+let tourOn = false;
+let tourM = null;
+let tourLeft = 0;
+const tourPrev = window.THREE ? new THREE.Vector3() : null;
+const tourDir = window.THREE ? new THREE.Vector3(0, 0, 1) : null;
+function setTour(on) {
+    if (!controls) return;
+    if (on) {
+        const cars = movers.filter(m => m.kind === 'car');
+        const list = cars.length ? cars : movers;
+        if (!list.length) return feedback('כדי לצאת לסיור צריך כמה כבישים מחוברים בעיר, עם אנשים ומכוניות');
+        tourM = pickRandom(list);
+        tourPrev.copy(tourM.g.position);
+        tourLeft = 30;
+        hoverMesh.visible = false;
+        selCell = null;
+        renderSel();
+        feedback(tourM.kind === 'car' ? '🚌 יוצאים לסיור! אתם נוסעים ברחובות העיר' : '🚶 יוצאים לסיור רגלי בעיר');
+    } else if (tourOn) {
+        fitCamera();
+    }
+    tourOn = on;
+    controls.enabled = !on;
+    const btn = $('tourBtn');
+    btn.textContent = on ? '⏹ סיום הסיור' : '🚌 סיור';
+    btn.classList.toggle('on', on);
+}
+function stepTour(dt) {
+    tourLeft -= dt;
+    if (tourLeft <= 0 || !movers.includes(tourM)) return setTour(false);
+    const pos = tourM.g.position;
+    fxTmp.copy(pos).sub(tourPrev);
+    if (fxTmp.lengthSq() > 1e-8) tourDir.lerp(fxTmp.normalize(), 0.08).normalize();
+    tourPrev.copy(pos);
+    const car = tourM.kind === 'car';
+    fxTmp.copy(pos).addScaledVector(tourDir, car ? -0.75 : -0.5);
+    fxTmp.y = car ? 0.5 : 0.42;
+    camera.position.lerp(fxTmp, 0.12);
+    controls.target.copy(pos);
+    camera.lookAt(pos.x + tourDir.x * 1.5, 0.2, pos.z + tourDir.z * 1.5);
+}
+
+// --- אפקטים: יום ולילה, עשן מארובות, קפיצה של מבנה חדש, אבק ומספרים צפים ---
+const NIGHT_KEY = 'kidlearn-city-night';   // העדפת תצוגה בלבד, נשמרת במכשיר
+let night = false;
+try { night = localStorage.getItem(NIGHT_KEY) === '1'; } catch (e) { /* בלי אחסון: נשארים ביום */ }
+let nightK = night ? 1 : 0;   // 0 = יום, 1 = לילה. משתנה בהדרגה
+let nightApplied = -1;
+const pops = [];              // מבנים שקופצים עכשיו לגודל המלא
+const puffs = [];             // עשן ואבק
+let smokeClock = 0;
+const fxTmp = window.THREE ? new THREE.Vector3() : null;
+
+function makeStars() {
+    const pos = [];
+    for (let i = 0; i < 260; i++) {
+        const a = rnd(i, 31) * Math.PI * 2, e = 0.12 + rnd(i, 32) * 1.3;
+        pos.push(Math.cos(a) * Math.cos(e) * 90, Math.sin(e) * 90, Math.sin(a) * Math.cos(e) * 90);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const stars = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 0.7, transparent: true, opacity: 0, fog: false, depthWrite: false }));
+    stars.visible = false;
+    return stars;
+}
+
+function applyNight(k) {
+    const mix = (a, b) => new THREE.Color(a).lerp(new THREE.Color(b), k);
+    const top = mix('#58b7ff', '#0a1030'), low = mix('#e3f5ff', '#33406e');
+    const grad = skyCtx.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, top.getStyle()); grad.addColorStop(1, low.getStyle());
+    skyCtx.fillStyle = grad; skyCtx.fillRect(0, 0, 4, 256);
+    scene.background.needsUpdate = true;
+    scene.fog.color.copy(low).convertSRGBToLinear();
+    cityHemi.intensity = 0.95 - 0.42 * k;
+    citySun.intensity = 1.5 - 1.1 * k;
+    citySun.color.copy(mix('#fff1d0', '#9db4ff')).convertSRGBToLinear();
+    cityStars.material.opacity = k;
+    cityStars.visible = k > 0.01;
+    if (cityClouds[0]) cityClouds[0].children[0].material.opacity = 0.9 - 0.55 * k;
+    // בלילה החלונות נדלקים והפנסים מתחזקים
+    const glow = new THREE.Color('#ffd98a').convertSRGBToLinear();
+    CityKit.FX.glass.forEach(m => { m.emissive.copy(glow); m.emissiveIntensity = k * 0.9; });
+    CityKit.FX.lights.forEach(m => { m.emissiveIntensity = m.userData.base + k * 1.3; });
+}
+
+function setNight(on) {
+    night = on;
+    try { localStorage.setItem(NIGHT_KEY, on ? '1' : '0'); } catch (e) { /* לא נורא */ }
+    const btn = $('nightBtn');
+    btn.setAttribute('aria-pressed', String(on));
+    btn.classList.toggle('on', on);
+    btn.textContent = on ? '☀️ יום' : '🌙 לילה';
+    if (MOVERS_OFF) nightK = on ? 1 : 0;
+}
+
+function spawnPuff(x, y, z, o) {
+    if (MOVERS_OFF || !scene) return;
+    let p = puffs.find(q => q.life <= 0);
+    if (!p) {
+        if (puffs.length >= 170) return;
+        const mesh = new THREE.Mesh(icoG(0.035), new THREE.MeshStandardMaterial({ roughness: 1, transparent: true, opacity: 0, depthWrite: false }));
+        scene.add(mesh);
+        p = { mesh };
+        puffs.push(p);
+    }
+    Object.assign(p, { life: o.life, max: o.life, vx: o.vx || 0, vy: o.vy || 0, vz: o.vz || 0, grow: o.grow, a: o.a, g: o.g || 0, big: o.big || 1 });
+    p.mesh.material.color.set(o.col).convertSRGBToLinear();
+    p.mesh.material.emissive.copy(p.mesh.material.color);
+    p.mesh.material.emissiveIntensity = o.glow ? 1.6 : 0;
+    p.mesh.position.set(x, y, z);
+    p.mesh.visible = true;
+}
+
+// ענן אבק קטן סביב החלקה (בבנייה ובהריסה)
+function dustAt(c, r) {
+    for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4 + Math.random() * 0.5;
+        spawnPuff(c + Math.cos(a) * 0.25, 0.06, r + Math.sin(a) * 0.25,
+            { col: '#e8dcc0', life: 0.7, vx: Math.cos(a) * 0.5, vy: 0.25, vz: Math.sin(a) * 0.5, grow: 2.2, a: 0.7 });
+    }
+}
+
+// הדבר החדש בחלקה קופץ מהקרקע לגודל המלא
+function popCell(c, r) {
+    dustAt(c, r);
+    if (MOVERS_OFF) return;
+    const g = groups.get(key(c, r));
+    const o = g && g.userData.pop;
+    if (!o) return;
+    pops.push({ o, base: o.scale.clone(), t: 0 });
+    o.scale.multiplyScalar(0.01);
+}
+
+// מספר שצף מעל חלקה (כמה שילמתם או קיבלתם)
+function floatText(c, r, text, cls) {
+    if (!camera || !renderer) return;
+    const v = new THREE.Vector3(c, 0.7, r).project(camera);
+    if (v.z > 1 || Math.abs(v.x) > 1 || Math.abs(v.y) > 1) return;
+    const cv = renderer.domElement;
+    const el = document.createElement('div');
+    el.className = 'float-text ' + cls;
+    el.textContent = text;
+    el.style.left = (cv.offsetLeft + (v.x + 1) / 2 * cv.clientWidth) + 'px';
+    el.style.top = (cv.offsetTop + (1 - v.y) / 2 * cv.clientHeight) + 'px';
+    cv.closest('.scene-wrap').appendChild(el);
+    setTimeout(() => el.remove(), 1300);
+}
+
+function stepFX(dt, t) {
+    // יום ולילה
+    const target = (night || festShow > 0) ? 1 : 0;   // בזמן חגיגה יורד לילה לכמה שניות
+    if (nightK !== target) nightK = target > nightK ? Math.min(1, nightK + dt * 1.2) : Math.max(0, nightK - dt * 1.2);
+    if (nightK !== nightApplied) { applyNight(nightK); nightApplied = nightK; }
+    cityStars.position.copy(controls.target);
+    // הבהוב עדין של הסמן, וסימני "אין דרך" שקופצים
+    if (!MOVERS_OFF) hoverMesh.material.opacity = 0.38 + 0.12 * Math.sin(t * 5);
+    const fx = CityKit.FX;
+    if (!MOVERS_OFF) {
+        fx.spinners.forEach(s => { s.o.rotation[s.axis] += s.speed * dt; });
+        fx.bobbers.forEach(b => { b.o.position.y = b.y + b.a * Math.sin(t * b.sp + b.ph); });
+        // עשן מהארובות
+        smokeClock -= dt;
+        if (smokeClock <= 0 && fx.chimneys.length) {
+            smokeClock = 0.3;
+            const n = Math.min(4, Math.ceil(fx.chimneys.length / 5));
+            for (let i = 0; i < n; i++) {
+                pickRandom(fx.chimneys).getWorldPosition(fxTmp);
+                spawnPuff(fxTmp.x, fxTmp.y + 0.03, fxTmp.z,
+                    { col: nightK > 0.5 ? '#9aa0b4' : '#f4f4f4', life: 2.2, vx: 0.05, vy: 0.2, vz: 0.02, grow: 1.8, a: 0.55 });
+            }
+        }
+    }
+    puffs.forEach(p => {
+        if (p.life <= 0) return;
+        p.life -= dt;
+        if (p.life <= 0) { p.mesh.visible = false; return; }
+        const k = 1 - p.life / p.max;
+        p.vy -= p.g * dt;
+        p.mesh.position.x += p.vx * dt; p.mesh.position.y += p.vy * dt; p.mesh.position.z += p.vz * dt;
+        p.mesh.scale.setScalar(p.big * (1 + k * p.grow));
+        p.mesh.material.opacity = p.a * (1 - k);
+    });
+    for (let i = pops.length - 1; i >= 0; i--) {
+        const p = pops[i];
+        p.t += dt / 0.45;
+        const x = Math.min(1, p.t) - 1;
+        const s = 1 + 2.7 * x * x * x + 1.7 * x * x;   // קפיצה קטנה מעבר לגודל, וחזרה
+        p.o.scale.copy(p.base).multiplyScalar(Math.max(0.01, s));
+        if (p.t >= 1) pops.splice(i, 1);
+    }
+}
+
 // --- התחלה ---
 loadState();
 if (!init3D()) {
@@ -2556,12 +2154,19 @@ if (W) {
     W.onChange((bal) => {
         $('balance').textContent = bal;
         renderCatalog();
+        renderSel();
     });
 } else {
     $('balance').textContent = 0;
 }
 $('centerBtn').onclick = () => fitCamera();
 $('deleteBtn').onclick = () => setDeleteMode(!deleteMode);
+$('nightBtn').onclick = () => setNight(!night);
+$('festBtn').onclick = () => runFestival();
+$('tourBtn').onclick = () => setTour(!tourOn);
+$('citySel').onclick = (e) => { const b = e.target.closest('[data-act]'); if (b) onSelAct(b.dataset.act); };
+setInterval(updateFestBtn, 15000);
+setNight(night);
 if (window.KidLearn && KidLearn.onAuthChange) {
     KidLearn.onAuthChange((profile) => { if (profile) cloudSync(); });
 }
