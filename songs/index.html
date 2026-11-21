@@ -13,15 +13,14 @@
 <div id="status" class="hint" aria-live="polite">כתבו שם של שיר או נושא. מוצגים רק שירים שמתאימים לילדים.</div>
 <div class="connection"><span id="connectionDot" class="dot"></span><span id="connectionText">בודק חיבור לתוכנת Kidlearn במחשב...</span></div></section>
 <div class="layout">
-<section class="panel"><div class="panel-head"><h2>🎵 השירים שמצאנו</h2><span id="resultCount" class="count"></span></div>
+<section class="panel"><div class="panel-head"><h2 id="panelTitle">🎵 השירים שמצאנו</h2><span id="resultCount" class="count"></span></div>
 
 <div id="results" class="results"><div class="empty">כתבו שם של שיר או נושא ולחצו על חיפוש.</div></div></section>
 <aside id="playerPanel" class="panel player"><div class="panel-head"><h2>▶️ הנגן שלי</h2><span class="count">האזנה ישירה</span></div>
 <img id="nowCover" class="now-cover" alt="" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27640%27 height=%27400%27%3E%3Crect width=%27100%25%27 height=%27100%25%27 rx=%2728%27 fill=%27%23ddd6fe%27/%3E%3Ctext x=%2750%25%27 y=%2755%25%27 text-anchor=%27middle%27 font-size=%27100%27%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E">
 <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div id="nowTitle" class="now-title">עדיין לא בחרתם שיר</div><div id="nowShow" class="now-show">בחרו שיר מהרשימה כדי להתחיל להאזין</div>
 <audio id="audio" controls preload="none" controlsList="nodownload noplaybackrate"></audio>
-<div id="dl" class="dl" hidden><div class="dl-top"><span id="dlLabel">מכינים...</span><b id="dlPct">0%</b></div><div class="dl-bar"><i id="dlFill"></i></div></div><p class="player-note">כל מה שמאזינים לו נשמר במחשב, ולכן ההאזנה הבאה מתחילה מיד.</p>
-<h3 class="favorites-title">❤️ המועדפים שלי</h3><div id="favoriteList" class="favorite-list"><div class="count">עדיין לא שמרתם מועדפים</div></div></aside>
+<div id="dl" class="dl" hidden><div class="dl-top"><span id="dlLabel">מכינים...</span><b id="dlPct">0%</b></div><div class="dl-bar"><i id="dlFill"></i></div></div><p class="player-note">כל מה שמאזינים לו נשמר במחשב, ולכן ההאזנה הבאה מתחילה מיד.</p></aside>
 </div><div class="footer">KidLearn · השירים מוזרמים מ-YouTube ולא נשמרים במחשב</div></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>

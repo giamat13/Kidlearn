@@ -114,13 +114,14 @@ function sectionTitle(text){const h=document.createElement("div");h.className="s
 function emptyMessage(text){const e=document.createElement("div");e.className="empty";e.textContent=text;return e}
 function render(){
  const list=$("results");list.replaceChildren();let total=0;
+ const pt=$("panelTitle");if(pt)pt.textContent=(!state.searched&&!state.showOpen)?"❤️ המועדפים שלי":(SONGS?"🎵 השירים שמצאנו":"🎙️ הפודקאסטים שמצאנו");
  if(state.showOpen){
   const back=document.createElement("button");back.className="back-list";back.type="button";back.textContent="← חזרה";back.addEventListener("click",()=>{state.showOpen=null;state.episodes=[];render()});
   const bar=document.createElement("div");bar.className="show-toolbar";subButtons(state.showOpen,bar);
   list.append(back,sectionTitle(state.showOpen.title),bar);total=state.episodes.length;
   if(!state.episodes.length)list.appendChild(emptyMessage("לא מצאנו פרקים מתאימים בפודקאסט הזה."));else renderEpisodes(list);
  }else if(state.searched){
-  const back=document.createElement("button");back.className="back-list";back.type="button";back.textContent="← חזרה";back.addEventListener("click",()=>{state.searched=false;state.shows=[];state.songs=[];$("query").value="";status("");render()});
+  const back=document.createElement("button");back.className="back-list";back.type="button";back.textContent="← חזרה למועדפים";back.addEventListener("click",()=>{state.searched=false;state.shows=[];state.songs=[];$("query").value="";status("");render()});
   list.appendChild(back);
   if(SONGS){total=state.songs.length;if(!state.songs.length)list.appendChild(emptyMessage("לא נמצאו שירים מתאימים. נסו מילים אחרות."));else state.songs.forEach(x=>list.appendChild(episodeCard(x)))}
   else{total=state.shows.length;if(!state.shows.length)list.appendChild(emptyMessage("לא נמצאו פודקאסטים. נסו נושא אחר."));else state.shows.forEach(x=>list.appendChild(showCard(x)))}
@@ -130,9 +131,9 @@ function render(){
    const mine=subs();list.appendChild(sectionTitle("🎙️ הפודקאסטים שלי"));
    if(!mine.length)list.appendChild(emptyMessage("עדיין לא הוספתם פודקאסטים. חפשו פודקאסט ולחצו על \"הוספה לפודקאסטים שלי\"."));else mine.forEach(x=>list.appendChild(showCard(x)));
   }
-  if(SONGS){const lib=library();if(lib.length){list.appendChild(sectionTitle("⬇️ שירים ששמעתי (שמורים במחשב)"));lib.slice(0,30).forEach(i=>list.appendChild(episodeCard(i)))}}
-  total=SONGS?library().length:subs().length;
-  if(SONGS&&!library().length)list.appendChild(emptyMessage("כתבו שם של שיר ולחצו על חיפוש."));
+  list.appendChild(sectionTitle("❤️ המועדפים שלי"));
+  if(!favs.length)list.appendChild(emptyMessage(SONGS?"עדיין לא שמרתם שירים מועדפים. כתבו שם של שיר ולחצו על חיפוש.":"עדיין לא שמרתם מועדפים."));else favs.forEach(i=>list.appendChild(episodeCard(i)));
+  total=(SONGS?0:subs().length)+favs.length;
  }
  $("resultCount").textContent=total?String(total):"";
  renderFavorites();
@@ -146,7 +147,7 @@ async function openShow(show){
  status(state.episodes.length?"נמצאו "+state.episodes.length+" פרקים.":"לא נמצאו פרקים מתאימים.");render();window.scrollTo({top:0,behavior:"smooth"});
 }
 function renderFavorites(){
- const list=$("favoriteList");list.replaceChildren();const items=favorites();
+ const list=$("favoriteList");if(!list)return;list.replaceChildren();const items=favorites();
  if(!items.length){const empty=document.createElement("div");empty.className="count";empty.textContent="עדיין לא שמרתם מועדפים";list.appendChild(empty);return}
  items.forEach(item=>{const b=document.createElement("button");b.className="favorite-item";b.type="button";b.textContent="♥ "+item.title;b.addEventListener("click",()=>playEpisode(item));list.appendChild(b)});
 }
