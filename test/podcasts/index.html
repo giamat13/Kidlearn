@@ -69,7 +69,7 @@ async function checkConnection(){
 }
 function safeImage(url){try{const u=new URL(url);return u.protocol==="https:"?u.href:""}catch{return ""}}
 function duration(seconds){if(!Number.isFinite(seconds)||seconds<=0)return "";const m=Math.floor(seconds/60),h=Math.floor(m/60);return h?(h+":"+String(m%60).padStart(2,"0")+" שעות"):(m+" דקות")}
-function visible(){const favs=new Set(favorites().map(x=>x.id));return state.results.filter(x=>state.filter==="all"||(state.filter==="rss"&&x.source==="rss")||(state.filter==="youtube"&&x.source==="youtube")||(state.filter==="favorites"&&favs.has(x.id)))}
+function visible(){if(state.filter==="favorites")return favorites();return state.results.filter(x=>state.filter==="all"||(state.filter==="rss"&&x.source==="rss")||(state.filter==="youtube"&&x.source==="youtube"))}
 function episodeCard(item){
  const card=document.createElement("article");card.className="episode"+(state.current&&state.current.id===item.id?" active":"");
  const src=safeImage(item.image);if(src){const img=document.createElement("img");img.className="cover";img.loading="lazy";img.alt="";img.src=src;card.appendChild(img)}else{const fallback=document.createElement("div");fallback.className="cover cover-fallback";fallback.textContent="🎧";card.appendChild(fallback)}
@@ -99,9 +99,10 @@ function toggleFavorite(item){
  if(i>=0)items.splice(i,1);else items.unshift({id:item.id,source:item.source,title:item.title,show:item.show,image:item.image,audioUrl:item.audioUrl,pageUrl:item.pageUrl,durationSeconds:item.durationSeconds});
  write(FAVS,items.slice(0,100));render();
 }
-function saveProgress(){if(!state.current||!Number.isFinite(audio.currentTime))return;const p=progress();p[state.current.id]=Math.floor(audio.currentTime);write(PROGRESS,p)}
+let lastSavedAt=-1;
+function saveProgress(force){if(!state.current||!Number.isFinite(audio.currentTime))return;const second=Math.floor(audio.currentTime);if(!force&&second%5!==0&&second===lastSavedAt)return;if(!force&&second%5!==0)return;lastSavedAt=second;const p=progress();p[state.current.id]=second;write(PROGRESS,p)}
 async function playEpisode(item){
- state.current=item;$("nowTitle").textContent=item.title||"פרק";$("nowShow").textContent=item.show||"";
+ saveProgress();audio.pause();state.current=item;$("nowTitle").textContent=item.title||"פרק";$("nowShow").textContent=item.show||"";
  const cover=safeImage(item.image);if(cover)$("nowCover").src=cover;status("מכינים את ההשמעה...");render();
  let url=item.audioUrl;
  if(item.source==="youtube"){
@@ -129,7 +130,7 @@ $("searchForm").addEventListener("submit",async event=>{
  finally{$("searchButton").disabled=false;$("searchButton").textContent="חיפוש פודקאסטים"}
 });
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>{state.filter=button.dataset.filter;render()}));
-audio.addEventListener("timeupdate",saveProgress);audio.addEventListener("pause",saveProgress);
+audio.addEventListener("timeupdate",saveProgress);audio.addEventListener("pause",()=>saveProgress(true));
 audio.addEventListener("ended",()=>{saveProgress();const queue=visible(),i=queue.findIndex(x=>state.current&&x.id===state.current.id)+1;if(i>0&&i<queue.length)playEpisode(queue[i]);else status("סיימתם להאזין לפרק! כל הכבוד 🌟")});
 checkConnection();
 })();
