@@ -531,7 +531,7 @@ internal static class PodcastActions
             throw new TimeoutException();
         }
         reader.Wait(1500);
-        if (process.ExitCode != 0 || !File.Exists(outputFile))
+        if (process.ExitCode != 0)
             throw new InvalidOperationException("yt-dlp failed: " + (stderr.IsCompleted ? stderr.Result.Truncate(300) : ""));
     }
 

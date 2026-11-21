@@ -137,6 +137,7 @@ internal static class BridgeActions
             "podcastResolve" => PodcastActions.Resolve(id, request),
             "mediaPrepare" => MediaCache.Prepare(id, request),
             "mediaStatus" => MediaCache.PollStatus(id, request),
+            "mediaList" => MediaCache.List(id),
             _ => Fail(id, "unknown_action"),
         };
     }

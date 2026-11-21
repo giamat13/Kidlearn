@@ -973,7 +973,7 @@
         "desktop"
       ],
       "requiresExtension": true,
-      "minExtensionVersion": "1.4.0"
+      "minExtensionVersion": "1.5.0"
     },
     {
       "id": "songs-player",
@@ -998,7 +998,7 @@
         "desktop"
       ],
       "requiresExtension": true,
-      "minExtensionVersion": "1.4.0"
+      "minExtensionVersion": "1.5.0"
     }
   ]
 }

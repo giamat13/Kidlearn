@@ -22,6 +22,7 @@ const ALLOWED_ACTIONS = new Set([
   "podcastResolve",
   "mediaPrepare",
   "mediaStatus",
+  "mediaList",
 ]);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

@@ -25,6 +25,7 @@ internal static class MediaCache
         public bool Done;
         public string? Error;
         public string Stage = "download";
+        public JsonObject? Meta;
     }
 
     private static readonly ConcurrentDictionary<string, Job> Jobs = new();
@@ -106,6 +107,11 @@ internal static class MediaCache
 
         string key = Hash(itemId);
         var job = Jobs.GetOrAdd(key, _ => new Job { Key = key, Path = System.IO.Path.Combine(Folder, key + ".bin") });
+        job.Meta = BuildMeta(itemId, payload?["meta"] as JsonObject, youtube ? pageUrl : null, youtube ? null : url);
+        if (!File.Exists(job.Path + ".ok") && !job.Done && job.Bytes == 0)
+        {
+            try { if (File.Exists(job.Path)) File.Delete(job.Path); } catch (Exception) { }
+        }
 
         lock (job)
         {
@@ -137,6 +143,39 @@ internal static class MediaCache
         return Ok(id, Status(job));
     }
 
+    private static JsonObject BuildMeta(string itemId, JsonObject? meta, string? pageUrl, string? audioUrl)
+    {
+        string Str(string k, int max) => meta?[k] is JsonValue v && v.TryGetValue(out string? t) && t is not null ? (t.Length > max ? t[..max] : t) : "";
+        var o = new JsonObject
+        {
+            ["id"] = itemId, ["kind"] = Str("kind", 12), ["source"] = Str("source", 20), ["title"] = Str("title", 300),
+            ["show"] = Str("show", 200), ["image"] = Str("image", 1500), ["pageUrl"] = pageUrl ?? "", ["audioUrl"] = audioUrl ?? "",
+        };
+        if (meta?["durationSeconds"] is JsonValue d && d.TryGetValue(out int secs)) o["durationSeconds"] = secs;
+        return o;
+    }
+
+    private static void SaveMeta(Job job)
+    {
+        try { if (job.Meta is not null) File.WriteAllText(job.Path + ".json", job.Meta.ToJsonString()); } catch (Exception) { }
+    }
+
+    // השירים והפרקים ששמורים במחשב, מהחדש לישן. נשמרים בין עדכונים ובין כתובות אתר שונות.
+    public static JsonObject List(string? id)
+    {
+        var items = new JsonArray();
+        try
+        {
+            foreach (var file in new DirectoryInfo(Folder).GetFiles("*.bin.json").OrderByDescending(f => f.LastWriteTimeUtc).Take(300))
+            {
+                if (!File.Exists(file.FullName[..^5] + ".ok")) continue;
+                try { if (JsonNode.Parse(File.ReadAllText(file.FullName)) is JsonObject o) items.Add(o); } catch (Exception) { }
+            }
+        }
+        catch (Exception) { }
+        return Ok(id, new JsonObject { ["items"] = items });
+    }
+
     public static JsonObject PollStatus(string? id, JsonObject request)
     {
         string? itemId = request["payload"] is JsonObject p && p["itemId"] is JsonValue v && v.TryGetValue(out string? t) ? t : null;
@@ -160,17 +199,24 @@ internal static class MediaCache
         string temp = job.Path + ".part";
         try
         {
-            PodcastActions.DownloadYouTubeAudio(pageUrl, temp, (bytes, total) =>
+            string template = System.IO.Path.Combine(Folder, job.Key + ".dl.%(ext)s");
+            foreach (string old in Directory.GetFiles(Folder, job.Key + ".dl.*")) { try { File.Delete(old); } catch (Exception) { } }
+            PodcastActions.DownloadYouTubeAudio(pageUrl, template, (bytes, total) =>
             {
                 job.Stage = "download";
                 job.Bytes = bytes;
                 if (total > 0) job.Total = total;
             });
+            string? produced = Directory.GetFiles(Folder, job.Key + ".dl.*")
+                .Where(f => !f.EndsWith(".part") && !f.EndsWith(".ytdl")).OrderByDescending(f => new FileInfo(f).Length).FirstOrDefault();
+            if (produced is null) throw new InvalidDataException("no file");
+            temp = produced;
             long size = new FileInfo(temp).Length;
             if (size == 0) throw new InvalidDataException("empty");
             if (File.Exists(job.Path)) File.Delete(job.Path);
             File.Move(temp, job.Path);
-            File.WriteAllText(job.Path + ".ok", "audio/mp4");
+            SaveMeta(job);
+            File.WriteAllText(job.Path + ".ok", produced.EndsWith(".webm") ? "audio/webm" : "audio/mp4");
             job.Bytes = job.Total = size;
             job.Done = true;
             TrimCache(job.Path);
@@ -179,6 +225,7 @@ internal static class MediaCache
         {
             job.Error = ex.Message.Contains("not_child_appropriate") ? "not_child_appropriate" : "download_failed";
             try { File.Delete(temp); } catch (Exception) { }
+            try { foreach (string old in Directory.GetFiles(Folder, job.Key + ".dl.*")) File.Delete(old); } catch (Exception) { }
         }
     }
 
@@ -215,6 +262,7 @@ internal static class MediaCache
             job.Total = job.Bytes;
             if (File.Exists(job.Path)) File.Delete(job.Path);
             File.Move(temp, job.Path);
+            SaveMeta(job);
             File.WriteAllText(job.Path + ".ok", type is not null && type.StartsWith("audio/") ? type : "audio/mpeg");
             job.Done = true;
             TrimCache(job.Path);
@@ -298,6 +346,7 @@ internal static class MediaCache
             response.ContentType = contentType.StartsWith("audio/") ? contentType : "audio/mpeg";
             response.AddHeader("Accept-Ranges", "bytes");
             response.AddHeader("Access-Control-Allow-Origin", "*");
+            response.AddHeader("Access-Control-Allow-Private-Network", "true");
             response.ContentLength64 = end - start + 1;
 
             await using var input = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);

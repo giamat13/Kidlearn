@@ -9,8 +9,27 @@ function write(key,value){try{localStorage.setItem(key,JSON.stringify(value))}ca
  try{if(window.KidLearn&&KidLearn.backupKey&&KidLearn.currentUser&&KidLearn.currentUser()&&CLOUD_KEYS.includes(key))KidLearn.backupKey(key)}catch{}}
 const LIB="kidlearn-song-library-v1";
 function library(){const items=read(LIB,[]);return Array.isArray(items)?items:[]}
+// הרשימה האמיתית נשמרת באפליקציה (שורדת עדכונים). כאן רק עותק מהיר להצגה מיידית.
+async function loadLibrary(){if(!SONGS||!window.KidLearnBridge)return;try{const r=await KidLearnBridge.request("mediaList",{},{timeoutMs:10000});if(r.ok&&r.data&&Array.isArray(r.data.items)){const songs=r.data.items.filter(x=>x&&x.kind==="song");localStorage.setItem(LIB,JSON.stringify(songs));render()}}catch{}}
+// מועדפים יורדים למחשב לבד, אחד אחרי השני, כדי שיתחילו מיד
+let prefetching=false;
+async function prefetchFavorites(){
+ if(prefetching||!window.KidLearnBridge)return;prefetching=true;
+ try{
+  const have=new Set();try{const l=await KidLearnBridge.request("mediaList",{},{timeoutMs:10000});if(l.ok&&l.data&&Array.isArray(l.data.items))l.data.items.forEach(x=>have.add(x.id))}catch{}
+  for(const item of favorites()){
+   if(have.has(item.id))continue;
+   const payload={itemId:item.id,meta:{kind:item.kind,source:item.source,title:item.title,show:item.show,image:item.image,durationSeconds:item.durationSeconds}};
+   if(item.source==="youtube")payload.pageUrl=item.pageUrl;else payload.url=item.audioUrl;
+   let r=await KidLearnBridge.request("mediaPrepare",payload,{timeoutMs:20000});
+   for(let i=0;r.ok&&r.data&&!r.data.done&&!r.data.error&&i<1500;i++){await sleep(1200);r=await KidLearnBridge.request("mediaStatus",{itemId:item.id},{timeoutMs:10000});if(!r.ok)break}
+  }
+  loadLibrary();
+ }catch{}
+ prefetching=false;
+}
 function inLibrary(id){return library().some(x=>x.id===id)}
-function addToLibrary(item){if(!SONGS||!item||!item.id||inLibrary(item.id))return;const l=library();l.unshift({id:item.id,kind:item.kind||"song",source:item.source,title:item.title,show:item.show,image:item.image,audioUrl:item.audioUrl,pageUrl:item.pageUrl,durationSeconds:item.durationSeconds});write(LIB,l.slice(0,300))}
+function addToLibrary(item){if(!SONGS||!item||!item.id)return;setTimeout(loadLibrary,800);if(inLibrary(item.id))return;const l=library();l.unshift({id:item.id,kind:item.kind||"song",source:item.source,title:item.title,show:item.show,image:item.image,audioUrl:item.audioUrl,pageUrl:item.pageUrl,durationSeconds:item.durationSeconds});write(LIB,l.slice(0,300))}
 function localMatches(query){const words=query.toLowerCase().split(/s+/).filter(Boolean);return library().filter(x=>{const t=((x.title||"")+" "+(x.show||"")).toLowerCase();return words.every(w=>t.includes(w))})}
 function favorites(){const items=read(FAVS,[]);return Array.isArray(items)?items:[]}function progress(){const saved=read(PROGRESS,{});return saved&&typeof saved==="object"&&!Array.isArray(saved)?saved:{}}
 function status(message){$("status").textContent=message}
@@ -134,7 +153,7 @@ function renderFavorites(){
 function toggleFavorite(item){
  const items=favorites(),i=items.findIndex(x=>x.id===item.id);
  if(i>=0)items.splice(i,1);else items.unshift({id:item.id,kind:item.kind,source:item.source,title:item.title,show:item.show,image:item.image,audioUrl:item.audioUrl,pageUrl:item.pageUrl,durationSeconds:item.durationSeconds});
- write(FAVS,items.slice(0,100));render();
+ write(FAVS,items.slice(0,100));render();if(i<0)prefetchFavorites();
 }
 let lastSavedAt=0;
 function saveProgress(force){if(!state.current||!Number.isFinite(audio.currentTime))return;const second=Math.floor(audio.currentTime);if(!force&&second-lastSavedAt<5)return;lastSavedAt=second;const p=progress();p[state.current.id]=second;write(PROGRESS,p)}
@@ -144,7 +163,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let playToken=0;
 // מוריד (או מוצא שמור) את השיר/הפרק דרך האפליקציה, עם פס התקדמות. מחזיר כתובת מקומית, או null אם אי אפשר.
 async function fetchLocal(item,token){
- const payload={itemId:item.id};if(item.source==="youtube")payload.pageUrl=item.pageUrl;else payload.url=item.audioUrl;
+ const payload={itemId:item.id,meta:{kind:item.kind,source:item.source,title:item.title,show:item.show,image:item.image,durationSeconds:item.durationSeconds}};if(item.source==="youtube")payload.pageUrl=item.pageUrl;else payload.url=item.audioUrl;
  let r=await KidLearnBridge.request("mediaPrepare",payload,{timeoutMs:20000});
  if(!r.ok||!r.data)return r.error==="not_child_appropriate"?{blocked:true}:null;
  const t0=Date.now();
@@ -181,11 +200,20 @@ async function playEpisode(item){
   if(!result.ok||!result.data||!result.data.url){status(result.error==="not_child_appropriate"?SONGS?"השיר הזה אינו מתאים להגדרות הגיל של הנגן.":"הפרק הזה אינו מתאים להגדרות הגיל של הנגן.":SONGS?"לא הצלחנו לפתוח את השיר. נסו שיר אחר.":"לא הצלחנו לפתוח את השמע של הפרק. נסו פרק אחר.");return}
   url=result.data.url;
  }
- try{
-  const parsed=new URL(src||url);if(!src&&parsed.protocol!=="https:")throw new Error("Secure stream required");
-  audio.pause();audio.src=parsed.href;audio.load();const start=progress()[item.id]||0;
+ const start=progress()[item.id]||0;
+ async function attempt(href){
+  audio.pause();audio.src=href;audio.load();
   if(start>0)audio.addEventListener("loadedmetadata",()=>{if(Number.isFinite(audio.duration)&&start<audio.duration-10)audio.currentTime=start},{once:true});
-  await audio.play();if(src)addToLibrary(item);status(SONGS?"השיר מתנגן עכשיו 🎵":"הפרק מתנגן עכשיו 🎵");render();
+  await audio.play();
+ }
+ try{
+  if(src){
+   try{await attempt(src);addToLibrary(item);status(SONGS?"השיר מתנגן עכשיו 🎵":"הפרק מתנגן עכשיו 🎵");render();return}
+   catch{status("ההשמעה מהקובץ השמור לא הצליחה, מנסים הזרמה ישירה...")}
+   if(item.source==="youtube"){const result=await KidLearnBridge.request("podcastResolve",{url:item.pageUrl},{timeoutMs:65000});if(result.ok&&result.data&&result.data.url)url=result.data.url}
+  }
+  const parsed=new URL(url);if(parsed.protocol!=="https:")throw new Error("Secure stream required");
+  await attempt(parsed.href);status(SONGS?"השיר מתנגן עכשיו 🎵":"הפרק מתנגן עכשיו 🎵");render();
  }catch{status("הדפדפן לא הצליח להפעיל את זרם השמע של הפרק הזה.")}
 }
 $("searchForm").addEventListener("submit",async event=>{
@@ -206,7 +234,7 @@ $("searchForm").addEventListener("submit",async event=>{
 });
 audio.addEventListener("play",()=>$("playerPanel").classList.add("playing"));audio.addEventListener("pause",()=>$("playerPanel").classList.remove("playing"));audio.addEventListener("ended",()=>$("playerPanel").classList.remove("playing"));audio.addEventListener("timeupdate",saveProgress);audio.addEventListener("pause",()=>saveProgress(true));
 audio.addEventListener("ended",()=>{saveProgress();const q=queue(),i=q.findIndex(x=>state.current&&x.id===state.current.id)+1;if(i>0&&i<q.length)playEpisode(q[i]);else status(SONGS?"השיר נגמר! רוצים עוד אחד? 🌟":"סיימתם להאזין לפרק! כל הכבוד 🌟")});
-checkConnection().then(syncWatch);
+checkConnection().then(()=>{syncWatch();loadLibrary();prefetchFavorites()});
 if(window.KidLearn){
  try{
   KidLearn.init();
