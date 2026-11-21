@@ -69,6 +69,13 @@
       "subtitle": "דברים אמיתיים שקורים עכשיו בעולם",
       "icon": "🌍",
       "color": "linear-gradient(90deg, #38BDF8, #22D3EE)"
+    },
+    {
+      "id": "podcasts",
+      "title": "פודקאסטים",
+      "subtitle": "מגלים, מקשיבים ולומדים",
+      "icon": "🎧",
+      "color": "linear-gradient(90deg, #8B5CF6, #EC4899)"
     }
   ],
   "items": [
@@ -78,9 +85,19 @@
       "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
       "icon": "🔤",
       "url": "Letters-game/index.html",
-      "categories": ["he", "games"],
-      "grade": ["kindergarten", "first"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "he",
+        "games"
+      ],
+      "grade": [
+        "kindergarten",
+        "first"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "magic-fridge",
@@ -88,9 +105,22 @@
       "description": "אילו מאכלים בריאים ואילו לא?",
       "icon": "🧊",
       "url": "the magical fridge/index.html",
-      "categories": ["he", "games", "knowledge"],
-      "grade": ["preschool", "kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "he",
+        "games",
+        "knowledge"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "homework",
@@ -98,9 +128,23 @@
       "description": "ללמוד לנהל את הזמן ולעשות ש.ב!",
       "icon": "⏰",
       "url": "https://giamat13.github.io/homework-easy-times",
-      "categories": ["english", "he"],
-      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "english",
+        "he"
+      ],
+      "grade": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "grammar",
@@ -108,9 +152,19 @@
       "description": "Master English grammar with clear explanations.",
       "icon": "✏️",
       "url": "learn/apps/grammar.html",
-      "categories": ["english"],
-      "grade": ["second", "third", "fourth"],
-      "devices": ["desktop", "tablet", "mobile"]
+      "categories": [
+        "english"
+      ],
+      "grade": [
+        "second",
+        "third",
+        "fourth"
+      ],
+      "devices": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ]
     },
     {
       "id": "vocab",
@@ -118,9 +172,20 @@
       "description": "Expand your English vocabulary with new words.",
       "icon": "📝",
       "url": "learn/apps/vocab.html",
-      "categories": ["english"],
-      "grade": ["third", "fourth", "fifth", "sixth"],
-      "devices": ["desktop", "tablet", "mobile"]
+      "categories": [
+        "english"
+      ],
+      "grade": [
+        "third",
+        "fourth",
+        "fifth",
+        "sixth"
+      ],
+      "devices": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ]
     },
     {
       "id": "quiz",
@@ -128,9 +193,19 @@
       "description": "Test your knowledge with interactive quizzes.",
       "icon": "❓",
       "url": "learn/apps/quiz.html",
-      "categories": ["english"],
-      "grade": ["second", "third", "fourth"],
-      "devices": ["desktop", "tablet", "mobile"]
+      "categories": [
+        "english"
+      ],
+      "grade": [
+        "second",
+        "third",
+        "fourth"
+      ],
+      "devices": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ]
     },
     {
       "id": "colors-numbers",
@@ -138,9 +213,19 @@
       "description": "ללמוד מספרים עד 10 בדרכים מהנות.",
       "icon": "🔢",
       "url": "Learn-Color-Numburs/index.html",
-      "categories": ["math"],
-      "grade": ["preschool", "kindergarten", "first"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "words-he-build",
@@ -148,9 +233,20 @@
       "description": "ללמוד איות בדרך מהנה.",
       "icon": "📝",
       "url": "words-he-build/index.html",
-      "categories": ["he"],
-      "grade": ["kindergarten", "first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "he"
+      ],
+      "grade": [
+        "kindergarten",
+        "first",
+        "second",
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "dictation-game",
@@ -158,9 +254,21 @@
       "description": "מכניסים מילים, מקשיבים ומקלידים!",
       "icon": "✍️",
       "url": "dictation-game/index.html",
-      "categories": ["he", "games"],
-      "grade": ["first", "second", "third", "fourth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "he",
+        "games"
+      ],
+      "grade": [
+        "first",
+        "second",
+        "third",
+        "fourth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "facts",
@@ -168,9 +276,18 @@
       "description": "לגלות עובדות מעניינות וידע כללי.",
       "icon": "🧠",
       "url": "Facts/index.html",
-      "categories": ["knowledge"],
-      "grade": ["preschool", "kindergarten"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "knowledge"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-1",
@@ -178,9 +295,18 @@
       "description": "משחק מדע מקוון לכיתה א׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=1&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["first"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "first"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-2",
@@ -188,9 +314,18 @@
       "description": "משחק מדע מקוון לכיתה ב׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=2&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-3",
@@ -198,9 +333,18 @@
       "description": "משחק מדע מקוון לכיתה ג׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=3&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-4",
@@ -208,9 +352,18 @@
       "description": "משחק מדע מקוון לכיתה ד׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=4&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["fourth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "fourth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-5",
@@ -218,9 +371,18 @@
       "description": "משחק מדע מקוון לכיתה ה׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=5&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["fifth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "fifth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-6",
@@ -228,9 +390,18 @@
       "description": "משחק מדע מקוון לכיתה ו׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=6&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["sixth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "sixth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-7",
@@ -238,9 +409,18 @@
       "description": "משחק מדע מקוון לכיתה ז׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=7&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["seventh"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "seventh"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-8",
@@ -248,9 +428,18 @@
       "description": "משחק מדע מקוון לכיתה ח׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=8&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["eighth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "eighth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-9",
@@ -258,9 +447,18 @@
       "description": "משחק מדע מקוון לכיתה ט׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=9&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["ninth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "ninth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-10",
@@ -268,9 +466,18 @@
       "description": "משחק מדע מקוון לכיתה י׳.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=10&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["tenth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "tenth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-11",
@@ -278,9 +485,18 @@
       "description": "משחק מדע מקוון לכיתה י\"א.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=11&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["eleventh"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "eleventh"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "spacegame-S-12",
@@ -288,9 +504,18 @@
       "description": "משחק מדע מקוון לכיתה י\"ב.",
       "icon": "🚀",
       "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=12&subject=science",
-      "categories": ["science", "games"],
-      "grade": ["twelfth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "science",
+        "games"
+      ],
+      "grade": [
+        "twelfth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "secrets-series",
@@ -299,9 +524,20 @@
       "icon": "📺",
       "url": "series/index.html?config=data/secrets-series.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
-      "categories": ["series", "he"],
-      "grade": ["kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "series",
+        "he"
+      ],
+      "grade": [
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "parpar-nachmad-old",
@@ -310,9 +546,20 @@
       "icon": "🦋",
       "url": "series/index.html?config=data/parpar-nachmad-old.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
-      "categories": ["series"],
-      "grade": ["preschool", "kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "series"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "parpar-nachmad-new",
@@ -321,9 +568,20 @@
       "icon": "🦋",
       "url": "series/index.html?config=data/parpar-nachmad-new.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
-      "categories": ["series"],
-      "grade": ["preschool", "kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "series"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "hachaim-series",
@@ -332,9 +590,19 @@
       "icon": "💉",
       "url": "series/index.html?config=data/hachaim-series.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PL7s3QxO6wm48st6XALJqSP1iQHbd4ghGW",
-      "categories": ["series"],
-      "grade": ["kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "series"
+      ],
+      "grade": [
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "memory-game",
@@ -342,9 +610,22 @@
       "description": "תרגל את הזיכרון שלך עם משחק זכרון קלאסי!",
       "icon": "🧠",
       "url": "memory-game/index.html",
-      "categories": ["games", "he", "math"],
-      "grade": ["kindergarten", "preschool", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "games",
+        "he",
+        "math"
+      ],
+      "grade": [
+        "kindergarten",
+        "preschool",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "nikud-game",
@@ -352,9 +633,19 @@
       "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
       "icon": "🔡",
       "url": "nikud-game/index.html",
-      "categories": ["he", "games"],
-      "grade": ["kindergarten", "first"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "he",
+        "games"
+      ],
+      "grade": [
+        "kindergarten",
+        "first"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "multiplication-game",
@@ -362,9 +653,19 @@
       "description": "תרגל לוח כפל, ענה מהר וצבור ניקוד!",
       "icon": "✖️",
       "url": "multiplication-game/index.html",
-      "categories": ["math", "games"],
-      "grade": ["third", "fourth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math",
+        "games"
+      ],
+      "grade": [
+        "third",
+        "fourth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "coloring-pages",
@@ -372,9 +673,21 @@
       "description": "צבע תמונות מהנות לפי מספרים — כל מספר מייצג צבע!",
       "icon": "🎨",
       "url": "coloring-pages/index.html",
-      "categories": ["math", "games"],
-      "grade": ["preschool", "kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math",
+        "games"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "print-coloring",
@@ -382,9 +695,21 @@
       "description": "חפשו כל נושא בכל שפה, בחרו דף צביעה, התאימו גודל והדפיסו על A4.",
       "icon": "🖨️",
       "url": "print-coloring/index.html",
-      "categories": ["games"],
-      "grade": ["preschool", "kindergarten", "first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "games"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second",
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "ruler-design",
@@ -392,9 +717,21 @@
       "description": "צובעים ומקשטים סרגל מתקפל בדרך יצירתית ומהנה.",
       "icon": "🎨",
       "url": "Ruler-design/index.html",
-      "categories": ["games", "he"],
-      "grade": ["preschool", "kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "games",
+        "he"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "memory-english",
@@ -402,9 +739,21 @@
       "description": "התאימו כל מילה באנגלית לתרגום שלה בעברית וצברו מטבעות!",
       "icon": "🧠",
       "url": "memory-english/index.html",
-      "categories": ["games", "english", "he"],
-      "grade": ["fifth", "sixth", "seventh"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "games",
+        "english",
+        "he"
+      ],
+      "grade": [
+        "fifth",
+        "sixth",
+        "seventh"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "math-addition-subtraction",
@@ -412,9 +761,19 @@
       "description": "תרגלו חיבור וחיסור עד 10 או עד 20, ענו מהר וצברו נקודות!",
       "icon": "➕",
       "url": "math-addition-subtraction/index.html",
-      "categories": ["math", "games"],
-      "grade": ["first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math",
+        "games"
+      ],
+      "grade": [
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "first-reading-game",
@@ -422,9 +781,19 @@
       "description": "מרכיבים משפט קצר ממילים מעורבבות וקוראים אותו בעברית.",
       "icon": "📖",
       "url": "first-reading-game/index.html",
-      "categories": ["he", "games"],
-      "grade": ["kindergarten", "first"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "he",
+        "games"
+      ],
+      "grade": [
+        "kindergarten",
+        "first"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "letters-game-gan-chova",
@@ -432,9 +801,17 @@
       "description": "בואו ללמוד את אותיות הא-ב בדרך מהנה!",
       "icon": "🔤",
       "url": "Letters-game/index.html",
-      "categories": ["gan-chova"],
-      "grade": ["kindergarten"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "gan-chova"
+      ],
+      "grade": [
+        "kindergarten"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "colors-numbers-gan-chova",
@@ -442,9 +819,17 @@
       "description": "ללמוד מספרים עד 10 בדרכים מהנות.",
       "icon": "🔢",
       "url": "Learn-Color-Numburs/index.html",
-      "categories": ["gan-chova"],
-      "grade": ["kindergarten"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "gan-chova"
+      ],
+      "grade": [
+        "kindergarten"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "words-he-build-gan-chova",
@@ -452,9 +837,17 @@
       "description": "ללמוד איות בדרך מהנה.",
       "icon": "📝",
       "url": "words-he-build/index.html",
-      "categories": ["gan-chova"],
-      "grade": ["kindergarten"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "gan-chova"
+      ],
+      "grade": [
+        "kindergarten"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "nikud-game-gan-chova",
@@ -462,9 +855,17 @@
       "description": "זהה את הניקוד הנכון ותרגל קריאה בעברית!",
       "icon": "🔡",
       "url": "nikud-game/index.html",
-      "categories": ["gan-chova"],
-      "grade": ["kindergarten"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "gan-chova"
+      ],
+      "grade": [
+        "kindergarten"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "coloring-pages-gan-chova",
@@ -472,9 +873,17 @@
       "description": "צבע תמונות מהנות לפי מספרים — כל מספר מייצג צבע!",
       "icon": "🎨",
       "url": "coloring-pages/index.html",
-      "categories": ["gan-chova"],
-      "grade": ["kindergarten"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "gan-chova"
+      ],
+      "grade": [
+        "kindergarten"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "math-adventure",
@@ -482,9 +891,22 @@
       "description": "עולמות קסומים מלאי אתגרי חשבון וצבע!",
       "icon": "🧮",
       "url": "math-adventure/index.html",
-      "categories": ["math", "games"],
-      "grade": ["first", "second", "third", "fourth", "fifth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math",
+        "games"
+      ],
+      "grade": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "first-reading-game-gan-chova",
@@ -492,9 +914,17 @@
       "description": "מרכיבים משפט קצר ממילים מעורבבות וקוראים אותו בעברית.",
       "icon": "📖",
       "url": "first-reading-game/index.html",
-      "categories": ["gan-chova"],
-      "grade": ["kindergarten"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "gan-chova"
+      ],
+      "grade": [
+        "kindergarten"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "family-mail",
@@ -502,9 +932,22 @@
       "description": "כותבים (או מדברים!) מכתב שנשלח באמת באימייל למשפחה, והם יכולים לענות.",
       "icon": "💌",
       "url": "family-mail/index.html",
-      "categories": ["family", "games"],
-      "grade": ["kindergarten", "first", "second", "third", "fourth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "family",
+        "games"
+      ],
+      "grade": [
+        "kindergarten",
+        "first",
+        "second",
+        "third",
+        "fourth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "world-weather",
@@ -512,9 +955,30 @@
       "description": "חם או קר עכשיו בחוץ? מה ללבוש? ואיך הירח נראה הלילה?",
       "icon": "☁️",
       "url": "world-weather/index.html",
-      "categories": ["world"],
-      "grade": ["preschool", "kindergarten", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "world"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth",
+        "seventh",
+        "eighth",
+        "ninth",
+        "tenth",
+        "eleventh",
+        "twelfth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "zoo-cam",
@@ -522,9 +986,21 @@
       "description": "שידור חי, ממש עכשיו, מהטבע.",
       "icon": "🐾",
       "url": "zoo-cam/index.html",
-      "categories": ["world"],
-      "grade": ["preschool", "kindergarten", "first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "world"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second",
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "airplane-cam",
@@ -532,9 +1008,21 @@
       "description": "צופים במטוסים ממריאים ונוחתים ברחבי העולם.",
       "icon": "✈️",
       "url": "airplane-cam/index.html",
-      "categories": ["world"],
-      "grade": ["preschool", "kindergarten", "first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "world"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second",
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "train-cam",
@@ -542,9 +1030,21 @@
       "description": "מציצים אל תחנות רכבת ורואים רכבות חולפות.",
       "icon": "🚂",
       "url": "train-cam/index.html",
-      "categories": ["world"],
-      "grade": ["preschool", "kindergarten", "first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "world"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second",
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "clock-game",
@@ -552,9 +1052,20 @@
       "description": "לומדים לקרוא את השעון לפי המחוגים!",
       "icon": "🕐",
       "url": "clock-game/index.html",
-      "categories": ["math", "games"],
-      "grade": ["first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math",
+        "games"
+      ],
+      "grade": [
+        "first",
+        "second",
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "compare-game",
@@ -562,9 +1073,20 @@
       "description": "מי מהמספרים גדול יותר? בוחרים את הסימן הנכון!",
       "icon": "⚖️",
       "url": "compare-game/index.html",
-      "categories": ["math", "games"],
-      "grade": ["kindergarten", "first", "second"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math",
+        "games"
+      ],
+      "grade": [
+        "kindergarten",
+        "first",
+        "second"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "money-game",
@@ -572,9 +1094,20 @@
       "description": "סופרים מטבעות ושטרות בשקלים ובוחרים את הסכום הנכון.",
       "icon": "🪙",
       "url": "money-game/index.html",
-      "categories": ["math", "games"],
-      "grade": ["first", "second", "third"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "math",
+        "games"
+      ],
+      "grade": [
+        "first",
+        "second",
+        "third"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "city-game",
@@ -582,9 +1115,21 @@
       "description": "בונים בתים ודרכים בעיר שלכם, עם המטבעות שצברתם.",
       "icon": "🏘️",
       "url": "city-game/index.html",
-      "categories": ["games", "math"],
-      "grade": ["first", "second", "third", "fourth"],
-      "devices": ["mobile", "tablet", "desktop"]
+      "categories": [
+        "games",
+        "math"
+      ],
+      "grade": [
+        "first",
+        "second",
+        "third",
+        "fourth"
+      ],
+      "devices": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "id": "microbit-programming",
@@ -592,11 +1137,47 @@
       "description": "בונים תוכנית מסמלים, שולחים אותה למיקרוביט, ואז מריצים אותה בלי מסך.",
       "icon": "🔌",
       "url": "microbit-game/index.html",
-      "categories": ["games", "science"],
-      "grade": ["first", "second", "third", "fourth", "fifth", "sixth"],
-      "devices": ["desktop"],
+      "categories": [
+        "games",
+        "science"
+      ],
+      "grade": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth"
+      ],
+      "devices": [
+        "desktop"
+      ],
       "requiresExtension": true,
       "defaultOff": true
+    },
+    {
+      "id": "podcasts-player",
+      "title": "עולם הפודקאסטים",
+      "description": "מגלים פרקים מעניינים להאזנה ישירה, בלי להוריד קבצים.",
+      "icon": "🎧",
+      "url": "podcasts/index.html",
+      "categories": [
+        "podcasts"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth"
+      ],
+      "devices": [
+        "desktop"
+      ],
+      "requiresExtension": true
     }
   ]
 }
