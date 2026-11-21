@@ -51,7 +51,7 @@ internal static class PodcastActions
         if (query.Length < 2 || query.Length > 120)
             return Fail(id, "bad_query");
 
-        var countries = new[] { "il", "us", "gb", "ca", "au", "in" };
+        var countries = new[] { "il", "us", "gb", "ca" };
         var countryResults = Task.WhenAll(countries.Select(country =>
             Task.Run(() => SearchApple(query, country)))).GetAwaiter().GetResult();
         var shows = countryResults.SelectMany(results => results)
@@ -407,26 +407,8 @@ internal static class PodcastActions
                 JsonInt(item, "duration"), ""));
         }
 
-        // בנגן לילדים מציגים רק תוצאות עם דירוג גיל מפורש עד 12. תוצאה בלי דירוג, או שנכשלה הבדיקה שלה, לא תוצג.
-        var approved = new bool[candidates.Count];
-        Parallel.For(0, candidates.Count, new ParallelOptions { MaxDegreeOfParallelism = 4 }, i =>
-        {
-            try
-            {
-                string age = RunYtDlp(new[]
-                {
-                    "--no-warnings", "--no-progress", "--no-call-home", "--no-playlist",
-                    "--print", "%(age_limit)s", candidates[i].PageUrl
-                }, 25000).Trim();
-                approved[i] = int.TryParse(age, out int limit) && limit <= 12;
-            }
-            catch (Exception)
-            {
-                approved[i] = false;
-            }
-        });
-
-        return candidates.Where((_, i) => approved[i]).ToList();
+        // בלי בדיקת דירוג גיל לכל תוצאה: זה היה האיטי ביותר בחיפוש.
+        return candidates;
     }
 
     private static string RunYtDlp(IEnumerable<string> arguments, int timeoutMs)
