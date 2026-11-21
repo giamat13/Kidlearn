@@ -255,12 +255,15 @@ internal static class PodcastActions
                 }
 
                 if (!Uri.TryCreate(audioUrl, UriKind.Absolute, out var audioUri) ||
-                    audioUri.Scheme != Uri.UriSchemeHttps)
+                    !await IsPublicHttpsAsync(audioUri))
                     continue;
 
                 string guid = ChildText(item, "guid") ?? audioUri.AbsoluteUri;
                 string episodeId = "rss:" + Hash(Normalize(show.Title) + "|" + guid);
                 string image = FindImage(item) ?? channelImage;
+                if (!Uri.TryCreate(image, UriKind.Absolute, out var imageUri) ||
+                    !await IsPublicHttpsAsync(imageUri))
+                    image = "";
                 string description = ChildText(item, "description") ??
                                      ChildText(item, "summary") ?? "";
                 description = CleanDescription(description);
