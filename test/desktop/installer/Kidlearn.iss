@@ -68,6 +68,7 @@ Name: "chromeext"; Description: "{cm:TaskChromeExt}"; Flags: checkedonce
 [Files]
 Source: "..\dist\app\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\app\KidlearnHost.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\app\yt-dlp.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\extension\*"; DestDir: "{app}\extension"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "prereq\{#RuntimeFileName}"; DestDir: "{tmp}"; Flags: deleteafterinstall nocompression; Check: NeedDesktopRuntime
 

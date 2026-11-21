@@ -16,7 +16,7 @@ internal static class PodcastActions
 {
     private static readonly HttpClient Http = CreateHttpClient();
     private const int MaxResults = 24;
-    private const int MaxShows = 24;
+    private const int MaxShows = 32;
     private const int MaxFeedBytes = 4 * 1024 * 1024;
 
     private sealed record PodcastShow(string Title, string Artist, string FeedUrl, string Image, string PageUrl);
@@ -37,8 +37,8 @@ internal static class PodcastActions
         if (query.Length < 2 || query.Length > 120)
             return Fail(id, "bad_query");
 
-        var shows = SearchApple(query, "il")
-            .Concat(SearchApple(query, "us"))
+        var countries = new[] { "il", "us", "gb", "ca", "au", "in" };
+        var shows = countries.SelectMany(country => SearchApple(query, country))
             .Where(s => !string.IsNullOrWhiteSpace(s.FeedUrl))
             .GroupBy(s => s.FeedUrl, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
@@ -72,7 +72,8 @@ internal static class PodcastActions
             youtubeWarning = "youtube_unavailable";
         }
 
-        var combined = Deduplicate(rssEpisodes, youtubeEpisodes).Take(MaxResults).ToList();
+        // משאירים מקום גם לתוצאות YouTube, במקום שפידים פופולריים ימלאו את כל הרשימה.
+        var combined = Deduplicate(rssEpisodes.Take(18).ToList(), youtubeEpisodes).Take(MaxResults).ToList();
         var results = new JsonArray();
         foreach (var episode in combined)
             results.Add(ToJson(episode));
@@ -158,7 +159,7 @@ internal static class PodcastActions
             {
                 string feed = JsonText(item, "feedUrl") ?? "";
                 if (!Uri.TryCreate(feed, UriKind.Absolute, out var feedUri) ||
-                    (feedUri.Scheme != "https" && feedUri.Scheme != "http"))
+                    feedUri.Scheme != Uri.UriSchemeHttps)
                     continue;
 
                 shows.Add(new PodcastShow(
@@ -215,11 +216,11 @@ internal static class PodcastActions
                 }
 
                 if (!Uri.TryCreate(audioUrl, UriKind.Absolute, out var audioUri) ||
-                    (audioUri.Scheme != "https" && audioUri.Scheme != "http"))
+                    audioUri.Scheme != Uri.UriSchemeHttps)
                     continue;
 
                 string guid = ChildText(item, "guid") ?? audioUri.AbsoluteUri;
-                string episodeId = "rss:" + Hash(guid + "|" + audioUri.AbsoluteUri);
+                string episodeId = "rss:" + Hash(Normalize(show.Title) + "|" + guid);
                 string image = FindImage(item) ?? channelImage;
                 string description = ChildText(item, "description") ??
                                      ChildText(item, "summary") ?? "";
