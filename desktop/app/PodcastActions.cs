@@ -252,9 +252,9 @@ internal static class PodcastActions
         string output = RunYtDlp(new[]
         {
             "--no-warnings", "--no-progress", "--no-call-home",
-            "--flat-playlist", "--dump-single-json", "--playlist-end", "20",
-            "ytsearch20:" + query
-        }, 25000);
+            "--dump-single-json", "--playlist-end", "12",
+            "ytsearch12:" + query
+        }, 45000);
 
         using var document = JsonDocument.Parse(output);
         if (!document.RootElement.TryGetProperty("entries", out var entries))
