@@ -45,7 +45,9 @@ internal static class PodcastActions
             return Fail(id, "bad_query");
 
         var countries = new[] { "il", "us", "gb", "ca", "au", "in" };
-        var shows = countries.SelectMany(country => SearchApple(query, country))
+        var countryResults = Task.WhenAll(countries.Select(country =>
+            Task.Run(() => SearchApple(query, country)))).GetAwaiter().GetResult();
+        var shows = countryResults.SelectMany(results => results)
             .Where(s => !string.IsNullOrWhiteSpace(s.FeedUrl))
             .GroupBy(s => s.FeedUrl, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
