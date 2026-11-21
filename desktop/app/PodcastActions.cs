@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -14,7 +15,7 @@ namespace Kidlearn.Tray;
 internal static class PodcastActions
 {
     private static readonly HttpClient Http = CreateHttpClient();
-    private const int MaxResults = 60;
+    private const int MaxResults = 24;
     private const int MaxShows = 24;
     private const int MaxFeedBytes = 4 * 1024 * 1024;
 
@@ -102,6 +103,15 @@ internal static class PodcastActions
 
         try
         {
+            // בדיקת דירוג גיל נוספת בזמן פתיחת הפרק, גם אם נשלחה בקשה ישירה לגשר.
+            string ageText = RunYtDlp(new[]
+            {
+                "--no-warnings", "--no-progress", "--no-call-home", "--print", "%(age_limit)s",
+                "--no-playlist", uri.ToString()
+            }, 20000).Trim();
+            if (!int.TryParse(ageText, out int ageLimit) || ageLimit > 12)
+                return Fail(id, "not_child_appropriate");
+
             string output = RunYtDlp(new[]
             {
                 "--no-warnings", "--no-progress", "--no-call-home",
@@ -270,6 +280,12 @@ internal static class PodcastActions
                     image = JsonText(thumbnail, "url") ?? image;
             }
             image = image.Length > 1500 ? "" : image;
+
+            // בנגן לילדים מציגים רק תוצאות של-YouTube יש דירוג גיל מפורש שמתאים עד גיל 12.
+            // תוצאה ללא דירוג ידוע לא תוצג.
+            int? ageLimit = JsonInt(item, "age_limit");
+            if (ageLimit is null || ageLimit > 12)
+                continue;
 
             episodes.Add(new Episode(
                 "youtube:" + videoId, "youtube", CleanTitle(title),
