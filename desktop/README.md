@@ -16,7 +16,7 @@
 4. `KidlearnHost.exe` ש-Chrome מפעיל בודק שהקורא הוא התוסף הנכון, ומעביר את הבקשה לאפליקציה.
 5. האפליקציה בודקת שוב שהפעולה מותרת, ומחזירה תשובה.
 
-הפעולות שזמינות היום: `ping`, `microbitStatus` (האם המיקרוביט מחובר), `installMicrobit` (שליחת תוכנית למיקרוביט, ראו למטה), ו-`boardLinkStart` / `boardLinkPoll` / `boardLinkShow` / `boardLinkStop` (החיבור של "הלוח שלי" למיקרוביט, ראו למטה). פעולה חדשה דורשת שינוי בשני מקומות: מקרה ב-`BridgeActions` ב-[app/BridgeServer.cs](app/BridgeServer.cs), ושמה ב-`ALLOWED_ACTIONS` ב-[extension/background.js](extension/background.js).
+הפעולות כוללות גם `podcastSearch` (חיפוש פודקאסטים בקטלוג Apple וב-YouTube, תוך סינון כפילויות ודירוגי גיל) ו-`podcastResolve` (חילוץ כתובת שמע לזרימה ישירה, בלי הורדת קובץ). דף הנגן נמצא ב-[../podcasts/index.html](../podcasts/index.html).
 
 ## מבנה
 
@@ -27,7 +27,7 @@
 | `shared/` | קוד משותף לאפליקציה ולמארח: פורמט ההודעות והמזהה של התוסף |
 | `extension/` | תוסף כרום (Manifest V3): טאב חדש, סקריפט לדפי Kidlearn, ומעבר הבקשות |
 | `installer/` | סקריפט הבנייה (`build.ps1`), קובץ Inno Setup (`Kidlearn.iss`), וסקריפט האייקונים (`make-icons.ps1`) |
-| `dist/` | פלט הבנייה: `KidlearnSetup.exe` (לא נכנס ל-git) |
+| `dist/` | פלט הבנייה: `KidlearnSetup.exe` ו-`yt-dlp.exe` (לא נכנס ל-git) |
 
 בצד האתר: [shared/kidlearn-bridge.js](../shared/kidlearn-bridge.js) הוא ה-API שהדפים משתמשים בו. הוא נטען בדף הבית.
 
@@ -118,7 +118,7 @@ winget install JRSoftware.InnoSetup
 powershell -ExecutionPolicy Bypass -File desktop\installer\build.ps1
 ```
 
-התוצאה: `desktop\dist\KidlearnSetup.exe`.
+התוצאה: `desktop\dist\KidlearnSetup.exe`. הבנייה מורידה את `yt-dlp.exe` מה-releases הרשמיים ומצרפת אותו למתקין. התוכנה משתמשת בו רק לחיפוש YouTube ולחילוץ כתובת זרם שמע; היא אינה מורידה קובצי שמע.
 
 אייקונים: `desktop\installer\make-icons.ps1` מייצר מחדש את `app\Assets\kidlearn.ico` ואת `extension\icons\`. צריך להריץ רק אם משנים את העיצוב.
 
@@ -132,9 +132,20 @@ powershell -ExecutionPolicy Bypass -File desktop\installer\build.ps1
 - `extension/background.js` (`KIDLEARN_ORIGIN`)
 - `app/Program.cs` (`KidlearnUrl`)
 
+## נגן פודקאסטים
+
+דף `podcasts/index.html` משתמש בגשר המקומי:
+
+- `podcastSearch` מחפש בקטלוג Apple בכמה מדינות, קורא RSS ומוסיף תוצאות YouTube דרך `yt-dlp`.
+- תוצאות מפורשות מסוננות לפי סימון המקור; ב-YouTube מוצגות רק תוצאות עם דירוג גיל מפורש עד 12.
+- `podcastResolve` מחלץ קישור זמני לזרם שמע של YouTube. קובצי שמע אינם נשמרים במחשב.
+- האזנה ל-RSS משתמשת ישירות בקובץ המדיה שבפיד. מועדפים ומיקום ההאזנה נשמרים בדפדפן בלבד.
+
+נדרש להריץ מחדש את `desktop\installer\build.ps1` ולהתקין את הגרסה המעודכנת כדי לקבל את `yt-dlp.exe` ואת פעולות הגשר החדשות.
+
 ## מה עוד לא נעשה
 
-- **פעולות אמיתיות**, כמו פתיחת תוכנות לילדים. היום רק `ping` מורשה. לפני שמוסיפים פתיחה של תוכנה, צריך רשימה קבועה של תוכנות מותרות באפליקציה, כי אתר לא אמור להפעיל כל דבר שהוא מבקש.
+- **פתיחת תוכנות חיצוניות**, כמו משחקים שמותקנים במחשב. לפני שמוסיפים פתיחה כזו, צריך רשימה קבועה של תוכנות מותרות באפליקציה, כי אתר לא אמור להפעיל כל דבר שהוא מבקש.
 - **חתימה דיגיטלית על ה-EXE.** בלי חתימה, Windows SmartScreen יציג אזהרה בהרצה הראשונה.
 - **התקנה שקטה של התוסף.** הדרך לכך היא פרסום התוסף ב-Chrome Web Store כפרסום לא רשום (unlisted), והתקנה דרך מדיניות `ExtensionInstallForcelist`. זה דורש חשבון מפתח ואישור של Google.
 

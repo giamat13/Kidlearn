@@ -211,6 +211,7 @@
       const h = world && stage.pick(e, [world]);
       if (!h) return;
       const p = h.pick;
+      if (deleteMode) { if (p.type === 'ride') deleteRide(p.k); else say('מצב מחיקה: לחצו על מתקן כדי למחוק אותו'); return; }
       if (p.type === 'ride') { sel = p.k; chosen = null; renderAll(); }
       else if (p.type === 'cell') {
         if (!chosen) { tab = 'build'; say('בחרו מתקן מהרשימה למטה, ואז לחצו על משבצת ריקה'); return renderAll(); }
@@ -223,8 +224,31 @@
     $('nightBtn').onclick = () => { nightPref = !nightPref; stage.setNight(nightPref); $('nightBtn').textContent = nightPref ? '☀️ יום' : '🌙 לילה'; };
   } else {
     $('scene').innerHTML = '<p class="no3d">התלת-ממד לא זמין במכשיר הזה. אפשר לשחק בעזרת הלוחות למטה.</p>';
-    $('centerBtn').hidden = $('nightBtn').hidden = true;
+    $('centerBtn').hidden = $('nightBtn').hidden = $('deleteBtn').hidden = true;
   }
+
+  const hintEl = document.querySelector('.hint'), HINT_BASE = hintEl ? hintEl.textContent : '';
+  let deleteMode = false;
+  function setDeleteMode(on) {
+    deleteMode = on;
+    const b = $('deleteBtn');
+    b.setAttribute('aria-pressed', String(on));
+    b.classList.toggle('on', on);
+    if (hintEl) hintEl.textContent = on ? 'מצב מחיקה: לחצו על מתקן כדי למחוק אותו ולקבל חצי מהמחיר בחזרה. לחצו שוב על 🗑️ מחיקה כדי לחזור לבנייה.' : HINT_BASE;
+  }
+  function deleteRide(k) {
+    const item = L.ITEM_BY_ID[state.grid[k]];
+    if (!item) return;
+    const [x, y] = k.split(',').map(Number);
+    const r = L.remove(state, x, y);
+    if (!r.ok) return say(r.msg);
+    earn(r.refund, `הסרתם ${item.name}`);
+    if (sel === k) sel = null;
+    persist();
+    say(`🗑️ מחקתם ${item.name}. הוחזרו ${r.refund} 🪙`);
+    renderAll();
+  }
+  $('deleteBtn').onclick = () => setDeleteMode(!deleteMode);
 
   function placeAt(id, x, y) {
     const item = L.ITEM_BY_ID[id], c = L.canPlace(state, id, x, y);
@@ -286,11 +310,12 @@
         cards(L.RIDES) + '<h2>🍿 דוכנים</h2>' + cards(L.STALLS);
     },
     manage() {
-      const i = L.inspect(state), x = L.canExpand(state), q = L.queueRatio(state), wait = L.showWait(state, Date.now());
+      const i = L.inspect(state), x = L.canExpand(state), q = L.queueRatio(state), wait = L.showWait(state, Date.now()), all = L.repairAll(state);
       return '<div class="meters">' +
         meter('🛡️ בטיחות', `${Math.round(state.safety)}%`, 'safe', state.safety, 'בטיחות נמוכה מרחיקה מבקרים וגורמת לתקלות') +
         meter('⏳ תור', q > 1 ? 'ארוך מדי' : 'בסדר', 'queue', q * 100, 'תור ארוך? בנו או שדרגו מתקנים') +
         '</div><div class="row">' +
+        (all.ok ? `<button class="act pulse" data-a="fixall">🔧 תיקון הכול (${all.count} מקולקלים, ${all.cost} 🪙)</button>` : '') +
         `<button class="act" data-a="inspect" ${i.ok ? '' : 'disabled'}>🛠️ בדיקת בטיחות${i.ok ? ` (${i.cost} 🪙)` : ''}</button>` +
         `<button class="act" data-a="expand" ${x.ok ? '' : 'disabled'}>${x.ok ? `➕ הרחבת השטח (${x.cost} 🪙)` : '➕ השטח במקסימום'}</button>` +
         `<button class="act${wait ? '' : ' pulse'}" data-a="show" ${wait ? 'disabled' : ''}>🎆 מופע זיקוקים${wait ? ` (בעוד ${Math.ceil(wait / 60000)} דק')` : ''}</button>` +
@@ -348,6 +373,14 @@
       L.fixed(state, sel);
       persist();
       say(`🔧 המתקן תוקן וחזר לעבוד! −${c.cost} 🪙`);
+    },
+    fixall() {
+      const c = L.repairAll(state);
+      if (!c.ok) return say(c.msg);
+      if (!pay(c.cost)) return;
+      L.fixedAll(state);
+      persist();
+      say(`🔧 כל ${c.count} המתקנים תוקנו וחזרו לעבוד! −${c.cost} 🪙`);
     },
     remove() {
       const item = L.ITEM_BY_ID[state.grid[sel]];

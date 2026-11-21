@@ -396,6 +396,7 @@
       const h = world && stage.pick(e, runner ? [runner.g, world] : [world]);
       if (!h) return;
       const p = h.pick;
+      if (deleteMode && p.type !== 'escape') { if (p.type === 'pen') deletePen(p.id); else say('מצב מחיקה: לחצו על מתחם כדי למחוק אותו עם כל החיות שבו'); return; }
       if (p.type === 'escape' && runner) {
         const a = L.ANIMAL_BY_ID[runner.id], coins = L.caughtOne(state);
         earn(coins, 'תפסתם חיה שברחה');
@@ -429,8 +430,31 @@
     $('nightBtn').onclick = () => { nightPref = !nightPref; stage.setNight(nightPref); $('nightBtn').textContent = nightPref ? '☀️ יום' : '🌙 לילה'; };
   } else {
     $('scene').innerHTML = '<p class="no3d">התלת-ממד לא זמין במכשיר הזה. אפשר לשחק בעזרת הלוחות למטה.</p>';
-    $('centerBtn').hidden = $('nightBtn').hidden = true;
+    $('centerBtn').hidden = $('nightBtn').hidden = $('deleteBtn').hidden = true;
   }
+
+  const hintEl = document.querySelector('.hint'), HINT_BASE = hintEl ? hintEl.textContent : '';
+  let deleteMode = false;
+  function setDeleteMode(on) {
+    deleteMode = on;
+    const b = $('deleteBtn');
+    b.setAttribute('aria-pressed', String(on));
+    b.classList.toggle('on', on);
+    if (hintEl) hintEl.textContent = on ? 'מצב מחיקה: לחצו על מתחם כדי למחוק אותו עם כל החיות שבו ולקבל חצי מהמחיר של כל חיה. לחצו שוב על 🗑️ מחיקה כדי לחזור.' : HINT_BASE;
+  }
+  function deletePen(id) {
+    const a = L.ANIMAL_BY_ID[id], n = state.animals[id] || 0;
+    if (!a || !n) return;
+    let total = 0, count = 0;
+    for (let i = 0; i < n; i++) { const r = L.sell(state, id); if (!r.ok) break; total += r.refund; count++; }
+    if (!count) return say('אי אפשר למחוק את המתחם הזה');
+    earn(total, `מחקתם את מתחם ה${a.name}`);
+    if (sel === id) sel = null;
+    persist();
+    say(`🗑️ מחקתם את מתחם ה${a.name} (${count} חיות). הוחזרו ${total} 🪙`);
+    renderAll();
+  }
+  $('deleteBtn').onclick = () => setDeleteMode(!deleteMode);
 
   // ---------- לוחות ----------
   const TABS = [['animals', '🐾 חיות'], ['care', '🥕 טיפול'], ['fun', '🎪 חוויות'], ['ups', '🏗️ שדרוגים'], ['goals', '🎯 משימות'], ['album', '📖 אלבום'], ['quiz', '❓ חידון']];

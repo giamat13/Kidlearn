@@ -24,6 +24,9 @@ service cloud.firestore {
                       && isValidProfile(request.resource.data);
       allow delete: if request.auth != null && request.auth.uid == uid;
 
+      // Game data per child, one document per game or key (the owner only). Also holds the podcast and
+      // song players' data: kidlearn-podcast-subs-v1 (my podcasts + bell), kidlearn-podcast-favorites-v1,
+      // kidlearn-song-favorites-v1, kidlearn-song-library-v1 (songs heard) and the *-progress-v1 keys.
       match /saves/{gameId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }

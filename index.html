@@ -632,8 +632,18 @@
         let allCategories = [];
         let renderToken = 0;   // only the newest render is shown
 
-        function extensionInstalled() {
-            return document.documentElement.hasAttribute('data-kidlearn-bridge');
+        // minVersion: a game that needs newer extension features. An old extension does not publish a version, so it fails the check.
+        function extensionInstalled(minVersion) {
+            const root = document.documentElement;
+            if (!root.hasAttribute('data-kidlearn-bridge')) return false;
+            if (!minVersion) return true;
+            const have = (root.getAttribute('data-kidlearn-bridge-version') || '0').split('.').map(Number);
+            const need = minVersion.split('.').map(Number);
+            for (let i = 0; i < Math.max(have.length, need.length); i++) {
+                const a = have[i] || 0, b = need[i] || 0;
+                if (a !== b) return a > b;
+            }
+            return true;
         }
 
         // The switch list shows the games this child gets (grade, device, extension), switched off or not,
@@ -643,7 +653,7 @@
             const device = detectDevice();
             if (grade && !item.grade.includes(grade)) return false;
             if (item.devices && !item.devices.includes(device)) return false;
-            if (item.requiresExtension && !extensionInstalled()) return false;
+            if (item.requiresExtension && !extensionInstalled(item.minExtensionVersion)) return false;
             return true;
         }
 
@@ -655,7 +665,7 @@
         // Shown unless switched off, and a game that needs the extension is shown only when it is installed
         function gameVisible(item) {
             if (isGameOff(item)) return false;
-            if (item.requiresExtension && !extensionInstalled()) return false;
+            if (item.requiresExtension && !extensionInstalled(item.minExtensionVersion)) return false;
             return true;
         }
 

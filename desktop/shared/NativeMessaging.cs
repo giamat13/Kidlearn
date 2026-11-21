@@ -20,7 +20,7 @@ internal static class BridgeProtocol
 // פורמט ההודעות של Chrome: 4 בתים באורך (little endian) ואחריהם JSON בקידוד UTF-8
 internal static class Framing
 {
-    public const int MaxMessageBytes = 64 * 1024;
+    public const int MaxMessageBytes = 256 * 1024;
 
     public static async Task<JsonObject?> ReadAsync(Stream stream, CancellationToken ct)
     {
