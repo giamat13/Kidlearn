@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הלונה פארק</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <button class="back-btn" onclick="window.location.href='../city-game/index.html'" data-gamepad-back>← חזרה לעיר</button>
+        <h1>🎡 הלונה פארק</h1>
+        <div class="balance">יש לכם <strong id="balance">0</strong> 🪙</div>
+        <p class="subtitle">קונים מתקנים וסידרו אותם בשטח. מבקרים משלמים כניסה או על כל מתקן. ההכנסה נכנסת לעיר לבד, גם כשאתם לא כאן.</p>
+    </header>
+
+    <div class="scene-wrap">
+        <div class="scene" id="scene" aria-label="הלונה פארק שלכם בתלת-ממד"></div>
+        <div class="hud" id="hud" aria-live="polite"></div>
+        <button class="tool" id="centerBtn" title="מרכז את המצלמה">🎯 מרכז</button>
+        <button class="tool mid" id="exitBtn" hidden>⬇️ לרדת מהמתקן</button>
+        <button class="tool end" id="nightBtn" title="יום או לילה">🌙 לילה</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="sel" id="sel" hidden></div>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <section class="panel" id="panel"></section>
+    <p class="hint">לחצו על מתקן כדי לשדרג אותו, לתקן אותו או לעלות עליו. אפשר לסובב ולהתקרב עם האצבע או העכבר.</p>
+</div>
+
+<script src="../city-game/vendor/three.min.js"></script>
+<script src="../city-game/vendor/OrbitControls.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../shared/kidlearn-firebase-config.js"></script>
+<script src="../shared/kidlearn-cloud.js"></script>
+<script src="../shared/kidlearn-widget.js"></script>
+<script>KidLearn.init();</script>
+<script src="../shared/kidlearn-wallet.js"></script>
+<script src="../shared/kidlearn-attraction.js"></script>
+<script src="../shared/kidlearn-3d-kit.js"></script>
+<script src="logic.js"></script>
+<script src="rides.js"></script>
+<script src="game.js"></script>
+<script src="../effects/gamepad-ui.js"></script>
+</body>
+</html>

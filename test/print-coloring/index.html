@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דפי צביעה להדפסה 🖨️</title>
+<link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{min-height:100vh;background:linear-gradient(135deg,#FFF0E6,#E6F0FF);font-family:'Varela Round','Assistant',Arial,sans-serif;direction:rtl;display:flex;flex-direction:column;align-items:center;}
+.header{width:100%;background:linear-gradient(90deg,#FF6B9D,#FF8AB3);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 10px rgba(0,0,0,.15);}
+.back-btn{background:rgba(255,255,255,.3);border:none;color:#fff;font-size:1.4rem;padding:6px 14px;border-radius:10px;cursor:pointer;font-family:inherit;}
+.back-btn:hover{background:rgba(255,255,255,.5);}
+.header h1{color:#fff;font-size:1.6rem;flex:1;text-align:center;text-shadow:1px 2px 4px rgba(0,0,0,.2);}
+.layout{display:flex;gap:20px;padding:16px;width:100%;max-width:1100px;align-items:flex-start;flex-wrap:wrap;justify-content:center;}
+.panel{background:#fff;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(0,0,0,.1);flex:1 1 320px;min-width:280px;}
+.search-row{display:flex;gap:8px;}
+.search-row input{flex:1;font-size:1.2rem;padding:10px 12px;border:2px solid #FFB3CC;border-radius:12px;font-family:inherit;min-width:0;}
+button.btn{background:#FF6B9D;color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:1.1rem;font-family:inherit;cursor:pointer;}
+button.btn.rec{background:#ef4444;animation:pulse 1s infinite;}
+@keyframes pulse{50%{opacity:.6}}
+button.btn:hover{background:#ff4f8a;}
+.status{margin:10px 0;color:#555;min-height:1.4em;font-size:.95rem;}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;max-height:60vh;overflow-y:auto;}
+.results button{border:2px solid #eee;background:#fff;border-radius:10px;padding:4px;cursor:pointer;aspect-ratio:1;}
+.results button.sel,.results button:hover{border-color:#FF6B9D;}
+.results img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;filter:grayscale(1) contrast(20);}
+.preview-col{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1 1 360px;}
+.controls{display:flex;gap:10px;align-items:center;background:#fff;padding:8px 14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.1);flex-wrap:wrap;justify-content:center;}
+.controls button{width:42px;height:42px;font-size:1.5rem;border:none;border-radius:50%;background:#60A5FA;color:#fff;cursor:pointer;}
+.controls input[type=range]{width:160px;direction:ltr;}
+.controls span{min-width:3.2em;text-align:center;font-weight:bold;}
+#page{background:#fff;width:min(100%,420px);aspect-ratio:210/297;box-shadow:0 4px 18px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+#page img{width:70%;height:70%;object-fit:contain;mix-blend-mode:multiply;filter:grayscale(1) contrast(20);display:none;}
+#page .hint{color:#aaa;font-size:1.1rem;text-align:center;padding:20px;}
+.print-btn{font-size:1.3rem;padding:12px 28px;background:#34D399;}
+.print-btn:hover{background:#10b981;}
+.print-btn:disabled{background:#ccc;cursor:not-allowed;}
+.credit{font-size:.75rem;color:#777;margin:8px 0 16px;text-align:center;}
+@page{size:A4 portrait;margin:0;}
+@media print{
+  html,body{background:#fff !important;margin:0;padding:0;min-height:0;display:block;}
+  body *{visibility:hidden;}
+  #page,#page *{visibility:visible;}
+  #page .hint{display:none;}
+  #page{position:fixed;top:0;left:0;width:210mm;height:297mm;box-shadow:none;margin:0;}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <button class="back-btn" onclick="location.href='../index.html'">→</button>
+  <h1>דפי צביעה להדפסה 🖨️</h1>
+  <span style="width:50px"></span>
+</div>
+
+<div class="layout">
+  <div class="panel">
+    <form class="search-row" id="form">
+      <input id="q" type="search" placeholder="חפשו: חד קרן, חללית, כלבלב..." autocomplete="off">
+      <button class="btn" type="button" id="mic" title="חיפוש בקול" style="display:none">🎤</button>
+      <button class="btn" type="submit">🔍</button>
+    </form>
+    <div class="status" id="status"></div>
+    <div class="results" id="results"></div>
+    <button class="btn" id="more" style="display:none;margin:10px auto 0;">עוד תוצאות</button>
+  </div>
+
+  <div class="preview-col">
+    <div id="page"><div class="hint" id="hint">חפשו תמונה ובחרו אותה 🎨</div><img id="pic" alt=""></div>
+    <div class="controls">
+      <button id="minus" aria-label="הקטן">−</button>
+      <input id="zoom" type="range" min="20" max="100" step="5" value="70" aria-label="גודל">
+      <button id="plus" aria-label="הגדל">+</button>
+      <span id="zoomVal">70%</span>
+    </div>
+    <button class="btn print-btn" id="print" disabled>🖨️ הדפסה</button>
+  </div>
+</div>
+<div class="credit">התמונות מ-Wikimedia Commons, Openverse ו-Openclipart (רישיונות חופשיים) · תרגום אוטומטי</div>
+
+<script src="../shared/kidlearn-wallet.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const COMMONS='https://commons.wikimedia.org/w/api.php';
+
+// Translate any language -> English. Latin-only input is used as is.
+async function toEnglish(text){
+  if(/^[\x00-\x7F]+$/.test(text)) return text;
+  try{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q='+encodeURIComponent(text));
+    const j=await r.json();
+    const t=j[0].map(s=>s[0]).join('').trim();
+    if(t) return t;
+  }catch(e){}
+  try{
+    const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=autodetect|en');
+    const j=await r.json();
+    const t=(j.responseData&&j.responseData.translatedText||'').trim();
+    if(t) return t;
+  }catch(e){}
+  return text;
+}
+
+const COMMONS_SUFFIXES=['coloring page','coloring book','coloring sheet','line art','outline black and white','black and white drawing','clipart outline','sketch outline','kids drawing outline','cartoon outline','vector outline','silhouette','svg drawing','printable'];
+const OPENVERSE_SUFFIXES=['coloring page','line art']; // anonymous Openverse quota is small
+const COMMONS_CATEGORIES=['Coloring pages','Coloring books','Line drawings','Outline drawings','Black and white drawings','Black and white line drawings','Clip art in black and white','Cartoon drawings','Vector drawings','Drawings of animals','Children\'s drawings','SVG black and white'];
+const CLIPART_SUFFIXES=['coloring','outline','line art','black white','bw'];
+let state=null;
+
+async function commonsSearch(term,offset){
+  const p=new URLSearchParams({action:'query',format:'json',origin:'*',generator:'search',gsrnamespace:'6',gsrlimit:'50',gsroffset:String(offset),gsrsearch:term,prop:'imageinfo',iiprop:'url|mime|extmetadata',iiextmetadatafilter:'ImageDescription|Categories|ObjectName',iiurlwidth:'200'});
+  const j=await (await fetch(COMMONS+'?'+p)).json();
+  const pages=Object.values((j.query&&j.query.pages)||{}).sort((a,b)=>a.index-b.index);
+  const items=pages.filter(pg=>{const i=pg.imageinfo&&pg.imageinfo[0];return i&&/^image\/(png|svg\+xml|gif)/.test(i.mime)&&i.thumburl;})
+    .map(pg=>{const i=pg.imageinfo[0], m=i.extmetadata||{}, v=k=>(m[k]&&m[k].value)||'';
+      return {thumb:i.thumburl,full:i.url,text:(pg.title+' '+v('ObjectName')+' '+v('ImageDescription')+' '+v('Categories')).replace(/<[^>]*>/g,' ').replace(/[_|]/g,' ')};});
+  const next=j.continue&&j.continue.gsroffset;
+  return {items,next:next===undefined?null:next};
+}
+
+// Openverse: aggregates many open-licence collections (anonymous, no key).
+async function openverseSearch(term,page){
+  const p=new URLSearchParams({q:term,page:String(page),page_size:'20',category:'illustration'});
+  const j=await (await fetch('https://api.openverse.org/v1/images/?'+p)).json();
+  const items=(j.results||[]).filter(r=>r.thumbnail&&r.url&&!/gif$/i.test(r.url)).map(r=>({thumb:r.thumbnail,full:r.url,fallback:r.thumbnail,text:(r.title||'')+' '+(r.tags||[]).map(t=>t.name).join(' ')}));
+  return {items,next:(j.page_count&&page<j.page_count)?page+1:null};
+}
+
+// Openclipart: public-domain SVG clipart.
+async function clipartSearch(term,page){
+  const p=new URLSearchParams({query:term,amount:'50',page:String(page)});
+  const j=await (await fetch('https://openclipart.org/search/json/?'+p)).json();
+  const items=(j.payload||[]).filter(r=>r.svg&&(r.svg.png_thumb||r.svg.url)).map(r=>({thumb:r.svg.png_thumb||r.svg.url,full:r.svg.url||r.svg.png_full_lossy,fallback:r.svg.png_full_lossy||r.svg.png_thumb,text:(r.title||'')+' '+(Array.isArray(r.tags)?r.tags.join(' '):(r.tags||''))}));
+  const total=+(j.info&&j.info.pages)||0;
+  return {items,next:page<total?page+1:null};
+}
+
+// Relevance: every word of the (translated or original) query must appear in the item's title/description/tags.
+const STOP=new Set(['a','an','the','of','and','with','in','on','for','to']);
+const stem=w=>w.toLowerCase().replace(/(ies)$/,'y').replace(/(es|s)$/,'');
+function makeRelevance(...phrases){
+  const sets=phrases.filter(Boolean).map(ph=>{
+    const ws=ph.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w=>w&&!STOP.has(w)).map(stem);
+    return {ws,joined:ph.toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'')};
+  }).filter(x=>x.ws.length);
+  return it=>{
+    const t=(it.text||'').toLowerCase(), tj=t.replace(/[^\p{L}\p{N}]+/gu,'');
+    if(!sets.length||!it.text) return true;
+    return sets.some(x=>x.ws.every(w=>t.includes(w))||tj.includes(x.joined));
+  };
+}
+
+function makeQueries(en,orig){
+  const words=[en];
+  if(!/\s/.test(en)) words.push(/s$/i.test(en)?en.slice(0,-1):en+'s');          // singular / plural
+  const qs=[];
+  const C=(term)=>qs.push({fetch:commonsSearch,term,next:0});
+  for(const w of words){
+    COMMONS_SUFFIXES.forEach(sf=>C(w+' '+sf));
+    COMMONS_CATEGORIES.forEach(c=>{ C(`${w} incategory:"${c}"`); C(`${w} deepcat:"${c}"`); });
+    C(w+' filetype:drawing'); C(w+' filetype:bitmap line');
+  }
+  if(orig&&orig!==en){ ['','coloring','line art','outline'].forEach(sf=>C((orig+' '+sf).trim())); }
+  words.forEach(w=>{
+    OPENVERSE_SUFFIXES.forEach(sf=>qs.push({fetch:openverseSearch,term:w+' '+sf,next:1}));
+    CLIPART_SUFFIXES.forEach(sf=>qs.push({fetch:clipartSearch,term:w+' '+sf,next:1}));
+  });
+  return qs;
+}
+
+// Loads the thumbnail, drops it if it failed to load or is already coloured / a photo.
+function checkImage(r){
+  return new Promise(res=>{
+    const im=new Image(); im.crossOrigin='anonymous'; im.referrerPolicy='no-referrer';
+    im.onerror=()=>res(null);
+    im.onload=()=>{
+      try{
+        const w=40,h=Math.max(1,Math.round(40*im.naturalHeight/im.naturalWidth)||40);
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(im,0,0,w,h);
+        const d=x.getImageData(0,0,w,h).data; let color=0,white=0,n=w*h;
+        for(let i=0;i<d.length;i+=4){
+          const mx=Math.max(d[i],d[i+1],d[i+2]), mn=Math.min(d[i],d[i+1],d[i+2]);
+          if(mx-mn>40) color++;
+          if(mn>235) white++;
+        }
+        // a few coloured pixels are fine (shown in pure black & white); heavily filled images are dropped
+        if(color/n>0.35 || white/n<0.2) return res(null);
+      }catch(e){} // canvas tainted: keep the image
+      res({...r,img:im});
+    };
+    im.src=r.thumb;
+  });
+}
+
+function addResult(r){
+  const b=document.createElement('button'); r.img.alt='';
+  b.appendChild(r.img);
+  b.onclick=()=>{ document.querySelectorAll('.results .sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); choose(r.full,r.fallback||r.thumb); };
+  $('results').appendChild(b);
+}
+
+function statusText(st,busy){
+  if(!st.total) return busy?'מחפש…':'לא נמצאו תמונות. נסו מילה אחרת 🙂';
+  return (st.en!==st.q?`חיפוש: "${st.en}" · `:'')+`${st.total} תוצאות`+(busy?' · ממשיך לחפש ברקע…':'');
+}
+
+// Every source/query runs on its own: results appear as soon as they arrive,
+// slow or failing sources never hold the others back.
+const MAX_PARALLEL=8;
+function finish(st){
+  if(st!==state) return;
+  $('status').textContent=statusText(st,false);
+  $('more').style.display=st.total&&st.queries.some(x=>x.next!==null)?'block':'none';
+  maybeAutoLoad();
+}
+function pump(st){
+  while(st===state && st.running<MAX_PARALLEL && st.pending.length && st.total<st.goal) runQuery(st,st.pending.shift());
+  if(st===state && st.running===0) finish(st);
+}
+async function runQuery(st,q){
+  st.running++;
+  try{
+    while(st===state && q.next!==null && st.total<st.goal){
+      let r;
+      try{ r=await q.fetch(q.term,q.next); q.next=r.next; }
+      catch(e){ q.next=null; break; }
+      if(st!==state) break;
+      const fresh=r.items.filter(it=>!st.seen.has(it.full)&&st.relevant(it));
+      fresh.forEach(it=>st.seen.add(it.full));
+      await Promise.all(fresh.map(async f=>{
+        const c=await checkImage(f);
+        if(c&&st===state){ addResult(c); st.total++; $('status').textContent=statusText(st,true); }
+      }));
+    }
+  }finally{ st.running--; }
+  pump(st);
+}
+
+function loadMore(){
+  const st=state; if(!st||st.running>0) return;
+  $('more').style.display='none';
+  st.goal=st.total+100;
+  st.pending=st.queries.filter(q=>q.next!==null);
+  if(!st.pending.length){ finish(st); return; }
+  $('status').textContent=statusText(st,true);
+  pump(st);
+}
+
+// infinite scroll: keep loading while the end of the list is visible
+function maybeAutoLoad(){
+  if($('more').style.display==='none') return;
+  const r=$('results');
+  if(r.scrollTop+r.clientHeight>=r.scrollHeight-400) loadMore();
+}
+$('results').addEventListener('scroll',maybeAutoLoad);
+
+async function search(raw){
+  const q=raw.trim(); if(!q) return;
+  $('results').innerHTML=''; $('more').style.display='none'; $('status').textContent='מחפש…';
+  const en=await toEnglish(q);
+  state={q,en,seen:new Set(),total:0,goal:0,running:0,pending:[],queries:makeQueries(en,q),relevant:makeRelevance(en,q)};
+  loadMore();
+}
+
+function choose(url,fallback){
+  const pic=$('pic'); pic.referrerPolicy='no-referrer';
+  pic.onerror=()=>{ pic.onerror=null; if(fallback) pic.src=fallback; };
+  pic.src=url;
+  pic.style.display='block'; $('hint').style.display='none'; $('print').disabled=false;
+}
+
+function setZoom(v){
+  v=Math.max(20,Math.min(100,v));
+  $('zoom').value=v; $('zoomVal').textContent=v+'%';
+  $('pic').style.width=v+'%'; $('pic').style.height=v+'%';
+}
+$('zoom').oninput=e=>setZoom(+e.target.value);
+$('plus').onclick=()=>setZoom(+$('zoom').value+5);
+$('minus').onclick=()=>setZoom(+$('zoom').value-5);
+$('form').onsubmit=e=>{e.preventDefault();search($('q').value);};
+$('more').onclick=loadMore;
+(function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  const mic=$('mic'); mic.style.display='';
+  let rec=null;
+  mic.onclick=()=>{
+    if(rec){ rec.stop(); return; }
+    rec=new SR(); rec.lang=(navigator.language&&!/^en/.test(navigator.language))?navigator.language:'he-IL';
+    rec.interimResults=false; rec.maxAlternatives=1;
+    mic.classList.add('rec'); $('status').textContent='מקשיב… דברו עכשיו 🎤';
+    rec.onresult=e=>{ const t=e.results[0][0].transcript.trim(); $('q').value=t; search(t); };
+    rec.onerror=e=>{ $('status').textContent=e.error==='not-allowed'?'אין הרשאה למיקרופון':'לא שמעתי, נסו שוב'; };
+    rec.onend=()=>{ mic.classList.remove('rec'); rec=null; };
+    rec.start();
+  };
+})();
+const printedPics=new Set(); // reward each picture's first print only
+$('print').onclick=()=>{
+  const u=$('pic').src;
+  if(u&&!printedPics.has(u)){ printedPics.add(u); window.KidLearnWallet&&KidLearnWallet.earn(3,{reason:'הדפסת דף צביעה'}); }
+  window.print();
+};
+</script>
+</body>
+</html>

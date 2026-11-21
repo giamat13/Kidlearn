@@ -1,0 +1,3 @@
+@import url('../shared/kidlearn-3d.css');
+body { background: linear-gradient(135deg, #e8f5e9, #fff8e1); }
+.chip, .act { --tab: #2e7d32; }

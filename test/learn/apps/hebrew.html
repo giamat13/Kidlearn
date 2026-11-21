@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hebrew Pronunciation - לימוד הברה נכונה</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: white;
+            color: #667eea;
+            padding: 0.6rem 1.2rem;
+            border-radius: 1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            border: 2px solid #667eea;
+            transition: all 0.2s;
+            z-index: 9999;
+            font-family: 'Heebo', sans-serif;
+        }
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            background: #667eea;
+            color: white;
+        }
+
+        .animate-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .zoom-in {
+            animation: zoomIn 0.5s ease-out;
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInSimple 0.2s ease-out;
+        }
+
+        @keyframes fadeInSimple {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <button class="home-btn" onclick="window.location.href='../index.html'" dir="ltr">🏠 Home</button>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useCallback, useEffect } = React;
+
+        // Lucide React icons as simple SVG components
+        const Trophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
+        const CheckCircle2 = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>;
+        const RotateCcw = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
+        const LayoutGrid = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>;
+        const ChevronRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
+        const X = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
+        const Check = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>;
+        const Mic = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
+        const Play = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+        const Square = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>;
+        const HelpCircle = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>;
+
+        // נתונים
+        const letters = [
+          { 
+            id: 'samech', char: 'ס', name: 'סמך', color: 'bg-blue-400', cue: '👄😁', cueDesc: 'חִיּוּךְ רָחָב',
+            guide: {
+              position: "חיוך רחב, שיניים סגורות (בלי שהלשון תצא ביניהן).",
+              tongue: "קצה הלשון נח מאחורי השיניים התחתונות.",
+              air: "האוויר שיוצא הוא אוויר קר. זרם דק ומרכזי שיוצא מהשיניים.",
+              tip: "קראו לזה 'צליל הנחש'. אם הלשון יוצאת החוצה, הזכירו לילד שהנחש נשאר בתוך הבית (השיניים)."
+            }
+          },
+          { 
+            id: 'zayin', char: 'ז', name: 'זין', color: 'bg-yellow-400', cue: '🐝', cueDesc: 'דְּבוֹרָה מְזַמְזֶמֶת',
+            guide: {
+              position: "בדיוק כמו ה-ס' (חיוך רחב, שיניים סגורות).",
+              tongue: "מאחורי השיניים התחתונות.",
+              air: "ההבדל הוא הרטט! ה-ז' היא צליל 'קולי'.",
+              tip: "בקשו מהילד לשים יד על הגרון ולהרגיש את ה'מנוע' עובד כשהוא מזמזם כמו דבורה."
+            }
+          },
+          { 
+            id: 'shin', char: 'ש', name: 'שין', color: 'bg-red-400', cue: '👄⭕', cueDesc: 'פֶּה עָגֹול ("ששש...")',
+            guide: {
+              position: "שפתיים עגולות ומושטות קדימה (כמו נשיקה רחבה). שיניים כמעט סגורות.",
+              tongue: "הלשון עולה למעלה לכיוון החיך העליון (אך לא נוגעת).",
+              air: "האוויר שיוצא הוא אוויר חם. אפשר לשים יד מול הפה ולהרגיש חום.",
+              tip: "בקשו מהילד לעשות 'ששש...' כאילו הוא משתיק מישהו."
+            }
+          },
+          { 
+            id: 'tsadi', char: 'צ', name: 'צדי', color: 'bg-green-400', cue: '👄🤫', cueDesc: 'צְלִיל קָצָר',
+            guide: {
+              position: "דומה ל-ס', אבל מופק כפרץ אוויר קצר וחד.",
+              tongue: "קצה הלשון נוגע בחיך מאחורי השיניים העליונות ומתנתק בבת אחת.",
+              air: "פיצוץ קטן של אוויר.",
+              tip: "בקשו מהילד להגיד 'ט' ואז מיד 'ס'. ט-ס... טס... צ!"
+            }
+          }
+        ];
+
+        const difficulties = [
+          { id: 'syllables', name: 'הברות', icon: '🎵', desc: 'חימום קולי' },
+          { id: 'level1', name: 'מילים - התחלה', icon: '🐣', desc: 'הצליל בהתחלה' },
+          { id: 'level2', name: 'מילים - סוף', icon: '🐥', desc: 'הצליל בסוף' },
+          { id: 'phrases', name: 'צירופי מילים', icon: '👯', desc: 'שתי מילים יחד' },
+          { id: 'challenging', name: 'מילים קשות', icon: '🧐', desc: 'צליל כפול' },
+          { id: 'sentences', name: 'משפטים', icon: '💬', desc: 'דיבור רציף' }
+        ];
+
+        const contentMap = {
+          samech: {
+            syllables: [{ text: 'סָ' }, { text: 'סוֹ' }, { text: 'סִי' }, { text: 'סֶ' }, { text: 'סֻ' }],
+            level1: [{ text: 'סַבָּא' }, { text: 'סַל' }, { text: 'סֻלָּם' }, { text: 'סוּס' }, { text: 'סָלָט' }, { text: 'סַכִּין' }],
+            level2: [{ text: 'כּוֹס' }, { text: 'מָטוֹס' }, { text: 'קִרְקָס' }, { text: 'פָּנָס' }],
+            phrases: [{ text: 'סַבָּא בָּא' }, { text: 'סַל גָּדוֹל' }, { text: 'סוּס רָץ' }],
+            challenging: [{ text: 'סוּס' }, { text: 'סַפְסָל' }, { text: 'סִלְסִלָּה' }],
+            sentences: [{ text: 'סַבָּא סוֹפֵר סֻכָּרִיּוֹת בַּסַּל' }, { text: 'הַסּוּס סָוחֵב סַל עִם סָלָט' }]
+          },
+          zayin: {
+            syllables: [{ text: 'זָ' }, { text: 'זוֹ' }, { text: 'זִי' }, { text: 'זֶ' }, { text: 'זֻ' }],
+            level1: [{ text: 'זְבוּב' }, { text: 'זַיִת' }, { text: 'זָהָב' }, { text: 'זָנָב' }],
+            level2: [{ text: 'אַרְגָּז' }, { text: 'בֶּרֶז' }, { text: 'תַּפּוּז' }],
+            phrases: [{ text: 'זְבוּב קָטָן' }, { text: 'זַיִת יָרֹק' }],
+            challenging: [{ text: 'זִמְזוּם' }, { text: 'זִיגְזָג' }],
+            sentences: [{ text: 'הַזֶּבְרָה זָלְלָה זַיִת יָרֹק' }]
+          },
+          shin: {
+            syllables: [{ text: 'שָׁ' }, { text: 'שׁוֹ' }, { text: 'שִׁי' }, { text: 'שֶׁ' }, { text: 'שֻׁ' }],
+            level1: [{ text: 'שָׁלוֹם' }, { text: 'שֶׁמֶשׁ' }, { text: 'שִׁיר' }, { text: 'שָׁפָן' }],
+            level2: [{ text: 'אֵשׁ' }, { text: 'חָמֵשׁ' }, { text: 'נָחָשׁ' }],
+            phrases: [{ text: 'שֶׁמֶשׁ חַמָּה' }, { text: 'שִׁיר שָׂמֵחַ' }],
+            challenging: [{ text: 'שֶׁמֶשׁ' }, { text: 'שִׁשָּׁה' }],
+            sentences: [{ text: 'שִׁירָה שָׁרָה שִׁיר שָׂמֵחַ' }]
+          },
+          tsadi: {
+            syllables: [{ text: 'צָ' }, { text: 'צוֹ' }, { text: 'צִי' }, { text: 'צֶ' }, { text: 'צֻ' }],
+            level1: [{ text: 'צָב' }, { text: 'צַלַּחַת' }, { text: 'צִפּוֹר' }],
+            level2: [{ text: 'עֵץ' }, { text: 'עָצִיץ' }, { text: 'חֵץ' }],
+            phrases: [{ text: 'צָב אִטִּי' }, { text: 'צִפּוֹר שָׁרָה' }],
+            challenging: [{ text: 'עָצִיץ' }, { text: 'נִצְנָץ' }],
+            sentences: [{ text: 'הַצָּב רָץ לַצַּלַּחַת הַצְּהֻבָּה' }]
+          }
+        };
+
+        function App() {
+          const [view, setView] = useState('home');
+          const [selectedLetter, setSelectedLetter] = useState(null);
+          const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+          const [currentIndex, setCurrentIndex] = useState(0);
+          const [score, setScore] = useState(0);
+          const [stars, setStars] = useState(0);
+          const [isRecording, setIsRecording] = useState(false);
+          const [showGuide, setShowGuide] = useState(false);
+          const [guideLetter, setGuideLetter] = useState(null);
+          const mediaRecorderRef = useRef(null);
+          const audioChunksRef = useRef([]);
+
+          const currentWords = selectedLetter && selectedDifficulty 
+            ? contentMap[selectedLetter.id]?.[selectedDifficulty.id] || []
+            : [];
+
+          const currentWord = currentWords[currentIndex];
+
+          const speak = (text) => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'he-IL';
+            utterance.rate = 0.8;
+            window.speechSynthesis.speak(utterance);
+          };
+
+          const handleNext = (success) => {
+            if (success) {
+              setScore(prev => prev + 1);
+              setStars(prev => prev + 1);
+            }
+            
+            if (currentIndex < currentWords.length - 1) {
+              setCurrentIndex(prev => prev + 1);
+            } else {
+              setView('summary');
+            }
+          };
+
+          const startRecording = async () => {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              mediaRecorderRef.current = new MediaRecorder(stream);
+              audioChunksRef.current = [];
+
+              mediaRecorderRef.current.ondataavailable = (event) => {
+                audioChunksRef.current.push(event.data);
+              };
+
+              mediaRecorderRef.current.onstop = () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+                stream.getTracks().forEach(track => track.stop());
+              };
+
+              mediaRecorderRef.current.start();
+              setIsRecording(true);
+            } catch (error) {
+              console.error('Error accessing microphone:', error);
+            }
+          };
+
+          const stopRecording = () => {
+            if (mediaRecorderRef.current && isRecording) {
+              mediaRecorderRef.current.stop();
+              setIsRecording(false);
+            }
+          };
+
+          return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+              <main className="w-full max-w-md">
+                {/* Home View */}
+                {view === 'home' && (
+                  <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 text-center animate-in fade-in">
+                    <div className="mb-8">
+                      <h1 className="text-4xl font-black text-slate-800 mb-2">לִמּוּד הַבְרָה נְכוֹנָה</h1>
+                      <p className="text-slate-500 text-sm font-bold">ס • ז • ש • צ</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      {letters.map(letter => (
+                        <button
+                          key={letter.id}
+                          onClick={() => { setSelectedLetter(letter); setView('levels'); }}
+                          className={`${letter.color} p-6 rounded-[2rem] text-white font-black text-center shadow-xl hover:scale-105 transition-all active:scale-95`}
+                        >
+                          <div className="text-5xl mb-2">{letter.char}</div>
+                          <div className="text-sm opacity-90">{letter.name}</div>
+                          <div className="text-2xl mt-2">{letter.cue}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setShowGuide(true)}
+                      className="w-full bg-indigo-100 text-indigo-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-200 transition"
+                    >
+                      <HelpCircle size={20} />
+                      <span>מדריך להורה</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Levels View */}
+                {view === 'levels' && selectedLetter && (
+                  <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 animate-in fade-in">
+                    <div className="text-center mb-6">
+                      <div className={`${selectedLetter.color} w-24 h-24 rounded-[2rem] flex items-center justify-center text-white text-6xl font-black shadow-xl mx-auto mb-4`}>
+                        {selectedLetter.char}
+                      </div>
+                      <h2 className="text-2xl font-black text-slate-800">בחר רמת קושי</h2>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      {difficulties.map(diff => (
+                        <button
+                          key={diff.id}
+                          onClick={() => { setSelectedDifficulty(diff); setCurrentIndex(0); setView('practice'); }}
+                          className="w-full bg-slate-50 hover:bg-indigo-50 border-2 border-slate-100 hover:border-indigo-200 p-4 rounded-2xl text-right transition-all"
+                        >
+                          <div className="flex items-center gap-4">
+                            <span className="text-3xl">{diff.icon}</span>
+                            <div className="flex-1">
+                              <div className="font-black text-slate-800">{diff.name}</div>
+                              <div className="text-xs text-slate-500">{diff.desc}</div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => { setView('home'); setSelectedLetter(null); }}
+                      className="w-full bg-slate-200 text-slate-700 p-4 rounded-2xl font-black"
+                    >
+                      ← חזרה
+                    </button>
+                  </div>
+                )}
+
+                {/* Practice View */}
+                {view === 'practice' && currentWord && (
+                  <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 animate-in fade-in">
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="text-sm font-bold text-slate-400">
+                        {currentIndex + 1} / {currentWords.length}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">⭐</span>
+                        <span className="text-lg font-black text-yellow-500">{stars}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-center mb-8">
+                      <div className={`${selectedLetter.color} inline-block px-6 py-3 rounded-2xl text-white text-6xl font-black shadow-lg mb-6`}>
+                        {currentWord.text}
+                      </div>
+
+                      <button
+                        onClick={() => speak(currentWord.text)}
+                        className="bg-indigo-600 text-white p-6 rounded-full shadow-xl hover:scale-110 transition-all active:scale-95 mx-auto flex items-center justify-center"
+                      >
+                        <Play size={32} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4 mb-6">
+                      <button
+                        onClick={isRecording ? stopRecording : startRecording}
+                        className={`w-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-red-400'} text-white p-6 rounded-2xl font-black text-lg shadow-lg flex items-center justify-center gap-3`}
+                      >
+                        {isRecording ? <Square size={24} /> : <Mic size={24} />}
+                        <span>{isRecording ? 'עצור הקלטה' : 'הקלט את עצמך'}</span>
+                      </button>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => handleNext(false)}
+                          className="bg-white border-2 border-red-50 text-red-400 py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          <X size={18} />
+                          שוב
+                        </button>
+                        <button
+                          onClick={() => handleNext(true)}
+                          className="bg-green-500 text-white py-3 rounded-2xl font-black text-sm shadow-md border-b-4 border-green-700 active:border-b-0 active:translate-y-1 flex items-center justify-center gap-2"
+                        >
+                          <Check size={18} />
+                          הצלחתי!
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Summary View */}
+                {view === 'summary' && (
+                  <div className="w-full max-w-sm flex flex-col items-center justify-center gap-6 animate-in zoom-in text-center">
+                    <div className="bg-white p-8 rounded-full shadow-2xl border-8 border-yellow-50 relative">
+                      <Trophy size={80} className="text-yellow-400" />
+                      <div className="absolute -top-2 -right-2 bg-green-500 text-white p-2 rounded-full shadow-lg animate-bounce">
+                        <CheckCircle2 size={24} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h2 className="text-3xl font-black text-white">כָּל הַכָּבוֹד, אַלּוּף!</h2>
+                      <p className="text-lg text-white/80 font-bold">סִיַּמְתָּ אֶת הַתִּרְגּוּל בְּהַצְלָחָה</p>
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] p-6 shadow-md grid grid-cols-2 gap-4 w-full">
+                      <div>
+                        <div className="text-3xl font-black text-indigo-600">{score}</div>
+                        <div className="text-slate-400 text-[10px] font-bold uppercase">הצלחות בסבב</div>
+                      </div>
+                      <div className="border-r-2 border-slate-50">
+                        <div className="text-3xl font-black text-yellow-500">{stars}</div>
+                        <div className="text-slate-400 text-[10px] font-bold uppercase">כוכבים סה"כ</div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 w-full mt-4">
+                      {selectedLetter && (
+                        <button
+                          onClick={() => setView('levels')}
+                          className="w-full bg-white text-indigo-600 p-4 rounded-3xl font-black text-lg shadow-xl active:translate-y-1 border-b-4 border-indigo-200 active:border-b-0 flex items-center justify-center gap-2"
+                        >
+                          <RotateCcw size={20} />
+                          <span>בחר רמה אחרת לאות {selectedLetter.char}</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { setView('home'); setSelectedLetter(null); setSelectedDifficulty(null); setScore(0); }}
+                        className="w-full bg-slate-200 text-slate-700 p-4 rounded-3xl font-black text-lg shadow-md active:translate-y-1 flex items-center justify-center gap-2"
+                      >
+                        <LayoutGrid size={20} />
+                        <span>חזרה לתפריט הראשי</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Parent Guide Modal */}
+                {showGuide && (
+                  <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in overflow-hidden">
+                    <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden">
+                      <header className="p-6 border-b flex justify-between items-center bg-slate-50 shrink-0">
+                        <h2 className="text-xl font-black text-slate-800 w-full text-right">מדריך להורה 💡</h2>
+                        <button onClick={() => setShowGuide(false)} className="bg-white p-2 rounded-full shadow-sm hover:bg-slate-100">
+                          <X size={20} />
+                        </button>
+                      </header>
+                      <div className="flex-1 p-6 overflow-y-auto space-y-6">
+                        {!guideLetter ? (
+                          <>
+                            <div className="bg-indigo-50 p-4 rounded-2xl space-y-3">
+                              <h4 className="font-black text-indigo-700 underline text-lg">איך לתרגל נכון?</h4>
+                              <ul className="text-sm space-y-3 list-disc list-inside leading-relaxed">
+                                <li><strong>סדר מומלץ:</strong> התחילו עם <strong>ס'</strong>, המשיכו ל-<strong>ז'</strong>, אחר כך <strong>ש'</strong> ולבסוף <strong>צ'</strong>.</li>
+                                <li><strong>תרגלו קצת כל יום:</strong> 5-10 דקות ביום עדיפות בהרבה על שעה פעם בשבוע.</li>
+                                <li><strong>הקלטה והקשבה:</strong> זהו הכלי החשוב ביותר.</li>
+                              </ul>
+                            </div>
+                            <p className="font-black text-slate-800 border-t pt-4">הנחיות ספציפיות לפי אותיות:</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              {letters.map(l => (
+                                <button
+                                  key={l.id}
+                                  onClick={() => setGuideLetter(l)}
+                                  className={`${l.color} p-4 rounded-2xl text-white font-black text-xl shadow-sm active:scale-95 flex flex-col items-center`}
+                                >
+                                  <span className="text-3xl">{l.char}</span>
+                                  <span className="text-xs opacity-80">{l.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setGuideLetter(null)}
+                              className="text-indigo-600 font-bold text-sm mb-2 flex items-center gap-1"
+                            >
+                              <ChevronRight size={16} className="rotate-180" />
+                              חזרה למדריך הכללי
+                            </button>
+                            <div className="space-y-4">
+                              <div className="flex flex-col items-center border-b pb-4 gap-2">
+                                <div className={`${guideLetter.color} w-20 h-20 rounded-[2rem] flex items-center justify-center text-white text-5xl font-black shadow-xl`}>
+                                  {guideLetter.char}
+                                </div>
+                                <h3 className="font-black text-2xl">איך להפיק {guideLetter.name}?</h3>
+                                <p className="text-sm text-slate-400 font-bold italic">{guideLetter.cueDesc}</p>
+                              </div>
+                              <div className="space-y-4">
+                                <div className="bg-slate-50 p-4 rounded-xl border-r-4 border-indigo-400">
+                                  <p className="text-xs font-black uppercase text-indigo-400 mb-1">👄 צורת הפה</p>
+                                  <p className="text-sm leading-relaxed font-medium">{guideLetter.guide.position}</p>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-xl border-r-4 border-blue-400">
+                                  <p className="text-xs font-black uppercase text-blue-400 mb-1">👅 מיקום הלשון</p>
+                                  <p className="text-sm leading-relaxed font-medium">{guideLetter.guide.tongue}</p>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-xl border-r-4 border-yellow-400">
+                                  <p className="text-xs font-black uppercase text-yellow-400 mb-1">🌬️ זרימת האוויר</p>
+                                  <p className="text-sm leading-relaxed font-medium">{guideLetter.guide.air}</p>
+                                </div>
+                                <div className="bg-green-50 p-4 rounded-xl border-r-4 border-green-400">
+                                  <p className="text-xs font-black uppercase text-green-400 mb-1">⭐ טיפ הזהב</p>
+                                  <p className="text-sm leading-relaxed font-bold italic text-green-700">{guideLetter.guide.tip}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </main>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

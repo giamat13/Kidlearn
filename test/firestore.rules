@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The profile fields a user may store; anything else is refused.
+    // grade: the same keys as "grade" in games.json and the sign-up select (preschool ... twelfth)
+    function isValidProfile(data) {
+      return data.keys().hasOnly(['username', 'displayName', 'grade', 'createdAt', 'avatarEmoji', 'recoveryEmail'])
+        && (!('username' in data) || (data.username is string && data.username.matches('^[a-z0-9_]{3,20}$')))
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 30))
+        && (!('grade' in data) || (data.grade is string && data.grade in ['preschool', 'kindergarten', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth']))
+        && (!('avatarEmoji' in data) || (data.avatarEmoji is string && data.avatarEmoji.size() <= 16))
+        && (!('recoveryEmail' in data) || (data.recoveryEmail is string && data.recoveryEmail.size() <= 254));
+    }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // A new profile must carry the name and grade chosen at sign-up
+      allow create: if request.auth != null && request.auth.uid == uid
+                      && isValidProfile(request.resource.data)
+                      && 'displayName' in request.resource.data && 'grade' in request.resource.data;
+      // Profiles created before name and grade existed can still be updated (avatar, recovery email)
+      allow update: if request.auth != null && request.auth.uid == uid
+                      && isValidProfile(request.resource.data);
+      allow delete: if request.auth != null && request.auth.uid == uid;
+
+      match /saves/{gameId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      // Every use of a debug code (search box). The owner can add and read entries, never change or delete them.
+      match /debugLog/{logId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null && request.auth.uid == uid
+                        && request.resource.data.keys().hasOnly(['code', 'at', 'amount'])
+                        && (!('amount' in request.resource.data) || request.resource.data.amount is int)
+                        && request.resource.data.code is string && request.resource.data.code.size() <= 60
+                        && request.resource.data.at == request.time;
+      }
+      match /contacts/{contactId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      // One document per game the parent switched off: { off: true }. No document = the game is on.
+      match /gameSettings/{gameId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid
+                       && request.resource.data.keys().hasOnly(['off'])
+                       && request.resource.data.off is bool;
+      }
+    }
+
+    // username -> uid, so a KidLearn username can be used as a contact. Lookup by exact name only (no list).
+    // Created once by the account that owns the username; never changed or deleted.
+    match /usernames/{username} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null
+                      && request.resource.data.keys().hasOnly(['uid'])
+                      && request.resource.data.uid == request.auth.uid
+                      && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == username;
+    }
+
+    // Letters between KidLearn users (a contact whose "email" is a username), with optional KidLearn money.
+    // The recipient can only mark the letter as read (which pays out `amount` once, in a transaction).
+    match /friendLetters/{letterId} {
+      allow get, list: if request.auth != null
+                         && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+      allow create: if request.auth != null
+                      && request.resource.data.fromUid == request.auth.uid
+                      && request.resource.data.keys().hasOnly(['fromUid', 'toUid', 'toUsername', 'fromName', 'fromUsername', 'fromAvatar',
+                                                               'subject', 'body', 'bgTheme', 'image', 'amount', 'read', 'createdAt'])
+                      && request.resource.data.toUid is string
+                      && request.resource.data.body is string && request.resource.data.body.size() <= 10000
+                      && request.resource.data.subject is string && request.resource.data.subject.size() <= 200
+                      && request.resource.data.amount is int
+                      && request.resource.data.amount >= 0
+                      && request.resource.data.read == false
+                      && (request.resource.data.image == null
+                          || (request.resource.data.image is string && request.resource.data.image.size() < 700000
+                              && request.resource.data.image.matches('^data:image/.*')));
+      allow update: if request.auth != null
+                      && resource.data.toUid == request.auth.uid
+                      && resource.data.read == false
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+                      && request.resource.data.read == true;
+      allow delete: if false;
+    }
+
+    match /messages/{messageId} {
+      allow get: if true;
+      allow list: if request.auth != null && resource.data.fromUid == request.auth.uid;
+      // `image` is a base64 data URL embedded directly in the doc (no Cloud Storage
+      // bucket - this project stays on the free Spark plan), capped well under
+      // Firestore's 1MB document limit so a bypassed/oversized client write can't
+      // blow out the doc.
+      allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid
+                      && (!('image' in request.resource.data) || request.resource.data.image == null
+                          || request.resource.data.image.size() < 700000);
+      allow delete: if false;
+      // `thread` carries every message after the first reply (see reply.html) -
+      // an anonymous family member can only ever append to this array field on
+      // a message doc they already know the id of (via their emailed link),
+      // never touch the kid-authored body/subject/fromUid/toEmail.
+      // A thread entry may carry its own base64 `image`, exactly like the kid's
+      // `image` above. Per-element sizes aren't checkable here, so reply.html
+      // downscales and refuses an attachment that would push the doc past ~900KB;
+      // Firestore's own 1MB document limit is the hard backstop.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['replyBody', 'repliedAt', 'replied', 'replySeenByKid', 'thread']);
+    }
+  }
+}
