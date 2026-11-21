@@ -57,7 +57,7 @@ const $=id=>document.getElementById(id),FAVS="kidlearn-podcast-favorites-v1",PRO
 const state={results:[],filter:"all",current:null,connection:false},audio=$("audio");
 function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}
 function write(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
-function favorites(){return read(FAVS,[])}function progress(){return read(PROGRESS,{})}
+function favorites(){const items=read(FAVS,[]);return Array.isArray(items)?items:[]}function progress(){const saved=read(PROGRESS,{});return saved&&typeof saved==="object"&&!Array.isArray(saved)?saved:{}}
 function status(message){$("status").textContent=message}
 function connection(kind,message){$("connectionDot").className="dot "+kind;$("connectionText").textContent=message}
 async function checkConnection(){
@@ -99,14 +99,14 @@ function toggleFavorite(item){
  if(i>=0)items.splice(i,1);else items.unshift({id:item.id,source:item.source,title:item.title,show:item.show,image:item.image,audioUrl:item.audioUrl,pageUrl:item.pageUrl,durationSeconds:item.durationSeconds});
  write(FAVS,items.slice(0,100));render();
 }
-let lastSavedAt=-1;
-function saveProgress(force){if(!state.current||!Number.isFinite(audio.currentTime))return;const second=Math.floor(audio.currentTime);if(!force&&second%5!==0&&second===lastSavedAt)return;if(!force&&second%5!==0)return;lastSavedAt=second;const p=progress();p[state.current.id]=second;write(PROGRESS,p)}
+let lastSavedAt=0;
+function saveProgress(force){if(!state.current||!Number.isFinite(audio.currentTime))return;const second=Math.floor(audio.currentTime);if(!force&&second-lastSavedAt<5)return;lastSavedAt=second;const p=progress();p[state.current.id]=second;write(PROGRESS,p)}
 async function playEpisode(item){
- saveProgress();audio.pause();state.current=item;$("nowTitle").textContent=item.title||"פרק";$("nowShow").textContent=item.show||"";
+ saveProgress();audio.pause();state.current=item;lastSavedAt=0;$("nowTitle").textContent=item.title||"פרק";$("nowShow").textContent=item.show||"";
  const cover=safeImage(item.image);if(cover)$("nowCover").src=cover;status("מכינים את ההשמעה...");render();
  let url=item.audioUrl;
  if(item.source==="youtube"){
-  const result=await KidLearnBridge.request("podcastResolve",{url:item.pageUrl},{timeoutMs:45000});
+  const result=await KidLearnBridge.request("podcastResolve",{url:item.pageUrl},{timeoutMs:65000});
   if(!result.ok||!result.data||!result.data.url){status(result.error==="not_child_appropriate"?"הפרק הזה אינו מתאים להגדרות הגיל של הנגן.":"לא הצלחנו לפתוח את השמע של הפרק. נסו פרק אחר.");return}
   url=result.data.url;
  }
