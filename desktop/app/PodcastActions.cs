@@ -24,7 +24,8 @@ internal static class PodcastActions
     private sealed record PodcastShow(string Title, string Artist, string FeedUrl, string Image, string PageUrl);
     private sealed record Episode(
         string Id, string Source, string Title, string Show, string Description,
-        string AudioUrl, string PageUrl, string Image, int? DurationSeconds, string PublishedAt);
+        string AudioUrl, string PageUrl, string Image, int? DurationSeconds, string PublishedAt,
+        int? Season = null, int? Number = null);
 
     private static HttpClient CreateHttpClient()
     {
@@ -38,6 +39,12 @@ internal static class PodcastActions
         return client;
     }
 
+    // רשימת התוכניות שהחיפוש האחרון החזיר. רק כתובות מהרשימה הזו נפתחות ב-PodcastEpisodes,
+    // כדי שהאתר לא יוכל לבקש מהאפליקציה לקרוא כתובת שרירותית.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, PodcastShow> KnownShows =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    // חיפוש תוכניות (פודקאסטים) בלבד. את הפרקים של תוכנית מביאים רק בלחיצה עליה.
     public static JsonObject Search(string? id, JsonObject request)
     {
         string query = GetString(request["payload"] as JsonObject, "query")?.Trim() ?? "";
@@ -54,52 +61,74 @@ internal static class PodcastActions
             .Take(MaxShows)
             .ToList();
 
-        using var gate = new SemaphoreSlim(8);
-        var feedTasks = shows.Select(async show =>
+        if (KnownShows.Count > 500)
+            KnownShows.Clear();
+        var results = new JsonArray();
+        foreach (var show in shows)
         {
-            await gate.WaitAsync();
-            try { return await ReadFeedAsync(show); }
-            finally { gate.Release(); }
-        }).ToArray();
+            KnownShows[show.FeedUrl] = show;
+            results.Add(new JsonObject
+            {
+                ["feedUrl"] = show.FeedUrl,
+                ["title"] = CleanTitle(show.Title),
+                ["artist"] = CleanTitle(show.Artist),
+                ["image"] = show.Image,
+                ["pageUrl"] = show.PageUrl
+            });
+        }
 
-        // Run YouTube discovery alongside RSS retrieval so the sources do not add their
-        // worst-case timeouts sequentially to the Native Messaging request.
-        Task<List<Episode>> youtubeTask = Task.Run(() => SearchYouTube(query));
-        var rssEpisodes = Task.WhenAll(feedTasks).GetAwaiter().GetResult()
-            .SelectMany(items => items)
-            .ToList();
+        return Ok(id, new JsonObject { ["shows"] = results, ["count"] = shows.Count });
+    }
 
-        var youtubeEpisodes = new List<Episode>();
-        string? youtubeWarning = null;
+    // הפרקים של תוכנית אחת, מתוך רשימת התוכניות שהחיפוש החזיר.
+    public static JsonObject Episodes(string? id, JsonObject request)
+    {
+        var payload = request["payload"] as JsonObject;
+        string? feedUrl = GetString(payload, "feedUrl");
+        if (feedUrl is null || feedUrl.Length > 600 ||
+            !Uri.TryCreate(feedUrl, UriKind.Absolute, out var feedUri) || feedUri.Scheme != Uri.UriSchemeHttps)
+            return Fail(id, "unknown_show");
+        // פודקאסט מהחיפוש האחרון, או פודקאסט שהילד עוקב אחריו (נבדק שוב ל-HTTPS ציבורי בקריאת הפיד)
+        if (!KnownShows.TryGetValue(feedUrl, out var show))
+            show = new PodcastShow(CleanTitle(GetString(payload, "title") ?? "פודקאסט"), "", feedUrl, "", "");
+
+        var episodes = OrderEpisodes(ReadFeedAsync(show).GetAwaiter().GetResult());
+        var results = new JsonArray();
+        foreach (var episode in episodes)
+            results.Add(ToJson(episode));
+        return Ok(id, new JsonObject { ["episodes"] = results, ["count"] = episodes.Count });
+    }
+
+    // הפרקים האחרונים של פיד, בשביל מעקב ההתראות (PodcastWatcher)
+    internal static async Task<List<(string Id, string Title)>> LatestEpisodesAsync(string feedUrl, string title)
+    {
+        var episodes = await ReadFeedAsync(new PodcastShow(title, "", feedUrl, "", ""), 15);
+        return episodes.Select(e => (e.Id, e.Title)).ToList();
+    }
+
+    // חיפוש שירים ביוטיוב, עם אותו סינון דירוג גיל כמו בפרקים.
+    public static JsonObject SearchSongs(string? id, JsonObject request)
+    {
+        string query = GetString(request["payload"] as JsonObject, "query")?.Trim() ?? "";
+        if (query.Length < 2 || query.Length > 120)
+            return Fail(id, "bad_query");
+
         try
         {
-            youtubeEpisodes = youtubeTask.GetAwaiter().GetResult();
+            var songs = SearchYouTube(query + " song", "song");
+            var results = new JsonArray();
+            foreach (var song in songs)
+                results.Add(ToJson(song));
+            return Ok(id, new JsonObject { ["songs"] = results, ["count"] = songs.Count });
         }
         catch (FileNotFoundException)
         {
-            youtubeWarning = "yt_dlp_missing";
+            return Fail(id, "yt_dlp_missing");
         }
         catch (Exception)
         {
-            youtubeWarning = "youtube_unavailable";
+            return Fail(id, "youtube_unavailable");
         }
-
-        // משאירים מקום גם לתוצאות YouTube, במקום שפידים פופולריים ימלאו את כל הרשימה.
-        var combined = Deduplicate(rssEpisodes.Take(18).ToList(), youtubeEpisodes).Take(MaxResults).ToList();
-        var results = new JsonArray();
-        foreach (var episode in combined)
-            results.Add(ToJson(episode));
-
-        var response = Ok(id, new JsonObject
-        {
-            ["results"] = results,
-            ["count"] = combined.Count,
-            ["rssCount"] = combined.Count(e => e.Source == "rss"),
-            ["youtubeCount"] = combined.Count(e => e.Source == "youtube"),
-            ["youtubeAvailable"] = youtubeWarning is null,
-            ["warning"] = youtubeWarning
-        });
-        return response;
     }
 
     public static JsonObject Resolve(string? id, JsonObject request)
@@ -189,7 +218,7 @@ internal static class PodcastActions
         }
     }
 
-    private static async Task<List<Episode>> ReadFeedAsync(PodcastShow show)
+    private static async Task<List<Episode>> ReadFeedAsync(PodcastShow show, int maxEpisodes = 150)
     {
         try
         {
@@ -243,7 +272,7 @@ internal static class PodcastActions
             string channelImage = FindImage(channel) ?? show.Image;
             var episodes = new List<Episode>();
 
-            foreach (var item in root.Descendants().Where(e => e.Name.LocalName == "item").Take(30))
+            foreach (var item in root.Descendants().Where(e => e.Name.LocalName == "item").Take(400))
             {
                 string? title = ChildText(item, "title");
                 if (string.IsNullOrWhiteSpace(title) || IsExplicit(item))
@@ -283,8 +312,10 @@ internal static class PodcastActions
                     ChildText(item, "link") ?? show.PageUrl,
                     image,
                     ParseDuration(ChildText(item, "duration")),
-                    published));
-                if (episodes.Count >= 12)
+                    published,
+                    ParseNumber(ChildText(item, "season")),
+                    ParseNumber(ChildText(item, "episode"))));
+                if (episodes.Count >= maxEpisodes)
                     break;
             }
             return episodes;
@@ -337,31 +368,29 @@ internal static class PodcastActions
         return false;
     }
 
-    private static List<Episode> SearchYouTube(string query)
+    private static List<Episode> SearchYouTube(string query, string kind)
     {
+        // חיפוש מהיר בלי לפתוח כל סרטון, ואז בדיקת דירוג גיל לכל תוצאה במקביל.
         string output = RunYtDlp(new[]
         {
             "--no-warnings", "--no-progress", "--no-call-home",
-            "--dump-single-json", "--playlist-end", "12",
-            "ytsearch12:" + query
-        }, 45000);
+            "--flat-playlist", "--dump-single-json", "--playlist-end", "10",
+            "ytsearch10:" + query
+        }, 30000);
 
         using var document = JsonDocument.Parse(output);
         if (!document.RootElement.TryGetProperty("entries", out var entries))
             return new List<Episode>();
 
-        var episodes = new List<Episode>();
+        var candidates = new List<Episode>();
         foreach (var item in entries.EnumerateArray())
         {
             string? videoId = JsonText(item, "id");
             string? title = JsonText(item, "title");
-            if (string.IsNullOrWhiteSpace(videoId) || string.IsNullOrWhiteSpace(title))
+            if (string.IsNullOrWhiteSpace(videoId) || string.IsNullOrWhiteSpace(title) || videoId.Length > 20)
                 continue;
 
-            string? pageUrl = JsonText(item, "webpage_url");
-            if (string.IsNullOrWhiteSpace(pageUrl))
-                pageUrl = "https://www.youtube.com/watch?v=" + Uri.EscapeDataString(videoId);
-
+            string pageUrl = "https://www.youtube.com/watch?v=" + Uri.EscapeDataString(videoId);
             string image = "";
             if (item.TryGetProperty("thumbnails", out var thumbnails) &&
                 thumbnails.ValueKind == JsonValueKind.Array)
@@ -371,19 +400,33 @@ internal static class PodcastActions
             }
             image = image.Length > 1500 ? "" : image;
 
-            // בנגן לילדים מציגים רק תוצאות של-YouTube יש דירוג גיל מפורש שמתאים עד גיל 12.
-            // תוצאה ללא דירוג ידוע לא תוצג.
-            int? ageLimit = JsonInt(item, "age_limit");
-            if (ageLimit is null || ageLimit > 12)
-                continue;
-
-            episodes.Add(new Episode(
-                "youtube:" + videoId, "youtube", CleanTitle(title),
+            candidates.Add(new Episode(
+                kind + ":youtube:" + videoId, "youtube", CleanTitle(title),
                 JsonText(item, "channel") ?? JsonText(item, "uploader") ?? "YouTube",
                 "", "", pageUrl, image,
                 JsonInt(item, "duration"), ""));
         }
-        return episodes;
+
+        // בנגן לילדים מציגים רק תוצאות עם דירוג גיל מפורש עד 12. תוצאה בלי דירוג, או שנכשלה הבדיקה שלה, לא תוצג.
+        var approved = new bool[candidates.Count];
+        Parallel.For(0, candidates.Count, new ParallelOptions { MaxDegreeOfParallelism = 4 }, i =>
+        {
+            try
+            {
+                string age = RunYtDlp(new[]
+                {
+                    "--no-warnings", "--no-progress", "--no-call-home", "--no-playlist",
+                    "--print", "%(age_limit)s", candidates[i].PageUrl
+                }, 25000).Trim();
+                approved[i] = int.TryParse(age, out int limit) && limit <= 12;
+            }
+            catch (Exception)
+            {
+                approved[i] = false;
+            }
+        });
+
+        return candidates.Where((_, i) => approved[i]).ToList();
     }
 
     private static string RunYtDlp(IEnumerable<string> arguments, int timeoutMs)
@@ -402,6 +445,15 @@ internal static class PodcastActions
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8
         };
+        // YouTube צריך סביבת JavaScript כדי לפענח את הקישורים. deno מצורף לאפליקציה אם קיים; node נבדק אם מותקן במחשב.
+        string bundledDeno = Path.Combine(AppContext.BaseDirectory, "deno.exe");
+        if (File.Exists(bundledDeno))
+        {
+            start.ArgumentList.Add("--js-runtimes");
+            start.ArgumentList.Add("deno:" + bundledDeno);
+        }
+        start.ArgumentList.Add("--js-runtimes");
+        start.ArgumentList.Add("node");
         foreach (string argument in arguments)
             start.ArgumentList.Add(argument);
 
@@ -431,44 +483,94 @@ internal static class PodcastActions
         }
     }
 
-    private static List<Episode> Deduplicate(List<Episode> rss, List<Episode> youtube)
+    public static bool IsYouTubeUrl(string? pageUrl) =>
+        Uri.TryCreate(pageUrl, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps &&
+        (uri.Host.Equals("youtube.com", StringComparison.OrdinalIgnoreCase) ||
+         uri.Host.EndsWith(".youtube.com", StringComparison.OrdinalIgnoreCase) ||
+         uri.Host.Equals("youtu.be", StringComparison.OrdinalIgnoreCase));
+
+    // מוריד את האודיו של סרטון יוטיוב לקובץ ומדווח התקדמות (בתים שהורדו, סך הכול).
+    // ההורדה נעשית ב-yt-dlp עצמו ולא בדפדפן, כי כתובות ההזרמה של יוטיוב נדחות לעיתים מדפדפן.
+    public static void DownloadYouTubeAudio(string pageUrl, string outputFile, Action<long, long> progress)
     {
-        var accepted = new List<Episode>();
-        var sourceKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (!IsYouTubeUrl(pageUrl)) throw new InvalidOperationException("bad_url");
 
-        foreach (var episode in rss.Concat(youtube))
+        string executable = Path.Combine(AppContext.BaseDirectory, "yt-dlp.exe");
+        if (!File.Exists(executable)) executable = "yt-dlp";
+
+        var start = new ProcessStartInfo
         {
-            string title = Normalize(episode.Title);
-            string show = Normalize(episode.Show);
-            if (title.Length == 0)
-                continue;
-
-            string sourceKey = episode.Source + "|" + show + "|" + title;
-            if (!sourceKeys.Add(sourceKey))
-                continue;
-
-            bool crossSourceDuplicate = accepted.Any(existing =>
-            {
-                if (existing.Source == episode.Source)
-                    return false;
-                string existingTitle = Normalize(existing.Title);
-                if (title != existingTitle || title.Length < 18)
-                    return false;
-                if (episode.DurationSeconds is int a && existing.DurationSeconds is int b)
-                    return Math.Abs(a - b) <= Math.Max(25, Math.Max(a, b) * 0.08);
-                return title.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 4;
-            });
-
-            if (!crossSourceDuplicate)
-                accepted.Add(episode);
+            FileName = executable,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
+        string bundledDeno = Path.Combine(AppContext.BaseDirectory, "deno.exe");
+        if (File.Exists(bundledDeno))
+        {
+            start.ArgumentList.Add("--js-runtimes");
+            start.ArgumentList.Add("deno:" + bundledDeno);
         }
-        return accepted;
+        start.ArgumentList.Add("--js-runtimes");
+        start.ArgumentList.Add("node");
+        foreach (string argument in new[]
+        {
+            "--no-warnings", "--no-call-home", "--no-playlist", "--newline", "--no-part",
+            "--max-filesize", "700M",
+            "--progress-template", "PRG %(progress.downloaded_bytes)s %(progress.total_bytes)s %(progress.total_bytes_estimate)s",
+            "-f", "bestaudio[ext=m4a]/bestaudio", "-o", outputFile, pageUrl
+        })
+            start.ArgumentList.Add(argument);
+
+        using var process = new Process { StartInfo = start };
+        try
+        {
+            if (!process.Start()) throw new InvalidOperationException("Could not start yt-dlp.");
+        }
+        catch (Win32Exception ex)
+        {
+            throw new FileNotFoundException("yt-dlp was not found.", ex);
+        }
+
+        // לא מחכים לסוף הפלט: תהליכי node שיוצאים מ-yt-dlp יכולים להחזיק את הצינור פתוח ולתקוע את ההורדה.
+        Task<string> stderr = process.StandardError.ReadToEndAsync();
+        var reader = Task.Run(() =>
+        {
+            string? line;
+            while ((line = process.StandardOutput.ReadLine()) is not null)
+                HandleProgressLine(line, progress);
+        });
+        if (!process.WaitForExit(900000))
+        {
+            try { process.Kill(true); } catch { }
+            throw new TimeoutException();
+        }
+        reader.Wait(1500);
+        if (process.ExitCode != 0 || !File.Exists(outputFile))
+            throw new InvalidOperationException("yt-dlp failed: " + (stderr.IsCompleted ? stderr.Result.Truncate(300) : ""));
+    }
+
+    private static void HandleProgressLine(string line, Action<long, long> progress)
+    {
+        {
+            if (!line.StartsWith("PRG ", StringComparison.Ordinal)) return;
+            string[] parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            long downloaded = parts.Length > 1 && long.TryParse(parts[1], out long d) ? d : 0;
+            long total = parts.Length > 2 && long.TryParse(parts[2], out long t) ? t : 0;
+            if (total == 0 && parts.Length > 3 && double.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out double e))
+                total = (long)e;
+            progress(downloaded, total);
+        }
     }
 
     private static JsonObject ToJson(Episode episode) => new()
     {
         ["id"] = episode.Id,
         ["source"] = episode.Source,
+        ["kind"] = episode.Id.StartsWith("song:", StringComparison.Ordinal) ? "song" : "episode",
         ["title"] = episode.Title,
         ["show"] = episode.Show,
         ["description"] = episode.Description,
@@ -476,7 +578,9 @@ internal static class PodcastActions
         ["pageUrl"] = episode.PageUrl,
         ["image"] = episode.Image,
         ["durationSeconds"] = episode.DurationSeconds,
-        ["publishedAt"] = episode.PublishedAt
+        ["publishedAt"] = episode.PublishedAt,
+        ["season"] = episode.Season,
+        ["number"] = episode.Number
     };
 
     private static bool IsExplicit(XElement item)
@@ -513,20 +617,44 @@ internal static class PodcastActions
     {
         string decoded = System.Net.WebUtility.HtmlDecode(value);
         string clean = Regex.Replace(decoded, "<[^>]+>", " ");
-        return Regex.Replace(clean, @"\s+", " ").Trim().Truncate(260);
+        return Regex.Replace(clean, @"\s+", " ").Trim().Truncate(140);
     }
 
     private static string CleanTitle(string value) =>
         Regex.Replace(System.Net.WebUtility.HtmlDecode(value), @"\s+", " ").Trim().Truncate(180);
 
+    private static int? ParseNumber(string? value) =>
+        int.TryParse(value?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int n) && n > 0 && n < 10000 ? n : null;
+
+    // סדר הפרקים: לפי עונה ואז לפי מספר פרק. בפיד בלי מספור, מהישן לחדש.
+    private static List<Episode> OrderEpisodes(List<Episode> episodes)
+    {
+        bool numbered = episodes.Any(e => e.Season is not null || e.Number is not null);
+        static DateTimeOffset Date(Episode e) =>
+            DateTimeOffset.TryParse(e.PublishedAt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var d)
+                ? d : DateTimeOffset.MinValue;
+        var ordered = numbered
+            ? episodes.OrderBy(e => e.Season ?? int.MaxValue).ThenBy(e => e.Number ?? int.MaxValue).ThenBy(Date)
+            : episodes.OrderBy(Date);
+        return ordered.Take(100).ToList();
+    }
+
     private static int? ParseDuration(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
-        if (TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var time))
-            return Math.Max(0, (int)time.TotalSeconds);
-        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int seconds))
-            return Math.Max(0, seconds);
-        return null;
+        // itunes:duration הוא שניות ("1606"), דקות:שניות ("26:46") או שעות:דקות:שניות ("1:02:03").
+        // TimeSpan.TryParse היה מפרש "1606" כ-1606 ימים, ולכן מפרקים ידנית.
+        string[] parts = value.Trim().Split(':');
+        if (parts.Length is < 1 or > 3)
+            return null;
+        long total = 0;
+        foreach (string part in parts)
+        {
+            if (!double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out double number) || number < 0)
+                return null;
+            total = total * 60 + (long)number;
+        }
+        return total is > 0 and < 24 * 3600 ? (int)total : null;
     }
 
     private static int? JsonInt(JsonElement element, string name)

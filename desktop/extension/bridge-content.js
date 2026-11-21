@@ -19,6 +19,8 @@ function publishConnection() {
   // documentElement עשוי להיות עדיין ריק בתחילת הטעינה, ואז מעדכנים שוב ב-DOMContentLoaded
   if (document.documentElement) {
     document.documentElement.dataset[ATTRIBUTE] = connection;
+    // גרסת התוסף, כדי שהאתר יסתיר משחקים שדורשים גרסה חדשה יותר (תוסף ישן לא מסמן גרסה בכלל)
+    try { document.documentElement.dataset.kidlearnBridgeVersion = chrome.runtime.getManifest().version; } catch (error) { /* התוסף עודכן בזמן שהדף פתוח */ }
   }
 }
 

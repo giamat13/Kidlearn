@@ -36,11 +36,11 @@
       "color": "linear-gradient(90deg, #14B8A6, #0EA5E9)"
     },
     {
-      "id": "series",
-      "title": "סדרות חינוכיות",
-      "subtitle": "כרגע רק בלי סודות",
+      "id": "media",
+      "title": "שירים, פודקאסטים וסדרות",
+      "subtitle": "מקשיבים, צופים ולומדים",
       "icon": "📺",
-      "color": "linear-gradient(90deg, #8B5CF6, #A78BFA)"
+      "color": "linear-gradient(90deg, #8B5CF6, #EC4899)"
     },
     {
       "id": "games",
@@ -69,13 +69,6 @@
       "subtitle": "דברים אמיתיים שקורים עכשיו בעולם",
       "icon": "🌍",
       "color": "linear-gradient(90deg, #38BDF8, #22D3EE)"
-    },
-    {
-      "id": "podcasts",
-      "title": "פודקאסטים",
-      "subtitle": "מגלים, מקשיבים ולומדים",
-      "icon": "🎧",
-      "color": "linear-gradient(90deg, #8B5CF6, #EC4899)"
     }
   ],
   "items": [
@@ -290,225 +283,27 @@
       ]
     },
     {
-      "id": "spacegame-S-1",
-      "title": "מדעים כיתה א׳",
-      "description": "משחק מדע מקוון לכיתה א׳.",
+      "id": "space-game",
+      "title": "משחק החלל",
+      "description": "משחק חלל מרתק על כוכבי לכת, חלליות וגילויים.",
       "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=1&subject=science",
+      "url": "https://giamat13.github.io/space-game/",
       "categories": [
         "science",
         "games"
       ],
       "grade": [
-        "first"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-2",
-      "title": "מדעים כיתה ב׳",
-      "description": "משחק מדע מקוון לכיתה ב׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=2&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "second"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-3",
-      "title": "מדעים כיתה ג׳",
-      "description": "משחק מדע מקוון לכיתה ג׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=3&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "third"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-4",
-      "title": "מדעים כיתה ד׳",
-      "description": "משחק מדע מקוון לכיתה ד׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=4&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "fourth"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-5",
-      "title": "מדעים כיתה ה׳",
-      "description": "משחק מדע מקוון לכיתה ה׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=5&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "fifth"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-6",
-      "title": "מדעים כיתה ו׳",
-      "description": "משחק מדע מקוון לכיתה ו׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=6&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "sixth"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-7",
-      "title": "מדעים כיתה ז׳",
-      "description": "משחק מדע מקוון לכיתה ז׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=7&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "seventh"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-8",
-      "title": "מדעים כיתה ח׳",
-      "description": "משחק מדע מקוון לכיתה ח׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=8&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "eighth"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-9",
-      "title": "מדעים כיתה ט׳",
-      "description": "משחק מדע מקוון לכיתה ט׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=9&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "ninth"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-10",
-      "title": "מדעים כיתה י׳",
-      "description": "משחק מדע מקוון לכיתה י׳.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=10&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "tenth"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-11",
-      "title": "מדעים כיתה י\"א",
-      "description": "משחק מדע מקוון לכיתה י\"א.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=11&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
-        "eleventh"
-      ],
-      "devices": [
-        "mobile",
-        "tablet",
-        "desktop"
-      ]
-    },
-    {
-      "id": "spacegame-S-12",
-      "title": "מדעים כיתה י\"ב",
-      "description": "משחק מדע מקוון לכיתה י\"ב.",
-      "icon": "🚀",
-      "url": "https://giamat13.github.io/space-game_X_kidlearn/?grade=12&subject=science",
-      "categories": [
-        "science",
-        "games"
-      ],
-      "grade": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth",
+        "seventh",
+        "eighth",
+        "ninth",
+        "tenth",
+        "eleventh",
         "twelfth"
       ],
       "devices": [
@@ -525,7 +320,7 @@
       "url": "series/index.html?config=data/secrets-series.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PLCEfoQuDNmplcZ4FLYIO9bEvtdzs2fo39",
       "categories": [
-        "series",
+        "media",
         "he"
       ],
       "grade": [
@@ -547,7 +342,7 @@
       "url": "series/index.html?config=data/parpar-nachmad-old.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PL51YAgTlfPj7XTzORdSrWpgCfF1x7ZUeK",
       "categories": [
-        "series"
+        "media"
       ],
       "grade": [
         "preschool",
@@ -569,7 +364,7 @@
       "url": "series/index.html?config=data/parpar-nachmad-new.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PL51YAgTlfPj4qBlNfQYcVAT2tHJZQUQpx",
       "categories": [
-        "series"
+        "media"
       ],
       "grade": [
         "preschool",
@@ -591,7 +386,7 @@
       "url": "series/index.html?config=data/hachaim-series.json",
       "playlistUrl": "https://www.youtube.com/playlist?list=PL7s3QxO6wm48st6XALJqSP1iQHbd4ghGW",
       "categories": [
-        "series"
+        "media"
       ],
       "grade": [
         "kindergarten",
@@ -1158,11 +953,11 @@
     {
       "id": "podcasts-player",
       "title": "עולם הפודקאסטים",
-      "description": "מגלים פרקים מעניינים להאזנה ישירה, בלי להוריד קבצים.",
+      "description": "מחפשים פודקאסט, פותחים אותו ומקשיבים לפרקים לפי עונות.",
       "icon": "🎧",
       "url": "podcasts/index.html",
       "categories": [
-        "podcasts"
+        "media"
       ],
       "grade": [
         "preschool",
@@ -1177,7 +972,33 @@
       "devices": [
         "desktop"
       ],
-      "requiresExtension": true
+      "requiresExtension": true,
+      "minExtensionVersion": "1.4.0"
+    },
+    {
+      "id": "songs-player",
+      "title": "עולם השירים",
+      "description": "מחפשים שיר ומקשיבים לו ישירות, בלי להוריד קבצים.",
+      "icon": "🎵",
+      "url": "songs/index.html",
+      "categories": [
+        "media"
+      ],
+      "grade": [
+        "preschool",
+        "kindergarten",
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth"
+      ],
+      "devices": [
+        "desktop"
+      ],
+      "requiresExtension": true,
+      "minExtensionVersion": "1.4.0"
     }
   ]
 }

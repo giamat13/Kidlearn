@@ -86,6 +86,8 @@ h1 { font-size: 2rem; margin-top: 44px; }
 .hud span { background: rgba(255,255,255,.92); border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: .95rem; box-shadow: 0 2px 6px rgba(0,0,0,.15); white-space: nowrap; }
 .hud span.warn { background: #ffebee; color: #b71c1c; }
 .scene-wrap .tool.end { inset-inline-start: auto; inset-inline-end: 12px; }
+.scene-wrap .tool.del { bottom: 66px; border-color: #e53935; box-shadow: 0 3px 0 #e53935; }
+.scene-wrap .tool.del.on { background: #e53935; color: #fff; }
 .scene-wrap .tool.mid { inset-inline-start: 50%; transform: translateX(50%); }
 .no3d { padding: 60px 20px; color: #2d2d4a; }
 .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 6px 2px 8px; margin-top: 6px; scrollbar-width: thin; }

@@ -25,18 +25,36 @@ internal sealed class BridgeServer : IDisposable
         {
             try
             {
-                await using var pipe = NamedPipeServerStreamAcl.Create(
+                // כמה חיבורים במקביל: חיפוש ארוך (פודקאסטים או שירים) לא חוסם בקשות אחרות,
+                // כמו בדיקת החיבור של הדף. אחרת הדף היה מציג "האפליקציה לא פועלת".
+                var pipe = NamedPipeServerStreamAcl.Create(
                     BridgeProtocol.PipeName,
                     PipeDirection.InOut,
-                    1,
+                    NamedPipeServerStream.MaxAllowedServerInstances,
                     PipeTransmissionMode.Byte,
                     PipeOptions.Asynchronous,
                     0,
                     0,
                     CreateOwnerOnlySecurity());
 
-                await pipe.WaitForConnectionAsync(ct);
-                await HandleClientAsync(pipe, ct);
+                try
+                {
+                    await pipe.WaitForConnectionAsync(ct);
+                }
+                catch
+                {
+                    await pipe.DisposeAsync();
+                    throw;
+                }
+
+                _ = Task.Run(async () =>
+                {
+                    await using (pipe)
+                    {
+                        try { await HandleClientAsync(pipe, ct); }
+                        catch (Exception) { }
+                    }
+                }, CancellationToken.None);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -113,7 +131,12 @@ internal static class BridgeActions
             "boardLinkShow" => BoardLinkShow(id, request),
             "boardLinkStop" => BoardLinkStop(id),
             "podcastSearch" => PodcastActions.Search(id, request),
+            "podcastWatchSet" => PodcastWatcher.Set(id, request),
+            "podcastEpisodes" => PodcastActions.Episodes(id, request),
+            "songSearch" => PodcastActions.SearchSongs(id, request),
             "podcastResolve" => PodcastActions.Resolve(id, request),
+            "mediaPrepare" => MediaCache.Prepare(id, request),
+            "mediaStatus" => MediaCache.PollStatus(id, request),
             _ => Fail(id, "unknown_action"),
         };
     }

@@ -227,6 +227,13 @@
     return { ok: true, cost: repairCost(s, k) };
   }
   function fixed(s, k) { delete s.broken[k]; s.repairs++; }
+  // תיקון הכול: המחיר הכולל של כל המתקנים המקולקלים
+  const repairAllCost = (s) => Object.keys(s.broken).reduce((sum, k) => sum + repairCost(s, k), 0);
+  function repairAll(s) {
+    const n = brokenCount(s);
+    return n ? { ok: true, cost: repairAllCost(s), count: n } : { ok: false, msg: 'כל המתקנים תקינים' };
+  }
+  function fixedAll(s) { Object.keys(s.broken).forEach((k) => fixed(s, k)); }
 
   // מופע זיקוקים: פעם בכמה דקות, המבקרים משאירים טיפים
   function showWait(s, now) { return Math.max(0, (s.showAt || 0) + SHOW_MS - now); }
@@ -268,7 +275,7 @@
     newState, normalize, rideCount, itemCount, kinds, stallKinds, brokenCount, freeCells, expandCost, inspectCost, funPairs,
     interest, safetyFactor, ridesPerVisitor, capacityPerMin, wantedPerMin, queueRatio, servedPerMin, rateOf, rateMax,
     spendMult, stars, summaryOf, decay, canPlace, place, firstFree, remove, canExpand, expand, inspect, setPrice, setMode,
-    cellKey, levelOf, isBroken, canUpgrade, upgrade, tickBreak, repairCost, repair, fixed, showWait, runShow,
+    cellKey, levelOf, isBroken, canUpgrade, upgrade, tickBreak, repairCost, repair, fixed, repairAllCost, repairAll, fixedAll, showWait, runShow,
     goalState, goalsReady, claimGoal,
   };
   root.AmusementLogic = api;

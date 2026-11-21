@@ -16,7 +16,12 @@ const ALLOWED_ACTIONS = new Set([
   "boardLinkShow",
   "boardLinkStop",
   "podcastSearch",
+  "podcastEpisodes",
+  "podcastWatchSet",
+  "songSearch",
   "podcastResolve",
+  "mediaPrepare",
+  "mediaStatus",
 ]);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

@@ -28,11 +28,13 @@ internal static class Program
         Application.Run(new TrayContext());
     }
 
-    internal static void OpenKidlearn()
+    internal static void OpenKidlearn() => OpenUrl(KidlearnUrl);
+
+    internal static void OpenUrl(string url)
     {
         try
         {
-            Process.Start(new ProcessStartInfo(KidlearnUrl) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
         catch (Exception)
         {
@@ -51,6 +53,7 @@ internal sealed class TrayContext : ApplicationContext
 {
     private readonly NotifyIcon _trayIcon;
     private readonly BridgeServer _bridge = new();
+    private bool _openOnBalloonClick;
 
     public TrayContext()
     {
@@ -66,6 +69,26 @@ internal sealed class TrayContext : ApplicationContext
             ContextMenuStrip = menu,
             Visible = true,
         };
+
+        // התראה על פרק חדש בפודקאסט שהילד סימן בפעמון. לחיצה על ההתראה פותחת את דף הפודקאסטים.
+        PodcastWatcher.NewEpisodes += (title, text) =>
+        {
+            _trayIcon.BalloonTipTitle = title;
+            _trayIcon.BalloonTipText = text;
+            _trayIcon.BalloonTipIcon = ToolTipIcon.Info;
+            _openOnBalloonClick = true;
+            _trayIcon.ShowBalloonTip(10000);
+        };
+        _trayIcon.BalloonTipClicked += (_, _) =>
+        {
+            if (_openOnBalloonClick)
+            {
+                Program.OpenUrl(Program.KidlearnUrl + "podcasts/index.html");
+            }
+        };
+        _trayIcon.BalloonTipClosed += (_, _) => _openOnBalloonClick = false;
+        PodcastWatcher.Start();
+        MediaCache.Start();
 
         // לחיצה שמאלית על האייקון פותחת את האתר
         _trayIcon.MouseClick += (_, e) =>
@@ -88,6 +111,8 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (disposing)
         {
+            PodcastWatcher.Stop();
+            MediaCache.Stop();
             _bridge.Dispose();
             _trayIcon.Dispose();
         }
