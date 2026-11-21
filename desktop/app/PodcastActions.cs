@@ -62,6 +62,9 @@ internal static class PodcastActions
             finally { gate.Release(); }
         }).ToArray();
 
+        // Run YouTube discovery alongside RSS retrieval so the sources do not add their
+        // worst-case timeouts sequentially to the Native Messaging request.
+        Task<List<Episode>> youtubeTask = Task.Run(() => SearchYouTube(query));
         var rssEpisodes = Task.WhenAll(feedTasks).GetAwaiter().GetResult()
             .SelectMany(items => items)
             .ToList();
@@ -70,7 +73,7 @@ internal static class PodcastActions
         string? youtubeWarning = null;
         try
         {
-            youtubeEpisodes = SearchYouTube(query);
+            youtubeEpisodes = youtubeTask.GetAwaiter().GetResult();
         }
         catch (FileNotFoundException)
         {
