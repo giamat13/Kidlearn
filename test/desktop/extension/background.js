@@ -15,6 +15,8 @@ const ALLOWED_ACTIONS = new Set([
   "boardLinkPoll",
   "boardLinkShow",
   "boardLinkStop",
+  "podcastSearch",
+  "podcastResolve",
 ]);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
