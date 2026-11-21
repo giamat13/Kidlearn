@@ -112,6 +112,8 @@ internal static class BridgeActions
             "boardLinkPoll" => BoardLinkPoll(id),
             "boardLinkShow" => BoardLinkShow(id, request),
             "boardLinkStop" => BoardLinkStop(id),
+            "podcastSearch" => PodcastActions.Search(id, request),
+            "podcastResolve" => PodcastActions.Resolve(id, request),
             _ => Fail(id, "unknown_action"),
         };
     }
