@@ -88,3 +88,10 @@ audio{width:100%;border-radius:12px}
 .dl.indeterminate .dl-bar i{width:35%;animation:dlslide 1.1s ease-in-out infinite alternate}
 @keyframes dlslide{from{margin-inline-start:0}to{margin-inline-start:65%}}
 @media (prefers-reduced-motion:reduce){.dl-bar i{transition:none}.dl.indeterminate .dl-bar i{animation:none;width:100%}}
+
+.queue-box{margin:10px 0;padding:10px;border-radius:14px;background:rgba(124,58,237,.08)}
+.queue-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.queue-row{display:flex;gap:6px;align-items:center;margin-top:4px}
+.queue-row .favorite-item{flex:1;text-align:right}
+.queue-clear{border:0;background:transparent;cursor:pointer;font:inherit;color:inherit;padding:4px 8px}
+.queue-add.on{opacity:.6}

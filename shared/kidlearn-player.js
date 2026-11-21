@@ -3,6 +3,7 @@
 const CLOUD_KEYS=[];
 const $=id=>document.getElementById(id),SONGS=document.body.dataset.mode==="songs",FAVS=SONGS?"kidlearn-song-favorites-v1":"kidlearn-podcast-favorites-v1",PROGRESS=SONGS?"kidlearn-song-progress-v1":"kidlearn-podcast-progress-v1",SUBS="kidlearn-podcast-subs-v1";
 CLOUD_KEYS.push(FAVS,SUBS,PROGRESS,"kidlearn-song-library-v1");
+var userQ=[];const QKEY="kidlearn-queue-v1-"+(location.pathname.includes("songs")?"songs":"podcasts");
 const state={shows:[],songs:[],episodes:[],showOpen:null,searched:false,filter:"all",current:null,connection:false},audio=$("audio");
 function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}
 function write(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}
@@ -89,7 +90,29 @@ function episodeCard(item){
  const actions=document.createElement("div");actions.className="episode-actions";
  const play=document.createElement("button");play.className="play-small";play.type="button";play.textContent=state.current&&state.current.id===item.id&&!audio.paused?"Ⅱ":"▶";play.title="ניגון";play.addEventListener("click",()=>playEpisode(item));
  const fav=document.createElement("button"),isFav=favorites().some(x=>x.id===item.id);fav.className="fav"+(isFav?" on":"");fav.type="button";fav.textContent=isFav?"♥":"♡";fav.title="הוספה למועדפים";fav.addEventListener("click",()=>toggleFavorite(item));
- actions.append(play,fav);card.append(info,actions);return card;
+ const qb=document.createElement("button");qb.className="fav queue-add"+(userQ.some(x=>x.id===item.id)?" on":"");qb.type="button";qb.textContent="➕";qb.title="הוספה לתור";qb.addEventListener("click",()=>addToQueue(item));
+ actions.append(play,fav,qb);card.append(info,actions);return card;
+}
+function saveQueue(){try{localStorage.setItem(QKEY,JSON.stringify(userQ.slice(0,100)))}catch{}}
+function addToQueue(item){
+ if(!item||!item.id)return;
+ if(userQ.some(x=>x.id===item.id)){status("כבר בתור 👍");return}
+ userQ.push(item);saveQueue();renderQueue();render();status("נוסף לתור ➕ ("+userQ.length+")");
+}
+function renderQueue(){
+ const box=$("queueBox");if(!box)return;box.replaceChildren();box.hidden=!userQ.length;if(!userQ.length)return;
+ const head=document.createElement("div");head.className="queue-head";const t=document.createElement("b");t.textContent="⏭️ התור שלי ("+userQ.length+")";
+ const clear=document.createElement("button");clear.type="button";clear.className="queue-clear";clear.textContent="ניקוי";clear.addEventListener("click",()=>{userQ=[];saveQueue();renderQueue();render()});head.append(t,clear);box.appendChild(head);
+ userQ.forEach((item,i)=>{
+  const row=document.createElement("div");row.className="queue-row";
+  const go=document.createElement("button");go.type="button";go.className="favorite-item";go.textContent=(i+1)+". "+(item.title||"");go.addEventListener("click",()=>{userQ.splice(i,1);saveQueue();renderQueue();playEpisode(item)});
+  const rm=document.createElement("button");rm.type="button";rm.className="queue-clear";rm.textContent="✕";rm.title="הסרה מהתור";rm.addEventListener("click",()=>{userQ.splice(i,1);saveQueue();renderQueue();render()});
+  row.append(go,rm);box.appendChild(row);
+ });
+}
+function initQueue(){
+ try{const s=JSON.parse(localStorage.getItem(QKEY)||"[]");if(Array.isArray(s))userQ=s.filter(x=>x&&x.id)}catch{}
+ const box=document.createElement("div");box.id="queueBox";box.className="queue-box";box.hidden=true;audio.insertAdjacentElement("afterend",box);renderQueue();
 }
 function showCard(show){
  const card=document.createElement("article");card.className="episode show";
@@ -234,7 +257,8 @@ $("searchForm").addEventListener("submit",async event=>{
  finally{$("searchButton").disabled=false;$("searchButton").textContent="חיפוש"}
 });
 audio.addEventListener("play",()=>$("playerPanel").classList.add("playing"));audio.addEventListener("pause",()=>$("playerPanel").classList.remove("playing"));audio.addEventListener("ended",()=>$("playerPanel").classList.remove("playing"));audio.addEventListener("timeupdate",saveProgress);audio.addEventListener("pause",()=>saveProgress(true));
-audio.addEventListener("ended",()=>{saveProgress();const q=queue(),i=q.findIndex(x=>state.current&&x.id===state.current.id)+1;if(i>0&&i<q.length)playEpisode(q[i]);else status(SONGS?"השיר נגמר! רוצים עוד אחד? 🌟":"סיימתם להאזין לפרק! כל הכבוד 🌟")});
+initQueue();
+audio.addEventListener("ended",()=>{saveProgress();if(userQ.length){const n=userQ.shift();saveQueue();renderQueue();playEpisode(n);return}const q=queue(),i=q.findIndex(x=>state.current&&x.id===state.current.id)+1;if(i>0&&i<q.length)playEpisode(q[i]);else status(SONGS?"השיר נגמר! רוצים עוד אחד? 🌟":"סיימתם להאזין לפרק! כל הכבוד 🌟")});
 checkConnection().then(()=>{syncWatch();loadLibrary();prefetchFavorites()});
 if(window.KidLearn){
  try{
