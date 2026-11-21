@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -26,7 +28,12 @@ internal static class PodcastActions
 
     private static HttpClient CreateHttpClient()
     {
-        var client = new HttpClient { Timeout = TimeSpan.FromSeconds(18) };
+        var handler = new SocketsHttpHandler
+        {
+            AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
+        };
+        var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(18) };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("KidlearnPodcastPlayer/1.0 (+https://giamat13.github.io/Kidlearn/)");
         return client;
     }
@@ -181,14 +188,46 @@ internal static class PodcastActions
     {
         try
         {
-            using var response = await Http.GetAsync(show.FeedUrl, HttpCompletionOption.ResponseHeadersRead);
-            if (!response.IsSuccessStatusCode ||
-                (response.Content.Headers.ContentLength is long length && length > MaxFeedBytes))
+            if (!Uri.TryCreate(show.FeedUrl, UriKind.Absolute, out var currentUri))
                 return new List<Episode>();
 
-            string xml = await response.Content.ReadAsStringAsync();
-            if (xml.Length > MaxFeedBytes)
+            HttpResponseMessage? response = null;
+            for (int redirect = 0; redirect <= 4; redirect++)
+            {
+                // RSS is fetched only over public HTTPS endpoints. Redirects are checked again
+                // so a catalog feed cannot make the desktop app contact localhost or a LAN device.
+                if (!await IsPublicHttpsAsync(currentUri))
+                    return new List<Episode>();
+
+                response = await Http.GetAsync(currentUri, HttpCompletionOption.ResponseHeadersRead);
+                bool isRedirect = response.StatusCode is System.Net.HttpStatusCode.MovedPermanently
+                    or System.Net.HttpStatusCode.Redirect
+                    or System.Net.HttpStatusCode.SeeOther
+                    or System.Net.HttpStatusCode.TemporaryRedirect
+                    or System.Net.HttpStatusCode.PermanentRedirect;
+                if (!isRedirect)
+                    break;
+
+                Uri? location = response.Headers.Location;
+                response.Dispose();
+                response = null;
+                if (location is null || redirect == 4)
+                    return new List<Episode>();
+                currentUri = new Uri(currentUri, location);
+            }
+
+            if (response is null)
                 return new List<Episode>();
+
+            using (response)
+            {
+                if (!response.IsSuccessStatusCode ||
+                    (response.Content.Headers.ContentLength is long length && length > MaxFeedBytes))
+                    return new List<Episode>();
+
+                string xml = await response.Content.ReadAsStringAsync();
+                if (xml.Length > MaxFeedBytes)
+                    return new List<Episode>();
 
             var document = XDocument.Parse(xml, LoadOptions.None);
             var root = document.Root;
@@ -241,11 +280,53 @@ internal static class PodcastActions
                     break;
             }
             return episodes;
+            }
         }
         catch (Exception)
         {
             return new List<Episode>();
         }
+    }
+
+
+    private static async Task<bool> IsPublicHttpsAsync(Uri uri)
+    {
+        if (uri.Scheme != Uri.UriSchemeHttps || uri.Port != 443 || !string.IsNullOrEmpty(uri.UserInfo))
+            return false;
+
+        IPAddress[] addresses;
+        if (IPAddress.TryParse(uri.DnsSafeHost, out var literal))
+            addresses = new[] { literal };
+        else
+            addresses = await Dns.GetHostAddressesAsync(uri.DnsSafeHost);
+
+        return addresses.Length > 0 && addresses.All(IsPublicAddress);
+    }
+
+    private static bool IsPublicAddress(IPAddress address)
+    {
+        if (address.IsIPv4MappedToIPv6)
+            address = address.MapToIPv4();
+
+        if (IPAddress.IsLoopback(address) || address.IsIPv6LinkLocal ||
+            address.IsIPv6SiteLocal || address.IsIPv6Multicast)
+            return false;
+
+        byte[] bytes = address.GetAddressBytes();
+        if (address.AddressFamily == AddressFamily.InterNetwork)
+        {
+            byte a = bytes[0], b = bytes[1];
+            return !(a == 0 || a == 10 || a == 127 || a >= 224 ||
+                     (a == 169 && b == 254) ||
+                     (a == 172 && b >= 16 && b <= 31) ||
+                     (a == 192 && b == 168) ||
+                     (a == 100 && b >= 64 && b <= 127) ||
+                     (a == 198 && (b == 18 || b == 19)));
+        }
+
+        if (address.AddressFamily == AddressFamily.InterNetworkV6)
+            return (bytes[0] & 0xFE) != 0xFC; // exclude IPv6 unique-local ranges
+        return false;
     }
 
     private static List<Episode> SearchYouTube(string query)
